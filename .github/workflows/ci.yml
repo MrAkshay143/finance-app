@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: CI Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step 1: Checkout
+        uses: actions/checkout@v4
+
+      - name: Step 2: Setup Node 20 / 25
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Step 3: Setup pnpm (cached)
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.0
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Step 4: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Step 5: Lint (pnpm run lint)
+        run: pnpm run lint
+
+      - name: Step 6: Typecheck (pnpm run typecheck)
+        run: pnpm run typecheck
+
+      - name: Step 7: Zero-placeholder and emoji grep gate
+        run: pnpm run check:placeholders
+
+      - name: Step 8: Unit & smoke tests (pnpm run test)
+        run: pnpm run test
+
+      - name: Step 9: Build (pnpm run build)
+        run: pnpm run build

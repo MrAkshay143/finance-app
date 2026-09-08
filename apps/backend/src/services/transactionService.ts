@@ -1,0 +1,508 @@
+import { TxnType, TxnDirection, RecordStatus } from '@prisma/client';
+import { prisma } from '../lib/prisma.js';
+import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { balanceService } from './balanceService.js';
+import { logAuditEvent } from './auditService.js';
+import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+
+export interface CreateTransactionData {
+  accountId: string;
+  categoryId?: string | null;
+  type: TxnType;
+  direction?: TxnDirection;
+  amount: number | bigint;
+  date?: string | Date;
+  txnDate?: string | Date;
+  description: string;
+  merchant?: string | null;
+  merchantId?: string | null;
+  notes?: string | null;
+}
+
+export interface UpdateTransactionData {
+  accountId?: string;
+  categoryId?: string | null;
+  type?: TxnType;
+  direction?: TxnDirection;
+  amount?: number | bigint;
+  date?: string | Date;
+  txnDate?: string | Date;
+  description?: string;
+  merchant?: string | null;
+  merchantId?: string | null;
+  notes?: string | null;
+}
+
+export interface ListTransactionsFilters {
+  page?: number;
+  pageSize?: number;
+  type?: TxnType;
+  accountId?: string;
+  categoryId?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  status?: RecordStatus;
+}
+
+export function formatTransaction(txn: any) {
+  const amountPaise = typeof txn.amount === 'bigint' ? txn.amount : BigInt(txn.amount || 0);
+  return {
+    id: txn.id,
+    userId: txn.userId,
+    accountId: txn.accountId,
+    account: txn.account
+      ? {
+          id: txn.account.id,
+          name: txn.account.name,
+          accountType: txn.account.accountType,
+          institution: txn.account.institution,
+          currentBalance: Number(txn.account.currentBalance) / 100,
+          currentBalancePaise: Number(txn.account.currentBalance),
+        }
+      : undefined,
+    categoryId: txn.categoryId || null,
+    category: txn.category
+      ? {
+          id: txn.category.id,
+          name: txn.category.name,
+          type: txn.category.type,
+          isSystem: txn.category.isSystem,
+        }
+      : null,
+    merchantId: txn.merchantId || null,
+    merchant: txn.merchant ? txn.merchant.name : null,
+    type: txn.type,
+    direction: txn.direction,
+    amount: Number(amountPaise) / 100,
+    amountPaise: Number(amountPaise),
+    description: txn.description,
+    txnDate: txn.txnDate,
+    date: txn.txnDate,
+    status: txn.status,
+    createdAt: txn.createdAt,
+    updatedAt: txn.updatedAt,
+  };
+}
+
+export class TransactionService {
+  /**
+   * Maps TxnType to default TxnDirection:
+   * INCOME -> CREDIT
+   * EXPENSE -> DEBIT
+   * INVESTMENT -> DEBIT
+   */
+  mapTypeToDirection(type: TxnType): TxnDirection {
+    switch (type) {
+      case 'INCOME':
+        return 'CREDIT';
+      case 'EXPENSE':
+      case 'INVESTMENT':
+        return 'DEBIT';
+      default:
+        return 'DEBIT';
+    }
+  }
+
+  /**
+   * Converts rupee number to BigInt paise (Math.round(val * 100))
+   */
+  toPaise(val: number | bigint): bigint {
+    if (typeof val === 'bigint') {
+      if (val <= BigInt(0)) {
+        throw new ValidationError('Amount must be positive');
+      }
+      return val;
+    }
+    const num = Number(val);
+    if (isNaN(num) || num <= 0) {
+      throw new ValidationError('Amount must be a positive number');
+    }
+    return BigInt(Math.round(num * 100));
+  }
+
+  /**
+   * Creates a transaction, validating account ownership, converting amounts to BigInt paise,
+   * inserting record and updating account balance via balanceService inside a single Prisma transaction.
+   */
+  async createTransaction(userId: string, data: CreateTransactionData) {
+    // 1. Validate account ownership
+    const account = await prisma.account.findUnique({
+      where: { id: data.accountId },
+    });
+    if (!account) {
+      throw new NotFoundError('Account not found');
+    }
+    if (account.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this account');
+    }
+    if (account.status === 'INACTIVE') {
+      throw new ValidationError('Cannot add transaction to an inactive account');
+    }
+
+    // 2. Map type to direction
+    const direction = data.direction || this.mapTypeToDirection(data.type);
+
+    // 3. Convert rupee amount to BigInt paise
+    const amountPaise = this.toPaise(data.amount);
+
+    // 4. Validate category if provided
+    let categoryId = data.categoryId || null;
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      if (!category || (category.userId && category.userId !== userId)) {
+        throw new NotFoundError('Category not found');
+      }
+    }
+
+    // 5. Merchant resolution
+    let merchantId = data.merchantId || null;
+    if (data.merchant && !merchantId) {
+      const trimmed = data.merchant.trim();
+      if (trimmed) {
+        let existingMerchant = await prisma.merchant.findFirst({
+          where: { userId, name: trimmed },
+        });
+        if (!existingMerchant) {
+          existingMerchant = await prisma.merchant.create({
+            data: { userId, name: trimmed },
+          });
+        }
+        merchantId = existingMerchant.id;
+      }
+    }
+
+    // 6. Date resolution
+    const txnDate = data.txnDate
+      ? new Date(data.txnDate)
+      : data.date
+      ? new Date(data.date)
+      : new Date();
+
+    // 7. Atomic transaction insertion & balance update inside $transaction
+    const txn = await prisma.$transaction(async (tx) => {
+      const created = await tx.transaction.create({
+        data: {
+          userId,
+          accountId: data.accountId,
+          categoryId,
+          merchantId,
+          type: data.type,
+          direction,
+          amount: amountPaise,
+          description: data.description.trim(),
+          txnDate,
+          status: 'ACTIVE',
+        },
+        include: {
+          account: true,
+          category: true,
+          merchant: true,
+        },
+      });
+
+      await balanceService.applyTransactionBalanceChange(
+        tx,
+        data.accountId,
+        direction,
+        amountPaise,
+        false
+      );
+
+      return created;
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'TRANSACTION_CREATE',
+      details: {
+        transactionId: txn.id,
+        accountId: data.accountId,
+        type: data.type,
+        direction,
+        amountPaise: amountPaise.toString(),
+      },
+    });
+
+    await invalidateDashboardCache(userId);
+    emitDashboardRefresh(userId);
+
+    return formatTransaction(txn);
+  }
+
+  /**
+   * Retrieves single transaction by ID after verifying user ownership.
+   */
+  async getTransaction(userId: string, id: string) {
+    const txn = await prisma.transaction.findUnique({
+      where: { id },
+      include: {
+        account: true,
+        category: true,
+        merchant: true,
+      },
+    });
+
+    if (!txn) {
+      throw new NotFoundError('Transaction not found');
+    }
+    if (txn.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this transaction');
+    }
+
+    return formatTransaction(txn);
+  }
+
+  /**
+   * Updates transaction and recalculates account balances inside a single Prisma transaction.
+   */
+  async updateTransaction(userId: string, id: string, data: UpdateTransactionData) {
+    const existing = await prisma.transaction.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Transaction not found');
+    }
+    if (existing.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this transaction');
+    }
+    if (existing.status === 'DELETED') {
+      throw new ValidationError('Cannot update a deleted transaction');
+    }
+
+    // Validate new account ownership if changed
+    const targetAccountId = data.accountId || existing.accountId;
+    if (data.accountId && data.accountId !== existing.accountId) {
+      const newAccount = await prisma.account.findUnique({
+        where: { id: data.accountId },
+      });
+      if (!newAccount) {
+        throw new NotFoundError('Account not found');
+      }
+      if (newAccount.userId !== userId) {
+        throw new ForbiddenError('Access forbidden to this account');
+      }
+      if (newAccount.status === 'INACTIVE') {
+        throw new ValidationError('Cannot transfer transaction to an inactive account');
+      }
+    }
+
+    const newType = data.type || existing.type;
+    const newDirection = data.direction || (data.type ? this.mapTypeToDirection(data.type) : existing.direction);
+    const newAmountPaise = data.amount !== undefined ? this.toPaise(data.amount) : existing.amount;
+
+    // Validate category if provided
+    let categoryId = data.categoryId !== undefined ? data.categoryId : existing.categoryId;
+    if (categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      if (!category || (category.userId && category.userId !== userId)) {
+        throw new NotFoundError('Category not found');
+      }
+    }
+
+    // Merchant resolution
+    let merchantId = data.merchantId !== undefined ? data.merchantId : existing.merchantId;
+    if (data.merchant) {
+      const trimmed = data.merchant.trim();
+      if (trimmed) {
+        let existingMerchant = await prisma.merchant.findFirst({
+          where: { userId, name: trimmed },
+        });
+        if (!existingMerchant) {
+          existingMerchant = await prisma.merchant.create({
+            data: { userId, name: trimmed },
+          });
+        }
+        merchantId = existingMerchant.id;
+      }
+    }
+
+    const txnDate = data.txnDate
+      ? new Date(data.txnDate)
+      : data.date
+      ? new Date(data.date)
+      : undefined;
+
+    // Atomic update and balance recalculation inside $transaction
+    const updated = await prisma.$transaction(async (tx) => {
+      const res = await tx.transaction.update({
+        where: { id },
+        data: {
+          accountId: targetAccountId,
+          categoryId,
+          merchantId,
+          type: newType,
+          direction: newDirection,
+          amount: newAmountPaise,
+          description: data.description !== undefined ? data.description.trim() : undefined,
+          txnDate,
+        },
+        include: {
+          account: true,
+          category: true,
+          merchant: true,
+        },
+      });
+
+      // Recalculate affected accounts
+      if (targetAccountId !== existing.accountId) {
+        await balanceService.recalculateAccountBalance(tx, existing.accountId);
+        await balanceService.recalculateAccountBalance(tx, targetAccountId);
+      } else if (
+        newAmountPaise !== existing.amount ||
+        newDirection !== existing.direction
+      ) {
+        await balanceService.recalculateAccountBalance(tx, existing.accountId);
+      }
+
+      return res;
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'TRANSACTION_UPDATE',
+      details: {
+        transactionId: id,
+        accountId: targetAccountId,
+        oldAmountPaise: existing.amount.toString(),
+        newAmountPaise: newAmountPaise.toString(),
+      },
+    });
+
+    await invalidateDashboardCache(userId);
+    emitDashboardRefresh(userId);
+
+    return formatTransaction(updated);
+  }
+
+  /**
+   * Soft deletes transaction by setting status = DELETED and reverting account balance inside $transaction.
+   */
+  async deleteTransaction(userId: string, id: string) {
+    const existing = await prisma.transaction.findUnique({
+      where: { id },
+      include: {
+        transferAsDebit: true,
+        transferAsCredit: true,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Transaction not found');
+    }
+    if (existing.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this transaction');
+    }
+    if (existing.status === 'DELETED') {
+      throw new ValidationError('Transaction is already deleted');
+    }
+
+    // Atomic soft-delete and balance reversion inside $transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.transaction.update({
+        where: { id },
+        data: { status: 'DELETED' },
+      });
+
+      await balanceService.applyTransactionBalanceChange(
+        tx,
+        existing.accountId,
+        existing.direction,
+        existing.amount,
+        true // isReversal = true
+      );
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'TRANSACTION_DELETE',
+      details: {
+        transactionId: id,
+        accountId: existing.accountId,
+        amountPaise: existing.amount.toString(),
+        direction: existing.direction,
+      },
+    });
+
+    await invalidateDashboardCache(userId);
+    emitDashboardRefresh(userId);
+
+    return { message: 'Transaction deleted successfully' };
+  }
+
+  /**
+   * Lists transactions with filtering, search, pagination, and clean response formatting.
+   */
+  async listTransactions(userId: string, filters: ListTransactionsFilters = {}) {
+    const page = Math.max(1, Number(filters.page || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(filters.pageSize || 20)));
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const where: any = {
+      userId,
+      status: filters.status || 'ACTIVE',
+    };
+
+    if (filters.type) {
+      where.type = filters.type;
+    }
+
+    if (filters.accountId) {
+      where.accountId = filters.accountId;
+    }
+
+    if (filters.categoryId) {
+      where.categoryId = filters.categoryId;
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.txnDate = {};
+      if (filters.startDate) {
+        where.txnDate.gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        where.txnDate.lte = new Date(filters.endDate);
+      }
+    }
+
+    if (filters.search) {
+      const term = filters.search.trim();
+      where.OR = [
+        { description: { contains: term, mode: 'insensitive' } },
+        { merchant: { name: { contains: term, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [total, items] = await Promise.all([
+      prisma.transaction.count({ where }),
+      prisma.transaction.findMany({
+        where,
+        orderBy: [{ txnDate: 'desc' }, { createdAt: 'desc' }],
+        skip,
+        take,
+        include: {
+          account: true,
+          category: true,
+          merchant: true,
+        },
+      }),
+    ]);
+
+    return {
+      items: items.map(formatTransaction),
+      total,
+      page,
+      pageSize,
+    };
+  }
+}
+
+export const transactionService = new TransactionService();
+export default transactionService;

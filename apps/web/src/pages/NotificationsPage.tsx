@@ -1,0 +1,397 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import {
+  ChevronLeft,
+  Calendar,
+  Info,
+  CheckSquare,
+  Shield,
+  ShieldCheck,
+  Bell,
+  AlertTriangle,
+  ChevronRight,
+  Clock,
+} from 'lucide-react';
+import { AppHeader } from '../components/layout/AppHeader.js';
+import { Card } from '../components/ui/Card.js';
+import { apiClient, getStoredAccessToken } from '../services/apiClient.js';
+import { FinanceSocketManager } from '@finance/api-client';
+import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
+import { useUiStore } from '../store/uiStore.js';
+import type { NotificationItem, Reminder } from '@finance/shared-types';
+
+export const NotificationsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const queryClient = useSafeQueryClient();
+  const setUnreadCount = useUiStore((state) => state.setUnreadCount);
+
+  const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [remindersEnabled, setRemindersEnabled] = useState<boolean>(true);
+  const [reminderDays, setReminderDays] = useState<number>(2);
+
+  // Fetch Reminders
+  const { data: remindersData } = useQuery<Reminder[]>({
+    queryKey: ['reminders'],
+    queryFn: async () => {
+      return await apiClient.reminders.list();
+    },
+  }, queryClient);
+
+  // Sync reminder state from server if exists
+  useEffect(() => {
+    if (remindersData && remindersData.length > 0) {
+      const primaryReminder = remindersData[0];
+      setRemindersEnabled(primaryReminder.enabled);
+      const days = primaryReminder.timingConfig?.daysBefore;
+      if (typeof days === 'number' && days >= 1 && days <= 5) {
+        setReminderDays(days);
+      }
+    }
+  }, [remindersData]);
+
+  // Fetch Notifications
+  const { data: notificationsResponse } = useQuery({
+    queryKey: ['notifications', activeFilter],
+    queryFn: async () => {
+      return await apiClient.notifications.list({
+        filter: activeFilter === 'all' ? undefined : activeFilter,
+        page: 1,
+        pageSize: 50,
+      });
+    },
+  }, queryClient);
+
+  // Mark single as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiClient.notifications.markAsRead(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      apiClient.notifications.getUnreadCount().then((res) => setUnreadCount(res.count)).catch(() => {});
+    },
+  }, queryClient);
+
+  // Mark all as read mutation
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      return await apiClient.notifications.markAllAsRead();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      setUnreadCount(0);
+    },
+  }, queryClient);
+
+  // Save / Update Reminder preference
+  const saveReminderConfig = async (enabled: boolean, days: number) => {
+    try {
+      if (remindersData && remindersData.length > 0) {
+        const id = remindersData[0].id;
+        await apiClient.reminders.update(id, {
+          enabled,
+          timingConfig: { daysBefore: days },
+        });
+      } else {
+        await apiClient.reminders.create({
+          type: 'RECURRING_EXPENSE',
+          timingConfig: { daysBefore: days },
+          enabled,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    } catch {
+      // Fallback: keep local state
+    }
+  };
+
+  const handleToggleReminders = () => {
+    const next = !remindersEnabled;
+    setRemindersEnabled(next);
+    saveReminderConfig(next, reminderDays);
+  };
+
+  const handleSelectDays = (days: number) => {
+    setReminderDays(days);
+    saveReminderConfig(remindersEnabled, days);
+  };
+
+  // Realtime Socket.IO Connection for Notifications
+  useEffect(() => {
+    const socketUrl = (import.meta as any).env?.VITE_SOCKET_URL || (import.meta as any).env?.VITE_API_URL || undefined;
+    const socketManager = new FinanceSocketManager({
+      url: socketUrl,
+      getAccessToken: () => getStoredAccessToken(),
+    });
+
+    socketManager
+      .connectNotifications(
+        () => {
+          // Invalidate notifications cache on new notification event
+          queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+        (count: number) => {
+          setUnreadCount(count);
+        }
+      )
+      .catch(() => {
+        // Socket connection silent failover
+      });
+
+    return () => {
+      socketManager.disconnectAll();
+    };
+  }, [queryClient, setUnreadCount]);
+
+  const items = notificationsResponse?.items || [];
+  const unreadCount = notificationsResponse?.unreadCount ?? items.filter((i) => !i.read).length;
+
+  const getRelativeTime = (dateStr: string) => {
+    try {
+      const diffMs = Date.now() - new Date(dateStr).getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return 'Recently';
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'SECURITY_REMINDER':
+      case 'KBA_ALERT':
+        return <ShieldCheck className="w-5 h-5 text-brand-primary stroke-[2.2]" />;
+      case 'DUE_DATE':
+      case 'REMINDER':
+        return <Calendar className="w-5 h-5 text-brand-primary stroke-[2.2]" />;
+      case 'WARNING':
+        return <AlertTriangle className="w-5 h-5 text-semantic-warning stroke-[2.2]" />;
+      default:
+        return <Bell className="w-5 h-5 text-brand-primary stroke-[2.2]" />;
+    }
+  };
+
+  const handleItemClick = (item: NotificationItem) => {
+    if (!item.read) {
+      markAsReadMutation.mutate(item.id);
+    }
+    if (item.type.includes('SECURITY') || item.title.includes('security questions')) {
+      navigate('/security/questions');
+    } else if (item.type.includes('DUE_DATE')) {
+      navigate('/recurring');
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col pb-20">
+      {/* Branded Dark Navy Header */}
+      <AppHeader
+        variant="root"
+        title="Finance Tracker"
+        subtitle="Stay informed. Stay in control."
+      />
+
+      <div className="p-4 space-y-4">
+        {/* Subheader: Back Chevron, Title, Subtitle */}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-textDefault hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-800 stroke-[2.5]" />
+          </button>
+          <div>
+            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
+              Notifications
+            </h1>
+            <p className="text-xs text-textMuted leading-tight mt-0.5">
+              Manage your alerts and reminders
+            </p>
+          </div>
+        </div>
+
+        {/* Top Card: Due-date reminders */}
+        <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              {/* Calendar icon in soft-blue square */}
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                  Due-date reminders
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Get reminded before your recurring expenses &amp; investments are due.
+                </p>
+              </div>
+            </div>
+
+            {/* Modern Toggle Switch */}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={remindersEnabled}
+              onClick={handleToggleReminders}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                remindersEnabled ? 'bg-brand-primary' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  remindersEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="border-t border-slate-100 pt-3 space-y-2.5">
+            <span className="text-xs font-semibold text-slate-700 block">
+              Remind me this many days before:
+            </span>
+
+            {/* Circular numeric buttons 1, 2, 3, 4, 5 */}
+            <div className="flex items-center gap-2.5">
+              {[1, 2, 3, 4, 5].map((num) => {
+                const isSelected = reminderDays === num;
+                return (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => handleSelectDays(num)}
+                    className={`w-9 h-9 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
+                      isSelected
+                        ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25 scale-105'
+                        : 'bg-white border border-slate-200 text-slate-700 hover:border-brand-primary/60'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Callout box */}
+            <div className="bg-blue-50/70 border border-blue-100/80 rounded-xl p-3 flex items-center gap-2.5 text-xs text-slate-600 mt-2">
+              <Info className="w-4 h-4 text-brand-primary shrink-0" />
+              <span>
+                You will receive a notification this many days before a due date.
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Filter Segmented Control: All, Unread, Read */}
+        <div className="flex items-center bg-slate-100 p-1 rounded-full">
+          <button
+            type="button"
+            onClick={() => setActiveFilter('all')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              activeFilter === 'all'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('unread')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              activeFilter === 'unread'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Unread
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('read')}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              activeFilter === 'read'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Read
+          </button>
+        </div>
+
+        {/* Action row: N unread notification(s) & Mark all as read button */}
+        <div className="flex items-center justify-between px-1 text-xs">
+          <span className="font-medium text-slate-600">
+            {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
+          </span>
+          <button
+            type="button"
+            onClick={() => markAllReadMutation.mutate()}
+            className="flex items-center gap-1.5 font-bold text-brand-primary hover:text-blue-700 transition-colors"
+          >
+            <CheckSquare className="w-4 h-4 stroke-[2.2]" />
+            <span>Mark all as read</span>
+          </button>
+        </div>
+
+        {/* Notification Item Cards List */}
+        {items.length === 0 ? (
+          <Card padding="md" className="py-12 flex flex-col items-center justify-center text-center space-y-2 bg-white border-slate-200">
+            <Bell className="w-8 h-8 text-slate-300" />
+            <h4 className="text-xs font-bold text-slate-800">No notifications right now</h4>
+            <p className="text-[11px] text-slate-500">You are all caught up! New alerts will appear here.</p>
+          </Card>
+        ) : (
+          <div className="space-y-2.5">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleItemClick(item)}
+                className={`rounded-2xl p-3.5 border transition-all cursor-pointer flex items-start gap-3 relative ${
+                  item.read
+                    ? 'bg-white border-slate-200 opacity-80'
+                    : 'bg-white border-blue-200 shadow-sm'
+                }`}
+              >
+                {/* Unread blue dot indicator */}
+                {!item.read && (
+                  <div className="w-2 h-2 rounded-full bg-brand-primary shrink-0 mt-3" />
+                )}
+
+                {/* Icon badge in soft-blue square */}
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                  {getNotificationIcon(item.type)}
+                </div>
+
+                {/* Text content */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs font-bold text-slate-900 leading-snug truncate">
+                      {item.title}
+                    </h4>
+                    <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                      {getRelativeTime(item.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed line-clamp-2">
+                    {item.message}
+                  </p>
+                </div>
+
+                {/* Right chevron */}
+                <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 self-center" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

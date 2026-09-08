@@ -1,0 +1,52 @@
+import { Router } from 'express';
+import { profileController } from '../controllers/profileController.js';
+import { authenticate } from '../middleware/authenticate.js';
+import { validateBody } from '../middleware/validate.js';
+import {
+  UpdateBasicProfileInputSchema,
+  UpdateFinanceProfileInputSchema,
+} from '@finance/shared-types';
+
+export const profileRouter: Router = Router();
+
+// All profile endpoints require authentication
+profileRouter.use(authenticate);
+
+// Get complete profile
+profileRouter.get('/', (req, res, next) => {
+  profileController.getProfile(req, res, next);
+});
+
+// Update basic profile (supports PUT and PATCH)
+profileRouter.put('/basic', validateBody(UpdateBasicProfileInputSchema), (req, res, next) => {
+  profileController.updateBasicProfile(req, res, next);
+});
+
+profileRouter.patch('/basic', validateBody(UpdateBasicProfileInputSchema), (req, res, next) => {
+  profileController.updateBasicProfile(req, res, next);
+});
+
+// Update profile root (alias for basic profile update)
+profileRouter.patch('/', validateBody(UpdateBasicProfileInputSchema), (req, res, next) => {
+  profileController.updateBasicProfile(req, res, next);
+});
+
+// Finance profile endpoints
+profileRouter.get('/finance', (req, res, next) => {
+  profileController.getFinanceProfile(req, res, next);
+});
+
+profileRouter.put('/finance', validateBody(UpdateFinanceProfileInputSchema), (req, res, next) => {
+  profileController.updateFinanceProfile(req, res, next);
+});
+
+profileRouter.patch('/finance', validateBody(UpdateFinanceProfileInputSchema), (req, res, next) => {
+  profileController.updateFinanceProfile(req, res, next);
+});
+
+// Upload user avatar image
+profileRouter.post('/avatar', (req, res, next) => {
+  profileController.uploadAvatar(req, res, next);
+});
+
+export default profileRouter;

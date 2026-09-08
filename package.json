@@ -1,0 +1,27 @@
+{
+  "name": "finance-tracker-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "build": "pnpm -r --filter=\"./packages/*\" run build && pnpm -r --filter=\"./apps/*\" run build",
+    "start": "pnpm --filter @finance/backend start",
+    "db:migrate": "pnpm --filter @finance/backend db:migrate",
+    "db:seed": "pnpm --filter @finance/backend seed:realworld",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck",
+    "check:placeholders": "node scripts/check-placeholders.cjs",
+    "dev:backend": "pnpm --filter @finance/backend dev",
+    "dev:worker": "pnpm --filter @finance/backend dev:worker",
+    "dev:web": "pnpm --filter @finance/web dev",
+    "clean": "pnpm -r exec rm -rf dist node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,0 +1,85 @@
+# Multi-stage Dockerfile for Backend API & BullMQ Worker per Plan/architecture.md §9
+
+# Stage 1: Build stage
+FROM node:20-bookworm-slim AS builder
+
+WORKDIR /app
+
+# Install PNPM
+RUN corepack enable && corepack prepare pnpm@11.13.0 --activate
+
+# Copy root workspace manifests
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.base.json ./
+
+# Copy package.json of all packages and apps for layer-cached installation
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/shared-ui-tokens/package.json ./packages/shared-ui-tokens/
+COPY packages/api-client/package.json ./packages/api-client/
+COPY apps/backend/package.json ./apps/backend/
+COPY apps/web/package.json ./apps/web/
+COPY apps/mobile/package.json ./apps/mobile/
+
+# Install all monorepo dependencies
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Copy source code of shared packages and backend
+COPY packages/shared-types ./packages/shared-types
+COPY packages/shared-ui-tokens ./packages/shared-ui-tokens
+COPY packages/api-client ./packages/api-client
+COPY apps/backend ./apps/backend
+
+# Generate Prisma Client
+WORKDIR /app/apps/backend
+RUN npx prisma generate
+
+# Build shared packages first, then backend
+WORKDIR /app
+RUN pnpm --filter @finance/shared-types build
+RUN pnpm --filter @finance/shared-ui-tokens build
+RUN pnpm --filter @finance/api-client build
+RUN pnpm --filter @finance/backend build
+
+# Stage 2: Minimal Production Runtime
+FROM node:20-bookworm-slim AS runner
+
+WORKDIR /app
+
+# Install wget and ca-certificates for healthcheck & secure outbound connections
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable && corepack prepare pnpm@11.13.0 --activate
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=4000
+
+# Copy root manifests and package.json files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* tsconfig.base.json ./
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/shared-ui-tokens/package.json ./packages/shared-ui-tokens/
+COPY packages/api-client/package.json ./packages/api-client/
+COPY apps/backend/package.json ./apps/backend/
+
+# Copy built code from builder
+COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
+COPY --from=builder /app/packages/shared-ui-tokens/dist ./packages/shared-ui-tokens/dist
+COPY --from=builder /app/packages/api-client/dist ./packages/api-client/dist
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
+
+# Add non-root user for security
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/sh -m nodeuser && \
+    chown -R nodeuser:nodejs /app
+
+USER nodeuser
+
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:4000/healthz || exit 1
+
+CMD ["node", "apps/backend/dist/server.js"]

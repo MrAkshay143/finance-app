@@ -1,0 +1,359 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum TxnType {
+  INCOME
+  EXPENSE
+  INVESTMENT
+}
+
+enum TxnDirection {
+  CREDIT
+  DEBIT
+}
+
+enum RecordStatus {
+  ACTIVE
+  DELETED
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  DELETED
+}
+
+model User {
+  id                  String     @id @default(uuid())
+  firstName           String
+  lastName            String
+  email               String     @unique
+  mobileNumber        String
+  passwordHash        String
+  role                UserRole   @default(USER)
+  status              UserStatus @default(ACTIVE)
+  failedLoginAttempts Int        @default(0)
+  lockedUntil         DateTime?
+  onboardingCompleted Boolean    @default(false)
+  avatarUrl           String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  lastLoginAt         DateTime?
+
+  financeProfile      FinanceProfile?
+  userSettings        UserSettings?
+  securityQuestions   SecurityQuestion[]
+  accounts            Account[]
+  categories          Category[]
+  merchants           Merchant[]
+  transactions        Transaction[]
+  transfers           Transfer[]
+  budgets             Budget[]
+  goals               Goal[]
+  recurringTxns       RecurringTransaction[]
+  notifications       Notification[]
+  reminders           Reminder[]
+  refreshTokens       RefreshToken[]
+  auditLogsAsActor    AuditLog[] @relation("ActorAuditLogs")
+  auditLogsAsTarget   AuditLog[] @relation("TargetAuditLogs")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  familyId  String
+  userAgent String?
+  ipAddress String?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model SecurityQuestion {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionKey String
+  answerHash  String
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, questionKey])
+  @@index([userId])
+  @@map("security_questions")
+}
+
+model FinanceProfile {
+  id                      String    @id @default(uuid())
+  userId                  String    @unique
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth             DateTime?
+  address                 String?
+  monthlyIncome           BigInt    @default(0)
+  monthlyExpenseBudget    BigInt    @default(0)
+  monthlyInvestmentTarget BigInt    @default(0)
+  incomeRange             String?
+  savingsTarget           BigInt?
+  investmentExperience    String?
+  riskAppetite            String?
+  investmentHorizon       String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@map("finance_profiles")
+}
+
+model Account {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  name              String
+  institution       String?
+  accountType       String
+  accountIdentifier String?
+  openingBalance    BigInt        @default(0)
+  currentBalance    BigInt        @default(0)
+  status            AccountStatus @default(ACTIVE)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  transactions      Transaction[]
+  recurringTxns     RecurringTransaction[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  userId    String?  // null = system category
+  user      User?    @relation(fields: [userId], references: [id])
+  name      String
+  type      TxnType
+  isSystem  Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  transactions  Transaction[]
+  budgets       Budget[]
+  recurringTxns RecurringTransaction[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+model Merchant {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("merchants")
+}
+
+model Transaction {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  accountId   String
+  account     Account      @relation(fields: [accountId], references: [id])
+  categoryId  String?
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  merchantId  String?
+  merchant    Merchant?    @relation(fields: [merchantId], references: [id])
+  type        TxnType
+  direction   TxnDirection
+  amount      BigInt
+  description String?
+  txnDate     DateTime
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  transferAsDebit  Transfer? @relation("DebitTxn")
+  transferAsCredit Transfer? @relation("CreditTxn")
+
+  @@index([userId, txnDate])
+  @@index([accountId])
+  @@index([categoryId])
+  @@map("transactions")
+}
+
+model Transfer {
+  id                   String      @id @default(uuid())
+  userId               String
+  user                 User        @relation(fields: [userId], references: [id])
+  sourceAccountId      String
+  destinationAccountId String
+  amount               BigInt
+  txnDate              DateTime
+  description          String?
+  debitTransactionId   String      @unique
+  debitTransaction     Transaction @relation("DebitTxn", fields: [debitTransactionId], references: [id])
+  creditTransactionId  String      @unique
+  creditTransaction    Transaction @relation("CreditTxn", fields: [creditTransactionId], references: [id])
+  createdAt            DateTime    @default(now())
+
+  @@index([userId])
+  @@map("transfers")
+}
+
+model Budget {
+  id           String       @id @default(uuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id])
+  categoryId   String
+  category     Category     @relation(fields: [categoryId], references: [id])
+  name         String
+  targetAmount BigInt
+  period       String       @default("MONTHLY")
+  periodStart  DateTime
+  status       RecordStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([userId])
+  @@map("budgets")
+}
+
+model Goal {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  name          String
+  targetAmount  BigInt
+  currentAmount BigInt       @default(0)
+  targetDate    DateTime?
+  status        RecordStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model RecurringTransaction {
+  id               String          @id @default(uuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id])
+  type             TxnType
+  accountId        String
+  account          Account         @relation(fields: [accountId], references: [id])
+  categoryId       String?
+  category         Category?       @relation(fields: [categoryId], references: [id])
+  amount           BigInt
+  description      String?
+  scheduleFreq     String          // DAILY | WEEKLY | MONTHLY | YEARLY
+  scheduleInterval Int             @default(1)
+  nextOccurrence   DateTime
+  status           RecurringStatus @default(ACTIVE)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([nextOccurrence])
+  @@map("recurring_transactions")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model Reminder {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  type         String   // RECURRING_EXPENSE | RECURRING_INVESTMENT | MONTH_END
+  timingConfig Json
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@map("reminders")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorUserId  String?
+  actor        User?    @relation("ActorAuditLogs", fields: [actorUserId], references: [id])
+  action       String
+  targetUserId String?
+  target       User?    @relation("TargetAuditLogs", fields: [targetUserId], references: [id])
+  details      Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@map("app_settings")
+}
+
+model UserSettings {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency               String   @default("INR")
+  timezone               String   @default("Asia/Kolkata")
+  financialMonthStartDay Int      @default(1)
+  quickAddEnabled        Boolean  @default(true)
+  dashboardDonutsConfig  Json     @default("{\"income\":true,\"expense\":true,\"investment\":true}")
+  featuresConfig         Json     @default("{\"investments\":true,\"recurring\":true}")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("user_settings")
+}
