@@ -4,7 +4,7 @@ services:
   # ============================================================================
   - type: web
     name: finance-tracker-backend
-    env: node
+    runtime: node
     buildCommand: npm install -g pnpm@11.13.0 && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
     startCommand: pnpm --filter @finance/backend db:migrate && pnpm --filter @finance/backend start
     healthCheckPath: /healthz
@@ -32,8 +32,9 @@ services:
   # ============================================================================
   # Frontend Static Web Site
   # ============================================================================
-  - type: static
+  - type: web
     name: finance-tracker-web
+    runtime: static
     buildCommand: npm install -g pnpm@11.13.0 && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/web build
     staticPublishPath: apps/web/dist
     autoDeploy: true
