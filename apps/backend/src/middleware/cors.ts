@@ -12,8 +12,14 @@ export const corsMiddleware = cors({
     if (!origin) {
       return callback(null, true);
     }
-    // Allow wildcard or explicit origin match
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    // Allow wildcard, explicit match, or valid deployed subdomains
+    if (
+      allowedOrigins.includes('*') ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.onrender.com') ||
+      origin.endsWith('.imakshay.in') ||
+      origin.includes('localhost')
+    ) {
       return callback(null, true);
     }
     return callback(null, false);

@@ -7,7 +7,7 @@ services:
     runtime: node
     plan: free
     buildCommand: corepack enable && corepack prepare pnpm@11.13.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
-    startCommand: npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/server.js
+    startCommand: ./apps/backend/node_modules/.bin/prisma migrate deploy --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/server.js
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
@@ -17,8 +17,6 @@ services:
         value: "true"
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 4000
       - key: LOG_LEVEL
         value: info
       - key: DATABASE_URL
@@ -32,7 +30,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ALLOWED_ORIGINS
-        value: https://finance-tracker-web.onrender.com,https://finance.imakshay.in,http://finance.imakshay.in
+        value: "*"
 
   # ============================================================================
   # Frontend Static Web Site
