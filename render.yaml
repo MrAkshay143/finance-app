@@ -6,11 +6,15 @@ services:
     name: finance-tracker-backend
     runtime: node
     plan: free
-    buildCommand: npm install -g pnpm@11.13.0 && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
-    startCommand: pnpm --filter @finance/backend db:migrate && pnpm --filter @finance/backend start
+    buildCommand: corepack enable && corepack prepare pnpm@11.13.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
+    startCommand: npx prisma migrate deploy --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/server.js
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -36,7 +40,7 @@ services:
   - type: web
     name: finance-tracker-web
     runtime: static
-    buildCommand: npm install -g pnpm@11.13.0 && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/web build
+    buildCommand: corepack enable && corepack prepare pnpm@11.13.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/web build
     staticPublishPath: apps/web/dist
     autoDeploy: true
     routes:
@@ -44,6 +48,10 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
       - key: VITE_API_URL
         value: https://finance-tracker-backend.onrender.com
 
