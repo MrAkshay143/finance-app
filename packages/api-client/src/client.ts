@@ -176,10 +176,17 @@ export class FinanceApiClient {
   // Generic request helper returning data unwrapped if success
   private async request<T>(config: AxiosRequestConfig): Promise<T> {
     const res = await this.client.request<ApiResponse<T>>(config);
-    if (!res.data.success) {
-      throw new Error(res.data.error.message || 'API Error');
+    const data = res.data as any;
+    if (!data || !data.success) {
+      const errMsg =
+        typeof data === 'object' && data !== null
+          ? data.error?.message || data.message || 'API Error'
+          : typeof data === 'string' && data.includes('<!DOCTYPE')
+          ? 'Backend API server unreachable or returned HTML.'
+          : 'API Error';
+      throw new Error(errMsg);
     }
-    return res.data.data;
+    return data.data;
   }
 
   // Auth endpoints
