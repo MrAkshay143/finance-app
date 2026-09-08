@@ -1,5 +1,7 @@
 # Finance Tracker — Production Monorepo
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MrAkshay143/finance-app)
+
 Enterprise-grade personal finance application engineered across Web (React 18 + Vite + Tailwind CSS), Mobile (React Native Expo SDK 52 + NativeWind), and a unified backend API (Node.js/Express + TypeScript + PostgreSQL 18 + Prisma + Redis 7 fallback + BullMQ + Socket.IO).
 
 ---
