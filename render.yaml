@@ -5,6 +5,7 @@ services:
   - type: web
     name: finance-tracker-backend
     runtime: node
+    plan: free
     buildCommand: npm install -g pnpm@11.13.0 && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
     startCommand: pnpm --filter @finance/backend db:migrate && pnpm --filter @finance/backend start
     healthCheckPath: /healthz
@@ -51,5 +52,6 @@ services:
 # ==============================================================================
 databases:
   - name: finance-tracker-db
+    plan: free
     databaseName: finance_tracker
     postgresMajorVersion: 16
