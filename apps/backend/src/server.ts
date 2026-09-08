@@ -33,9 +33,18 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-server.listen(port, '0.0.0.0', () => {
-  logger.info(`Finance Tracker backend running on port ${port} (0.0.0.0) in ${env.NODE_ENV} mode`);
-});
+const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
+
+if (isSocket) {
+  server.listen(port, () => {
+    logger.info(`Finance Tracker backend running on socket ${port} in ${env.NODE_ENV} mode`);
+  });
+} else {
+  const numericPort = Number(port) || 4000;
+  server.listen(numericPort, '0.0.0.0', () => {
+    logger.info(`Finance Tracker backend running on port ${numericPort} (0.0.0.0) in ${env.NODE_ENV} mode`);
+  });
+}
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

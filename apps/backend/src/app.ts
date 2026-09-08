@@ -1,5 +1,7 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+import path from 'path';
+import fs from 'fs';
 import { requestId } from './middleware/requestId.js';
 import { metricsMiddleware } from './middleware/metricsMiddleware.js';
 import { corsMiddleware } from './middleware/cors.js';
@@ -33,8 +35,13 @@ export function createApp(): Express {
   // 2. Prometheus HTTP metrics collection middleware
   app.use(metricsMiddleware);
 
-  // 3. Helmet security headers
-  app.use(helmet());
+  // 3. Helmet security headers (CSP disabled to allow Vite bundled assets)
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    })
+  );
 
   // 4. CORS with allowed origins
   app.use(corsMiddleware);
@@ -74,6 +81,23 @@ export function createApp(): Express {
 
   // Versioned API routes (/api/v1/...)
   app.use('/api/v1', apiV1Router);
+
+  // Serve static SPA files if public/ directory exists
+  const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');
+  if (fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir, { maxAge: '1h', index: false }));
+    app.get('*', (req: Request, res: Response, next: NextFunction) => {
+      if (
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/metrics') ||
+        req.path.startsWith('/healthz') ||
+        req.path.startsWith('/readyz')
+      ) {
+        return next();
+      }
+      res.sendFile(path.resolve(publicDir, 'index.html'));
+    });
+  }
 
   // Catch-all 404 handler for unknown routes
   app.use(notFoundHandler);
