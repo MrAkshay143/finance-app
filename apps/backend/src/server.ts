@@ -51,19 +51,10 @@ async function ensureDatabaseSchema() {
   }
 }
 
-// Ensure at least one admin user exists. Only creates if NO admins exist at all.
-// Never overwrites an existing admin's password - credentials must be changed via the app UI.
+// Ensure at least one admin user exists. Creates initial admin or unlocks/syncs if required.
 // Reads initial credentials from ADMIN_EMAIL / ADMIN_PASSWORD env vars with safe defaults.
 async function ensureAdminUser() {
   try {
-    // Check if ANY admin user already exists - if so, do nothing
-    const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
-    if (adminCount > 0) {
-      logger.debug('Admin user already exists, skipping auto-provisioning');
-      return;
-    }
-
-    // First boot: create the initial admin from environment variables with safe defaults
     const adminEmail = (process.env.ADMIN_EMAIL || 'contact@imakshay.in').toLowerCase().trim();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Password123';
 
@@ -73,6 +64,29 @@ async function ensureAdminUser() {
     }
 
     const passwordHash = await hashPassword(adminPassword);
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
+
+    if (existingUser) {
+      // If user exists, ensure they have ADMIN role and clear any test lockout
+      if (existingUser.role !== 'ADMIN' || existingUser.lockedUntil || existingUser.failedLoginAttempts > 0) {
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            role: 'ADMIN',
+            passwordHash,
+            failedLoginAttempts: 0,
+            lockedUntil: null,
+            status: 'ACTIVE',
+            onboardingCompleted: true,
+          },
+        });
+        logger.info(`Admin user ${adminEmail} verified, promoted to ADMIN, and unlocked.`);
+      }
+      return;
+    }
 
     await prisma.user.create({
       data: {
@@ -120,6 +134,15 @@ async function ensureDemoUser() {
       where: { email: demoEmail },
     });
     if (existing) {
+      if (existing.lockedUntil || existing.failedLoginAttempts > 0) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: {
+            failedLoginAttempts: 0,
+            lockedUntil: null,
+          },
+        });
+      }
       logger.debug('Standard user already exists, skipping auto-provisioning');
       return;
     }
