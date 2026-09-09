@@ -6,6 +6,7 @@ import { logger } from './lib/logger.js';
 import { initSentry } from './lib/sentry.js';
 import { initRedis, closeRedis } from './lib/redis.js';
 import { prisma } from './lib/prisma.js';
+import { hashPassword } from './lib/jwt.js';
 
 // Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md §11
 initSentry('backend-api');
@@ -44,6 +45,67 @@ async function ensureDatabaseSchema() {
   }
 }
 ensureDatabaseSchema();
+
+// Ensure dedicated admin user exists with requested credentials
+async function ensureAdminUser() {
+  try {
+    const adminEmail = 'contact@imakshay.in';
+    const existing = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
+    const passwordHash = await hashPassword('Pass@12345');
+
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          email: adminEmail,
+          firstName: 'Akshay',
+          lastName: 'Admin',
+          mobileNumber: '+919876543210',
+          passwordHash,
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          onboardingCompleted: true,
+          userSettings: {
+            create: {
+              currency: 'INR',
+              timezone: 'Asia/Kolkata',
+              financialMonthStartDay: 1,
+              quickAddEnabled: true,
+              dashboardDonutsConfig: { income: true, expense: true, investment: true },
+              featuresConfig: { investments: true, recurring: true },
+            },
+          },
+          financeProfile: {
+            create: {
+              monthlyIncome: BigInt(0),
+              monthlyExpenseBudget: BigInt(0),
+              monthlyInvestmentTarget: BigInt(0),
+              riskAppetite: 'MEDIUM',
+              investmentHorizon: 'MEDIUM',
+            },
+          },
+        },
+      });
+      logger.info(`Admin user created successfully: ${adminEmail} (role: ADMIN)`);
+    } else {
+      await prisma.user.update({
+        where: { email: adminEmail },
+        data: {
+          role: 'ADMIN',
+          passwordHash,
+          status: 'ACTIVE',
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+      logger.info(`Admin user verified & updated: ${adminEmail} (role: ADMIN)`);
+    }
+  } catch (err: any) {
+    logger.warn({ err: err?.message }, 'Failed to verify admin user on startup');
+  }
+}
+ensureAdminUser();
 
 const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
 
