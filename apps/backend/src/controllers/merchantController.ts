@@ -55,6 +55,20 @@ export class MerchantController {
       next(err);
     }
   }
+
+  async deleteMerchant(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      const result = await merchantService.deleteMerchant(userId, id);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const merchantController = new MerchantController();

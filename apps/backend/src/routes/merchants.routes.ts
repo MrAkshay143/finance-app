@@ -29,4 +29,9 @@ merchantsRouter.put('/:id', validateBody(UpdateMerchantInputSchema), (req, res, 
   merchantController.updateMerchant(req, res, next);
 });
 
+// DELETE /api/v1/merchants/:id - Delete merchant (only if 0 transactions)
+merchantsRouter.delete('/:id', (req, res, next) => {
+  merchantController.deleteMerchant(req, res, next);
+});
+
 export default merchantsRouter;

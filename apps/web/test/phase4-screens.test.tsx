@@ -265,7 +265,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
       expect(html).toContain('aria-label="Go back"');
     });
 
-    it('renders Due-date reminders card with toggle switch, numeric days selector 1..5, and info callout', () => {
+    it('renders compact Due-date reminders card with Manage button', () => {
       const qc = createTestQueryClient();
       const html = renderToString(
         <QueryClientProvider client={qc}>
@@ -275,19 +275,9 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
         </QueryClientProvider>
       );
 
-      expect(html).toContain('Due-date reminders');
-      expect(html).toContain('Get reminded before your recurring expenses &amp; investments are due.');
-      expect(html).toContain('role="switch"');
-      expect(html).toContain('Remind me this many days before:');
-
-      // Numeric buttons 1, 2, 3, 4, 5
-      expect(html).toContain('>1</button>');
-      expect(html).toContain('>2</button>');
-      expect(html).toContain('>3</button>');
-      expect(html).toContain('>4</button>');
-      expect(html).toContain('>5</button>');
-
-      expect(html).toContain('You will receive a notification this many days before a due date.');
+      expect(html).toContain('Due-Date Reminders');
+      expect(html).toContain('Active • 2 days before due date');
+      expect(html).toContain('Manage');
     });
 
     it('renders filter pills: All, Unread, Read, and "Mark all as read" button', () => {

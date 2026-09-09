@@ -105,12 +105,14 @@ export class MerchantService {
       throw new ValidationError('Merchant name is required');
     }
 
-    const existing = await prisma.merchant.findFirst({
-      where: {
-        userId,
-        name: { equals: name, mode: 'insensitive' },
-      },
+    const userMerchants = await prisma.merchant.findMany({
+      where: { userId },
+      select: { id: true, userId: true, name: true, createdAt: true },
     });
+
+    const existing = userMerchants.find(
+      (m) => m.name.trim().toLowerCase() === name.toLowerCase()
+    );
 
     if (existing) {
       return {
@@ -191,6 +193,45 @@ export class MerchantService {
       name: updated.name,
       createdAt: updated.createdAt,
     };
+  }
+
+  /**
+   * Deletes a merchant if not linked to any transactions.
+   */
+  async deleteMerchant(userId: string, id: string) {
+    const existing = await prisma.merchant.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Merchant not found');
+    }
+    if (existing.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this merchant');
+    }
+
+    const txCount = await prisma.transaction.count({
+      where: { merchantId: id },
+    });
+
+    if (txCount > 0) {
+      throw new ValidationError('Cannot delete merchant that is linked to transactions');
+    }
+
+    await prisma.merchant.delete({
+      where: { id },
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'MERCHANT_DELETE',
+      details: {
+        merchantId: id,
+        name: existing.name,
+      },
+    });
+
+    return { message: 'Merchant deleted successfully' };
   }
 }
 

@@ -83,6 +83,19 @@ export const CONFIRM_DIALOGS = {
       icon: 'trash',
     }),
   },
+  merchants: {
+    delete: (merchantName?: string): ConfirmDialogDefinition => ({
+      title: 'Delete Merchant',
+      subtitle: 'Confirm merchant removal',
+      message: merchantName
+        ? `Permanently delete merchant "${merchantName}"? This action cannot be undone.`
+        : 'Permanently delete this merchant? This action cannot be undone.',
+      confirmLabel: 'Delete Merchant',
+      cancelLabel: 'Cancel',
+      severity: 'danger',
+      icon: 'trash',
+    }),
+  },
   recurring: {
     delete: (description?: string): ConfirmDialogDefinition => ({
       title: 'Delete Recurring Schedule',

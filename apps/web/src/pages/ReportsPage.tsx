@@ -755,12 +755,12 @@ export const ReportsPage: React.FC = () => {
         {/* ============================================================ */}
         {activeTab === 'year' && (
           <div className="space-y-4">
-            {/* Year Selector */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-600 pl-1">
+            {/* Year Selector (Inline) */}
+            <div className="flex items-center gap-3 pl-1">
+              <label className="text-xs font-semibold text-slate-600 whitespace-nowrap">
                 Select Year
               </label>
-              <div className="max-w-xs">
+              <div className="w-36">
                 <Select
                   options={availableYears}
                   value={selectedYear.toString()}

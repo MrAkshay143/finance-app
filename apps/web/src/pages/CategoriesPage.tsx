@@ -64,6 +64,10 @@ export const CategoriesPage: React.FC = () => {
     id: string;
     name: string;
   } | null>(null);
+  const [deleteMerchantConfirm, setDeleteMerchantConfirm] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Queries
   const {
@@ -186,6 +190,20 @@ export const CategoriesPage: React.FC = () => {
       const msg = err.response?.data?.error?.message || err.message || 'Failed to update merchant';
       setMerchantError(msg);
       toast.error(msg);
+    },
+  });
+
+  const deleteMerchantMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiClient.merchants.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['merchants'] });
+      setDeleteMerchantConfirm(null);
+      toast.success('Merchant deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete merchant');
     },
   });
 
@@ -553,15 +571,6 @@ export const CategoriesPage: React.FC = () => {
                   {merchants.length}
                 </Badge>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openAddMerchantModal}
-                icon={<Plus className="w-3.5 h-3.5" />}
-                className="!py-1 !px-2.5 !text-xs"
-              >
-                Add Merchant
-              </Button>
             </div>
 
             {isMerchantsLoading ? (
@@ -615,14 +624,31 @@ export const CategoriesPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => openEditMerchantModal(m)}
-                      aria-label={`Edit ${m.name}`}
-                      className="w-7 h-7 rounded-lg text-textMuted hover:text-brand-primary hover:bg-brand-primary-soft/50 flex items-center justify-center transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
-                    >
-                      <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openEditMerchantModal(m)}
+                        aria-label={`Edit ${m.name}`}
+                        className="w-7 h-7 rounded-lg text-textMuted hover:text-brand-primary hover:bg-brand-primary-soft/50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
+                      >
+                        <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+                      </button>
+                      {(m.transactionCount ?? 0) === 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDeleteMerchantConfirm({
+                              id: m.id,
+                              name: m.name,
+                            })
+                          }
+                          aria-label={`Delete ${m.name}`}
+                          className="w-7 h-7 rounded-lg text-textMuted hover:text-semantic-danger hover:bg-semantic-danger-bg/50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger focus-visible:ring-offset-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -788,6 +814,48 @@ export const CategoriesPage: React.FC = () => {
                   disabled={deleteCategoryMutation.isPending}
                 >
                   {deleteCategoryMutation.isPending ? 'Deleting...' : dialogDef.confirmLabel}
+                </Button>
+              </>
+            }
+          >
+            <p className="text-xs text-textMuted leading-relaxed">
+              {dialogDef.message}
+            </p>
+          </Modal>
+        );
+      })()}
+
+      {/* 4b. Delete Merchant Confirmation Modal */}
+      {(() => {
+        const dialogDef = CONFIRM_DIALOGS.merchants.delete(deleteMerchantConfirm?.name);
+        return (
+          <Modal
+            isOpen={Boolean(deleteMerchantConfirm)}
+            onClose={() => setDeleteMerchantConfirm(null)}
+            title={dialogDef.title}
+            subtitle={dialogDef.subtitle}
+            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            footer={
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteMerchantConfirm(null)}
+                  disabled={deleteMerchantMutation.isPending}
+                >
+                  {dialogDef.cancelLabel}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    if (deleteMerchantConfirm) {
+                      deleteMerchantMutation.mutate(deleteMerchantConfirm.id);
+                    }
+                  }}
+                  disabled={deleteMerchantMutation.isPending}
+                >
+                  {deleteMerchantMutation.isPending ? 'Deleting...' : dialogDef.confirmLabel}
                 </Button>
               </>
             }

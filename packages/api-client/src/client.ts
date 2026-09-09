@@ -357,6 +357,8 @@ export class FinanceApiClient {
       this.request<Merchant>({ method: 'POST', url: '/merchants', data: input }),
     update: (id: string, input: UpdateMerchantInput) =>
       this.request<Merchant>({ method: 'PUT', url: `/merchants/${id}`, data: input }),
+    delete: (id: string) =>
+      this.request<{ message: string }>({ method: 'DELETE', url: `/merchants/${id}` }),
   };
 
   readonly recurring = {

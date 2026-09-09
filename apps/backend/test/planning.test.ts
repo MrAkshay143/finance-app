@@ -415,6 +415,33 @@ describe('TASK-3.2: Planning (Budgets & Goals), Categories & Merchants APIs', ()
 
       expect(updateRes.status).toBe(200);
       expect(updateRes.body.data.name).toBe('Swiggy Instamart');
+
+      // 5. DELETE /api/v1/merchants/:id -> rejects if linked to transactions
+      const delLinkedRes = await request(app)
+        .delete(`/api/v1/merchants/${merchantId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+      expect(delLinkedRes.status).toBe(422);
+
+      // 6. Create an unassigned merchant and delete it cleanly
+      const unassignedRes = await request(app)
+        .post('/api/v1/merchants')
+        .set('Authorization', `Bearer ${userTokenA}`)
+        .send({ name: 'Unused Vendor' });
+      expect(unassignedRes.status).toBe(201);
+      const unassignedId = unassignedRes.body.data.id;
+
+      // Other user cannot delete it (403)
+      const delForbiddenRes = await request(app)
+        .delete(`/api/v1/merchants/${unassignedId}`)
+        .set('Authorization', `Bearer ${userTokenB}`);
+      expect(delForbiddenRes.status).toBe(403);
+
+      // Owner can delete unassigned merchant (200)
+      const delOwnerRes = await request(app)
+        .delete(`/api/v1/merchants/${unassignedId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+      expect(delOwnerRes.status).toBe(200);
+      expect(delOwnerRes.body.data.message).toBe('Merchant deleted successfully');
     });
   });
 });

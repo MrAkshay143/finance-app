@@ -1263,6 +1263,20 @@ export function createMockPrisma() {
         return res;
       }),
 
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        let count = 0;
+        for (const [id, r] of recurringTransactions.entries()) {
+          let match = true;
+          if (where?.userId && r.userId !== where.userId) match = false;
+          if (where?.categoryId && r.categoryId !== where.categoryId) match = false;
+          if (match) {
+            recurringTransactions.set(id, { ...r, ...data, updatedAt: new Date() });
+            count++;
+          }
+        }
+        return { count };
+      }),
+
       delete: vi.fn(async ({ where }: any) => {
         const rec = recurringTransactions.get(where.id);
         if (rec) recurringTransactions.delete(where.id);

@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
+import { Button } from '../components/ui/Button.js';
+import { Modal } from '../components/ui/Modal.js';
+import { toast } from '../store/toastStore.js';
 import { apiClient, getStoredAccessToken } from '../services/apiClient.js';
 import { FinanceSocketManager } from '@finance/api-client';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
@@ -29,6 +32,9 @@ export const NotificationsPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [remindersEnabled, setRemindersEnabled] = useState<boolean>(true);
   const [reminderDays, setReminderDays] = useState<number>(2);
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [tempEnabled, setTempEnabled] = useState<boolean>(true);
+  const [tempDays, setTempDays] = useState<number>(2);
 
   // Fetch Reminders
   const { data: remindersData } = useQuery<Reminder[]>({
@@ -217,76 +223,36 @@ export const NotificationsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Top Card: Due-date reminders */}
-        <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              {/* Calendar icon in soft-blue square */}
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5 stroke-[2.2]" />
-              </div>
-              <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-slate-900 leading-snug">
-                  Due-date reminders
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Get reminded before your recurring expenses &amp; investments are due.
-                </p>
-              </div>
+        {/* Compact Due-Date Reminders Card */}
+        <Card padding="sm" className="bg-white border-slate-200 shadow-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+              <Calendar className="w-4 h-4 stroke-[2.2]" />
             </div>
-
-            {/* Modern Toggle Switch */}
-            <button
-              type="button"
-              role="switch"
-              aria-checked={remindersEnabled}
-              onClick={handleToggleReminders}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                remindersEnabled ? 'bg-brand-primary' : 'bg-slate-300'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                  remindersEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="border-t border-slate-100 pt-3 space-y-2.5">
-            <span className="text-xs font-semibold text-slate-700 block">
-              Remind me this many days before:
-            </span>
-
-            {/* Circular numeric buttons 1, 2, 3, 4, 5 */}
-            <div className="flex items-center gap-2.5">
-              {[1, 2, 3, 4, 5].map((num) => {
-                const isSelected = reminderDays === num;
-                return (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => handleSelectDays(num)}
-                    className={`w-9 h-9 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
-                      isSelected
-                        ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25 scale-105'
-                        : 'bg-white border border-slate-200 text-slate-700 hover:border-brand-primary/60'
-                    }`}
-                  >
-                    {num}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Callout box */}
-            <div className="bg-blue-50/70 border border-blue-100/80 rounded-xl p-3 flex items-center gap-2.5 text-xs text-slate-600 mt-2">
-              <Info className="w-4 h-4 text-brand-primary shrink-0" />
-              <span>
-                You will receive a notification this many days before a due date.
-              </span>
+            <div className="min-w-0">
+              <h3 className="text-xs font-bold text-slate-900 truncate">
+                Due-Date Reminders
+              </h3>
+              <p className="text-[11px] text-slate-500 truncate">
+                {remindersEnabled
+                  ? `Active • ${reminderDays} ${reminderDays === 1 ? 'day' : 'days'} before due date`
+                  : 'Disabled • Tap Manage to configure'}
+              </p>
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setTempEnabled(remindersEnabled);
+              setTempDays(reminderDays);
+              setIsReminderModalOpen(true);
+            }}
+            className="!py-1 !px-2.5 !text-xs shrink-0 whitespace-nowrap"
+          >
+            Manage
+          </Button>
         </Card>
 
         {/* Filter Segmented Control: All, Unread, Read */}
@@ -392,6 +358,98 @@ export const NotificationsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Due-Date Reminder Settings Modal */}
+      <Modal
+        isOpen={isReminderModalOpen}
+        onClose={() => setIsReminderModalOpen(false)}
+        title="Due-Date Reminders"
+        subtitle="Configure alerts for recurring expenses & investments"
+        icon={<Calendar className="w-5 h-5 text-brand-primary" />}
+        footer={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsReminderModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={async () => {
+                setRemindersEnabled(tempEnabled);
+                setReminderDays(tempDays);
+                await saveReminderConfig(tempEnabled, tempDays);
+                setIsReminderModalOpen(false);
+                toast.success('Reminder settings saved successfully');
+              }}
+            >
+              Save Settings
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">Enable Reminders</span>
+              <span className="text-[11px] text-slate-500">Receive alerts ahead of upcoming bills</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={tempEnabled}
+              onClick={() => setTempEnabled(!tempEnabled)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                tempEnabled ? 'bg-brand-primary' : 'bg-slate-300'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  tempEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-slate-700 block">
+              Remind me this many days before:
+            </label>
+            <div className="flex items-center gap-2.5">
+              {[1, 2, 3, 4, 5].map((num) => {
+                const isSelected = tempDays === num;
+                return (
+                  <button
+                    key={num}
+                    type="button"
+                    disabled={!tempEnabled}
+                    onClick={() => setTempDays(num)}
+                    className={`w-10 h-10 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
+                      !tempEnabled
+                        ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400'
+                        : isSelected
+                        ? 'bg-brand-primary text-white shadow-md shadow-brand-primary/25 scale-105'
+                        : 'bg-white border border-slate-200 text-slate-700 hover:border-brand-primary/60'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="bg-blue-50/70 border border-blue-100/80 rounded-xl p-3 flex items-center gap-2.5 text-xs text-slate-600">
+            <Info className="w-4 h-4 text-brand-primary shrink-0" />
+            <span>
+              You will receive an in-app notification {tempDays} {tempDays === 1 ? 'day' : 'days'} before a due date.
+            </span>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

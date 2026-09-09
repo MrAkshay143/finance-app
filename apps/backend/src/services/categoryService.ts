@@ -59,14 +59,18 @@ export class CategoryService {
       throw new ValidationError('Category name is required');
     }
 
-    // Check duplicate name for same type
-    const existing = await prisma.category.findFirst({
+    // Check duplicate name for same type (database-agnostic case-insensitive check)
+    const candidateCategories = await prisma.category.findMany({
       where: {
-        name: { equals: trimmedName, mode: 'insensitive' },
         type: data.type,
         OR: [{ isSystem: true }, { userId }],
       },
+      select: { id: true, name: true },
     });
+
+    const existing = candidateCategories.find(
+      (c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
 
     if (existing) {
       throw new ValidationError('A category with this name and type already exists');
@@ -169,8 +173,21 @@ export class CategoryService {
       throw new ForbiddenError('Access forbidden to this category');
     }
 
-    await prisma.category.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      await tx.transaction.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      });
+      await tx.recurringTransaction.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      });
+      await tx.budget.deleteMany({
+        where: { categoryId: id },
+      });
+      await tx.category.delete({
+        where: { id },
+      });
     });
 
     await logAuditEvent({
