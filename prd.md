@@ -401,12 +401,12 @@ Fields:
 
 INCOME RANGE:
 
-- Below ₹25K
-- ₹25K–₹50K
-- ₹50K–₹1L
-- ₹1L–₹2L
-- ₹2L–₹5L
-- Above ₹5L
+- Below INR 25K
+- INR 25K-INR 50K
+- INR 50K-INR 1L
+- INR 1L-INR 2L
+- INR 2L-INR 5L
+- Above INR 5L
 
 INVESTMENT EXPERIENCE:
 
@@ -621,7 +621,7 @@ MODAL TITLE: Add Income
 
 FIELDS:
 
-- Amount (₹)
+- Amount (INR )
 - Description (optional)
 - Date
 - Account
@@ -1394,10 +1394,10 @@ If existing backend stores decimal values, follow the current system.
 Frontend formatting:
 
 - Indian Rupee formatting
-- ₹
+- INR 
 - Indian number grouping where appropriate
 
-Example: ₹1,00,000
+Example: INR 1,00,000
 
 Do not change stored representation merely for UI.
 
@@ -1900,8 +1900,8 @@ Backend must remain responsible for balance calculation.
 
 Example:
 
-Add Income ↓ Backend saves transaction ↓ Account balance updated according to
-existing rules ↓ Frontend refreshes account ↓ Dashboard refreshes ↓
+Add Income v Backend saves transaction v Account balance updated according to
+existing rules v Frontend refreshes account v Dashboard refreshes v
 Analytics/report refreshes
 
 Same applies to:
@@ -2334,7 +2334,7 @@ Reports must use the same source-of-truth data as dashboard/analytics.
 
 Avoid situations where:
 
-Dashboard = ₹50,000 Reports = ₹45,000 Analytics = ₹52,000
+Dashboard = INR 50,000 Reports = INR 45,000 Analytics = INR 52,000
 
 unless the date/filter definitions genuinely differ.
 
@@ -2349,7 +2349,7 @@ Every analytics/report screen must clearly show:
 
 Example:
 
-September 2026 or 01 Sep 2026 – 30 Sep 2026
+September 2026 or 01 Sep 2026 - 30 Sep 2026
 
 Do not silently use different periods.
 
@@ -2450,7 +2450,7 @@ Default currency according to current application configuration.
 
 Current configured example: INR
 
-Display: ₹500 ₹20,000 ₹1,00,000
+Display: INR 500 INR 20,000 INR 1,00,000
 
 Respect settings if multiple currencies are supported.
 
@@ -2462,27 +2462,27 @@ Example:
 
 Tap: Add Income
 
-→ modal opens
+-> modal opens
 
-→ enter amount
+-> enter amount
 
-→ choose account
+-> choose account
 
-→ choose category
+-> choose category
 
-→ save
+-> save
 
-→ backend saves
+-> backend saves
 
-→ modal closes
+-> modal closes
 
-→ success feedback
+-> success feedback
 
-→ list refreshes
+-> list refreshes
 
-→ account balance updates
+-> account balance updates
 
-→ dashboard updates
+-> dashboard updates
 
 # ============================================================ 111. DATA REFRESH PRINCIPLE
 

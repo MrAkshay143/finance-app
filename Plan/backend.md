@@ -1,199 +1,149 @@
-# Backend
+# Backend Specifications
 
-Node.js + Express + TypeScript, PostgreSQL via Prisma, Redis, BullMQ,
-Socket.IO. REST API under `/api/v1`.
+Node.js + Express + TypeScript API server, Prisma ORM (PostgreSQL and MySQL support), Redis, BullMQ, Socket.IO. REST API mounted at /api/v1.
 
-## 1. Folder structure
+## 1. Folder Structure
 
 ```
 apps/backend/
-├─ src/
-│  ├─ server.ts               entrypoint (HTTP + Socket.IO)
-│  ├─ worker.ts                separate entrypoint for BullMQ workers
-│  ├─ app.ts                   Express app assembly (middleware + routes)
-│  ├─ config/                  env schema (zod) + typed config loader
-│  ├─ routes/                  one file per resource, mounted under /api/v1
-│  ├─ controllers/             request → service call → response mapping
-│  ├─ services/                business logic (balanceService, famService,
-│  │                            recurringService, reportService, ...)
-│  ├─ repositories/             thin Prisma query wrappers per model
-│  ├─ middleware/               auth, requireAdmin, errorHandler, rateLimiter,
-│  │                            requestLogger, validate(zodSchema)
-│  ├─ jobs/                     BullMQ queue + worker definitions
-│  ├─ sockets/                  Socket.IO namespaces/handlers
-│  ├─ validation/               zod schemas per resource (request bodies/query)
-│  ├─ lib/                      prisma client, redis client, s3 client, logger
-│  └─ utils/
-├─ prisma/                      schema.prisma + migrations (see database.md)
-├─ test/
-│  ├─ unit/
-│  ├─ integration/               Supertest + ephemeral Postgres/Redis
-│  └─ fixtures/
-├─ Dockerfile
-└─ package.json
++-- src/
+|   +-- server.ts               HTTP server + Socket.IO entrypoint
+|   +-- worker.ts               BullMQ background workers entrypoint
+|   +-- app.ts                  Express app assembly (middleware + route mounting)
+|   +-- config/                 Zod-validated environment config loader (env.ts)
+|   +-- routes/                 Resource routes mounted under /api/v1
+|   |   +-- auth.routes.ts
+|   |   +-- profile.routes.ts
+|   |   +-- accounts.routes.ts
+|   |   +-- transactions.routes.ts
+|   |   +-- categories.routes.ts
+|   |   +-- merchants.routes.ts
+|   |   +-- budgets.routes.ts
+|   |   +-- goals.routes.ts
+|   |   +-- recurringTransactions.routes.ts
+|   |   +-- admin.routes.ts
+|   |   +-- ...
+|   +-- controllers/            Request parsing, authorization, service dispatch
+|   +-- services/               Business logic layer
+|   |   +-- balanceService.ts   Atomic balance mutations and invariant enforcement
+|   |   +-- famService.ts       Financial Activity Metric (FAM) calculation
+|   |   +-- auditService.ts     Immutable security event logger
+|   |   +-- kbaService.ts       Security questions verification and management
+|   |   +-- adminService.ts     User directory, settings, categories, reports
+|   +-- middleware/             auth, requireAdmin, maintenance, rateLimiter, error
+|   +-- lib/                    Prisma client, Redis client, JWT helpers, Pino logger
++-- prisma/
+|   +-- schema.prisma           PostgreSQL schema specification
+|   +-- schema.mysql.prisma     MySQL production schema specification
+|   +-- migrations/             Database migration histories
++-- test/                       Vitest unit, integration, and regression test suites
 ```
 
-## 2. Middleware stack (in order)
+## 2. Middleware Pipeline (In Execution Order)
 
-1. `requestId` — attach correlation id for logging
-2. `helmet` — secure headers
-3. `cors` — allow-list of known origins (web, mobile via app scheme)
-4. `express.json()` with a sane body-size limit
-5. `requestLogger` (pino) — structured request/response log line
-6. `rateLimiter` (Redis-backed) — global + stricter limits on
-   `/auth/*`
-7. Route-level: `validate(schema)` (zod) → `authenticate` (verifies access
-   token) → `requireAdmin` where applicable → controller
-8. `errorHandler` (last) — maps thrown errors to the standard error shape,
-   never leaks stack traces to the client, logs full detail server-side
+1. requestId: Attaches unique correlation UUID to req.id and response header.
+2. helmet: Enforces secure HTTP headers.
+3. cors: Validates request origin against CORS_ALLOWED_ORIGINS.
+4. express.json(): Parses JSON payloads with reasonable size limits.
+5. requestLogger: Structured logging via Pino HTTP.
+6. rateLimiter: Redis-backed rate limiting on auth endpoints and global routes.
+7. maintenanceMiddleware: Intercepts non-admin requests when maintenance_mode is enabled; allows admin bypass.
+8. Route-level: validate(zodSchema) -> authenticate -> requireAdmin (for admin routes).
+9. errorHandler: Centralized error translation, maps exceptions to API error responses, logs details server-side.
 
-## 3. Response contract
+## 3. API Response Contract
 
 ```json
-// success
-{ "success": true, "data": { ... } }
-// paginated
-{ "success": true, "data": { "items": [...], "page": 1, "pageSize": 20, "total": 137 } }
-// error
-{ "success": false, "error": { "code": "VALIDATION_ERROR", "message": "..." } }
+// Success Response
+{
+  "success": true,
+  "data": { ... }
+}
+
+// Paginated Success Response
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "page": 1,
+    "pageSize": 15,
+    "total": 42
+  }
+}
+
+// Error Response
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid email or password format."
+  }
+}
 ```
 
-Standard error codes: `VALIDATION_ERROR (400/422)`, `UNAUTHENTICATED (401)`,
-`FORBIDDEN (403)`, `NOT_FOUND (404)`, `CONFLICT (409)`, `RATE_LIMITED (429)`,
-`SERVER_ERROR (500)`.
+Standard error codes: VALIDATION_ERROR (400/422), UNAUTHENTICATED (401), FORBIDDEN (403), NOT_FOUND (404), CONFLICT (409), RATE_LIMITED (429), SERVER_ERROR (500).
 
-## 4. Route groups (`/api/v1/...`)
+## 4. Route Groups Overview (/api/v1/...)
 
-`auth`, `profile`, `security-questions`, `accounts`, `categories`,
-`merchants`, `transactions`, `transfers`, `budgets`, `goals`,
-`recurring-transactions`, `dashboard`, `analytics`, `reports`,
-`ai-analysis`, `investments`, `notifications`, `reminders`, `user-settings`,
-`account-actions` (reset-profile/delete-account), `import` (CSV),
-`export` (data export), `admin/*` (dashboard, users, app-settings,
-audit-logs). Each group: list/detail/create/update/status-patch endpoints
-as required by `prd.md` §5, all requiring `authenticate`; `admin/*`
-additionally requires `requireAdmin`.
+### Authentication & Profile
+- POST /auth/signup: Register new user account, hash password with bcrypt.
+- POST /auth/login: Authenticate credentials, enforce account lockout, issue JWT pair.
+- POST /auth/refresh: Rotate refresh token, verify family id, issue fresh access token.
+- POST /auth/logout: Revoke refresh token and invalidate active access token.
+- POST /auth/forgot-password: Initiate recovery flow via email.
+- POST /auth/reset-password: Reset password after verification.
+- GET/PUT /profile: Retrieve and update user personal information.
+- GET/POST/DELETE /security-questions: Manage and verify KBA security questions.
 
-## 5. Authentication implementation
+### Financial Management
+- GET/POST /accounts: List accounts and create new accounts (Savings, Bank, Cash, etc.).
+- GET/PUT/DELETE /accounts/:id: Account details, balance updates, and archival.
+- POST /transfers: Atomic dual-entry fund transfers between two accounts.
+- GET/POST /transactions: List filtered transactions with pagination and record new entries.
+- GET/PUT/DELETE /transactions/:id: Transaction details, modifications, and soft-delete.
+- GET/POST /categories: User category management with default system category fallback.
+- GET/POST /merchants: Merchant directory and auto-complete suggestions.
+- GET/POST /budgets: Category budgets with monthly limit tracking.
+- GET/POST /goals: Savings goals with target amounts and contribution history.
+- GET/POST /recurring-transactions: Recurring schedules with auto-posting.
 
-- `POST /auth/signup` — validate, hash password (bcrypt/argon2), create
-  `User`, issue access + refresh token pair.
-- `POST /auth/login` — verify credentials, check `lockedUntil`, on success
-  reset `failedLoginAttempts`, issue token pair; on failure increment
-  `failedLoginAttempts` and set `lockedUntil` once the configured
-  `max_failed_attempts` (from `AppSetting`) is reached.
-- `POST /auth/refresh` — verify refresh cookie against `RefreshToken`
-  (hash compare), check not revoked/expired, **rotate**: issue new pair,
-  mark old token row revoked, keep `familyId` linkage; if a revoked token
-  is presented again, revoke the entire family (theft detected) and force
-  re-login.
-- `POST /auth/logout` — revoke the current refresh token (and optionally
-  the whole family), add current access token's `jti` to the Redis
-  denylist until its natural expiry.
-- `authenticate` middleware — verifies JWT signature/expiry, checks the
-  Redis denylist, attaches `req.user = { id, role }`.
-- `requireAdmin` middleware — 403 unless `req.user.role === 'ADMIN'`.
+### Platform Dashboards & Analytics
+- GET /dashboard/summary: Net worth, monthly cash flow, and FAM health score.
+- GET /analytics/cash-flow: Timeframe-based cash flow aggregation (7d, 30d, 90d, 1y).
+- GET /analytics/categories: Category-wise spending breakdown for donut charts.
+- POST /import/csv: Statement CSV parser and batch transaction creator.
+- GET /export/json and /export/csv: Full transactional data export.
 
-## 6. Core services (business logic lives here, not in controllers)
+### Administrative Platform (/admin/...)
+- GET /admin/dashboard: Platform metrics (Total Users, Active, Suspended, Admins).
+- GET /admin/users: Complete user directory with pagination, search, and status filters.
+- PATCH /admin/users/:id: Toggle user status (ACTIVE / SUSPENDED) or role (USER / ADMIN).
+- POST /admin/users/:id/reset-password: Generate secure temporary password.
+- POST /admin/users/:id/reset-kba: Clear user security questions.
+- DELETE /admin/users/:id: Soft-delete user account.
+- GET/PUT /admin/categories: Dedicated management of default system categories with sort order and KPI metrics.
+- GET/PUT /admin/app-settings: Platform parameters (session timeout, lockout limit, base currency, maintenance mode).
+- GET /admin/analytics: Platform GTV, liquidity breakdown, user progression funnel, activity index.
+- GET /admin/audit-logs: System security audit trail with client device parsing.
+- POST /admin/cache/clear: Purge temporary system caches.
+- POST /admin/recurring/run: Manually invoke recurring transaction materializer.
 
-- **balanceService** — the only code path allowed to mutate
-  `Account.currentBalance`; wraps transaction/transfer create/update/void in
-  a single Prisma `$transaction`.
-- **famService** — computes the Financial Allocation Meter (FAM) score, grade,
-  and progress comparing actual transactions against `FinanceProfile` monthly targets:
-  - *Expense (lower is better)*: `spent / expense_target`. `≤ 80%` → A+ (Excellent); `81–100%` → B (Good); `> 100%` → C (Poor).
-  - *Investment (higher is better)*: `invested / investment_target`. `≥ 100%` → A+ (Excellent); `70–99%` → B (Good); `< 70%` → C (Poor).
-  - *Income (higher is better)*: `earned / income_target`. `≥ 100%` → A+ (Excellent); `70–99%` → B (Good); `< 70%` → C (Poor).
-  - *Overall Grade*: Worst of the three areas (if any is C → C · Poor; else if any is B → B · Good; else A+ · Excellent).
-  - *Overall Progress Ring*: Average of the three areas with each area capped at 100%.
-  - *Not Available State (`—` / `NA`)*: Returned until the user has completed basic profile, set relevant monthly targets, and recorded at least one transaction this month.
-- **aiService** — provides AI-powered monthly spending analysis, forward projections, and smart allocation advice in V1 (with built-in financial heuristics and configurable LLM integration).
-- **recurringService** — used by the `recurring-transactions` BullMQ job to
-  materialize due `RecurringTransaction` rows into real `Transaction`s and
-  advance `nextOccurrence`, respecting `financialMonthStartDay`.
-- **reportService** — builds Monthly/Year-in-Review report payloads and
-  triggers async PDF/export generation via the `report-export` queue.
-- **notificationService** — creates `Notification` rows and enqueues
-  `notifications-dispatch` for realtime push.
-- **auditService** — writes `AuditLog` rows for every security-relevant
-  action (login, logout, password change, admin action, transaction/
-  account mutation, destructive operations).
+## 5. Core Services
 
-## 7. Validation
+1. balanceService:
+   - Single authoritative code path for mutating Account.currentBalance.
+   - Executes inside database transactions ($transaction).
+   - Invariant: currentBalance = initialBalance + SUM(credits) - SUM(debits).
+   - Handles reversal math on transaction edits and deletions.
 
-Zod schemas per endpoint, shared with the frontend via
-`packages/shared-types` (the zod schema is the single source of truth for
-both server-side validation and generated TypeScript types consumed by
-web/mobile). Validation failures return `422 VALIDATION_ERROR` with a
-field-level error map.
+2. famService:
+   - Computes the Financial Activity Metric (FAM) score based on savings rate, budget discipline, and liquidity coverage.
+   - Emits visual grade (A+, A, B, C, D) and component percentages.
 
-## 8. File uploads & object storage
+3. auditService:
+   - Records immutable audit events for login, logout, password changes, admin updates, and data exports.
+   - Stores actor id, target id, event category, IP address, user agent, and metadata.
 
-- CSV import and avatar upload go through a pre-signed S3-compatible URL
-  flow: client requests a signed upload URL, uploads directly to storage,
-  then notifies the backend with the object key to kick off processing
-  (`csv-import` job) or attach the avatar.
-- Generated exports (`report-export`, full data export) are written to
-  object storage by the worker and served back to the client as a signed,
-  time-limited download URL — never streamed through the API process for
-  large files.
-
-## 9. Background jobs (BullMQ) — see also `architecture.md` §7
-
-Each queue has: a producer (enqueue call from a controller/service or a
-repeatable/cron schedule), a worker with a bounded concurrency and retry/
-backoff policy, and a dead-letter/failure log surfaced in monitoring.
-Idempotency keys are used where a job could otherwise double-apply (e.g.
-recurring-transaction materialization keyed on
-`(recurringTransactionId, occurrenceDate)`).
-
-## 10. Realtime (Socket.IO)
-
-- Auth on connection via the access token (same JWT verification as REST).
-- `/notifications` namespace: server emits `notification:new` and
-  `notification:unread-count` to the connected user's room
-  (`user:{userId}`).
-- `/dashboard` namespace: server emits `dashboard:refresh` after a
-  transaction/transfer/account mutation, so other open sessions for the
-  same user can re-fetch instead of polling.
-- Redis adapter (`@socket.io/redis-adapter`) so this works across multiple
-  API instances.
-
-## 11. Logging & error tracking
-
-- `pino` structured logs, one line per request (method, path, status,
-  duration, requestId, userId if authenticated) and per job
-  (queue, jobId, duration, outcome).
-- Sentry (or equivalent) initialized in `server.ts` and `worker.ts`,
-  capturing unhandled exceptions and rejected promises with release
-  tagging; PII (passwords, KBA answers, tokens) explicitly scrubbed before
-  any log line or error report is emitted.
-
-## 12. Testing
-
-- **Unit:** services and pure logic (`famService`, `balanceService`
-  calculations, validation schemas) — Jest, no DB.
-- **Integration:** repositories and services against a real ephemeral
-  Postgres (Testcontainers or a CI service container) — verifies Prisma
-  queries and transaction behavior.
-- **API tests:** Supertest against the fully assembled Express app,
-  covering every route group in `prd.md` §5, including the auth/ownership
-  matrix (user A cannot access user B's data; non-admin cannot hit
-  `admin/*`) and the critical transaction scenarios (add/edit/delete
-  income/expense/investment/transfer with balance verification).
-- **Job tests:** BullMQ worker functions invoked directly with fixture data
-  (no need to spin up a real queue for unit-level coverage); a smaller set
-  of integration tests runs jobs against a real Redis to verify scheduling/
-  retry behavior.
-- **End-to-end:** covered from the frontend side (Playwright) hitting a
-  fully running stack (docker-compose) including backend + Postgres +
-  Redis + workers.
-
-## 13. Environment variables (validated at boot via zod)
-
-`DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET` (or key pair),
-`JWT_ACCESS_TTL`, `REFRESH_TOKEN_TTL_DAYS`, `S3_ENDPOINT`, `S3_BUCKET`,
-`S3_ACCESS_KEY`, `S3_SECRET_KEY`, `CORS_ALLOWED_ORIGINS`, `SENTRY_DSN`,
-`LOG_LEVEL`, `NODE_ENV`. Boot fails fast with a clear error if any required
-variable is missing or malformed — never silently defaults a security-
-relevant value.
+4. kbaService:
+   - Hashes security question answers using bcrypt.
+   - Enforces verification before allowing password resets.
