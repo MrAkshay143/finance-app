@@ -174,7 +174,7 @@ export const AiAnalysisPage: React.FC = () => {
                 <BarChart3 className="w-4 h-4 stroke-[2.5]" />
               </div>
               <h3 className="text-xs font-bold text-slate-900">
-                Monthly Analysis — {monthLabel}
+                Monthly Analysis: {monthLabel}
               </h3>
             </div>
             <Badge variant="success" size="sm">

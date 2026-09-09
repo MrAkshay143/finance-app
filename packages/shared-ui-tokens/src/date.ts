@@ -81,17 +81,17 @@ export function formatDate(
 }
 
 /**
- * Formats a date range into standard DD-MM-YYYY — DD-MM-YYYY format.
+ * Formats a date range into standard DD-MM-YYYY - DD-MM-YYYY format.
  * Handles both ISO timestamp boundaries and clean YYYY-MM-DD inputs.
  *
  * @example
- * formatDateRange('2026-09-01', '2026-09-30') // "01-09-2026 — 30-09-2026"
- * formatDateRange('2026-08-31T18:30:00.000Z', '2026-09-30T18:30:00.000Z') // "01-09-2026 — 30-09-2026"
+ * formatDateRange('2026-09-01', '2026-09-30') // "01-09-2026 - 30-09-2026"
+ * formatDateRange('2026-08-31T18:30:00.000Z', '2026-09-30T18:30:00.000Z') // "01-09-2026 - 30-09-2026"
  */
 export function formatDateRange(
   startDate?: string | Date | number | null,
   endDate?: string | Date | number | null,
-  separator = ' — '
+  separator = ' - '
 ): string {
   const start = formatDate(startDate, { isEndDate: false });
   const end = formatDate(endDate, { isEndDate: true });

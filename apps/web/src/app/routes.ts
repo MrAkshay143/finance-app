@@ -22,6 +22,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
+  ADMIN_REPORTS: '/admin/reports',
   ADMIN_USER_OVERVIEW: '/admin/users/:id',
   ADMIN_USER_MANAGE: '/admin/users/:id/manage',
   ADMIN_SETTINGS: '/admin/settings',

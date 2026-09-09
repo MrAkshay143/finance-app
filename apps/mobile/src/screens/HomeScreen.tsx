@@ -198,7 +198,7 @@ export const HomeScreen: React.FC = () => {
 
             <View style={styles.famDonutCol}>
               <FamDonutRing
-                grade={fam?.grade || fam?.gradeDisplay || '—'}
+                grade={fam?.grade || fam?.gradeDisplay || 'N/A'}
                 progressPercentage={fam?.progress ?? fam?.overallProgressPercentage ?? 0}
                 size={104}
                 strokeWidth={9}
@@ -213,7 +213,7 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.areaChipText}>
                 Income:{' '}
                 <Text style={styles.areaChipBold}>
-                  {fam?.areas?.income?.statusLabel || '—'}
+                  {fam?.areas?.income?.statusLabel || 'Not Set'}
                 </Text>
               </Text>
             </View>
@@ -223,7 +223,7 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.areaChipText}>
                 Expense:{' '}
                 <Text style={styles.areaChipBold}>
-                  {fam?.areas?.expense?.statusLabel || '—'}
+                  {fam?.areas?.expense?.statusLabel || 'Not Set'}
                 </Text>
               </Text>
             </View>
@@ -233,7 +233,7 @@ export const HomeScreen: React.FC = () => {
               <Text style={styles.areaChipText}>
                 Invest:{' '}
                 <Text style={styles.areaChipBold}>
-                  {fam?.areas?.investment?.statusLabel || '—'}
+                  {fam?.areas?.investment?.statusLabel || 'Not Set'}
                 </Text>
               </Text>
             </View>

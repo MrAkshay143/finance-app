@@ -25,8 +25,10 @@ import {
   FileTextIcon,
   CheckIcon,
   CloseIcon,
+  LogOutIcon,
 } from '../../components/icons';
 import { apiClient } from '../../services/apiClient';
+import { useAuthStore } from '../../store/authStore';
 import { formatDate } from '../../utils/date';
 import type { AdminDashboardMetrics, AdminUserItem } from '@finance/shared-types';
 import type { RootStackParamList } from '../../navigation/types';
@@ -41,6 +43,7 @@ const FILTER_OPTIONS = [
 export const AdminDashboardScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
+  const { logout } = useAuthStore();
   const [metrics, setMetrics] = useState<AdminDashboardMetrics | null>(null);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [search, setSearch] = useState<string>('');
@@ -138,6 +141,18 @@ export const AdminDashboardScreen: React.FC = () => {
             >
               <SettingsIcon size={18} color="#FFFFFF" />
             </Pressable>
+            <Pressable
+              onPress={async () => {
+                await logout();
+              }}
+              style={styles.headerIconButton}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel="Log Out"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <LogOutIcon size={18} color="#FCA5A5" />
+            </Pressable>
           </View>
         }
       />
@@ -165,7 +180,7 @@ export const AdminDashboardScreen: React.FC = () => {
               <UsersIcon size={16} color={colors.primary} />
             </View>
             <Text style={styles.metricValue}>
-              {metrics ? metrics.totalUsers.toLocaleString() : (isLoading ? '—' : users.length.toString())}
+              {metrics ? metrics.totalUsers.toLocaleString() : (isLoading ? '0' : users.length.toString())}
             </Text>
             <Text style={styles.metricSubMuted}>Total registered</Text>
           </View>
@@ -177,7 +192,7 @@ export const AdminDashboardScreen: React.FC = () => {
               <ShieldCheckIcon size={16} color={colors.success} />
             </View>
             <Text style={styles.metricValue}>
-              {metrics ? metrics.activeUsers.toLocaleString() : (isLoading ? '—' : users.filter(u => u.status === 'ACTIVE').length.toString())}
+              {metrics ? metrics.activeUsers.toLocaleString() : (isLoading ? '0' : users.filter(u => u.status === 'ACTIVE').length.toString())}
             </Text>
             <Text style={styles.metricSubSuccess}>Active accounts</Text>
           </View>
@@ -189,7 +204,7 @@ export const AdminDashboardScreen: React.FC = () => {
               <AlertCircleIcon size={16} color={colors.danger} />
             </View>
             <Text style={styles.metricValue}>
-              {metrics ? metrics.suspendedUsers.toLocaleString() : (isLoading ? '—' : users.filter(u => u.status === 'SUSPENDED').length.toString())}
+              {metrics ? metrics.suspendedUsers.toLocaleString() : (isLoading ? '0' : users.filter(u => u.status === 'SUSPENDED').length.toString())}
             </Text>
             <Text style={styles.metricSubDanger}>Access restricted</Text>
           </View>
@@ -201,7 +216,7 @@ export const AdminDashboardScreen: React.FC = () => {
               <ShieldIcon size={16} color={colors.investment} />
             </View>
             <Text style={styles.metricValue}>
-              {metrics ? metrics.adminUsers.toLocaleString() : (isLoading ? '—' : users.filter(u => u.role === 'ADMIN').length.toString())}
+              {metrics ? metrics.adminUsers.toLocaleString() : (isLoading ? '0' : users.filter(u => u.role === 'ADMIN').length.toString())}
             </Text>
             <Text style={styles.metricSubMuted}>Elevated roles</Text>
           </View>

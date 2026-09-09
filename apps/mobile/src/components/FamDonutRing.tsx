@@ -4,7 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { colors } from '@finance/shared-ui-tokens';
 
 export interface FamDonutRingProps {
-  grade?: string; // 'A+' | 'B' | 'C' | '—'
+  grade?: string; // 'A+' | 'B' | 'C' | 'N/A' | 'NA'
   progressPercentage?: number;
   score?: number;
   statusLabel?: string;
@@ -13,7 +13,7 @@ export interface FamDonutRingProps {
 }
 
 export const FamDonutRing: React.FC<FamDonutRingProps> = ({
-  grade = '—',
+  grade = 'N/A',
   progressPercentage,
   score,
   statusLabel,

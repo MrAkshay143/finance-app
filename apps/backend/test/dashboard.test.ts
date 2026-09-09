@@ -248,7 +248,7 @@ describe('TASK-3.1: FAM Math, Dashboard Summary API & Redis Cache', () => {
       expect(res.progress).toBe(80);
     });
 
-    it('returns Not Available state (— / NA) if profile incomplete, targets unset, or 0 transactions', () => {
+    it('returns Not Available state (NA) if profile incomplete, targets unset, or 0 transactions', () => {
       const valid = {
         expenseTargetPaise: BigInt(5000000),
         investmentTargetPaise: BigInt(2000000),
@@ -272,7 +272,7 @@ describe('TASK-3.1: FAM Math, Dashboard Summary API & Redis Cache', () => {
       });
       expect(notOnboarded.isAvailable).toBe(false);
       expect(notOnboarded.overallGrade).toBe('NOT_AVAILABLE');
-      expect(notOnboarded.grade).toBe('—');
+      expect(notOnboarded.grade).toBe('NA');
       expect(notOnboarded.gradeDisplay).toBe('NA');
       expect(notOnboarded.overallProgressPercentage).toBe(0);
 
@@ -282,7 +282,7 @@ describe('TASK-3.1: FAM Math, Dashboard Summary API & Redis Cache', () => {
         expenseTargetPaise: BigInt(0),
       });
       expect(zeroTarget.isAvailable).toBe(false);
-      expect(zeroTarget.grade).toBe('—');
+      expect(zeroTarget.grade).toBe('NA');
       expect(zeroTarget.overallProgressPercentage).toBe(0);
 
       // Case 3: 0 transactions exist this month
@@ -291,7 +291,7 @@ describe('TASK-3.1: FAM Math, Dashboard Summary API & Redis Cache', () => {
         totalTxnCount: 0,
       });
       expect(zeroTxns.isAvailable).toBe(false);
-      expect(zeroTxns.grade).toBe('—');
+      expect(zeroTxns.grade).toBe('NA');
       expect(zeroTxns.overallProgressPercentage).toBe(0);
     });
   });
@@ -324,7 +324,7 @@ describe('TASK-3.1: FAM Math, Dashboard Summary API & Redis Cache', () => {
 
       // FAM is NOT available because no profile, no targets, no txns
       expect(data.fam.isAvailable).toBe(false);
-      expect(data.fam.grade).toBe('—');
+      expect(data.fam.grade).toBe('NA');
       expect(data.fam.gradeDisplay).toBe('NA');
 
       // Account summary empty

@@ -150,6 +150,70 @@ export class AdminController {
       next(err);
     }
   }
+
+  async getPlatformAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { timeframe } = req.query;
+      const data = await adminService.getPlatformAnalytics(timeframe ? String(timeframe) : '30d');
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async exportUsersCsv(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const csvData = await adminService.exportUsersCsv();
+      const filename = `institutional_users_report_${Date.now()}.csv`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.status(200).send(csvData);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getSystemHealth(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const health = await adminService.getSystemHealth();
+      res.status(200).json({
+        success: true,
+        data: health,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getUserSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const sessions = await adminService.getUserSessions(id);
+      res.status(200).json({
+        success: true,
+        data: sessions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async revokeAllUserSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const { id } = req.params;
+      const result = await adminService.revokeAllUserSessions(id, adminId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const adminController = new AdminController();

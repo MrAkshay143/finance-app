@@ -94,7 +94,7 @@ export const AnalyticsPage: React.FC = () => {
   const hasSpendingTrendData = displayedTrends.some((t) => t.spent > 0);
   const hasCategoryData = activeCategoryBreakdown.length > 0;
 
-  // Month date range indicator — derived from API data or computed from selected month in DD-MM-YYYY format
+  // Month date range indicator: derived from API data or computed from selected month in DD-MM-YYYY format
   const dateRangeLabel = (() => {
     if (analyticsData?.period?.startDate && analyticsData?.period?.endDate) {
       return formatDateRange(analyticsData.period.startDate, analyticsData.period.endDate);
@@ -105,7 +105,7 @@ export const AnalyticsPage: React.FC = () => {
       const lastDay = new Date(yr, mo, 0).getDate();
       const start = `01-${String(mo).padStart(2, '0')}-${yr}`;
       const end = `${String(lastDay).padStart(2, '0')}-${String(mo).padStart(2, '0')}-${yr}`;
-      return `${start} — ${end}`;
+      return `${start} - ${end}`;
     }
     return '';
   })();

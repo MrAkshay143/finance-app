@@ -463,7 +463,7 @@ export class ReportService {
       topIncomeCategories,
       averageMonthlyIncome: Math.round(totalIncomePaise / elapsedMonths / 100),
       averageMonthlyExpense: Math.round(totalExpensePaise / elapsedMonths / 100),
-      bestSavingsMonth: hasPositiveSavings ? bestMonth.monthName : '—',
+      bestSavingsMonth: hasPositiveSavings ? bestMonth.monthName : 'None',
     };
   }
 

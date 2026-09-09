@@ -26,7 +26,7 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, kbaConfigured, logout, fetchProfile } = useAuthStore();
   const [financeProfile, setFinanceProfile] = useState<any>(null);
-  const [famScore, setFamScore] = useState<string>('—');
+  const [famScore, setFamScore] = useState<string>('N/A');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarImgError, setAvatarImgError] = useState(false);
@@ -54,9 +54,9 @@ export const ProfilePage: React.FC = () => {
             (fam.overallGrade === 'A_PLUS'
               ? 'A+'
               : fam.overallGrade === 'NOT_AVAILABLE'
-              ? '—'
+              ? 'N/A'
               : fam.overallGrade) ||
-            '—';
+            'N/A';
           setFamScore(grade);
         }
       })
@@ -231,7 +231,7 @@ export const ProfilePage: React.FC = () => {
                 <h3 className="text-base font-bold text-textDefault leading-tight">
                   {user?.fullName || user?.firstName || 'User'}
                 </h3>
-                <p className="text-xs text-textMuted mt-0.5">{user?.email || '—'}</p>
+                <p className="text-xs text-textMuted mt-0.5">{user?.email || 'Not Set'}</p>
                 <div className="mt-1.5">
                   <span className="px-2 py-0.5 rounded-md bg-blue-50 text-brand-primary text-[10px] font-semibold">
                     Free Plan

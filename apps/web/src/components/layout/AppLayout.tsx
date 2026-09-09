@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav.js';
 import { AddTransactionPickerModal } from '../finance/AddTransactionPickerModal.js';
 import { TransactionFormModal } from '../finance/TransactionFormModal.js';
@@ -9,6 +9,9 @@ export interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
     <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0 sm:py-4">
       {/* Centered mobile viewport container (~390-430px wide) */}
@@ -21,9 +24,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         {/* Fixed Bottom Navigation (5 items) */}
         <BottomNav />
 
-        {/* Global Modals */}
-        <AddTransactionPickerModal />
-        <TransactionFormModal />
+        {/* Global Modals: Suppressed on admin routes */}
+        {!isAdminRoute && (
+          <>
+            <AddTransactionPickerModal />
+            <TransactionFormModal />
+          </>
+        )}
       </div>
     </div>
   );

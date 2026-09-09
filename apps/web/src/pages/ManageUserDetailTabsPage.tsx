@@ -22,6 +22,8 @@ import {
   ShieldAlert,
   HelpCircle,
   Unlock,
+  LogOut,
+  ArrowLeftFromLine,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -31,6 +33,7 @@ import { Input } from '../components/ui/Input.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { apiClient } from '../services/apiClient.js';
+import { useAuthStore } from '../store/authStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { AdminUserDetails, AdminUserItem } from '@finance/shared-types';
 
@@ -171,6 +174,14 @@ export const ManageUserDetailTabsPage: React.FC = () => {
   const isActive = user.status === 'ACTIVE';
   const isAdmin = user.role === 'ADMIN';
 
+  const handleLogout = async () => {
+    try {
+      await useAuthStore.getState().logout();
+    } finally {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col pb-8">
       <AppHeader
@@ -178,6 +189,29 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         title="Manage User"
         subtitle="View and manage user account"
         backTo={`/admin/users/${id}`}
+        rightAction={
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              aria-label="Exit to personal mode"
+              title="Exit to personal mode"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20"
+            >
+              <ArrowLeftFromLine className="w-3.5 h-3.5" />
+              <span>Exit Admin</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              aria-label="Log Out"
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+        }
       />
 
       <div className="p-4 space-y-4">

@@ -182,7 +182,7 @@ export const ImportPage: React.FC = () => {
             ) : (
               accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type}) — Balance: {formatCurrency(acc.currentBalance / 100, (acc as any).currency || userCurrency)}
+                  {acc.name} ({acc.type}) · Balance: {formatCurrency(acc.currentBalance / 100, (acc as any).currency || userCurrency)}
                 </option>
               ))
             )}

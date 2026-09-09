@@ -14,16 +14,20 @@ import {
   MoreVertical,
   ChevronDown,
   X,
+  LogOut,
+  ArrowLeftFromLine,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
+import { useAuthStore } from '../store/authStore.js';
 import type { AdminDashboardMetrics, AdminUserItem } from '@finance/shared-types';
 
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED' | 'ADMIN'>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
@@ -98,20 +102,39 @@ export const AdminDashboardPage: React.FC = () => {
     return 'Last active recently';
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col pb-8">
       <AppHeader
         variant="nested"
         title="Admin"
         subtitle="Manage users and permissions"
-        backTo="/menu"
+        backTo="/dashboard"
         rightAction={
           <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              aria-label="Exit to personal mode"
+              title="Exit to personal mode"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20"
+            >
+              <ArrowLeftFromLine className="w-3.5 h-3.5" />
+              <span>Exit Admin</span>
+            </button>
             <button
               type="button"
               onClick={() => navigate('/admin/audit')}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A]"
               aria-label="Activity Audit"
+              title="Audit Logs"
             >
               <FileText className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -120,8 +143,18 @@ export const AdminDashboardPage: React.FC = () => {
               onClick={() => navigate('/admin/settings')}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A]"
               aria-label="Admin Settings"
+              title="Platform Settings"
             >
               <Settings className="w-4 h-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              aria-label="Log Out"
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         }
@@ -137,7 +170,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <div>
               <div className="text-xl font-black leading-tight">
-                {isMetricsLoading ? '—' : metrics.totalUsers}
+                {isMetricsLoading ? '0' : metrics.totalUsers}
               </div>
               <div className="text-[10px] text-blue-100 font-medium leading-tight mt-0.5">
                 Total Users
@@ -152,7 +185,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <div>
               <div className="text-xl font-black text-emerald-900 leading-tight">
-                {isMetricsLoading ? '—' : metrics.activeUsers}
+                {isMetricsLoading ? '0' : metrics.activeUsers}
               </div>
               <div className="text-[10px] text-emerald-700 font-medium leading-tight mt-0.5">
                 Active
@@ -167,7 +200,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <div>
               <div className="text-xl font-black text-amber-900 leading-tight">
-                {isMetricsLoading ? '—' : metrics.suspendedUsers}
+                {isMetricsLoading ? '0' : metrics.suspendedUsers}
               </div>
               <div className="text-[10px] text-amber-700 font-medium leading-tight mt-0.5">
                 Suspended
@@ -182,7 +215,7 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <div>
               <div className="text-xl font-black text-purple-900 leading-tight">
-                {isMetricsLoading ? '—' : metrics.adminUsers}
+                {isMetricsLoading ? '0' : metrics.adminUsers}
               </div>
               <div className="text-[10px] text-purple-700 font-medium leading-tight mt-0.5">
                 Admins

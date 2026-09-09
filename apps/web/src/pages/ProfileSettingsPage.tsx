@@ -50,7 +50,7 @@ export const ProfileSettingsPage: React.FC = () => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [address, setAddress] = useState('');
 
-  // Finance Profile State — initialised empty; populated by useEffect from API
+  // Finance Profile State: initialised empty; populated by useEffect from API
   const [monthlyIncome, setMonthlyIncome] = useState<number | string>('');
   const [monthlyExpenseBudget, setMonthlyExpenseBudget] = useState<number | string>('');
   const [monthlyInvestmentTarget, setMonthlyInvestmentTarget] = useState<number | string>('');

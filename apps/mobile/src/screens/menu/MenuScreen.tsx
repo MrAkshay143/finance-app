@@ -273,7 +273,7 @@ export const MenuScreen: React.FC = () => {
                 </View>
               </View>
               <Text style={styles.profileEmail} numberOfLines={1}>
-                {user?.email || '—'}
+                {user?.email || 'Not Set'}
               </Text>
             </View>
             <Pressable

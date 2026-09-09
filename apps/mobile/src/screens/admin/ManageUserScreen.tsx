@@ -168,7 +168,7 @@ export const ManageUserScreen: React.FC = () => {
   };
 
   const userName = userDetails?.user?.fullName || userDetails?.user?.email?.split('@')[0] || 'User';
-  const userEmail = userDetails?.user?.email || '—';
+  const userEmail = userDetails?.user?.email || 'Not Set';
   const userInitials = userName
     .split(' ')
     .map((n) => n[0])
@@ -287,7 +287,7 @@ export const ManageUserScreen: React.FC = () => {
                 <Text style={styles.infoValue}>
                   {userDetails?.user?.createdAt
                     ? formatDate(userDetails.user.createdAt)
-                    : '—'}
+                    : 'N/A'}
                 </Text>
               </View>
 

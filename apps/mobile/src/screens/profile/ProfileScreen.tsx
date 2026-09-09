@@ -99,7 +99,7 @@ export const ProfileScreen: React.FC = () => {
     authUser?.fullName ||
     'Account Member';
 
-  const displayEmail = profile?.email || authUser?.email || '—';
+  const displayEmail = profile?.email || authUser?.email || 'Not Set';
   const initialLetter = displayName.charAt(0).toUpperCase() || 'U';
 
   // Calculate completion percentage
@@ -116,7 +116,7 @@ export const ProfileScreen: React.FC = () => {
   const famGradeDisplay =
     famScore?.isAvailable && famScore.overallGrade !== 'NOT_AVAILABLE'
       ? (famScore as any).gradeDisplay || (famScore.overallGrade === 'A_PLUS' ? 'A+' : famScore.overallGrade)
-      : '—';
+      : 'N/A';
 
   return (
     <View style={styles.container}>

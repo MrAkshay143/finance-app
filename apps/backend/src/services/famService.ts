@@ -1,7 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError } from '../utils/errors.js';
 
-export type GradeDisplay = 'A+' | 'B' | 'C' | '—';
+export type GradeDisplay = 'A+' | 'B' | 'C' | 'NA';
 export type FamGrade = 'A_PLUS' | 'B' | 'C' | 'NOT_AVAILABLE';
 export type StatusLabel = 'Excellent' | 'Good' | 'Poor' | 'Not Available';
 
@@ -162,7 +162,7 @@ export function calculateFamScore({
       actualPaise: Number(actualPaise),
       percentage: 0,
       grade: 'NOT_AVAILABLE',
-      gradeDisplay: '—',
+      gradeDisplay: 'NA',
       status: 'Not Available',
       statusLabel: 'Not Available',
     });
@@ -176,7 +176,7 @@ export function calculateFamScore({
     return {
       isAvailable: false,
       overallGrade: 'NOT_AVAILABLE',
-      grade: '—',
+      grade: 'NA',
       gradeDisplay: 'NA',
       statusLabel: 'Not Available',
       overallProgressPercentage: 0,

@@ -93,7 +93,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   }, [visible]);
 
   const currentCategories = React.useMemo(() => {
-    // Only use real server categories — never fall back to hardcoded non-UUID values
+    // Only use real server categories: never fall back to hardcoded non-UUID values
     const fromServer = serverCategories.filter(
       (c) => c.type?.toLowerCase() === selectedType.toLowerCase()
     );
@@ -243,7 +243,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       // Resolve category: categoryId is always a real UUID from the API or empty
       let resolvedCategoryId: string | undefined = undefined;
       if (categoryId && categoryId.includes('-')) {
-        // Standard UUID format — use directly
+        // Standard UUID format: use directly
         resolvedCategoryId = categoryId;
       } else if (categoryId) {
         // Try to find by id or name in server categories as a safety net
@@ -253,7 +253,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
         if (found) {
           resolvedCategoryId = found.id;
         }
-        // If not found, don't send a non-UUID value — leave as undefined
+        // If not found, don't send a non-UUID value: leave as undefined
       }
 
 

@@ -90,3 +90,68 @@ export const AuditLogItemSchema = z.object({
   createdAt: z.string().datetime(),
 });
 export type AuditLogItem = z.infer<typeof AuditLogItemSchema>;
+
+export const PlatformAnalyticsSchema = z.object({
+  timeframe: z.string(),
+  summary: z.object({
+    totalUsers: z.number().int().nonnegative(),
+    activeUsers: z.number().int().nonnegative(),
+    suspendedUsers: z.number().int().nonnegative(),
+    adminUsers: z.number().int().nonnegative(),
+    onboardedUsers: z.number().int().nonnegative(),
+    kbaConfiguredUsers: z.number().int().nonnegative(),
+    fundedUsers: z.number().int().nonnegative(),
+    totalTransactionsCount: z.number().int().nonnegative(),
+    grossTransactionVolumePaise: z.number().nonnegative(),
+    totalSystemBalancePaise: z.number(),
+    avgTransactionsPerUser: z.number(),
+  }),
+  funnel: z.object({
+    totalRegistered: z.number().int().nonnegative(),
+    onboardedCount: z.number().int().nonnegative(),
+    onboardedPercentage: z.number(),
+    kbaConfiguredCount: z.number().int().nonnegative(),
+    kbaPercentage: z.number(),
+    accountsLinkedCount: z.number().int().nonnegative(),
+    accountsLinkedPercentage: z.number(),
+  }),
+  growth: z.array(
+    z.object({
+      date: z.string(),
+      signups: z.number().int().nonnegative(),
+    })
+  ),
+});
+export type PlatformAnalyticsData = z.infer<typeof PlatformAnalyticsSchema>;
+
+export const SystemHealthSchema = z.object({
+  status: z.enum(['HEALTHY', 'DEGRADED']),
+  uptimeSeconds: z.number().int().nonnegative(),
+  timestamp: z.string().datetime(),
+  database: z.object({
+    connected: z.boolean(),
+    latencyMs: z.number(),
+  }),
+  memory: z.object({
+    heapUsedMB: z.number(),
+    heapTotalMB: z.number(),
+    rssMB: z.number(),
+  }),
+  tableCounts: z.object({
+    users: z.number().int().nonnegative(),
+    accounts: z.number().int().nonnegative(),
+    transactions: z.number().int().nonnegative(),
+    auditLogs: z.number().int().nonnegative(),
+  }),
+});
+export type SystemHealthData = z.infer<typeof SystemHealthSchema>;
+
+export const UserSessionItemSchema = z.object({
+  id: z.string(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  userAgent: z.string().nullable().optional(),
+  ipAddress: z.string().nullable().optional(),
+  familyId: z.string(),
+});
+export type UserSessionItem = z.infer<typeof UserSessionItemSchema>;

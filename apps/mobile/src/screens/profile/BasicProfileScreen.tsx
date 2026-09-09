@@ -382,8 +382,8 @@ export const BasicProfileScreen: React.FC = () => {
               <Text style={styles.kbaTitle}>Security Questions (KBA)</Text>
               <Text style={styles.kbaSubtitle}>
                 {kbaConfigured
-                  ? 'Configured — answers enable secure recovery'
-                  : 'Not set — set them to enable password recovery'}
+                  ? 'Configured: answers enable secure recovery'
+                  : 'Not set: set them to enable password recovery'}
               </Text>
             </View>
             <ChevronRightIcon size={18} color="#98A2B3" />

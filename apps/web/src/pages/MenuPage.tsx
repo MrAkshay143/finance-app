@@ -4,6 +4,7 @@ import {
   User,
   Settings,
   BarChart3,
+  BarChart2,
   ShieldCheck,
   Sparkles,
   Lightbulb,
@@ -51,7 +52,7 @@ export const MenuPage: React.FC = () => {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const displayName = user?.fullName || user?.firstName || (user?.email ? user.email.split('@')[0] : 'User');
-  const userEmail = user?.email || '—';
+  const userEmail = user?.email || 'Not Set';
   const initial = (user?.firstName?.[0] || user?.fullName?.[0] || user?.email?.[0] || 'U').toUpperCase();
 
   const sections: MenuSection[] = [
@@ -221,6 +222,14 @@ export const MenuPage: React.FC = () => {
         icon: <Users className="w-5 h-5" />,
         iconBg: 'bg-purple-50',
         iconColor: 'text-purple-600',
+      },
+      {
+        label: 'Platform Reports',
+        subtitle: 'User analytics, onboarding funnel & CSV export',
+        path: '/admin/reports',
+        icon: <BarChart2 className="w-5 h-5" />,
+        iconBg: 'bg-indigo-50',
+        iconColor: 'text-indigo-600',
       },
       {
         label: 'App Settings',

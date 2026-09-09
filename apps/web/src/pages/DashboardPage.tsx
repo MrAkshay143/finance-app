@@ -126,7 +126,7 @@ export const DashboardPage: React.FC = () => {
 
   // Extract data with safe fallbacks
   const fam = dashboardData?.fam;
-  // Only show real FAM data — no dummy grade/score fallbacks
+  // Only show real FAM data: no dummy grade/score fallbacks
   const famGrade = fam?.gradeDisplay || fam?.grade || null;
   const famStatusLabel = fam?.statusLabel || null;
   const famScore = fam?.progress ?? fam?.overallProgressPercentage ?? 0;
@@ -280,7 +280,7 @@ export const DashboardPage: React.FC = () => {
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[124px] text-center">
-                    <span className="text-3xl font-black text-slate-300">—</span>
+                    <span className="text-3xl font-black text-slate-300">N/A</span>
                     <p className="text-xs text-textMuted mt-1">
                       Set your finance targets to see your FAM score
                     </p>
@@ -299,7 +299,7 @@ export const DashboardPage: React.FC = () => {
                     <span className="text-[10px] font-semibold text-textMuted uppercase">Expense</span>
                   </div>
                   <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaExpense?.statusLabel || areaExpense?.status || '—'}
+                    {areaExpense?.statusLabel || areaExpense?.status || 'Not Set'}
                   </span>
                 </div>
 
@@ -310,7 +310,7 @@ export const DashboardPage: React.FC = () => {
                     <span className="text-[10px] font-semibold text-textMuted uppercase">Invest</span>
                   </div>
                   <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaInvestment?.statusLabel || areaInvestment?.status || '—'}
+                    {areaInvestment?.statusLabel || areaInvestment?.status || 'Not Set'}
                   </span>
                 </div>
 
@@ -321,7 +321,7 @@ export const DashboardPage: React.FC = () => {
                     <span className="text-[10px] font-semibold text-textMuted uppercase">Income</span>
                   </div>
                   <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaIncome?.statusLabel || areaIncome?.status || '—'}
+                    {areaIncome?.statusLabel || areaIncome?.status || 'Not Set'}
                   </span>
                 </div>
               </div>
@@ -448,7 +448,7 @@ export const DashboardPage: React.FC = () => {
                   </h3>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  {/* Segmented Expenses / Income Toggle — matches AnalyticsPage pattern */}
+                  {/* Segmented Expenses / Income Toggle: matches AnalyticsPage pattern */}
                   <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
                     <button
                       type="button"

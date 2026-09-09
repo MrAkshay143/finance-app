@@ -12,10 +12,27 @@ adminRouter.use(requireAdmin);
 // Dashboard metrics
 adminRouter.get('/dashboard', (req, res, next) => adminController.getDashboard(req, res, next));
 
+// Reports and Analytics
+adminRouter.get('/reports/analytics', (req, res, next) =>
+  adminController.getPlatformAnalytics(req, res, next)
+);
+adminRouter.get('/reports/users/export', (req, res, next) =>
+  adminController.exportUsersCsv(req, res, next)
+);
+
+// System telemetry & health
+adminRouter.get('/system/health', (req, res, next) => adminController.getSystemHealth(req, res, next));
+
 // Users management
 adminRouter.get('/users', (req, res, next) => adminController.listUsers(req, res, next));
 adminRouter.get('/users/:id', (req, res, next) => adminController.getUserDetails(req, res, next));
 adminRouter.patch('/users/:id', (req, res, next) => adminController.updateUser(req, res, next));
+adminRouter.get('/users/:id/sessions', (req, res, next) =>
+  adminController.getUserSessions(req, res, next)
+);
+adminRouter.post('/users/:id/sessions/revoke-all', (req, res, next) =>
+  adminController.revokeAllUserSessions(req, res, next)
+);
 adminRouter.post('/users/:id/reset-password', (req, res, next) =>
   adminController.resetUserPassword(req, res, next)
 );

@@ -63,6 +63,9 @@ import type {
   AuditLogRecord,
   ListAuditLogsQuery,
   ListAuditLogsResponse,
+  PlatformAnalyticsData,
+  SystemHealthData,
+  UserSessionItem,
   ImportCsvInput,
   ImportCsvResponse,
   ExportUserDataQuery,
@@ -487,6 +490,16 @@ export class FinanceApiClient {
       this.request<AppSettings>({ method: 'PATCH', url: '/admin/app-settings', data: input }),
     getAuditLogs: (params?: ListAuditLogsQuery) =>
       this.request<ListAuditLogsResponse>({ method: 'GET', url: '/admin/audit-logs', params }),
+    getPlatformAnalytics: (params?: { timeframe?: string }) =>
+      this.request<PlatformAnalyticsData>({ method: 'GET', url: '/admin/reports/analytics', params }),
+    exportUsersCsv: () =>
+      this.client.get<Blob>('/admin/reports/users/export', { responseType: 'blob' }),
+    getSystemHealth: () =>
+      this.request<SystemHealthData>({ method: 'GET', url: '/admin/system/health' }),
+    getUserSessions: (id: string) =>
+      this.request<UserSessionItem[]>({ method: 'GET', url: `/admin/users/${id}/sessions` }),
+    revokeAllUserSessions: (id: string) =>
+      this.request<{ revokedCount: number }>({ method: 'POST', url: `/admin/users/${id}/sessions/revoke-all` }),
   };
 
   // Import & Export

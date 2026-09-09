@@ -20,7 +20,7 @@ import { useSafeQueryClient } from '../../hooks/useSafeQueryClient.js';
 import { getCurrencySymbol } from '../../utils/currency.js';
 import type { TxnType } from '@finance/shared-types';
 
-// NO hardcoded category or account fallbacks — all values must come from the real API.
+// NO hardcoded category or account fallbacks: all values must come from the real API.
 
 export interface TransactionFormModalProps {
   isOpen?: boolean;
@@ -93,11 +93,11 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     (c) => c.type === type.toUpperCase()
   );
 
-  // Only use real UUID-based category options — never fall back to fake slugs
+  // Only use real UUID-based category options: never fall back to fake slugs
   const categoryOptions = realCategories.map((c) => ({ value: c.id, label: c.name }));
   const categoriesLoaded = Array.isArray(categoriesData);
 
-  // Build account select options — only real accounts, never fake defaults
+  // Build account select options: only real accounts, never fake defaults
   const accountOptions =
     activeAccounts.length > 0
       ? activeAccounts.map((acc) => {
@@ -304,7 +304,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     // Default description if empty
     const resolvedDescription = description.trim() || `${typeCapitalized} record`;
 
-    // categoryId is always a real UUID from the API or empty — pass directly
+    // categoryId is always a real UUID from the API or empty: pass directly
     const resolvedCategoryId = categoryId || undefined;
 
 

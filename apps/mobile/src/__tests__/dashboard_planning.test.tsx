@@ -177,7 +177,7 @@ describe('Mobile Dashboard, Planning & Categories Suite (TASK-3.6)', () => {
       const fam = mockDashboardData.fam;
       expect(fam.grade).toBe('A+');
       expect(fam.progress).toBe(88);
-      expect(['A+', 'B', 'C', '—']).toContain(fam.grade);
+      expect(['A+', 'B', 'C', 'NA', 'N/A']).toContain(fam.grade);
 
       // 3 area status chips
       expect(fam.areas.income.statusLabel).toBe('Excellent');

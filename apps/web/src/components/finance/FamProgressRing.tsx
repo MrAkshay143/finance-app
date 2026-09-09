@@ -120,7 +120,7 @@ export interface FamDonutRingProps {
  */
 export const FamDonutRing: React.FC<FamDonutRingProps> = ({
   score,
-  grade = '—',
+  grade = 'N/A',
   statusLabel,
   progressPercentage,
   size = 120,
@@ -138,7 +138,7 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
       : score !== undefined
       ? score
       : 0;
-  const displayLabel = statusLabel || label || (grade === '—' ? 'Unassessed' : 'Assessed');
+  const displayLabel = statusLabel || label || (grade === 'N/A' || grade === 'NA' ? 'Unassessed' : 'Assessed');
 
   // Grade badge styling
   const gradeColor =

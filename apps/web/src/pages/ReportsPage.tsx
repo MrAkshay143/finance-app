@@ -135,7 +135,7 @@ export const ReportsPage: React.FC = () => {
     reportData?.famScore?.gradeDisplay ||
     (reportData?.famScore?.overallGrade === 'A_PLUS' ? 'A+' : reportData?.famScore?.overallGrade) ||
     reportData?.famScore?.grade ||
-    '—';
+    'N/A';
 
   const formatBarBadge = (amount: number): string => {
     return formatCompactCurrency(amount, userCurrency);
@@ -336,7 +336,7 @@ export const ReportsPage: React.FC = () => {
                   </div>
                   <div className="mt-0.5 flex items-baseline gap-1">
                     <span className="text-lg font-black text-brand-primary">
-                      {famScoreVal > 0 ? famScoreVal : (famGradeVal !== '—' ? famScoreVal : '—')}
+                      {famScoreVal > 0 ? famScoreVal : (famGradeVal !== 'N/A' && famGradeVal !== 'NA' ? famScoreVal : '0')}
                     </span>
                     <span className="text-xs font-semibold text-slate-500">/ 100</span>
                   </div>
@@ -776,7 +776,7 @@ export const ReportsPage: React.FC = () => {
                   <h3 className="text-xs font-bold text-slate-900">12-Month Performance ({selectedYear})</h3>
                 </div>
                 <span className="text-[11px] text-textMuted">
-                  Best Month: <strong className="text-brand-primary">{annualData?.bestSavingsMonth || '—'}</strong>
+                  Best Month: <strong className="text-brand-primary">{annualData?.bestSavingsMonth || 'None'}</strong>
                 </span>
               </div>
 

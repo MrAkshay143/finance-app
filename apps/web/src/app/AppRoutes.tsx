@@ -27,6 +27,7 @@ import { ProfilePage } from '../pages/ProfilePage.js';
 import { ProfileSettingsPage } from '../pages/ProfileSettingsPage.js';
 import { SettingsPage } from '../pages/SettingsPage.js';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage.js';
+import { AdminReportsPage } from '../pages/AdminReportsPage.js';
 import { ManageUserOverviewPage } from '../pages/ManageUserOverviewPage.js';
 import { ManageUserDetailTabsPage } from '../pages/ManageUserDetailTabsPage.js';
 import { AdminAppSettingsPage } from '../pages/AdminAppSettingsPage.js';
@@ -112,6 +113,7 @@ export const AppRoutes: React.FC = () => {
         {/* 15. Admin Dashboard & Users */}
         <Route path={ROUTES.ADMIN} element={<AdminDashboardPage />} />
         <Route path={ROUTES.ADMIN_USERS} element={<AdminDashboardPage />} />
+        <Route path={ROUTES.ADMIN_REPORTS} element={<AdminReportsPage />} />
 
         {/* 16. Manage User Overview */}
         <Route path={ROUTES.ADMIN_USER_OVERVIEW} element={<ManageUserOverviewPage />} />

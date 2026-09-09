@@ -493,6 +493,270 @@ export class AdminService {
   async listSystemAuditLogs(options: any = {}) {
     return auditService.listSystemAuditLogs(options);
   }
+
+  /**
+   * Aggregates platform analytics, onboarding funnels, and user growth.
+   */
+  async getPlatformAnalytics(timeframe = '30d') {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalUsers,
+      activeUsers,
+      suspendedUsers,
+      adminUsers,
+      onboardedUsers,
+      usersWithKba,
+      usersWithAccounts,
+      totalTxnsCount,
+      allTxns,
+      allAccounts,
+      recentUsers,
+    ] = await Promise.all([
+      prisma.user.count({ where: { status: { not: 'DELETED' } } }),
+      prisma.user.count({ where: { status: 'ACTIVE' } }),
+      prisma.user.count({ where: { status: 'SUSPENDED' } }),
+      prisma.user.count({ where: { role: 'ADMIN', status: { not: 'DELETED' } } }),
+      prisma.user.count({ where: { onboardingCompleted: true, status: { not: 'DELETED' } } }),
+      prisma.user.count({
+        where: {
+          status: { not: 'DELETED' },
+          securityQuestions: { some: {} },
+        },
+      }),
+      prisma.user.count({
+        where: {
+          status: { not: 'DELETED' },
+          accounts: { some: { status: 'ACTIVE' } },
+        },
+      }),
+      prisma.transaction.count({ where: { status: 'ACTIVE' } }),
+      prisma.transaction.aggregate({
+        where: { status: 'ACTIVE' },
+        _sum: { amount: true },
+      }),
+      prisma.account.aggregate({
+        where: { status: 'ACTIVE' },
+        _sum: { currentBalance: true },
+      }),
+      prisma.user.findMany({
+        where: {
+          createdAt: { gte: thirtyDaysAgo },
+          status: { not: 'DELETED' },
+        },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    // Build 30-day daily growth buckets
+    const growthMap: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().split('T')[0];
+      growthMap[key] = 0;
+    }
+
+    recentUsers.forEach((u) => {
+      const key = u.createdAt.toISOString().split('T')[0];
+      if (growthMap[key] !== undefined) {
+        growthMap[key]++;
+      }
+    });
+
+    const growth = Object.entries(growthMap).map(([date, signups]) => ({
+      date,
+      signups,
+    }));
+
+    const grossTransactionVolumePaise = Number(allTxns._sum.amount || 0);
+    const totalSystemBalancePaise = Number(allAccounts._sum.currentBalance || 0);
+    const avgTransactionsPerUser =
+      totalUsers > 0 ? Math.round((totalTxnsCount / totalUsers) * 10) / 10 : 0;
+
+    return {
+      timeframe,
+      summary: {
+        totalUsers,
+        activeUsers,
+        suspendedUsers,
+        adminUsers,
+        onboardedUsers,
+        kbaConfiguredUsers: usersWithKba,
+        fundedUsers: usersWithAccounts,
+        totalTransactionsCount: totalTxnsCount,
+        grossTransactionVolumePaise,
+        totalSystemBalancePaise,
+        avgTransactionsPerUser,
+      },
+      funnel: {
+        totalRegistered: totalUsers,
+        onboardedCount: onboardedUsers,
+        onboardedPercentage: totalUsers > 0 ? Math.round((onboardedUsers / totalUsers) * 100) : 0,
+        kbaConfiguredCount: usersWithKba,
+        kbaPercentage: totalUsers > 0 ? Math.round((usersWithKba / totalUsers) * 100) : 0,
+        accountsLinkedCount: usersWithAccounts,
+        accountsLinkedPercentage:
+          totalUsers > 0 ? Math.round((usersWithAccounts / totalUsers) * 100) : 0,
+      },
+      growth,
+    };
+  }
+
+  /**
+   * Generates institutional CSV data for all non-deleted platform users.
+   */
+  async exportUsersCsv(): Promise<string> {
+    const users = await prisma.user.findMany({
+      where: { status: { not: 'DELETED' } },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        accounts: {
+          where: { status: 'ACTIVE' },
+          select: { currentBalance: true },
+        },
+        securityQuestions: {
+          select: { id: true },
+        },
+      },
+    });
+
+    const headers = [
+      'User ID',
+      'Full Name',
+      'Email',
+      'Mobile Number',
+      'Role',
+      'Status',
+      'Onboarding Completed',
+      'KBA Configured',
+      'Failed Logins',
+      'Created At',
+      'Last Login At',
+      'Active Accounts Count',
+      'Total Balance (INR)',
+    ];
+
+    const escapeCsv = (val: string | number | boolean | null | undefined): string => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = users.map((u) => {
+      const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Not Set';
+      const totalBalanceINR = (
+        u.accounts.reduce((sum, a) => sum + Number(a.currentBalance || 0), 0) / 100
+      ).toFixed(2);
+
+      return [
+        escapeCsv(u.id),
+        escapeCsv(fullName),
+        escapeCsv(u.email),
+        escapeCsv(u.mobileNumber || 'Not Set'),
+        escapeCsv(u.role),
+        escapeCsv(u.status),
+        escapeCsv(u.onboardingCompleted ? 'Yes' : 'No'),
+        escapeCsv(u.securityQuestions.length >= 3 ? 'Yes' : 'No'),
+        escapeCsv(u.failedLoginAttempts),
+        escapeCsv(u.createdAt.toISOString()),
+        escapeCsv(u.lastLoginAt ? u.lastLoginAt.toISOString() : 'Never'),
+        escapeCsv(u.accounts.length),
+        escapeCsv(totalBalanceINR),
+      ].join(',');
+    });
+
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  /**
+   * Evaluates live system health, latency, uptime, and row counts.
+   */
+  async getSystemHealth() {
+    const start = performance.now();
+    await prisma.$queryRaw`SELECT 1`;
+    const latencyMs = Math.round(performance.now() - start);
+
+    const mem = process.memoryUsage();
+    const [userCount, accountCount, txnCount, auditCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.account.count(),
+      prisma.transaction.count(),
+      prisma.auditLog.count(),
+    ]);
+
+    return {
+      status: 'HEALTHY' as const,
+      uptimeSeconds: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: true,
+        latencyMs,
+      },
+      memory: {
+        heapUsedMB: Math.round(mem.heapUsed / (1024 * 1024)),
+        heapTotalMB: Math.round(mem.heapTotal / (1024 * 1024)),
+        rssMB: Math.round(mem.rss / (1024 * 1024)),
+      },
+      tableCounts: {
+        users: userCount,
+        accounts: accountCount,
+        transactions: txnCount,
+        auditLogs: auditCount,
+      },
+    };
+  }
+
+  /**
+   * Retrieves active sessions for a given user.
+   */
+  async getUserSessions(userId: string) {
+    const sessions = await prisma.refreshToken.findMany({
+      where: {
+        userId,
+        expiresAt: { gt: new Date() },
+        revokedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return sessions.map((s) => ({
+      id: s.id,
+      createdAt: s.createdAt.toISOString(),
+      expiresAt: s.expiresAt.toISOString(),
+      userAgent: s.userAgent || 'Not Set',
+      ipAddress: s.ipAddress || 'Not Set',
+      familyId: s.familyId,
+    }));
+  }
+
+  /**
+   * Revokes all active refresh tokens for a user.
+   */
+  async revokeAllUserSessions(userId: string, adminId: string, ipAddress?: string) {
+    const result = await prisma.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      targetUserId: userId,
+      action: 'ADMIN_REVOKE_USER_SESSIONS',
+      details: { revokedSessionsCount: result.count },
+      ipAddress,
+    });
+
+    return { revokedCount: result.count };
+  }
 }
 
 export const adminService = new AdminService();

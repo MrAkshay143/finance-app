@@ -328,19 +328,19 @@ export const OnboardingWizard: React.FC = () => {
                   <div className="flex justify-between font-medium text-slate-700">
                     <span>Monthly Income:</span>
                     <span className="font-bold text-semantic-success">
-                      {monthlyIncome ? formatCurrency(Number(monthlyIncome), userCurrency) : '—'}
+                      {monthlyIncome ? formatCurrency(Number(monthlyIncome), userCurrency) : formatCurrency(0, userCurrency)}
                     </span>
                   </div>
                   <div className="flex justify-between font-medium text-slate-700">
                     <span>Expense Budget:</span>
                     <span className="font-bold text-semantic-danger">
-                      {monthlyExpenseBudget ? formatCurrency(Number(monthlyExpenseBudget), userCurrency) : '—'}
+                      {monthlyExpenseBudget ? formatCurrency(Number(monthlyExpenseBudget), userCurrency) : formatCurrency(0, userCurrency)}
                     </span>
                   </div>
                   <div className="flex justify-between font-medium text-slate-700">
                     <span>Investment Target:</span>
                     <span className="font-bold text-semantic-investment">
-                      {monthlyInvestmentTarget ? formatCurrency(Number(monthlyInvestmentTarget), userCurrency) : '—'}
+                      {monthlyInvestmentTarget ? formatCurrency(Number(monthlyInvestmentTarget), userCurrency) : formatCurrency(0, userCurrency)}
                     </span>
                   </div>
                 </div>

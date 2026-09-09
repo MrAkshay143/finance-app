@@ -191,7 +191,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
 
       expect(html).toContain('#0B1B3A');
       expect(html).toContain('Analytics');
-      expect(html).toContain('01-09-2026 — 30-09-2026');
+      expect(html).toContain('01-09-2026 - 30-09-2026');
       expect(html).toContain('This Month');
     });
 
@@ -224,7 +224,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
       expect(html).toContain('Income');
       expect(html).toContain('Expenses');
       expect(html).toContain('Saved');
-      // The stat cards no longer show fake "vs last month 0%" — they show real contextual labels
+      // The stat cards no longer show fake "vs last month 0%": they show real contextual labels
       expect(html).toContain('No income yet');
     });
 
@@ -423,7 +423,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
         </QueryClientProvider>
       );
 
-      expect(html).toContain('Monthly Analysis —');
+      expect(html).toContain('Monthly Analysis:');
       expect(html).toContain('Evaluated');
       expect(html).toContain('Fixed Needs');
       expect(html).toContain('Wants');

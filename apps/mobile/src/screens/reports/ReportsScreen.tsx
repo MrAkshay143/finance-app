@@ -335,7 +335,7 @@ export const ReportsScreen: React.FC = () => {
                 <View>
                   <Text style={styles.monthSelectorSub}>CUSTOM RANGE ({customRange.label})</Text>
                   <Text style={styles.monthSelectorTitle}>
-                    {customRange.startDate} — {customRange.endDate}
+                    {customRange.startDate} to {customRange.endDate}
                   </Text>
                 </View>
               </View>
@@ -398,7 +398,7 @@ export const ReportsScreen: React.FC = () => {
               <View style={[styles.summaryCard, styles.summaryCardFam]}>
                 <Text style={styles.summaryCardLabel}>FAM SCORE</Text>
                 <View style={styles.famScoreCenter}>
-                  <FamDonutRing score={famScoreVal ?? 0} grade={famGradeVal ?? '—'} size={64} strokeWidth={6} />
+                  <FamDonutRing score={famScoreVal ?? 0} grade={famGradeVal ?? 'N/A'} size={64} strokeWidth={6} />
                 </View>
                 {famGradeVal ? (
                   <View style={styles.trendChipPositive}>
