@@ -1,117 +1,101 @@
-# Production Deployment Guide
+# Deployment Guide
 
-Complete operational guide detailing deployment options, database migration workflows, and live production procedures for the Finance Tracker Monorepo.
+Production deployment guide for the Finance Tracker application, covering Hostinger Cloud Application hosting (active production), Docker Compose orchestration, and cloud PaaS options.
 
-- Repository: https://github.com/MrAkshay143/finance-app.git
-- Live Production URL: https://finance.imakshay.in
-- Monorepo Topology: pnpm workspaces (apps/backend, apps/web, packages/*)
-- Runtime Targets: Node.js >= 20 LTS, PostgreSQL 16+ or MySQL 8.0+
+## 1. Production Architecture Overview
 
----
+The production system is deployed live at https://finance.imakshay.in on Hostinger Cloud Application hosting:
+- Frontend: Single Page Application (SPA) built via Vite and served as static assets with client-side routing.
+- Backend: Node.js (v20+) Express server mounted at /api/v1.
+- Database: MySQL 8.0+ cloud database managed via Prisma ORM (apps/backend/prisma/schema.mysql.prisma).
+- Process Management: Hostinger Node.js Application manager running dist/server.js.
 
-## Architecture Overview
+## 2. Option 1: Hostinger Cloud Application (Active Production)
 
-```
-Client (Web Browser / PWA)
-           |
-           v
-  HTTPS Reverse Proxy (Nginx / Cloudflare)
-           |
-           +-----------------------------+
-           |                             |
-           v                             v
-  Static Assets (apps/web/dist)   Express API (/api/v1)
-                                         |
-                         +---------------+---------------+
-                         |                               |
-                         v                               v
-            Database (Postgres / MySQL)           Redis Cache & Queue
-```
+### Step 1: Prepare Database on Hostinger
+1. In Hostinger hPanel, create a MySQL Database and user.
+2. Note the database credentials:
+   - Host: localhost (or Hostinger DB IP)
+   - Port: 3306
+   - User: your_db_user
+   - Password: your_db_password
+   - Database: your_db_name
 
----
-
-## Deployment Option 1: Live Cloud Production (Hostinger)
-
-The live production application at https://finance.imakshay.in runs on Hostinger Cloud Application hosting using Node.js 20 and a managed MySQL database.
-
-### Packaging & Deployment Steps
-
-1. Build packages and frontend:
-```bash
-pnpm -r --filter="./packages/*" run build
-pnpm --filter @finance/web build
-```
-
-2. Bundle backend and package distribution:
-Run the deployment packaging script:
+### Step 2: Build and Package Deployment Archive
+Run the automated packaging script in PowerShell:
 ```powershell
-powershell -ExecutionPolicy Bypass -File C:/Users/aksha/.gemini/antigravity/brain/5f877727-2365-479e-8623-fa9afa7d6e93/scratch/package_deploy.ps1
+powershell -ExecutionPolicy Bypass -File scratch/package_deploy.ps1
 ```
-This compiles server.ts into finance_deploy/server.js via esbuild, copies schema.mysql.prisma, includes public web assets, and creates finance_deploy.zip.
+This compiles all packages, runs prisma generate with schema.mysql.prisma, builds the web SPA, copies static assets to apps/backend/public, and produces finance_deploy.zip.
 
-3. Upload and Deploy Archive:
-- Upload finance_deploy.zip via upload_archive.mjs.
-- Trigger deployment through Hostinger MCP tool hosting_deployJsApplication.
-- Restart the application process via hosting_restartNode_jsApplicationV1.
+### Step 3: Deploy to Hostinger
+Upload finance_deploy.zip to the public_html or application root directory via Hostinger File Manager or automated script:
+```powershell
+node scratch/upload_archive.mjs
+```
 
-4. Production Environment Variables:
+### Step 4: Configure Environment Variables in Hostinger
+Configure the following in Hostinger Application Settings:
 ```env
 NODE_ENV=production
 PORT=4000
-DATABASE_URL=mysql://u581617111_financeapp:DB_PASS@127.0.0.1:3306/u581617111_financeapp
-JWT_ACCESS_SECRET=production-jwt-access-secret-hostinger-secure-2026-min-32
-JWT_REFRESH_SECRET=production-jwt-refresh-secret-hostinger-secure-2026-min-32
-JWT_RESET_SECRET=production-jwt-reset-secret-hostinger-secure-2026-min-32
-CORS_ALLOWED_ORIGINS=https://finance.imakshay.in,http://finance.imakshay.in
-PUBLIC_DIR=./public
-LOG_LEVEL=info
+DATABASE_URL=mysql://your_db_user:your_db_password@localhost:3306/your_db_name
+JWT_ACCESS_SECRET=your_32_character_access_secret_key_here
+JWT_REFRESH_SECRET=your_32_character_refresh_secret_key
+JWT_RESET_SECRET=your_32_character_reset_secret_key_here
+JWT_ACCESS_TTL=15m
+REFRESH_TOKEN_TTL_DAYS=30
+CORS_ALLOWED_ORIGINS=https://finance.imakshay.in
+PUBLIC_DIR=public
 ```
 
----
-
-## Deployment Option 2: Docker Compose Stack (VPS / Local Server)
-
-For deployment on any Linux VPS, Docker Compose orchestrates the full stack:
-
+### Step 5: Run Database Migrations
+On the Hostinger console or terminal:
 ```bash
-# Start all containers in the background
-docker compose -f infra/compose/docker-compose.prod.yml up -d
-
-# Check running status
-docker compose -f infra/compose/docker-compose.prod.yml ps
-
-# View container logs
-docker compose -f infra/compose/docker-compose.prod.yml logs -f
+npx prisma db push --schema=prisma/schema.mysql.prisma
+node dist/seed-realworld.js
 ```
 
----
+### Step 6: Restart and Verify
+Restart the Node.js application in Hostinger hPanel. Verify health at https://finance.imakshay.in/healthz.
 
-## Deployment Option 3: PaaS (Render / Railway / Fly.io)
+## 3. Option 2: Docker Compose Stack
 
-For cloud container platforms:
-1. Connect the GitHub repository: https://github.com/MrAkshay143/finance-app.git
-2. Configure Web Service build command:
+For containerized deployment on a VPS (Ubuntu, Debian, etc.):
+
+### Step 1: Clone and Configure Environment
 ```bash
-pnpm install && pnpm build
+git clone https://github.com/MrAkshay143/finance-app.git
+cd finance-app
+cp .env.example .env
 ```
-3. Start command:
+Edit .env with production passwords and secrets.
+
+### Step 2: Build and Launch Containers
 ```bash
-pnpm start
+docker compose -f infra/compose/docker-compose.prod.yml up -d --build
 ```
-4. Inject production environment variables from .env.example.
 
----
-
-## Database Migrations & Seeding
-
+### Step 3: Run Database Migrations & Seeds
 ```bash
-# Run Prisma migrations
-pnpm db:migrate
-
-# Seed initial system categories and test data
-pnpm db:seed
+docker compose -f infra/compose/docker-compose.prod.yml exec backend pnpm db:migrate
+docker compose -f infra/compose/docker-compose.prod.yml exec backend pnpm db:seed
 ```
 
-Default accounts provisioned:
-- Admin: contact@imakshay.in (Pass@12345)
-- User: akshay@gmail.com (Akshay@12345)
+## 4. Option 3: PaaS Deployment (Render / Railway / Fly.io)
+
+### Render (render.yaml included):
+1. Connect GitHub repository to Render.
+2. Render detects render.yaml and provisions:
+   - PostgreSQL Managed Database
+   - Redis Managed Instance
+   - Web Service (Node.js backend)
+   - Static Site (React frontend)
+
+## 5. Production Health Verification
+
+After deployment, verify the following endpoints:
+- GET /healthz: returns 200 {"status":"ok"}
+- GET /readyz: returns 200 {"status":"ready"}
+- GET /metrics: returns Prometheus metrics
+- GET /api/v1/: returns API status and endpoint discovery

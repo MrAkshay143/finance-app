@@ -7,6 +7,7 @@ Finance Tracker is an enterprise-grade personal finance application and administ
 - Product Name: Finance Tracker
 - Domain: Personal finance management (income, expense, investment, accounts, budgets, goals, recurring schedules, reports, admin controls).
 - Primary Platform: Mobile-first Progressive Web App (PWA) with desktop centered container (~390-430px).
+- Companion Mobile App: React Native mobile application (@finance/mobile).
 - Production URL: https://finance.imakshay.in
 - User Personas:
   1. Standard Consumer: Tracks day-to-day finances, manages multiple accounts, monitors budgets and savings goals, imports bank statements, and analyzes cash flow trends.

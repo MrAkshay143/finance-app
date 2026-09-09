@@ -2,7 +2,7 @@
 
 **Project**: Finance Tracker Monorepo  
 **Workspace Root**: `C:\Users\aksha\Downloads\finenace`  
-**Phase**: Phase 6 — Hardening, E2E Regression, Visual Fidelity & Final Acceptance  
+**Phase**: Phase 6 - Hardening, E2E Regression, Visual Fidelity & Final Acceptance  
 **Signoff Gate**: TASK-6.4 (End-to-End Regression Suite) & TASK-6.5 (Visual Fidelity Audit & Final Acceptance)  
 **Signoff Date**: 2026-09-08  
 **QA Architect / Lead**: Senior QA Architect & Automation Engineer (`qa-agent`)  
@@ -29,7 +29,7 @@ All deliverables across **Phase 0 through Phase 6** have been completed, verifie
 
 ---
 
-## 2. Complete Monorepo Milestone Matrix (Phases 0 — 6)
+## 2. Complete Monorepo Milestone Matrix (Phases 0 - 6)
 
 The table below catalogs every task executed across all phases of the project:
 
@@ -90,11 +90,11 @@ The table below catalogs every task executed across all phases of the project:
 
 ---
 
-## 3. PRD §7 Acceptance Checklist Validation
+## 3. PRD Section 7 Acceptance Checklist Validation
 
-All criteria defined in [Plan/prd.md](file:///c:/Users/aksha/Downloads/finenace/prd.md) §7 have been systematically verified:
+All criteria defined in [Plan/prd.md](file:///c:/Users/aksha/Downloads/finenace/prd.md) Section 7 have been systematically verified:
 
-| # | PRD §7 Acceptance Criterion | Verification Command / Evidence | Result |
+| # | PRD Section 7 Acceptance Criterion | Verification Command / Evidence | Result |
 | :- | :--- | :--- | :--- |
 | 1 | **Auth (signup/login/logout/refresh/lockout/password change) works end-to-end.** | `pnpm --filter @finance/backend test test/auth.test.ts`<br>`pnpm --filter @finance/backend test test/e2e-user-journey.test.ts` | **VERIFIED** |
 | 2 | **Onboarding persists to the real profile.** | `pnpm --filter @finance/backend test test/profile.test.ts`<br>`pnpm --filter @finance/backend test test/e2e-user-journey.test.ts` | **VERIFIED** |
@@ -117,18 +117,18 @@ The complete product lifecycle was implemented and verified in [apps/backend/tes
 ```
                                     PRODUCT LIFECYCLE REGRESSION FLOW
                                     
-  [1. Signup & Tokens] ────────► [2. Onboarding Wizard] ────────► [3. Security Questions (KBA)]
-          │                                                                │
-          ▼                                                                ▼
-  [4. Accounts Management] ────► [5. Transactions & Invariants] ─► [6. Dashboard & FAM Score]
-          │                                                                │
-          ▼                                                                ▼
-  [7. Planning (Budgets/Goals)]► [8. Analytics & Reports] ──────► [9. Recurring & BullMQ]
-          │                                                                │
-          ▼                                                                ▼
-  [10. Reminders & Notifs] ────► [11. AI Financial Intelligence] ─► [12. Settings & Danger Zone]
-          │
-          ▼
+  [1. Signup & Tokens] --------> [2. Onboarding Wizard] --------> [3. Security Questions (KBA)]
+          |                                                                |
+          v                                                                v
+  [4. Accounts Management] ----> [5. Transactions & Invariants] -> [6. Dashboard & FAM Score]
+          |                                                                |
+          v                                                                v
+  [7. Planning (Budgets/Goals)]> [8. Analytics & Reports] ------> [9. Recurring & BullMQ]
+          |                                                                |
+          v                                                                v
+  [10. Reminders & Notifs] ----> [11. AI Financial Intelligence] -> [12. Settings & Danger Zone]
+          |
+          v
   [13. Admin Suite & Audit]
 ```
 
@@ -136,18 +136,18 @@ The complete product lifecycle was implemented and verified in [apps/backend/tes
 1. **Signup & Token Issuance**: Issued access and refresh tokens with httpOnly cookie. Verified default user settings initialized with INR currency and Asia/Kolkata timezone.
 2. **Onboarding Wizard**: Successfully updated basic personal details and financial profile. Database verified storing targets in BigInt paise (`monthlyIncome: 12000000n`, `monthlyExpenseBudget: 5000000n`, `monthlyInvestmentTarget: 4000000n`).
 3. **Security Questions (KBA)**: Configured 3 security questions. Verified bcrypt storage (`$2a$`) and confirmed that `GET /api/v1/security-questions` NEVER exposes answers or answer hashes. Verified answer matching.
-4. **Accounts CRUD**: Created Account 1 (HDFC, ₹1,00,000) and Account 2 (ICICI, ₹50,000). Total aggregate balance ₹1,50,000. Verified metadata updates.
+4. **Accounts CRUD**: Created Account 1 (HDFC, INR 1,00,000) and Account 2 (ICICI, INR 50,000). Total aggregate balance INR 1,50,000. Verified metadata updates.
 5. **Transactions & Balance Invariant Engine**:
-   - Income: +₹1,20,000 -> Account 1 balance increased to ₹2,20,000.
-   - Expense: -₹15,000 -> Account 1 balance reduced to ₹2,05,000.
-   - Investment: -₹40,000 -> Account 1 balance reduced to ₹1,65,000.
-   - Dual-leg Transfer: ₹30,000 transferred from Account 1 to Account 2 -> Account 1 balance = ₹1,35,000; Account 2 balance = ₹80,000.
+   - Income: +INR 1,20,000 -> Account 1 balance increased to INR 2,20,000.
+   - Expense: -INR 15,000 -> Account 1 balance reduced to INR 2,05,000.
+   - Investment: -INR 40,000 -> Account 1 balance reduced to INR 1,65,000.
+   - Dual-leg Transfer: INR 30,000 transferred from Account 1 to Account 2 -> Account 1 balance = INR 1,35,000; Account 2 balance = INR 80,000.
    - **Balance Invariant**: Single-paise equality verified without drift:
      $$\text{currentBalance} = \text{openingBalance} + \sum \text{Credits} - \sum \text{Debits}$$
 6. **Dashboard Summary & FAM Score**: Live FAM score computed with worst-of-three grade rule ($B$), overall progress $96.7\%$. Cached retrieval verified.
-7. **Planning**: Monthly budget of ₹20,000 created for Food & Dining; computed live spent ₹15,000 ($75\%$). Goal created and updated to ₹1,00,000 ($20\%$).
-8. **Analytics & Reports**: Monthly analytics verified (Earned ₹1,50,000, Spent ₹45,000, Net Savings ₹1,05,000, Savings Rate $70\%$). CSV and JSON export verified.
-9. **Recurring Transactions & BullMQ**: Monthly recurring transaction created. Worker materialization debited account balance by ₹5,000 and advanced `nextOccurrence` by 1 month.
+7. **Planning**: Monthly budget of INR 20,000 created for Food & Dining; computed live spent INR 15,000 ($75\%$). Goal created and updated to INR 1,00,000 ($20\%$).
+8. **Analytics & Reports**: Monthly analytics verified (Earned INR 1,50,000, Spent INR 45,000, Net Savings INR 1,05,000, Savings Rate $70\%$). CSV and JSON export verified.
+9. **Recurring Transactions & BullMQ**: Monthly recurring transaction created. Worker materialization debited account balance by INR 5,000 and advanced `nextOccurrence` by 1 month.
 10. **Notifications & Reminders**: Created bill reminder. Verified notification generation, unread count tracking, marking read, and Socket.IO gateway emission.
 11. **AI Financial Intelligence**: Verified monthly allocations, 3/6/12-month forward compound wealth projections, and actionable recommendations. Confirmed 0 placeholder words.
 12. **Danger Zone Actions**:
@@ -165,7 +165,7 @@ An element-by-element confirmation was conducted comparing the production codeba
 | :- | :--- | :--- | :--- | :---: | :--- |
 | 1 | `Activity Audit Dashboard UI.png` | [AdminAuditPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAuditPage.tsx) (`/admin/audit`) | [AdminAuditScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/admin/AdminAuditScreen.tsx) | **100%** | Navy header `#0B1B3A`, search, category filter pills, timeline cards with actor/target/IP, pagination |
 | 2 | `Admin Settings Dashboard with User Controls.png` | [AdminAppSettingsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAppSettingsPage.tsx) (`/admin/app-settings`) | [AdminSettingsScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/admin/AdminSettingsScreen.tsx) | **100%** | Security policy controls (session timeout, lockout threshold), feature flag toggles, maintenance mode switch |
-| 3 | `Finance Reports Dashboard – September 2026.png` | [ReportsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ReportsPage.tsx) (`/reports`) | [ReportsScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/reports/ReportsScreen.tsx) | **100%** | Month selector, FAM score badge, Target vs Actual table, Category breakdown, export buttons (CSV/PDF) |
+| 3 | `Finance Reports Dashboard - September 2026.png` | [ReportsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ReportsPage.tsx) (`/reports`) | [ReportsScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/reports/ReportsScreen.tsx) | **100%** | Month selector, FAM score badge, Target vs Actual table, Category breakdown, export buttons (CSV/PDF) |
 | 4 | `Finance Tracker AI Analysis Dashboard.png` | [AiAnalysisPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AiAnalysisPage.tsx) (`/ai-analysis`) | [AiAnalysisScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/ai/AiAnalysisScreen.tsx) | **100%** | Needs/Wants/Savings ratio cards, 3/6/12-month forward wealth projections, priority suggestion cards |
 | 5 | `Finance Tracker About Screen.png` | [AboutPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AboutPage.tsx) (`/about`) | [AboutScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/about/AboutScreen.tsx) | **100%** | App version v1.0.0, 3 trust badges, 6-step interactive guide, FAM calculation rules |
 | 6 | `Finance Tracker Accounts Dashboard.png` | [AccountsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AccountsPage.tsx) (`/accounts`) | [AccountsScreen.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/accounts/AccountsScreen.tsx) | **100%** | Net worth card, Add Account button, account cards grouped by type with institution logos, balances, action popup |
@@ -192,15 +192,15 @@ An element-by-element confirmation was conducted comparing the production codeba
 Every tier of the test pyramid was executed and verified via automated CLI tooling:
 
 ```
-                      ▲
+                      ^
                      / \
                     /   \
                    / E2E \       1 Suite (37 tests)
-                  /───────\
+                  /-------\
                  /  Integ  \     18 Suites (288 tests)
-                /───────────\
+                /-----------\
                /    Unit     \   16 Suites (200 tests)
-              /───────────────\
+              /---------------\
 ```
 
 ### Detailed Metrics by Workspace
@@ -215,45 +215,45 @@ Every tier of the test pyramid was executed and verified via automated CLI tooli
 ### Test Suites Inventory
 
 #### Backend (`apps/backend`): 16 Suites / 200 Tests
-- `test/auth.test.ts` (12 tests) — Signup, login, logout, refresh rotation, account lockout (5 attempts), change password.
-- `test/profile.test.ts` (9 tests) — Basic profile, finance profile BigInt paise conversion, KBA setup, answer hashing & non-leakage.
-- `test/accounts.test.ts` (11 tests) — Accounts CRUD, opening balances, status toggles, ownership isolation.
-- `test/transactions.test.ts` (7 tests) — Centralized transactions (Income, Expense, Investment), dual-leg transfers, balance invariants.
-- `test/dashboard.test.ts` (11 tests) — FAM score calculation, Redis caching, target cards, security reminder banner.
-- `test/planning.test.ts` (8 tests) — Budgets & Goals CRUD, live spent calculations, system category protection, merchants.
-- `test/analytics-reports.test.ts` (7 tests) — 6-month trends, category breakdowns, savings rate, CSV/JSON/PDF export.
-- `test/recurring-notifications.test.ts` (11 tests) — Recurring transactions, BullMQ worker execution, bill reminders, notifications.
-- `test/ai-investments.test.ts` (4 tests) — AI allocations, forward wealth projections, dynamic suggestions, zero placeholders.
-- `test/settings-import-export.test.ts` (6 tests) — User preferences, Danger Zone (reset profile, delete account), CSV import.
-- `test/admin-audit.test.ts` (23 tests) — RBAC `requireAdmin` enforcement, admin dashboard, user management, audit trails.
-- `test/e2e-user-journey.test.ts` (37 tests) — Full product lifecycle regression spanning all 13 milestone modules.
-- `test/routes.test.ts` (36 tests) — HTTP route mounting and version headers.
-- `test/observability.test.ts` (9 tests) — Prometheus metrics and health endpoints.
-- `test/prisma-schema.test.ts` (7 tests) — Database schema constraints and seed logic.
-- `test/smoke.test.ts` (2 tests) — Base server instantiation.
+- `test/auth.test.ts` (12 tests) - Signup, login, logout, refresh rotation, account lockout (5 attempts), change password.
+- `test/profile.test.ts` (9 tests) - Basic profile, finance profile BigInt paise conversion, KBA setup, answer hashing & non-leakage.
+- `test/accounts.test.ts` (11 tests) - Accounts CRUD, opening balances, status toggles, ownership isolation.
+- `test/transactions.test.ts` (7 tests) - Centralized transactions (Income, Expense, Investment), dual-leg transfers, balance invariants.
+- `test/dashboard.test.ts` (11 tests) - FAM score calculation, Redis caching, target cards, security reminder banner.
+- `test/planning.test.ts` (8 tests) - Budgets & Goals CRUD, live spent calculations, system category protection, merchants.
+- `test/analytics-reports.test.ts` (7 tests) - 6-month trends, category breakdowns, savings rate, CSV/JSON/PDF export.
+- `test/recurring-notifications.test.ts` (11 tests) - Recurring transactions, BullMQ worker execution, bill reminders, notifications.
+- `test/ai-investments.test.ts` (4 tests) - AI allocations, forward wealth projections, dynamic suggestions, zero placeholders.
+- `test/settings-import-export.test.ts` (6 tests) - User preferences, Danger Zone (reset profile, delete account), CSV import.
+- `test/admin-audit.test.ts` (23 tests) - RBAC `requireAdmin` enforcement, admin dashboard, user management, audit trails.
+- `test/e2e-user-journey.test.ts` (37 tests) - Full product lifecycle regression spanning all 13 milestone modules.
+- `test/routes.test.ts` (36 tests) - HTTP route mounting and version headers.
+- `test/observability.test.ts` (9 tests) - Prometheus metrics and health endpoints.
+- `test/prisma-schema.test.ts` (7 tests) - Database schema constraints and seed logic.
+- `test/smoke.test.ts` (2 tests) - Base server instantiation.
 
 #### Web (`apps/web`): 8 Suites / 195 Tests
-- `src/web.test.tsx` (58 tests) — Web shell, shared tokens, centered desktop mobile viewport, navy header, bottom navigation, modals, and zero-placeholder checks on all 23 production pages.
-- `test/auth-onboarding.test.tsx` (21 tests) — Web auth pages, onboarding wizard, and security questions.
-- `test/accounts-transactions.test.tsx` (23 tests) — Accounts dashboard, transaction management, and type picker modals.
-- `test/dashboard-planning.test.tsx` (26 tests) — Dashboard summary, concentric progress ring, budgets & goals planning.
-- `test/phase4-screens.test.tsx` (21 tests) — Analytics, Reports, AI Intelligence, Recurring, and Notifications.
-- `test/phase5-screens.test.tsx` (23 tests) — Menu, About, Settings, User Audit, Admin Suite, Import & Export.
-- `test/accessibility.test.tsx` (20 tests) — WCAG 2.1 AA accessibility (ARIA roles, keyboard focus, form labels).
-- `src/smoke.test.ts` (3 tests) — Web base smoke tests.
+- `src/web.test.tsx` (58 tests) - Web shell, shared tokens, centered desktop mobile viewport, navy header, bottom navigation, modals, and zero-placeholder checks on all 23 production pages.
+- `test/auth-onboarding.test.tsx` (21 tests) - Web auth pages, onboarding wizard, and security questions.
+- `test/accounts-transactions.test.tsx` (23 tests) - Accounts dashboard, transaction management, and type picker modals.
+- `test/dashboard-planning.test.tsx` (26 tests) - Dashboard summary, concentric progress ring, budgets & goals planning.
+- `test/phase4-screens.test.tsx` (21 tests) - Analytics, Reports, AI Intelligence, Recurring, and Notifications.
+- `test/phase5-screens.test.tsx` (23 tests) - Menu, About, Settings, User Audit, Admin Suite, Import & Export.
+- `test/accessibility.test.tsx` (20 tests) - WCAG 2.1 AA accessibility (ARIA roles, keyboard focus, form labels).
+- `src/smoke.test.ts` (3 tests) - Web base smoke tests.
 
 #### Mobile (`apps/mobile`): 11 Suites / 130 Tests
-- `src/__tests__/tokens.test.ts` (3 tests) — Shared design tokens integration in React Native.
-- `src/__tests__/secureStorage.test.ts` (3 tests) — Biometric & SecureStore token persistence.
-- `src/__tests__/icons_and_quality.test.ts` (3 tests) — Vector icons validation, zero emojis, zero banned placeholders.
-- `src/__tests__/navigation.test.ts` (4 tests) — Stack & Tab navigation state machine.
-- `src/__tests__/auth_screens.test.tsx` (10 tests) — Mobile login, signup, onboarding, and KBA screens.
-- `src/__tests__/accounts_transactions.test.tsx` (25 tests) — Mobile accounts, transaction lists, and quick action sheets.
-- `src/__tests__/dashboard_planning.test.tsx` (28 tests) — Mobile dashboard, FAM ring, budgets, and goals.
-- `src/__tests__/phase4_screens.test.tsx` (14 tests) — Mobile analytics, reports, AI analysis, and notifications.
-- `src/__tests__/phase5_screens.test.tsx` (14 tests) — Mobile settings, admin shell, user management, and import/export.
-- `src/__tests__/accessibility.test.tsx` (25 tests) — React Native accessibility attributes (`accessible={true}`, `accessibilityRole`, labels).
-- `smoke.test.ts` (1 test) — Base mobile smoke test.
+- `src/__tests__/tokens.test.ts` (3 tests) - Shared design tokens integration in React Native.
+- `src/__tests__/secureStorage.test.ts` (3 tests) - Biometric & SecureStore token persistence.
+- `src/__tests__/icons_and_quality.test.ts` (3 tests) - Vector icons validation, zero emojis, zero banned placeholders.
+- `src/__tests__/navigation.test.ts` (4 tests) - Stack & Tab navigation state machine.
+- `src/__tests__/auth_screens.test.tsx` (10 tests) - Mobile login, signup, onboarding, and KBA screens.
+- `src/__tests__/accounts_transactions.test.tsx` (25 tests) - Mobile accounts, transaction lists, and quick action sheets.
+- `src/__tests__/dashboard_planning.test.tsx` (28 tests) - Mobile dashboard, FAM ring, budgets, and goals.
+- `src/__tests__/phase4_screens.test.tsx` (14 tests) - Mobile analytics, reports, AI analysis, and notifications.
+- `src/__tests__/phase5_screens.test.tsx` (14 tests) - Mobile settings, admin shell, user management, and import/export.
+- `src/__tests__/accessibility.test.tsx` (25 tests) - React Native accessibility attributes (`accessible={true}`, `accessibilityRole`, labels).
+- `smoke.test.ts` (1 test) - Base mobile smoke test.
 
 ---
 
@@ -264,7 +264,7 @@ The CI grep gate script ([scripts/check-placeholders.cjs](file:///c:/Users/aksha
 ```
 $ node scripts/check-placeholders.cjs
 ======================================================================
-🔍 ZERO-PLACEHOLDER & EMOJI GREP GATE
+[SEARCH] ZERO-PLACEHOLDER & EMOJI GREP GATE
 ======================================================================
 Scanning targets: apps, packages
 Root directory:   C:\Users\aksha\Downloads\finenace
@@ -273,7 +273,7 @@ Total candidate files to scan: 317
 Scanned 317 files across apps and packages.
 
 ======================================================================
-✅ ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
+[PASS] ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
 ======================================================================
 ```
 
@@ -300,7 +300,7 @@ Scanned 317 files across apps and packages.
 
 ## 9. Final Acceptance Certification
 
-Based on the rigorous verification of all PRD §7 exit criteria, the Element-by-Element Visual Fidelity Audit of all 21 reference images, the 525-test automated regression suite, 100% clean static typing, and 0 violations in the CI grep gate:
+Based on the rigorous verification of all PRD Section 7 exit criteria, the Element-by-Element Visual Fidelity Audit of all 21 reference images, the 525-test automated regression suite, 100% clean static typing, and 0 violations in the CI grep gate:
 
 > [!IMPORTANT]
 > ### Formal QA Certification

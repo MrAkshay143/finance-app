@@ -1,7 +1,7 @@
 # Phase 1 Signoff Report: Auth, Onboarding & Profile Core
 
 **Project**: Finance Tracker Monorepo  
-**Phase**: Phase 1 — Auth, Onboarding & Profile Core  
+**Phase**: Phase 1 - Auth, Onboarding & Profile Core  
 **Signoff Gate**: TASK-1.5 Auth & Security Verification Suite  
 **Signoff Date**: 2026-09-08  
 **QA Architect / Lead**: Senior QA Architect & Automation Engineer (`qa-agent`)  
@@ -16,10 +16,10 @@ Phase 1 has successfully concluded across all engineering tracks (`backend-agent
 All deliverables for **Phase 1: Auth, Onboarding & Profile Core** have been executed, integrated, and validated against the automated test pyramid, static typing gate, strict linter, and CI zero-placeholder/emoji grep gate.
 
 ### Key Highlights
-1. **End-to-End Authentication & Onboarding**: The complete lifecycle (Registration & Signup → 3-Step Financial Onboarding Wizard → Authenticated Dashboard Shell) is fully implemented and operational across both Web (`apps/web`) and Mobile (`apps/mobile`) platforms.
+1. **End-to-End Authentication & Onboarding**: The complete lifecycle (Registration & Signup -> 3-Step Financial Onboarding Wizard -> Authenticated Dashboard Shell) is fully implemented and operational across both Web (`apps/web`) and Mobile (`apps/mobile`) platforms.
 2. **Robust Session Security**: Access token / refresh token rotation, token family tracking (`familyId`), automatic theft detection (immediate revocation of all tokens in a family upon attempted replay of a revoked token), and account lockout after 5 consecutive failed attempts (403 `ACCOUNT_LOCKED` with 15-minute lock duration) are strictly enforced and verified by automated integration tests.
 3. **Knowledge-Based Authentication (KBA)**: The 3-question KBA setup persists bcrypt-hashed answers to PostgreSQL. API responses strictly omit answer hashes (`answerHash: undefined`), guaranteeing zero exposure of security answers over the wire.
-4. **Profile & Monetary Precision**: Basic Profile and Financial Profile updates persist to PostgreSQL with financial figures stored as `BigInt` paise (`Math.round(amount * 100)`) and presented to users using the standard Indian numbering system (`₹1,00,000`).
+4. **Profile & Monetary Precision**: Basic Profile and Financial Profile updates persist to PostgreSQL with financial figures stored as `BigInt` paise (`Math.round(amount * 100)`) and presented to users using the standard Indian numbering system (`INR 1,00,000`).
 5. **Zero-Placeholder Grep Gate**: Scanned **191 candidate files** across `apps/` and `packages/` with **zero violations**: 0 instances of banned phrases ("Coming soon", "Coming in V2", "Beta (V2)", "Preview", "TODO", "Lorem ipsum", "Sample data", "Demo data") and 0 Unicode emojis in UI code.
 6. **Automated Test Pyramid**: **188 automated tests** ran across 14 test suites with **100% pass rate (0 failures)**. All packages and apps compile into optimized production bundles with zero type errors.
 
@@ -39,14 +39,14 @@ All deliverables for **Phase 1: Auth, Onboarding & Profile Core** have been exec
 
 ## 3. Phase 1 Exit Checklist Audit
 
-Each criterion defined in `Plan/implementation-plan.md` §4 Phase 1 Exit Checklist has been rigorously evaluated using automated test suites and static analysis:
+Each criterion defined in `Plan/implementation-plan.md` Section 4 Phase 1 Exit Checklist has been rigorously evaluated using automated test suites and static analysis:
 
 | # | Phase 1 Exit Checklist Criterion | Verification Method | Verification Evidence & Detailed Findings | Status |
 | :- | :--- | :--- | :--- | :--- |
-| **1** | **Signup → Onboarding → Authenticated Dashboard Shell flow works end-to-end on Web and Mobile.** | `pnpm --filter @finance/web test`<br>`pnpm --filter @finance/mobile test` | • **Web**: Verified in `test/auth-onboarding.test.tsx` (21 tests). Unauthenticated access to `/dashboard` is blocked by `ProtectedRoute`. Users with `onboardingCompleted: false` are redirected to `/onboarding`. Upon completing Step 3 of `OnboardingWizard`, `onboardingCompleted` is set to `true` and the user gains seamless access to `/dashboard`.<br>• **Mobile**: Verified in `src/__tests__/auth_screens.test.tsx` (10 tests). `LoginScreen` and `SignupScreen` store tokens via `secureStorage.ts`. Post-login state triggers transition to `OnboardingScreen` and subsequent dashboard tabs (`Home`, `Transactions`, `Reports`, `More`). | **PASSED** |
-| **2** | **Refresh token rotation, token family theft revocation, and account lockout after N failed attempts verified by automated tests.** | `pnpm --filter @finance/backend test test/auth.test.ts` | • **Token Rotation**: `POST /api/v1/auth/refresh` issues a new access token and new refresh token, invalidates the previous token (`revokedAt = now()`), and preserves the original `familyId`.<br>• **Theft Detection & Family Revocation**: When an already-revoked refresh token is replayed, the auth service catches the reuse attempt, marks ALL active tokens sharing that `familyId` as revoked (`revokedAt = now()`), and rejects subsequent requests with 401 `UNAUTHENTICATED`.<br>• **Account Lockout**: After 5 consecutive invalid login attempts, the user account is locked (`failedLoginAttempts = 5`, `lockedUntil = now() + 15m`). Subsequent attempts return 403 `ACCOUNT_LOCKED` with an informative error message. | **PASSED** |
-| **3** | **3-question KBA setup persists hashed answers; no security answer is ever returned via API.** | `pnpm --filter @finance/backend test test/profile.test.ts` | • **Persistence & Hashing**: `POST /api/v1/security-questions` validates exactly 3 unique questions, trims and lowercases answers, hashes them with bcrypt (`$2b$10$...`), and persists them in the `SecurityQuestion` table.<br>• **Zero Answer Exposure**: `GET /api/v1/security-questions` returns `{ id, questionKey, questionText }` and strictly deletes/omits `answer` and `answerHash`. Automated tests explicitly verify `item.answer === undefined` and `item.answerHash === undefined`.<br>• **Verification**: `POST /api/v1/security-questions/verify` correctly compares input answers against bcrypt hashes and returns boolean verification status. | **PASSED** |
-| **4** | **Basic Profile and Finance Profile update and persist to PostgreSQL with BigInt paise conversions.** | `pnpm --filter @finance/backend test test/profile.test.ts` | • **Basic Profile**: `PUT /api/v1/profile/basic` updates `firstName`, `lastName`, `mobileNumber`, `dateOfBirth`, and `address`, persisting cleanly to `User` and `FinanceProfile` models in PostgreSQL.<br>• **Finance Profile**: `PUT /api/v1/profile/finance` receives rupee figures (e.g. ₹85,000 income, ₹45,000 budget, ₹25,000 target, ₹5,00,000 savings target) and converts each value to `BigInt` paise in the database (`8500000n`, `4500000n`, `2500000n`, `50000000n`). Automatically marks `onboardingCompleted = true` on the User record.<br>• **UI Numbering**: Web and Mobile display amounts formatted in the Indian numbering system (`₹1,00,000`). | **PASSED** |
+| **1** | **Signup -> Onboarding -> Authenticated Dashboard Shell flow works end-to-end on Web and Mobile.** | `pnpm --filter @finance/web test`<br>`pnpm --filter @finance/mobile test` | * **Web**: Verified in `test/auth-onboarding.test.tsx` (21 tests). Unauthenticated access to `/dashboard` is blocked by `ProtectedRoute`. Users with `onboardingCompleted: false` are redirected to `/onboarding`. Upon completing Step 3 of `OnboardingWizard`, `onboardingCompleted` is set to `true` and the user gains seamless access to `/dashboard`.<br>* **Mobile**: Verified in `src/__tests__/auth_screens.test.tsx` (10 tests). `LoginScreen` and `SignupScreen` store tokens via `secureStorage.ts`. Post-login state triggers transition to `OnboardingScreen` and subsequent dashboard tabs (`Home`, `Transactions`, `Reports`, `More`). | **PASSED** |
+| **2** | **Refresh token rotation, token family theft revocation, and account lockout after N failed attempts verified by automated tests.** | `pnpm --filter @finance/backend test test/auth.test.ts` | * **Token Rotation**: `POST /api/v1/auth/refresh` issues a new access token and new refresh token, invalidates the previous token (`revokedAt = now()`), and preserves the original `familyId`.<br>* **Theft Detection & Family Revocation**: When an already-revoked refresh token is replayed, the auth service catches the reuse attempt, marks ALL active tokens sharing that `familyId` as revoked (`revokedAt = now()`), and rejects subsequent requests with 401 `UNAUTHENTICATED`.<br>* **Account Lockout**: After 5 consecutive invalid login attempts, the user account is locked (`failedLoginAttempts = 5`, `lockedUntil = now() + 15m`). Subsequent attempts return 403 `ACCOUNT_LOCKED` with an informative error message. | **PASSED** |
+| **3** | **3-question KBA setup persists hashed answers; no security answer is ever returned via API.** | `pnpm --filter @finance/backend test test/profile.test.ts` | * **Persistence & Hashing**: `POST /api/v1/security-questions` validates exactly 3 unique questions, trims and lowercases answers, hashes them with bcrypt (`$2b$10$...`), and persists them in the `SecurityQuestion` table.<br>* **Zero Answer Exposure**: `GET /api/v1/security-questions` returns `{ id, questionKey, questionText }` and strictly deletes/omits `answer` and `answerHash`. Automated tests explicitly verify `item.answer === undefined` and `item.answerHash === undefined`.<br>* **Verification**: `POST /api/v1/security-questions/verify` correctly compares input answers against bcrypt hashes and returns boolean verification status. | **PASSED** |
+| **4** | **Basic Profile and Finance Profile update and persist to PostgreSQL with BigInt paise conversions.** | `pnpm --filter @finance/backend test test/profile.test.ts` | * **Basic Profile**: `PUT /api/v1/profile/basic` updates `firstName`, `lastName`, `mobileNumber`, `dateOfBirth`, and `address`, persisting cleanly to `User` and `FinanceProfile` models in PostgreSQL.<br>* **Finance Profile**: `PUT /api/v1/profile/finance` receives rupee figures (e.g. INR 85,000 income, INR 45,000 budget, INR 25,000 target, INR 5,00,000 savings target) and converts each value to `BigInt` paise in the database (`8500000n`, `4500000n`, `2500000n`, `50000000n`). Automatically marks `onboardingCompleted = true` on the User record.<br>* **UI Numbering**: Web and Mobile display amounts formatted in the Indian numbering system (`INR 1,00,000`). | **PASSED** |
 
 ---
 
@@ -71,7 +71,7 @@ TOTAL AUTOMATED TESTS            14 passed     188 passed      0 failed        ~
 
 ### Detailed Breakdown by Package
 
-#### 1. Backend API (`apps/backend`) — 88 Tests Passed
+#### 1. Backend API (`apps/backend`) - 88 Tests Passed
 * **`test/auth.test.ts` (12 tests)**:
   * `POST /api/v1/auth/signup`: User creation, default `userSettings` initialization (currency: `INR`, timezone: `Asia/Kolkata`), password hashing, token issuance, HttpOnly cookie generation.
   * Duplicate email registration rejection with 409 `CONFLICT`.
@@ -99,7 +99,7 @@ TOTAL AUTOMATED TESTS            14 passed     188 passed      0 failed        ~
 * **`test/smoke.test.ts` (2 tests)**:
   * Backend module resolution and configuration smoke checks.
 
-#### 2. Mobile App (`apps/mobile`) — 24 Tests Passed
+#### 2. Mobile App (`apps/mobile`) - 24 Tests Passed
 * **`src/__tests__/auth_screens.test.tsx` (10 tests)**:
   * Component exports verification for all 7 Phase 1 screens (`LoginScreen`, `SignupScreen`, `OnboardingScreen`, `SecurityQuestionsScreen`, `ProfileScreen`, `BasicProfileScreen`, `FinanceProfileScreen`).
   * Login flow: Token persistence in Expo SecureStore and auth store state update.
@@ -120,12 +120,12 @@ TOTAL AUTOMATED TESTS            14 passed     188 passed      0 failed        ~
 * **`smoke.test.ts` (1 test)**:
   * Mobile runtime smoke check.
 
-#### 3. Frontend Web (`apps/web`) — 76 Tests Passed
+#### 3. Frontend Web (`apps/web`) - 76 Tests Passed
 * **`test/auth-onboarding.test.tsx` (21 tests)**:
-  * Indian rupee formatting (`formatIndianRupees`, `parseIndianRupees`) with Indian numbering grouping (`₹1,00,000`).
+  * Indian rupee formatting (`formatIndianRupees`, `parseIndianRupees`) with Indian numbering grouping (`INR 1,00,000`).
   * `useAuthStore` initialization, authentication update, and reset actions.
   * `ProtectedRoute`: Blocking unauthenticated access, gating on `requireOnboarding`, granting access to onboarded users.
-  * `LoginPage`: Header `#0B1B3A` → `#132A5C`, form fields, lockout banner when locked.
+  * `LoginPage`: Header `#0B1B3A` -> `#132A5C`, form fields, lockout banner when locked.
   * `SignupPage`: Form fields, validation layout.
   * `OnboardingWizard`: Step 1 Personal Details rendering.
   * `SecurityQuestionsPage`: Matching `Modern Security Questions Setup Screen.png` layout.
@@ -186,7 +186,7 @@ pnpm run build
 
 ## 6. Zero-Placeholder, Zero-Dummy Data & Zero-Emoji Compliance
 
-Per `Plan/frontend.md` §7 and `Plan/backend.md` §12, the automated grep gate (`scripts/check-placeholders.cjs`) enforces strict rules across all source files:
+Per `Plan/frontend.md` Section 7 and `Plan/backend.md` Section 12, the automated grep gate (`scripts/check-placeholders.cjs`) enforces strict rules across all source files:
 - **Banned Copy Scanned**:
   - `"coming soon"`
   - `"coming in v2"`
@@ -211,13 +211,13 @@ Per `Plan/frontend.md` §7 and `Plan/backend.md` §12, the automated grep gate (
 
 | Requirement Area | Source Document | Planned Target | Verified Outcome | Verdict |
 | :--- | :--- | :--- | :--- | :--- |
-| Auth & Token Lifecycle | `Plan/backend.md` §5 | Rotation, Theft Detection, Lockout | Verified via Supertest & Unit Tests | **PASS** |
-| KBA Security | `Plan/backend.md` §4, §6 | Bcrypt Hashing, Zero Leakage | Verified via Supertest & API Contracts | **PASS** |
-| Profile & BigInt Paise | `Plan/database.md` §4 | Exact paise conversion (`BigInt`) | Verified via Database Invariant Tests | **PASS** |
-| Web UI & Navigation | `Plan/frontend.md` §3 | Screens #11, #12, #13, Guards | Verified via Vitest & React DOM Tests | **PASS** |
-| Mobile Parity | `Plan/frontend.md` §5 | Parity on Screens, SecureStore | Verified via Mobile Test Suite | **PASS** |
-| Grep Gate Compliance | `Plan/frontend.md` §7 | 0 Placeholders, 0 Emojis | Verified via `check:placeholders` (191 files) | **PASS** |
-| Monorepo Buildability | `Plan/architecture.md` §3 | Clean compilation & packaging | Verified via `pnpm run build` | **PASS** |
+| Auth & Token Lifecycle | `Plan/backend.md` Section 5 | Rotation, Theft Detection, Lockout | Verified via Supertest & Unit Tests | **PASS** |
+| KBA Security | `Plan/backend.md` Section 4, Section 6 | Bcrypt Hashing, Zero Leakage | Verified via Supertest & API Contracts | **PASS** |
+| Profile & BigInt Paise | `Plan/database.md` Section 4 | Exact paise conversion (`BigInt`) | Verified via Database Invariant Tests | **PASS** |
+| Web UI & Navigation | `Plan/frontend.md` Section 3 | Screens #11, #12, #13, Guards | Verified via Vitest & React DOM Tests | **PASS** |
+| Mobile Parity | `Plan/frontend.md` Section 5 | Parity on Screens, SecureStore | Verified via Mobile Test Suite | **PASS** |
+| Grep Gate Compliance | `Plan/frontend.md` Section 7 | 0 Placeholders, 0 Emojis | Verified via `check:placeholders` (191 files) | **PASS** |
+| Monorepo Buildability | `Plan/architecture.md` Section 3 | Clean compilation & packaging | Verified via `pnpm run build` | **PASS** |
 
 ### Formal Signoff Recommendation
 
@@ -225,4 +225,4 @@ Per `Plan/frontend.md` §7 and `Plan/backend.md` §12, the automated grep gate (
 >
 > All exit criteria for Phase 1 are 100% satisfied. The foundational authentication layer, session management, onboarding wizard, security question infrastructure, and user profile management are robust, fully tested, and cleanly integrated across both Web and Mobile platforms.
 >
-> The project is officially signed off to proceed to **Phase 2 — Accounts & Centralized Transaction System** (`TASK-2.1` through `TASK-2.6`).
+> The project is officially signed off to proceed to **Phase 2 - Accounts & Centralized Transaction System** (`TASK-2.1` through `TASK-2.6`).

@@ -1,7 +1,7 @@
 # Phase 2 Signoff Report: Accounts & Centralized Transaction System
 
 **Project**: Finance Tracker Monorepo  
-**Phase**: Phase 2 — Accounts & Centralized Transaction System  
+**Phase**: Phase 2 - Accounts & Centralized Transaction System  
 **Signoff Gate**: TASK-2.6 Transaction Invariant & Balance Regression Suite  
 **Signoff Date**: 2026-09-08  
 **QA Architect / Lead**: Senior QA Architect & Automation Engineer (`qa-agent`)  
@@ -17,7 +17,7 @@ All deliverables for **Phase 2: Accounts & Centralized Transaction System** have
 
 ### Key Highlights
 1. **Atomic Balance Invariant & Precision**: The core accounting engine ([balanceService.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/src/services/balanceService.ts)) strictly enforces the invariant `currentBalance = openingBalance + credits - debits` within single Prisma interactive database transactions (`prisma.$transaction`). All financial figures are stored as `BigInt` paise (`Math.round(amount * 100)`), completely eliminating floating-point rounding errors.
-2. **18 Critical Transaction Test Cases**: All 18 critical scenarios outlined in [prd.md](file:///C:/Users/aksha/Downloads/finenace/prd.md) §88 (Add/Edit/Delete Income, Expense, Investment, and Dual-Account Transfers) are verified with zero discrepancies across PostgreSQL records, account balances, and dashboard/list aggregates.
+2. **18 Critical Transaction Test Cases**: All 18 critical scenarios outlined in [prd.md](file:///C:/Users/aksha/Downloads/finenace/prd.md) Section 88 (Add/Edit/Delete Income, Expense, Investment, and Dual-Account Transfers) are verified with zero discrepancies across PostgreSQL records, account balances, and dashboard/list aggregates.
 3. **Centralized Transaction Modal (8 Distinct Variants)**: The centralized `TransactionFormModal` operates with strict distinction across all 8 Add/Edit variants in both Web ([TransactionFormModal.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/src/components/finance/TransactionFormModal.tsx)) and Mobile ([TransactionFormModal.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/transactions/TransactionFormModal.tsx)), rendering dedicated titles (e.g., *Add Expense* vs. *Edit Expense*) and action buttons (*Save Expense* vs. *Update Expense*).
 4. **Soft-Deletion & Reversion**: Deleted transactions and transfers undergo soft-deletion (`status: 'DELETED'`), maintaining full auditability while atomically recalculating account balances and clearing cached aggregates.
 5. **Zero-Placeholder & Emoji Grep Gate**: Scanned **207 candidate files** across `apps/` and `packages/` with **0 violations**: zero placeholder text ("Coming soon", "Coming in V2", "Beta (V2)", "Preview", "TODO", "Lorem ipsum", "Sample data", "Demo data") and zero Unicode emojis in UI code.
@@ -31,48 +31,48 @@ All deliverables for **Phase 2: Accounts & Centralized Transaction System** have
 | :--- | :--- | :--- | :--- |
 | **`backend-agent`** | **`TASK-2.1`** | **`balanceService` & Transaction/Transfer Engine**: Implemented [balanceService.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/src/services/balanceService.ts) supporting atomic balance recalculation inside Prisma transactions. Implemented [transactionService.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/src/services/transactionService.ts) and [transferService.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/src/services/transferService.ts) with BigInt paise conversions, debit/credit direction mapping, and dual-account transfers. | **COMPLETE** |
 | **`backend-agent`** | **`TASK-2.2`** | **Accounts & Transactions CRUD Endpoints**: Implemented REST API routes for Accounts (`/api/v1/accounts`), Transactions (`/api/v1/transactions`), and Transfers (`/api/v1/transfers`) with ownership isolation, validation schemas, status toggling, and soft-delete endpoints. | **COMPLETE** |
-| **`frontend-web-agent`** | **`TASK-2.3`** | **Accounts Dashboard Screen**: Created [AccountsPage.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/src/pages/AccountsPage.tsx) matching `UI Snaps/Finance Tracker Accounts Dashboard.png` with navy branding (`#0B1B3A` → `#132A5C`), Net Balance hero card, per-card quick action row (Transactions, Analytics, Settings), and Add Account flow. | **COMPLETE** |
+| **`frontend-web-agent`** | **`TASK-2.3`** | **Accounts Dashboard Screen**: Created [AccountsPage.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/src/pages/AccountsPage.tsx) matching `UI Snaps/Finance Tracker Accounts Dashboard.png` with navy branding (`#0B1B3A` -> `#132A5C`), Net Balance hero card, per-card quick action row (Transactions, Analytics, Settings), and Add Account flow. | **COMPLETE** |
 | **`frontend-web-agent`** | **`TASK-2.4`** | **Centralized Transaction System & Modals**: Built [TransactionsPage.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/src/pages/TransactionsPage.tsx) matching `UI Snaps/transactions.png` and [TransactionFormModal.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/src/components/finance/TransactionFormModal.tsx) supporting all 8 Add/Edit modal states, category selection, and delete confirmations. | **COMPLETE** |
 | **`mobile-agent`** | **`TASK-2.5`** | **Mobile Accounts & Transactions**: Developed [AccountsScreen.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/accounts/AccountsScreen.tsx), [TransactionsScreen.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/transactions/TransactionsScreen.tsx), and mobile [TransactionFormModal.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/screens/transactions/TransactionFormModal.tsx) with native parity, bottom sheets, and Indian numbering formatting. | **COMPLETE** |
-| **`qa-agent`** | **`TASK-2.6`** | **Transaction Invariant & Balance Regression Suite**: Verified all 18 critical transaction test scenarios from `prd.md` §88, audited 8 modal states in web and mobile, verified zero-placeholder/emoji gate across 207 candidate files, and generated formal signoff report. | **COMPLETE** |
+| **`qa-agent`** | **`TASK-2.6`** | **Transaction Invariant & Balance Regression Suite**: Verified all 18 critical transaction test scenarios from `prd.md` Section 88, audited 8 modal states in web and mobile, verified zero-placeholder/emoji gate across 207 candidate files, and generated formal signoff report. | **COMPLETE** |
 
 ---
 
 ## 3. Phase 2 Exit Checklist Audit
 
-Each criterion defined in [Plan/implementation-plan.md](file:///C:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) § Phase 2 Exit Checklist has been rigorously verified:
+Each criterion defined in [Plan/implementation-plan.md](file:///C:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) Section  Phase 2 Exit Checklist has been rigorously verified:
 
 | # | Phase 2 Exit Checklist Criterion | Verification Method | Verification Evidence & Detailed Findings | Status |
 | :- | :--- | :--- | :--- | :--- |
-| **1** | **`balanceService` correctly calculates account balances inside a single DB transaction.** | `pnpm --filter @finance/backend test test/transactions.test.ts` | • **Invariant Enforcement**: Verified in [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L71-L177). Account `currentBalance` is mathematically computed inside a single `prisma.$transaction`: `currentBalance = openingBalance + sum(CREDIT) - sum(DEBIT)` in `BigInt` paise.<br>• **Direct Recalculation**: Calling `balanceService.recalculateAccountBalance` directly confirms invariant consistency across transaction insertions, updates, and soft deletions. | **PASSED** |
-| **2** | **Critical transaction scenarios (Add/Edit/Delete Income, Expense, Transfer) verified against PostgreSQL, Account Balance, and Dashboard summaries.** | `pnpm --filter @finance/backend test test/transactions.test.ts`<br>`pnpm --filter @finance/backend test test/accounts.test.ts` | • **Scenario Coverage**: All 18 critical transaction scenarios from `prd.md` §88 are verified end-to-end.<br>• **PostgreSQL Verification**: Stored records in Prisma reflect exact directions (`CREDIT` for Income, `DEBIT` for Expense/Investment), active status, and `BigInt` paise values.<br>• **Summary Aggregates**: Account totals and net worth aggregates immediately reflect balance changes without floating-point error. | **PASSED** |
-| **3** | **Centralized `TransactionFormModal` operates seamlessly across all 8 Add/Edit variants.** | `pnpm --filter @finance/web test test/accounts-transactions.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/accounts_transactions.test.tsx` | • **Web & Mobile Verification**: Validated in `accounts-transactions.test.tsx` (web) and `accounts_transactions.test.tsx` (mobile).<br>• **8 Distinct States**: Verified that titles, subtitles, and submit button labels strictly change between Add and Edit modes (e.g., `Add Income` / `Save Income` vs. `Edit Income` / `Update Income`).<br>• **Form Fields**: Dynamic conditional rendering of destination account selector when mode is `transfer`. | **PASSED** |
-| **4** | **Soft deletion functions with confirmation dialogs and downstream cache updates.** | `pnpm --filter @finance/backend test test/transactions.test.ts`<br>`pnpm --filter @finance/web test test/accounts-transactions.test.tsx` | • **Soft-Delete Marking**: Transactions and Transfers are marked with `status: 'DELETED'`, preserving foreign key integrity and audit logs.<br>• **Balance Reversion**: Deleting transactions immediately triggers `balanceService.recalculateAccountBalance`, returning the account balance to its accurate state.<br>• **UI Confirmations**: Web and mobile UI trigger deletion confirmation dialogs prior to API dispatch. | **PASSED** |
+| **1** | **`balanceService` correctly calculates account balances inside a single DB transaction.** | `pnpm --filter @finance/backend test test/transactions.test.ts` | * **Invariant Enforcement**: Verified in [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L71-L177). Account `currentBalance` is mathematically computed inside a single `prisma.$transaction`: `currentBalance = openingBalance + sum(CREDIT) - sum(DEBIT)` in `BigInt` paise.<br>* **Direct Recalculation**: Calling `balanceService.recalculateAccountBalance` directly confirms invariant consistency across transaction insertions, updates, and soft deletions. | **PASSED** |
+| **2** | **Critical transaction scenarios (Add/Edit/Delete Income, Expense, Transfer) verified against PostgreSQL, Account Balance, and Dashboard summaries.** | `pnpm --filter @finance/backend test test/transactions.test.ts`<br>`pnpm --filter @finance/backend test test/accounts.test.ts` | * **Scenario Coverage**: All 18 critical transaction scenarios from `prd.md` Section 88 are verified end-to-end.<br>* **PostgreSQL Verification**: Stored records in Prisma reflect exact directions (`CREDIT` for Income, `DEBIT` for Expense/Investment), active status, and `BigInt` paise values.<br>* **Summary Aggregates**: Account totals and net worth aggregates immediately reflect balance changes without floating-point error. | **PASSED** |
+| **3** | **Centralized `TransactionFormModal` operates seamlessly across all 8 Add/Edit variants.** | `pnpm --filter @finance/web test test/accounts-transactions.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/accounts_transactions.test.tsx` | * **Web & Mobile Verification**: Validated in `accounts-transactions.test.tsx` (web) and `accounts_transactions.test.tsx` (mobile).<br>* **8 Distinct States**: Verified that titles, subtitles, and submit button labels strictly change between Add and Edit modes (e.g., `Add Income` / `Save Income` vs. `Edit Income` / `Update Income`).<br>* **Form Fields**: Dynamic conditional rendering of destination account selector when mode is `transfer`. | **PASSED** |
+| **4** | **Soft deletion functions with confirmation dialogs and downstream cache updates.** | `pnpm --filter @finance/backend test test/transactions.test.ts`<br>`pnpm --filter @finance/web test test/accounts-transactions.test.tsx` | * **Soft-Delete Marking**: Transactions and Transfers are marked with `status: 'DELETED'`, preserving foreign key integrity and audit logs.<br>* **Balance Reversion**: Deleting transactions immediately triggers `balanceService.recalculateAccountBalance`, returning the account balance to its accurate state.<br>* **UI Confirmations**: Web and mobile UI trigger deletion confirmation dialogs prior to API dispatch. | **PASSED** |
 
 ---
 
-## 4. Comprehensive Audit: 18 Critical Transaction Test Scenarios (`prd.md` §88)
+## 4. Comprehensive Audit: 18 Critical Transaction Test Scenarios (`prd.md` Section 88)
 
-The 18 critical transaction test scenarios specified in `prd.md` §88 are mapped and verified below:
+The 18 critical transaction test scenarios specified in `prd.md` Section 88 are mapped and verified below:
 
-| # | Scenario Description (`prd.md` §88) | Backend API / Service Route | Test File & Verification Detail | Result |
+| # | Scenario Description (`prd.md` Section 88) | Backend API / Service Route | Test File & Verification Detail | Result |
 | :- | :--- | :--- | :--- | :--- |
-| **1** | **Add income** | `POST /api/v1/transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L78): Created ₹5,000 income on account with opening balance ₹10,000. Returns 201 Created. | **PASSED** |
+| **1** | **Add income** | `POST /api/v1/transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L78): Created INR 5,000 income on account with opening balance INR 10,000. Returns 201 Created. | **PASSED** |
 | **2** | **Verify PostgreSQL record** | `mockPrisma._state.transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L88): Verified record in DB has `direction: 'CREDIT'`, `amount: 500000n` paise, `type: 'INCOME'`. | **PASSED** |
-| **3** | **Verify account balance** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L94): Account balance increased from ₹10,000 (`1000000n`) to ₹15,000 (`1500000n`). | **PASSED** |
-| **4** | **Verify dashboard** | `GET /api/v1/accounts` summary | [accounts.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/accounts.test.ts#L123): Aggregate net worth reflects ₹15,000 (`1500000n`) in account summary. | **PASSED** |
+| **3** | **Verify account balance** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L94): Account balance increased from INR 10,000 (`1000000n`) to INR 15,000 (`1500000n`). | **PASSED** |
+| **4** | **Verify dashboard** | `GET /api/v1/accounts` summary | [accounts.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/accounts.test.ts#L123): Aggregate net worth reflects INR 15,000 (`1500000n`) in account summary. | **PASSED** |
 | **5** | **Verify transaction list** | `GET /api/v1/transactions?type=INCOME` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L363): Transaction appears in paginated list with type `INCOME` and direction `CREDIT`. | **PASSED** |
 | **6** | **Edit income** | `PUT /api/v1/transactions/:id` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L137): Updated income transaction amount/description; returns 200 OK. | **PASSED** |
 | **7** | **Verify original transaction changed** | `mockPrisma._state.transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L145): Record updated in place; preserves `id` and assigns updated fields. | **PASSED** |
 | **8** | **Verify balance recalculated** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L149): Account balance dynamically recalculated in the same transaction. | **PASSED** |
 | **9** | **Verify dashboard changed** | `GET /api/v1/accounts` summary | [accounts.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/accounts.test.ts#L125): Account list summary updates `totalBalance` and `totalBalancePaise`. | **PASSED** |
-| **10** | **Add expense** | `POST /api/v1/transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L98): Created ₹2,000 expense with merchant `SuperMart`; returns 201 Created. | **PASSED** |
-| **11** | **Verify account balance** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L114): Account balance debited: ₹15,000 - ₹2,000 = ₹13,000 (`1300000n`). | **PASSED** |
-| **12** | **Edit expense** | `PUT /api/v1/transactions/:id` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L137): Expense reduced from ₹2,000 to ₹1,000 with coupon note; returns 200 OK. | **PASSED** |
-| **13** | **Verify balance** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L150): Account balance updated to ₹14,000 (`1400000n` paise). | **PASSED** |
-| **14** | **Add transfer** | `POST /api/v1/transfers` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L185): Transferred ₹3,000 from Account 1 to Account 2; returns 201 Created. | **PASSED** |
-| **15** | **Verify source account** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L207): Source account balance debited from ₹10,000 to ₹7,000 (`700000n`). | **PASSED** |
-| **16** | **Verify destination account** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L211): Destination account balance credited from ₹5,000 to ₹8,000 (`800000n`). | **PASSED** |
+| **10** | **Add expense** | `POST /api/v1/transactions` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L98): Created INR 2,000 expense with merchant `SuperMart`; returns 201 Created. | **PASSED** |
+| **11** | **Verify account balance** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L114): Account balance debited: INR 15,000 - INR 2,000 = INR 13,000 (`1300000n`). | **PASSED** |
+| **12** | **Edit expense** | `PUT /api/v1/transactions/:id` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L137): Expense reduced from INR 2,000 to INR 1,000 with coupon note; returns 200 OK. | **PASSED** |
+| **13** | **Verify balance** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L150): Account balance updated to INR 14,000 (`1400000n` paise). | **PASSED** |
+| **14** | **Add transfer** | `POST /api/v1/transfers` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L185): Transferred INR 3,000 from Account 1 to Account 2; returns 201 Created. | **PASSED** |
+| **15** | **Verify source account** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L207): Source account balance debited from INR 10,000 to INR 7,000 (`700000n`). | **PASSED** |
+| **16** | **Verify destination account** | `mockPrisma._state.accounts` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L211): Destination account balance credited from INR 5,000 to INR 8,000 (`800000n`). | **PASSED** |
 | **17** | **Delete transaction if supported** | `DELETE /api/v1/transactions/:id` / `transfers/:id` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L154), [L223](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L223): Soft-deleted transaction and transfer; `status` marked as `DELETED`. | **PASSED** |
 | **18** | **Verify related values** | `balanceService.recalculateAccountBalance` | [transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L166), [L235](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts#L235): Account balances restored to initial balances; deleted transactions excluded from active lists. | **PASSED** |
 
@@ -84,13 +84,13 @@ Both Web ([TransactionFormModal.tsx](file:///C:/Users/aksha/Downloads/finenace/a
 
 | Variant # | Mode | Classification Type | Modal Title | Subtitle / Description | Action Submit Button | Dynamic Fields |
 | :- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **State 1** | `add` | `income` | **Add Income** | Record a new income transaction | **Save Income** | Account, Category, Amount (₹), Date, Notes |
+| **State 1** | `add` | `income` | **Add Income** | Record a new income transaction | **Save Income** | Account, Category, Amount (INR ), Date, Notes |
 | **State 2** | `edit` | `income` | **Edit Income** | Modify the existing income transaction | **Update Income** | Pre-populated Income fields |
-| **State 3** | `add` | `expense` | **Add Expense** | Record a new expense transaction | **Save Expense** | Account, Category, Amount (₹), Date, Merchant, Notes |
+| **State 3** | `add` | `expense` | **Add Expense** | Record a new expense transaction | **Save Expense** | Account, Category, Amount (INR ), Date, Merchant, Notes |
 | **State 4** | `edit` | `expense` | **Edit Expense** | Modify the existing expense transaction | **Update Expense** | Pre-populated Expense fields |
-| **State 5** | `add` | `investment` | **Add Investment** | Record a new investment allocation | **Save Investment** | Account, Asset/Fund Category, Amount (₹), Date, Notes |
+| **State 5** | `add` | `investment` | **Add Investment** | Record a new investment allocation | **Save Investment** | Account, Asset/Fund Category, Amount (INR ), Date, Notes |
 | **State 6** | `edit` | `investment` | **Edit Investment** | Modify the existing investment transaction | **Update Investment** | Pre-populated Investment fields |
-| **State 7** | `add` | `transfer` | **Add Transfer** | Move funds between two of your connected accounts | **Save Transfer** | From Source Account, To Destination Account, Amount (₹), Date, Notes |
+| **State 7** | `add` | `transfer` | **Add Transfer** | Move funds between two of your connected accounts | **Save Transfer** | From Source Account, To Destination Account, Amount (INR ), Date, Notes |
 | **State 8** | `edit` | `transfer` | **Edit Transfer** | Modify the existing transfer transaction | **Update Transfer** | Pre-populated Source & Destination Accounts, Amount |
 
 > [!NOTE]
@@ -119,14 +119,14 @@ TOTAL AUTOMATED TESTS            18 passed     258 passed      0 failed        ~
 
 ### Detailed Test Suites Breakdown
 
-#### 1. Backend Service & API Suites (`apps/backend`) — 103 Tests Passed
+#### 1. Backend Service & API Suites (`apps/backend`) - 103 Tests Passed
 * **[test/accounts.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/accounts.test.ts) (11 tests)**:
   * Account creation with `openingBalance` in BigInt paise; sets `currentBalance = openingBalance`.
   * Validation rules: rejects missing account name (422 `VALIDATION_ERROR`).
   * Account listing with aggregate totals (`totalBalance`, `totalBalancePaise`, `activeCount`).
   * Strict ownership isolation: User B cannot view, query, update, or deactivate User A's accounts.
   * Account details with nested `recentTransactions` array.
-  * Status toggling (`ACTIVE` ↔ `INACTIVE`) and immediate exclusion of inactive accounts from net worth totals.
+  * Status toggling (`ACTIVE` <-> `INACTIVE`) and immediate exclusion of inactive accounts from net worth totals.
 * **[test/transactions.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/transactions.test.ts) (7 tests)**:
   * Balance invariant verification across `CREATE`, `UPDATE`, and `SOFT-DELETE` for Income, Expense, and Investment.
   * Atomic dual-account balance adjustments for Transfers.
@@ -145,7 +145,7 @@ TOTAL AUTOMATED TESTS            18 passed     258 passed      0 failed        ~
 * **[test/smoke.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/backend/test/smoke.test.ts) (2 tests)**:
   * Module resolution and boot smoke tests.
 
-#### 2. Mobile App Suites (`apps/mobile`) — 49 Tests Passed
+#### 2. Mobile App Suites (`apps/mobile`) - 49 Tests Passed
 * **[src/__tests__/accounts_transactions.test.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/__tests__/accounts_transactions.test.tsx) (25 tests)**:
   * Component exports for `AccountsScreen`, `TransactionsScreen`, and `TransactionFormModal`.
   * API wiring for accounts listing, active account count computation, and total net worth aggregation.
@@ -155,7 +155,7 @@ TOTAL AUTOMATED TESTS            18 passed     258 passed      0 failed        ~
   * Transaction creation, updates, and soft-deletions with balance reversion confirmation.
   * Atomic transfer creation between distinct source and destination accounts.
   * **All 8 Distinct Modal States**: Verification of unique titles and submit buttons for each state.
-  * Currency formatting in Indian Numbering System (`₹12,50,000.50`) and ISO date formatting.
+  * Currency formatting in Indian Numbering System (`INR 12,50,000.50`) and ISO date formatting.
 * **[src/__tests__/auth_screens.test.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/__tests__/auth_screens.test.tsx) (10 tests)**:
   * Authentication screens, SecureStore token persistence, and logout flow.
 * **[src/__tests__/navigation.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/src/__tests__/navigation.test.ts) (4 tests)**:
@@ -169,10 +169,10 @@ TOTAL AUTOMATED TESTS            18 passed     258 passed      0 failed        ~
 * **[smoke.test.ts](file:///C:/Users/aksha/Downloads/finenace/apps/mobile/smoke.test.ts) (1 test)**:
   * Mobile runtime smoke verification.
 
-#### 3. Frontend Web Suites (`apps/web`) — 106 Tests Passed
+#### 3. Frontend Web Suites (`apps/web`) - 106 Tests Passed
 * **[test/accounts-transactions.test.tsx](file:///C:/Users/aksha/Downloads/finenace/apps/web/test/accounts-transactions.test.tsx) (30 tests)**:
   * **All 8 Distinct Modal States**: Exact string verification of titles and action buttons.
-  * Accounts Dashboard matching `Finance Tracker Accounts Dashboard.png`: Dark navy header (`#0B1B3A` → `#132A5C`), Net Balance hero card, per-card action row (Transactions, Analytics, Settings), and Add Account launcher.
+  * Accounts Dashboard matching `Finance Tracker Accounts Dashboard.png`: Dark navy header (`#0B1B3A` -> `#132A5C`), Net Balance hero card, per-card action row (Transactions, Analytics, Settings), and Add Account launcher.
   * Empty states and loading skeleton states for Accounts and Transactions.
   * Transactions List matching `transactions.png`: Pill filter tabs (All, Income, Expense, Investment, Transfer), debounced search bar, and semantic amount chips.
   * Account-specific URL parameter filtering (`?accountId=...`).
@@ -195,7 +195,7 @@ All mandatory validation commands were executed directly on the repository with 
 ```powershell
 pnpm run lint
 ```
-* **Output**: `Scope: 6 of 7 workspace projects` — all TypeScript configs validated with zero lint errors (`tsc --noEmit`).
+* **Output**: `Scope: 6 of 7 workspace projects` - all TypeScript configs validated with zero lint errors (`tsc --noEmit`).
 * **Result**: **Exit code 0 (0 errors)**.
 
 ### 2. Monorepo Typecheck Gate
@@ -212,7 +212,7 @@ pnpm run check:placeholders
 * **Output**:
   ```
   ======================================================================
-  🔍 ZERO-PLACEHOLDER & EMOJI GREP GATE
+  [SEARCH] ZERO-PLACEHOLDER & EMOJI GREP GATE
   ======================================================================
   Scanning targets: apps, packages
   Root directory:   C:\Users\aksha\Downloads\finenace
@@ -221,7 +221,7 @@ pnpm run check:placeholders
   Scanned 207 files across apps and packages.
 
   ======================================================================
-  ✅ ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
+  [PASS] ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
   ======================================================================
   ```
 * **Result**: **Exit code 0 (207 files scanned, 0 violations)**.
@@ -254,10 +254,10 @@ pnpm run build
 
 | Requirement | Standard & Rule | Evidence | Status |
 | :--- | :--- | :--- | :--- |
-| **No Dummy / Mock Data in UI** | `prd.md` §1.2: No hardcoded transactions, balances, or mock user arrays. | All data is populated from backend API routes or TanStack Query state caches. Empty states prompt real user action. | **COMPLIANT** |
+| **No Dummy / Mock Data in UI** | `prd.md` Section 1.2: No hardcoded transactions, balances, or mock user arrays. | All data is populated from backend API routes or TanStack Query state caches. Empty states prompt real user action. | **COMPLIANT** |
 | **Zero Placeholder Copy** | Grep gate rejects "Coming soon", "Coming in V2", "Beta (V2)", "Preview", "TODO", "Lorem ipsum". | Automated CI grep gate scanned all 207 candidate files with 0 matches. | **COMPLIANT** |
 | **Zero Unicode Emojis in UI** | UI code must exclusively use Lucide SVG icons (`lucide-react`, `lucide-react-native`). | CI gate rejects non-ASCII emoji code ranges. All transaction categories, accounts, and status chips use SVG icons. | **COMPLIANT** |
-| **Financial Numbering Precision** | Monetary amounts stored in `BigInt` paise; displayed in Indian numbering system (`₹1,25,000`). | `Math.round(amount * 100)` applied server-side; `formatIndianRupees` and `formatCurrency` applied client-side. | **COMPLIANT** |
+| **Financial Numbering Precision** | Monetary amounts stored in `BigInt` paise; displayed in Indian numbering system (`INR 1,25,000`). | `Math.round(amount * 100)` applied server-side; `formatIndianRupees` and `formatCurrency` applied client-side. | **COMPLIANT** |
 | **Data Ownership & Isolation** | Strict tenancy: User A cannot read, edit, transfer, or delete User B's accounts or transactions. | Enforced at SQL / Prisma query layer (`where: { id, userId }`) and verified by Supertest integration tests returning 403 Forbidden. | **COMPLIANT** |
 | **Atomic Transfers** | Transfers create linked debit and credit transaction records inside a single DB transaction. | Verified in `transferService.createTransfer` using Prisma `$transaction`. | **COMPLIANT** |
 
@@ -269,11 +269,11 @@ pnpm run build
 
 The Phase 2 implementation of the Finance Tracker meets and exceeds all acceptance criteria set forth in:
 - [Plan/implementation-plan.md](file:///C:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) (Phase 2 Exit Checklist)
-- [Plan/backend.md](file:///C:/Users/aksha/Downloads/finenace/Plan/backend.md) §4, §6, §12
-- [Plan/frontend.md](file:///C:/Users/aksha/Downloads/finenace/Plan/frontend.md) §3, §5, §6
-- [prd.md](file:///C:/Users/aksha/Downloads/finenace/prd.md) §5.4, §5.5, §88
+- [Plan/backend.md](file:///C:/Users/aksha/Downloads/finenace/Plan/backend.md) Section 4, Section 6, Section 12
+- [Plan/frontend.md](file:///C:/Users/aksha/Downloads/finenace/Plan/frontend.md) Section 3, Section 5, Section 6
+- [prd.md](file:///C:/Users/aksha/Downloads/finenace/prd.md) Section 5.4, Section 5.5, Section 88
 
-### Next Phase: Phase 3 — Dashboard, Planning, Categories & Merchants
+### Next Phase: Phase 3 - Dashboard, Planning, Categories & Merchants
 With the core account and transaction infrastructure verified, the engineering team is formally cleared to proceed to **Phase 3**:
 * `TASK-3.1`: `famService` & Dashboard Summary API with Redis Cache.
 * `TASK-3.2`: Planning (Budgets & Goals), Categories & Merchants APIs.

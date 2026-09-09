@@ -224,6 +224,7 @@ Detailed technical specifications, domain models, and architecture design docume
 +-- apps
 |   +-- backend              # Express API server, Prisma schema, background workers
 |   +-- web                  # React 18 Vite SPA frontend application
+|   +-- mobile               # React Native 0.76 + Expo + NativeWind mobile application
 +-- packages
 |   +-- api-client           # Shared typed API client
 |   +-- shared-types         # Shared data models and DTO interfaces

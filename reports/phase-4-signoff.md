@@ -1,7 +1,7 @@
 # Phase 4 Signoff Report: Analytics, Reports, Investments, Recurring, Notifications & Realtime
 
 **Project**: Finance Tracker Monorepo  
-**Phase**: Phase 4 — Analytics, Reports, Investments, Recurring, Notifications & Realtime  
+**Phase**: Phase 4 - Analytics, Reports, Investments, Recurring, Notifications & Realtime  
 **Signoff Gate**: TASK-4.10 Realtime, Scheduling & Placeholder Audit  
 **Signoff Date**: 2026-09-08  
 **QA Architect / Lead**: Senior QA Architect & Automation Engineer (`qa-agent`)  
@@ -33,7 +33,7 @@ All deliverables for **Phase 4: Analytics, Reports, Investments, Recurring, Noti
 | **`backend-agent`** | **`TASK-4.2`** | **BullMQ Scheduled Workers & Job Definitions**: Built [recurringService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/recurringService.ts), [reminderService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/reminderService.ts), and background workers ([recurringWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/recurringWorker.ts), [reminderWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/reminderWorker.ts)). Implemented idempotent transaction materialization, status toggles, schedule advance logic, and due-date alerts. | **COMPLETE** |
 | **`backend-agent`** | **`TASK-4.3`** | **Realtime Socket.IO Gateway & Notifications**: Implemented [socketGateway.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/sockets/socketGateway.ts) and [notificationService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/notificationService.ts). Configured JWT handshake authentication, user-specific rooms (`user:${userId}`), `/notifications` and `/dashboard` namespaces, and real-time push emitters. | **COMPLETE** |
 | **`backend-agent`** | **`TASK-4.4`** | **AI Financial Intelligence & Investments Services**: Built [aiService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/aiService.ts) and [investmentService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/investmentService.ts). Delivered structured 50/30/20 allocation analysis, compound interest projections across 3/6/12 months, portfolio asset allocation breakdown, and zero placeholder text in API responses. | **COMPLETE** |
-| **`frontend-web-agent`** | **`TASK-4.5`** | **Web Analytics & Reports Screens**: Built [ReportsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ReportsPage.tsx) matching `UI Snaps/Finance Reports Dashboard – September 2026.png` and [AnalyticsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AnalyticsPage.tsx) matching `UI Snaps/Finance Tracker Analytics Dashboard.png`. Included explicit date ranges, FAM score cards, dual bar/donut charts, and category summary tables. | **COMPLETE** |
+| **`frontend-web-agent`** | **`TASK-4.5`** | **Web Analytics & Reports Screens**: Built [ReportsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ReportsPage.tsx) matching `UI Snaps/Finance Reports Dashboard - September 2026.png` and [AnalyticsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AnalyticsPage.tsx) matching `UI Snaps/Finance Tracker Analytics Dashboard.png`. Included explicit date ranges, FAM score cards, dual bar/donut charts, and category summary tables. | **COMPLETE** |
 | **`frontend-web-agent`** | **`TASK-4.6`** | **Combined Web Notifications & Reminders Screen**: Built [NotificationsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/NotificationsPage.tsx) matching `UI Snaps/Finance Tracker Notifications Dashboard.png`. Included due-date reminder configuration cards with toggle switch, numeric day selector (1..5), status filter pills (All/Unread/Read), and mark-all-as-read affordance. | **COMPLETE** |
 | **`frontend-web-agent`** | **`TASK-4.7`** | **Web Investments & Recurring Transactions Screens**: Built [InvestmentsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/InvestmentsPage.tsx) and [RecurringTransactionsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/RecurringTransactionsPage.tsx). Implemented portfolio hero card, target progress meters, asset allocation breakdowns, schedule automation banners, manual execution triggers, and CRUD modals. | **COMPLETE** |
 | **`frontend-web-agent`** | **`TASK-4.8`** | **AI Analysis Dashboard Implementation**: Built [AiAnalysisPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AiAnalysisPage.tsx) matching `UI Snaps/Finance Tracker AI Analysis Dashboard.png`. Features interactive month picker, 4-metric allocation breakdown (Needs, Wants, Invested, Savings Rate), 3/6/12-month forward compound projection cards, and actionable recommendations with zero placeholder text. | **COMPLETE** |
@@ -44,14 +44,14 @@ All deliverables for **Phase 4: Analytics, Reports, Investments, Recurring, Noti
 
 ## 3. Phase 4 Exit Checklist Audit
 
-Every exit criterion specified in [Plan/implementation-plan.md](file:///c:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) § Phase 4 Exit Checklist has been verified through automated test suites:
+Every exit criterion specified in [Plan/implementation-plan.md](file:///c:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) Section  Phase 4 Exit Checklist has been verified through automated test suites:
 
 | # | Phase 4 Exit Checklist Criterion | Verification Method | Verification Evidence & Detailed Findings | Status |
 | :- | :--- | :--- | :--- | :--- |
-| **1** | **Analytics and Monthly / Year-in-Review Reports show real aggregated data with explicit date ranges.** | `pnpm --filter @finance/backend test test/analytics-reports.test.ts`<br>`pnpm --filter @finance/web test test/phase4-screens.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase4_screens.test.tsx` | • **Explicit Date Ranges**: Analytics renders ISO date headers (e.g. `2026-09-01 — 2026-09-30`) with calendar period labels. Reports expose `periodStart` and `periodEnd` fields.<br>• **Aggregate Data Accuracy**: Real database transactions aggregate into `summary.earned`, `summary.spent`, `summary.invested`, `summary.netSavings`, and `summary.savingsRate`.<br>• **Single Rupee Agreement**: Verified in `test/analytics-reports.test.ts#L287-312`: `report.totals.earnedPaise === analytics.summary.earnedPaise === dashboard.targets.income.actualPaise`.<br>• **Export Verification**: `POST /api/v1/reports/export` generates valid JSON payloads and RFC 4180 compliant CSVs with explicit target-vs-actual tables. | **PASSED** |
-| **2** | **BullMQ repeatable jobs (`recurring-transactions`, `reminders`) execute on schedule and materialize due records.** | `pnpm --filter @finance/backend test test/recurring-notifications.test.ts` | • **Worker Implementations**: [recurringWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/recurringWorker.ts) and [reminderWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/reminderWorker.ts) register concurrency-controlled BullMQ workers on Redis queues.<br>• **Atomic Materialization**: [recurringService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/recurringService.ts#L170-L240) queries active recurring transactions where `nextOccurrence <= asOfDate`, creates a ledger `Transaction`, credits or debits the linked `Account`, and advances `nextOccurrence` according to schedule frequency (`DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`).<br>• **Idempotency**: Rerunning materialization on identical timestamps generates 0 additional records.<br>• **Due-Date Reminders**: [reminderService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/reminderService.ts#L45-L95) scans upcoming recurring items within user-configured lead days (1..5) and creates `DUE_DATE` notifications. | **PASSED** |
-| **3** | **Socket.IO pushes unread notification count and dashboard refresh events without requiring manual reload.** | `pnpm --filter @finance/backend test test/recurring-notifications.test.ts`<br>`pnpm --filter @finance/mobile test src/__tests__/phase4_screens.test.tsx` | • **Socket Architecture**: [socketGateway.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/sockets/socketGateway.ts) defines authenticated `/notifications` and `/dashboard` namespaces.<br>• **Targeted Room Routing**: Handshake authenticates JWT and joins user to private room `user:${userId}`.<br>• **Emitters**: `emitNotification(userId, notif)` broadcasts new alerts; `emitUnreadCount(userId, count)` pushes realtime unread counts; `emitDashboardRefresh(userId)` sends cache invalidation signals to connected clients.<br>• **Client Integration**: Web and Mobile client hooks dynamically increment unread notification counters and trigger React Query cache invalidations without full page reloads. | **PASSED** |
-| **4** | **Zero placeholder strings ("Coming in V2", "Beta (V2)", "Coming soon", "preview", "TODO", "sample data", "demo data", "lorem ipsum") across the entire codebase.** | `node scripts/check-placeholders.cjs`<br>`pnpm --filter @finance/web test test/phase4-screens.test.tsx`<br>`pnpm --filter @finance/backend test test/ai-investments.test.ts` | • **Automated CI Gate**: Scanned **274 candidate files** across `apps/` and `packages/` with **0 violations found**.<br>• **UI Screen Assertions**: Vitest test suites render full DOM markup for `ReportsPage`, `AnalyticsPage`, `NotificationsPage`, `InvestmentsPage`, `RecurringTransactionsPage`, and `AiAnalysisPage`, verifying zero occurrences of banned placeholder phrases.<br>• **AI Intelligence Verification**: [aiService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/aiService.ts) generates mathematically derived analysis text, wealth projections, and actionable suggestions with complete absence of dummy or placeholder copy. | **PASSED** |
+| **1** | **Analytics and Monthly / Year-in-Review Reports show real aggregated data with explicit date ranges.** | `pnpm --filter @finance/backend test test/analytics-reports.test.ts`<br>`pnpm --filter @finance/web test test/phase4-screens.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase4_screens.test.tsx` | * **Explicit Date Ranges**: Analytics renders ISO date headers (e.g. `2026-09-01 - 2026-09-30`) with calendar period labels. Reports expose `periodStart` and `periodEnd` fields.<br>* **Aggregate Data Accuracy**: Real database transactions aggregate into `summary.earned`, `summary.spent`, `summary.invested`, `summary.netSavings`, and `summary.savingsRate`.<br>* **Single Rupee Agreement**: Verified in `test/analytics-reports.test.ts#L287-312`: `report.totals.earnedPaise === analytics.summary.earnedPaise === dashboard.targets.income.actualPaise`.<br>* **Export Verification**: `POST /api/v1/reports/export` generates valid JSON payloads and RFC 4180 compliant CSVs with explicit target-vs-actual tables. | **PASSED** |
+| **2** | **BullMQ repeatable jobs (`recurring-transactions`, `reminders`) execute on schedule and materialize due records.** | `pnpm --filter @finance/backend test test/recurring-notifications.test.ts` | * **Worker Implementations**: [recurringWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/recurringWorker.ts) and [reminderWorker.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/jobs/reminderWorker.ts) register concurrency-controlled BullMQ workers on Redis queues.<br>* **Atomic Materialization**: [recurringService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/recurringService.ts#L170-L240) queries active recurring transactions where `nextOccurrence <= asOfDate`, creates a ledger `Transaction`, credits or debits the linked `Account`, and advances `nextOccurrence` according to schedule frequency (`DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`).<br>* **Idempotency**: Rerunning materialization on identical timestamps generates 0 additional records.<br>* **Due-Date Reminders**: [reminderService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/reminderService.ts#L45-L95) scans upcoming recurring items within user-configured lead days (1..5) and creates `DUE_DATE` notifications. | **PASSED** |
+| **3** | **Socket.IO pushes unread notification count and dashboard refresh events without requiring manual reload.** | `pnpm --filter @finance/backend test test/recurring-notifications.test.ts`<br>`pnpm --filter @finance/mobile test src/__tests__/phase4_screens.test.tsx` | * **Socket Architecture**: [socketGateway.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/sockets/socketGateway.ts) defines authenticated `/notifications` and `/dashboard` namespaces.<br>* **Targeted Room Routing**: Handshake authenticates JWT and joins user to private room `user:${userId}`.<br>* **Emitters**: `emitNotification(userId, notif)` broadcasts new alerts; `emitUnreadCount(userId, count)` pushes realtime unread counts; `emitDashboardRefresh(userId)` sends cache invalidation signals to connected clients.<br>* **Client Integration**: Web and Mobile client hooks dynamically increment unread notification counters and trigger React Query cache invalidations without full page reloads. | **PASSED** |
+| **4** | **Zero placeholder strings ("Coming in V2", "Beta (V2)", "Coming soon", "preview", "TODO", "sample data", "demo data", "lorem ipsum") across the entire codebase.** | `node scripts/check-placeholders.cjs`<br>`pnpm --filter @finance/web test test/phase4-screens.test.tsx`<br>`pnpm --filter @finance/backend test test/ai-investments.test.ts` | * **Automated CI Gate**: Scanned **274 candidate files** across `apps/` and `packages/` with **0 violations found**.<br>* **UI Screen Assertions**: Vitest test suites render full DOM markup for `ReportsPage`, `AnalyticsPage`, `NotificationsPage`, `InvestmentsPage`, `RecurringTransactionsPage`, and `AiAnalysisPage`, verifying zero occurrences of banned placeholder phrases.<br>* **AI Intelligence Verification**: [aiService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/aiService.ts) generates mathematically derived analysis text, wealth projections, and actionable suggestions with complete absence of dummy or placeholder copy. | **PASSED** |
 
 ---
 
@@ -63,19 +63,19 @@ The data contracts between [analyticsService.ts](file:///c:/Users/aksha/Download
 
 ```
                             POST /api/v1/transactions
-                                       │
-                                       ▼
+                                       |
+                                       v
                          PostgreSQL Transactions Table
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
+                                       |
+            +--------------------------+--------------------------+
+            v                          v                          v
   analyticsService.getAnalytics   reportService.getMonthlyReport  dashboardService.getDashboard
-            │                          │                          │
-            ├── summary.earnedPaise ───┼─── totals.earnedPaise ───┴── targets.income.actualPaise
-            ├── summary.spentPaise ────┼─── totals.spentPaise ────┴── targets.expense.actualPaise
-            └── summary.investedPaise ─┼─── totals.investedPaise ─┴── targets.investment.actualPaise
-                                       │
-                                       ▼
+            |                          |                          |
+            +-- summary.earnedPaise ---+--- totals.earnedPaise ---+-- targets.income.actualPaise
+            +-- summary.spentPaise ----+--- totals.spentPaise ----+-- targets.expense.actualPaise
+            +-- summary.investedPaise -+--- totals.investedPaise -+-- targets.investment.actualPaise
+                                       |
+                                       v
                          Target vs Actual Invariants:
                          - Diff = Target - Actual (Expense)
                          - Diff = Actual - Target (Income / Investment)
@@ -84,10 +84,10 @@ The data contracts between [analyticsService.ts](file:///c:/Users/aksha/Download
 ```
 
 #### Test Verification Proof ([test/analytics-reports.test.ts#L287-L312](file:///c:/Users/aksha/Downloads/finenace/apps/backend/test/analytics-reports.test.ts#L287-L312)):
-- **Income**: ₹1,00,000 (10,000,000 paise) identical across Analytics, Monthly Report, and Dashboard summary.
-- **Expenses**: ₹35,000 (3,500,000 paise) combined across Food & Dining (₹20,000) and Shopping (₹15,000).
-- **Investments**: ₹25,000 (2,500,000 paise) in Mutual Funds SIP.
-- **Net Savings**: ₹65,000 (6,500,000 paise).
+- **Income**: INR 1,00,000 (10,000,000 paise) identical across Analytics, Monthly Report, and Dashboard summary.
+- **Expenses**: INR 35,000 (3,500,000 paise) combined across Food & Dining (INR 20,000) and Shopping (INR 15,000).
+- **Investments**: INR 25,000 (2,500,000 paise) in Mutual Funds SIP.
+- **Net Savings**: INR 65,000 (6,500,000 paise).
 - **Savings Rate**: Exactly 65.0% (`65000 / 100000 * 100`).
 
 ---
@@ -96,37 +96,37 @@ The data contracts between [analyticsService.ts](file:///c:/Users/aksha/Download
 
 ```
                  Repeatable Cron / Scheduled Trigger
-                                  │
-                                  ▼
+                                  |
+                                  v
                      BullMQ Worker Process
-       ┌──────────────────────────┴──────────────────────────┐
-       ▼                                                     ▼
+       +--------------------------+--------------------------+
+       v                                                     v
 recurringWorker.processRecurringJob             reminderWorker.processReminderJob
-       │                                                     │
-       ▼                                                     ▼
+       |                                                     |
+       v                                                     v
 recurringService.materializeDueTransactions     reminderService.checkDueReminders
-       │                                                     │
-       ├─ Find due recurring:                                ├─ Scan recurring due in 1..5 days
-       │  nextOccurrence <= asOfDate                         ├─ Check enabled reminder settings
-       │  status == 'ACTIVE'                                 ├─ Deduplicate against existing notifs
-       │                                                     └─ Create Notification records:
-       ├─ In Prisma $transaction:                               - type: 'DUE_DATE'
-       │  1. Create Transaction (EXPENSE/INVESTMENT)            - title: 'Upcoming Payment: ...'
-       │  2. Mutate Account Balance (+/- paise)                 - emitNotification via Socket.IO
-       │  3. Advance nextOccurrence (DAILY/WEEKLY/MONTHLY/YEARLY)
-       │  4. Set lastMaterializedAt = asOfDate
-       │
-       └─ Idempotency Check:
+       |                                                     |
+       +- Find due recurring:                                +- Scan recurring due in 1..5 days
+       |  nextOccurrence <= asOfDate                         +- Check enabled reminder settings
+       |  status == 'ACTIVE'                                 +- Deduplicate against existing notifs
+       |                                                     +- Create Notification records:
+       +- In Prisma $transaction:                               - type: 'DUE_DATE'
+       |  1. Create Transaction (EXPENSE/INVESTMENT)            - title: 'Upcoming Payment: ...'
+       |  2. Mutate Account Balance (+/- paise)                 - emitNotification via Socket.IO
+       |  3. Advance nextOccurrence (DAILY/WEEKLY/MONTHLY/YEARLY)
+       |  4. Set lastMaterializedAt = asOfDate
+       |
+       +- Idempotency Check:
           Subsequent executions return materializedCount: 0
 ```
 
 #### Materialization Test Verification Proof:
-- **Pre-condition**: Account Balance = ₹1,00,000.
-- **Due Item**: Monthly recurring rent of ₹25,000 due on 2026-09-01.
+- **Pre-condition**: Account Balance = INR 1,00,000.
+- **Due Item**: Monthly recurring rent of INR 25,000 due on 2026-09-01.
 - **Execution Date**: 2026-09-05.
 - **Result**:
   - 1 transaction materialized with `DEBIT` direction of 2,500,000 paise.
-  - Account balance updated to ₹75,000 (deduction verified).
+  - Account balance updated to INR 75,000 (deduction verified).
   - Recurring schedule `nextOccurrence` advanced to `2026-10-01`.
   - Immediate rerun as of 2026-09-05 returned `materializedCount: 0` (idempotent).
 
@@ -136,25 +136,25 @@ recurringService.materializeDueTransactions     reminderService.checkDueReminder
 
 ```
                               Client Handshake
-                                     │
-                                     ▼
+                                     |
+                                     v
                       socketAuthMiddleware (JWT Bearer)
-                                     │
-                      ┌──────────────┴──────────────┐
-                      ▼                             ▼
+                                     |
+                      +--------------+--------------+
+                      v                             v
               Valid Access Token?          Invalid or Expired?
-                      │                             │
-                     YES                            NO ──► 401 UNAUTHENTICATED
-                      │
-                      ▼
+                      |                             |
+                     YES                            NO --> 401 UNAUTHENTICATED
+                      |
+                      v
                Socket Joins Room: `user:${userId}`
-                      │
-     ┌────────────────┴────────────────┐
-     ▼                                 ▼
+                      |
+     +----------------+----------------+
+     v                                 v
 Namespace: /notifications        Namespace: /dashboard
-     │                                 │
-     ├─ 'notification:new'             └─ 'dashboard:refresh'
-     └─ 'notification:unread-count'
+     |                                 |
+     +- 'notification:new'             +- 'dashboard:refresh'
+     +- 'notification:unread-count'
 ```
 
 #### Event Payloads Verified:
@@ -175,7 +175,7 @@ The AI service in [aiService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/
 2. **Compound Wealth Projections**:
    - Computes forward balances for 3-month, 6-month, and 12-month horizons based on current monthly net savings and an assumed annual portfolio return rate ($r = 12\%$ per annum):
      $$W(t) = W_0 (1 + r/12)^t + S \cdot \frac{(1 + r/12)^t - 1}{r/12}$$
-   - Verified in test suite: 3-month projected savings = ₹3,15,000; 6-month = ₹6,30,000; 12-month = ₹12,60,000.
+   - Verified in test suite: 3-month projected savings = INR 3,15,000; 6-month = INR 6,30,000; 12-month = INR 12,60,000.
 3. **Smart Allocation Suggestions**:
    - Generates priority-rated suggestions (`HIGH`, `MEDIUM`, `LOW`) evaluating discretionary leakage, emergency fund runway, and SIP expansion headroom.
    - Verified that 100% of generated copy conforms to the zero-placeholder rule.
@@ -188,9 +188,9 @@ The AI service in [aiService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/
 
 | Package / Workspace | Test Suite Path | Test Files | Tests Run | Tests Passed | Failures | Duration |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`packages/shared-types`** | Static verification | — | — | PASSED | 0 | < 1s |
-| **`packages/shared-ui-tokens`**| Static verification | — | — | PASSED | 0 | < 1s |
-| **`packages/api-client`** | Static verification | — | — | PASSED | 0 | < 1s |
+| **`packages/shared-types`** | Static verification | - | - | PASSED | 0 | < 1s |
+| **`packages/shared-ui-tokens`**| Static verification | - | - | PASSED | 0 | < 1s |
+| **`packages/api-client`** | Static verification | - | - | PASSED | 0 | < 1s |
 | **`apps/backend`** | `apps/backend/test/*.test.ts` | 12 | 132 | 132 | 0 | 5.07s |
 | **`apps/mobile`** | `apps/mobile/src/__tests__/*.test.tsx?` | 9 | 91 | 91 | 0 | 2.02s |
 | **`apps/web`** | `apps/web/test/*.test.tsx?` | 6 | 152 | 152 | 0 | 4.45s |
@@ -248,7 +248,7 @@ The following validation commands were executed and verified against the working
 ```bash
 $ node scripts/check-placeholders.cjs
 ======================================================================
-🔍 ZERO-PLACEHOLDER & EMOJI GREP GATE
+[SEARCH] ZERO-PLACEHOLDER & EMOJI GREP GATE
 ======================================================================
 Scanning targets: apps, packages
 Root directory:   C:\Users\aksha\Downloads\finenace
@@ -257,7 +257,7 @@ Total candidate files to scan: 274
 Scanned 274 files across apps and packages.
 
 ======================================================================
-✅ ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
+[PASS] ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
 ======================================================================
 Exit Code: 0
 ```
@@ -312,11 +312,11 @@ packages/api-client build: Done
 Scope: 3 of 7 workspace projects (apps)
 apps/backend build: Done
 apps/web build:
-  ✓ 1776 modules transformed.
-  dist/index.html                   0.82 kB │ gzip:   0.47 kB
-  dist/assets/index-PUDgh779.css   47.68 kB │ gzip:   8.44 kB
-  dist/assets/index-CRhdzqQt.js   620.67 kB │ gzip: 163.02 kB
-  ✓ built in 3.86s
+  [PASS] 1776 modules transformed.
+  dist/index.html                   0.82 kB | gzip:   0.47 kB
+  dist/assets/index-PUDgh779.css   47.68 kB | gzip:   8.44 kB
+  dist/assets/index-CRhdzqQt.js   620.67 kB | gzip: 163.02 kB
+  [PASS] built in 3.86s
 Exit Code: 0
 ```
 

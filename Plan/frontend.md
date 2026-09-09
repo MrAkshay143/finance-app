@@ -48,30 +48,52 @@ React 18 + TypeScript + Vite 6 + Tailwind CSS. Optimized as a mobile-first Progr
   4. Audit (/admin/audit)
   5. Settings (/admin/settings)
 
-## 3. Screen Catalog (22 Screens)
+## 3. Complete Screen Catalog (32 Production Screens)
 
+### Authentication & Onboarding
 1. Login (/login): Role-based automatic redirect (Admin -> /admin, User -> /dashboard), 5-attempt lockout countdown.
 2. Signup (/signup): Account registration with password strength indicators.
 3. Forgot Password (/forgot-password): KBA security question verification and password reset.
 4. Onboarding (/onboarding): Initial profile setup, base currency selection, first account setup.
-5. Dashboard (/dashboard): Net worth hero card, monthly cash flow, FAM score ring, quick action buttons, recent transactions.
-6. Accounts (/accounts): Multi-account balances, account types, transfer modal launcher.
-7. Account Details (/accounts/:id): Running balance, account status, and transaction history.
-8. Transactions (/transactions): Filterable transaction feed, category tags, search, and dynamic pagination.
+
+### Core Personal Finance
+5. Dashboard (/ & /dashboard): Net worth hero card, monthly cash flow, FAM score ring, quick action buttons, recent transactions.
+6. Transactions (/transactions): Filterable transaction feed, category tags, search, and dynamic pagination.
+7. Accounts (/accounts): Multi-account balances, account types, transfer modal launcher.
+8. Account Details (/accounts/:id): Running balance, account status, and transaction history.
 9. Planning & Budgets (/planning): Monthly spending limits, category budget bars, consumption warnings.
-10. Savings Goals (/planning/goals): Target savings goals, contribution modal, progress percentage rings.
-11. Analytics (/analytics): Cash flow trend lines (7d, 30d, 90d, 1y) and spending donut chart.
-12. Reports (/reports): Monthly statements, income vs expense breakdowns, JSON/CSV export launcher.
-13. Categories & Merchants (/categories): Custom user categories and merchant directory.
+10. Savings Goals (/planning): Target savings goals, contribution modal, progress percentage rings.
+11. Categories (/categories): Custom user categories, type filters, and color tags.
+12. Merchants (/merchants): Merchant directory and auto-complete management.
+13. Investments (/investments): Investment holdings, valuation, and asset allocation breakdown.
 14. Recurring Transactions (/recurring): Recurring schedule list, frequency tags, next occurrence dates.
-15. Notifications (/notifications): Unread notifications feed and alert preferences.
-16. Profile & Settings (/profile, /settings): User personal details, currency preference, and session revocation.
-17. Security Questions (/security/questions): Configure 3 KBA recovery questions.
-18. About (/about): Feature checklist, calculation explanations, and version info.
-19. Admin User Management (/admin, /admin/users/:id): Complete user directory, status toggle, role promotion, password reset.
-20. Dedicated Admin Categories (/admin/categories): Global system category taxonomy, KPI cards (Total, Expense, Income, Invest share %), filter pills, search, and pagination.
-21. Admin Platform Reports (/admin/reports): Platform GTV, liquidity breakdown, user progression funnel, zero hardcoded currency.
-22. Admin Audit & Settings (/admin/audit, /admin/settings, /admin/profile): Immutable audit feed, session timeout policies, system controls, and admin profile with password validation parity.
+
+### Intelligence, Analytics & Data Portability
+15. Analytics (/analytics): Cash flow trend lines (7d, 30d, 90d, 1y) and spending donut chart.
+16. Reports (/reports): Monthly statements, income vs expense breakdowns, JSON/CSV export launcher.
+17. AI Analysis (/ai-analysis): Algorithmic financial health assessment, spending anomalies, budget recommendations.
+18. CSV Import (/import): Bank statement file parser, column mapping, and batch transaction import.
+19. Universal Data Export (/export): Complete financial records export in JSON or CSV format.
+
+### Security, Preferences & Support
+20. User Audit Log (/audit): Personal security activity feed with friendly action formatters.
+21. Menu / More (/more & /menu): Quick navigation hub to all secondary features and settings.
+22. Notifications (/notifications): Unread notifications feed and alert preferences.
+23. Security Questions (/security/questions): Configure 3 KBA recovery questions.
+24. Profile (/profile): User personal information, name, contact details.
+25. Profile Settings (/profile/settings): Detailed financial profile, monthly income, targets, risk appetite.
+26. App Settings (/settings): User preferences, base currency selection, session revocation.
+27. About & Support (/about): Feature checklist, calculation formulas, and version info.
+
+### Administrative Platform
+28. Admin Dashboard & User Directory (/admin & /admin/users): Searchable user listing with status toggle (Active/Suspended), role promotion, temporary password generation, and KBA reset.
+29. Manage User Overview (/admin/users/:id): Single user inspection, account summaries, and balance overview.
+30. Manage User Detail Tabs (/admin/users/:id/manage): Deep user management tabs (Overview, Sessions, Security & Actions).
+31. Dedicated Admin Categories (/admin/categories): Global system category taxonomy, KPI cards (Total, Expense, Income, Invest share %), filter pills, search, and pagination.
+32. Admin Platform Reports (/admin/reports): Platform GTV, liquidity breakdown, user progression funnel, zero hardcoded currency.
+33. Admin Activity Audit (/admin/audit): Immutable security audit trail with friendly action formatters and client device detection.
+34. Admin Profile (/admin/profile): Admin credentials, session revocation, and 5-point password validation parity.
+35. Admin App Settings (/admin/settings): Platform maintenance mode toggle, cache clearing, recurring job runner, session timeout, and audit log purge horizons.
 
 ## 4. Color & Design Tokens
 

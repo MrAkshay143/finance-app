@@ -1,7 +1,7 @@
 # Phase 5 Signoff Report: Settings, Danger Zone, Admin, Audit & Import/Export
 
 **Project**: Finance Tracker Monorepo  
-**Phase**: Phase 5 — Settings, Danger Zone, Admin, Audit & Import/Export  
+**Phase**: Phase 5 - Settings, Danger Zone, Admin, Audit & Import/Export  
 **Signoff Gate**: TASK-5.9 Security, Admin Authorization & Audit Verification  
 **Signoff Date**: 2026-09-08  
 **QA Architect / Lead**: Senior QA Architect & Automation Engineer (`qa-agent`)  
@@ -45,14 +45,14 @@ All deliverables for **Phase 5: Settings, Danger Zone, Admin, Audit & Import/Exp
 
 ## 3. Phase 5 Exit Checklist Audit
 
-Every exit criterion specified in [Plan/implementation-plan.md](file:///c:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) § Phase 5 Exit Checklist has been systematically verified through automated test suites:
+Every exit criterion specified in [Plan/implementation-plan.md](file:///c:/Users/aksha/Downloads/finenace/Plan/implementation-plan.md) Section  Phase 5 Exit Checklist has been systematically verified through automated test suites:
 
 | # | Phase 5 Exit Checklist Criterion | Verification Method | Verification Evidence & Detailed Findings | Status |
 | :- | :--- | :--- | :--- | :--- |
-| **1** | **Non-admin access to any `/api/v1/admin/*` endpoint is rejected with `403 Forbidden`.** | `pnpm --filter @finance/backend test test/admin-audit.test.ts` | • **Unconditional 403 Rejection**: Verified across 6 endpoints (`/dashboard`, `/users`, `/settings`, `/app-settings`, `/audit`, `/audit-logs`). Standard users (`USER` role) receive HTTP status `403` with `{ success: false, error: { code: 'FORBIDDEN', message: 'Admin privileges required to access this resource' } }`.<br>• **Unauthenticated 401 Enforcement**: Requests lacking valid Bearer tokens are rejected with HTTP status `401` (`UNAUTHENTICATED`).<br>• **Middleware Architecture**: [requireAdmin.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/middleware/requireAdmin.ts) mounted globally on [admin.routes.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/routes/admin.routes.ts) after the `authenticate` middleware. | **PASSED** |
-| **2** | **Every administrative and sensitive action produces an unalterable `AuditLog` record.** | `pnpm --filter @finance/backend test test/admin-audit.test.ts`<br>`pnpm --filter @finance/backend test test/settings-import-export.test.ts` | • **Admin Action Logging**: Verified creation of immutable `AuditLog` records for `ADMIN_USER_UPDATE`, `ADMIN_RESET_PASSWORD`, `ADMIN_RESET_KBA`, `ADMIN_DELETE_USER`, and `ADMIN_APP_SETTINGS_UPDATE`.<br>• **User Sensitive Action Logging**: Verified creation of immutable records for `USER_SETTINGS_UPDATE`, `ACCOUNT_RESET_PROFILE`, `ACCOUNT_DELETED`, `DATA_IMPORT_CSV`, and `DATA_EXPORT`.<br>• **Audit Metadata**: Every entry preserves `actorUserId`, `targetUserId`, `action`, `category`, `details`, `ipAddress`, and ISO `createdAt` timestamp. | **PASSED** |
-| **3** | **Admin screens adhere strictly to the unified navy header and 5-tab bottom navigation shell.** | `pnpm --filter @finance/web test test/phase5-screens.test.tsx`<br>`pnpm --filter @finance/web test src/web.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase5_screens.test.tsx` | • **Unified Navy Header**: Web pages ([AdminDashboardPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminDashboardPage.tsx), [ManageUserOverviewPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ManageUserOverviewPage.tsx), [ManageUserDetailTabsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ManageUserDetailTabsPage.tsx), [AdminAppSettingsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAppSettingsPage.tsx), [AdminAuditPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAuditPage.tsx)) embed `<AppHeader variant="nested" ... />` applying `#0B1B3A` gradient tokens.<br>• **5-Tab Navigation Shell**: Admin routes are children of [AppLayout.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/components/layout/AppLayout.tsx), guaranteeing persistent `<BottomNav />` across all views.<br>• **Mobile Parity**: Mobile admin screens mount within [RootNavigator.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/navigation/RootNavigator.tsx) with consistent header styling and navigation transitions. | **PASSED** |
-| **4** | **CSV import and data export run and parse transactions without corrupting balances (balance invariant maintained).** | `pnpm --filter @finance/backend test test/settings-import-export.test.ts`<br>`pnpm --filter @finance/web test test/phase5-screens.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase5_screens.test.tsx` | • **Balance Invariant Preserved**: Opening balance ₹500 (50,000 paise) + ₹2,500 Income - ₹300 Expense - ₹200 Investment = exactly ₹2,500 (250,000 paise). Single-paise accuracy verified in `test/settings-import-export.test.ts#L186-L224`.<br>• **Atomic Recalculation**: [importService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/importService.ts#L234) invokes `balanceService.recalculateAccountBalance(tx, accountId)` within the database transaction.<br>• **Data Export Verification**: [exportService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/exportService.ts) exports full transaction histories, accounts, budgets, and goals in valid JSON and RFC 4180 CSV formats. | **PASSED** |
+| **1** | **Non-admin access to any `/api/v1/admin/*` endpoint is rejected with `403 Forbidden`.** | `pnpm --filter @finance/backend test test/admin-audit.test.ts` | * **Unconditional 403 Rejection**: Verified across 6 endpoints (`/dashboard`, `/users`, `/settings`, `/app-settings`, `/audit`, `/audit-logs`). Standard users (`USER` role) receive HTTP status `403` with `{ success: false, error: { code: 'FORBIDDEN', message: 'Admin privileges required to access this resource' } }`.<br>* **Unauthenticated 401 Enforcement**: Requests lacking valid Bearer tokens are rejected with HTTP status `401` (`UNAUTHENTICATED`).<br>* **Middleware Architecture**: [requireAdmin.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/middleware/requireAdmin.ts) mounted globally on [admin.routes.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/routes/admin.routes.ts) after the `authenticate` middleware. | **PASSED** |
+| **2** | **Every administrative and sensitive action produces an unalterable `AuditLog` record.** | `pnpm --filter @finance/backend test test/admin-audit.test.ts`<br>`pnpm --filter @finance/backend test test/settings-import-export.test.ts` | * **Admin Action Logging**: Verified creation of immutable `AuditLog` records for `ADMIN_USER_UPDATE`, `ADMIN_RESET_PASSWORD`, `ADMIN_RESET_KBA`, `ADMIN_DELETE_USER`, and `ADMIN_APP_SETTINGS_UPDATE`.<br>* **User Sensitive Action Logging**: Verified creation of immutable records for `USER_SETTINGS_UPDATE`, `ACCOUNT_RESET_PROFILE`, `ACCOUNT_DELETED`, `DATA_IMPORT_CSV`, and `DATA_EXPORT`.<br>* **Audit Metadata**: Every entry preserves `actorUserId`, `targetUserId`, `action`, `category`, `details`, `ipAddress`, and ISO `createdAt` timestamp. | **PASSED** |
+| **3** | **Admin screens adhere strictly to the unified navy header and 5-tab bottom navigation shell.** | `pnpm --filter @finance/web test test/phase5-screens.test.tsx`<br>`pnpm --filter @finance/web test src/web.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase5_screens.test.tsx` | * **Unified Navy Header**: Web pages ([AdminDashboardPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminDashboardPage.tsx), [ManageUserOverviewPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ManageUserOverviewPage.tsx), [ManageUserDetailTabsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/ManageUserDetailTabsPage.tsx), [AdminAppSettingsPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAppSettingsPage.tsx), [AdminAuditPage.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/pages/AdminAuditPage.tsx)) embed `<AppHeader variant="nested" ... />` applying `#0B1B3A` gradient tokens.<br>* **5-Tab Navigation Shell**: Admin routes are children of [AppLayout.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/web/src/components/layout/AppLayout.tsx), guaranteeing persistent `<BottomNav />` across all views.<br>* **Mobile Parity**: Mobile admin screens mount within [RootNavigator.tsx](file:///c:/Users/aksha/Downloads/finenace/apps/mobile/src/navigation/RootNavigator.tsx) with consistent header styling and navigation transitions. | **PASSED** |
+| **4** | **CSV import and data export run and parse transactions without corrupting balances (balance invariant maintained).** | `pnpm --filter @finance/backend test test/settings-import-export.test.ts`<br>`pnpm --filter @finance/web test test/phase5-screens.test.tsx`<br>`pnpm --filter @finance/mobile test src/__tests__/phase5_screens.test.tsx` | * **Balance Invariant Preserved**: Opening balance INR 500 (50,000 paise) + INR 2,500 Income - INR 300 Expense - INR 200 Investment = exactly INR 2,500 (250,000 paise). Single-paise accuracy verified in `test/settings-import-export.test.ts#L186-L224`.<br>* **Atomic Recalculation**: [importService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/importService.ts#L234) invokes `balanceService.recalculateAccountBalance(tx, accountId)` within the database transaction.<br>* **Data Export Verification**: [exportService.ts](file:///c:/Users/aksha/Downloads/finenace/apps/backend/src/services/exportService.ts) exports full transaction histories, accounts, budgets, and goals in valid JSON and RFC 4180 CSV formats. | **PASSED** |
 
 ---
 
@@ -64,24 +64,24 @@ The admin routing subsystem strictly enforces two-tier middleware authentication
 
 ```
  Incoming HTTP Request: /api/v1/admin/*
-                   │
-                   ▼
+                   |
+                   v
        authenticate Middleware
-                   │
-         ┌─────────┴─────────┐
-         ▼                   ▼
+                   |
+         +---------+---------+
+         v                   v
     Valid JWT?         No / Invalid Bearer
-         │                   │
-        YES                  NO ──► 401 UNAUTHENTICATED
-         │
-         ▼
+         |                   |
+        YES                  NO --> 401 UNAUTHENTICATED
+         |
+         v
       requireAdmin Middleware
-         │
-         ├─ req.user.role === 'ADMIN'?
-         │
-         ├─── YES ────────► Next (Execute Admin Controller)
-         │
-         └─── NO  ────────► 403 FORBIDDEN:
+         |
+         +- req.user.role === 'ADMIN'?
+         |
+         +--- YES --------> Next (Execute Admin Controller)
+         |
+         +--- NO  --------> 403 FORBIDDEN:
                             {
                               "success": false,
                               "error": {
@@ -151,40 +151,40 @@ The Danger Zone subsystem provides two critical operations designed with atomic 
 
 ```
  Uploaded CSV File
-        │
-        ▼
+        |
+        v
  importService.parseCsvLine (RFC 4180 Quoted String Parser)
-        │
-        ├─ Header Identification (date, desc, amount, category, type)
-        ├─ Amount Parsing & Currency Cleaning (₹, $, commas -> Paise)
-        ├─ Direction & Type Deduction (INCOME/CREDIT vs EXPENSE/INVESTMENT/DEBIT)
-        └─ Category Name Matching (Maps to existing system / user categories)
-        │
-        ▼
+        |
+        +- Header Identification (date, desc, amount, category, type)
+        +- Amount Parsing & Currency Cleaning (INR , $, commas -> Paise)
+        +- Direction & Type Deduction (INCOME/CREDIT vs EXPENSE/INVESTMENT/DEBIT)
+        +- Category Name Matching (Maps to existing system / user categories)
+        |
+        v
  In Prisma $transaction:
-        │
-        ├─ 1. Batch Insert Active Transactions
-        │
-        └─ 2. balanceService.recalculateAccountBalance(tx, accountId):
+        |
+        +- 1. Batch Insert Active Transactions
+        |
+        +- 2. balanceService.recalculateAccountBalance(tx, accountId):
                  currentBalance = openingBalance
                                 + sum(amount WHERE direction = 'CREDIT' AND status = 'ACTIVE')
                                 - sum(amount WHERE direction = 'DEBIT' AND status = 'ACTIVE')
                  UPDATE Account SET currentBalance = calculatedBalance
-        │
-        ▼
+        |
+        v
  Cache Invalidation & Event Dispatch:
-        ├─ invalidateDashboardCache(userId)
-        ├─ emitDashboardRefresh(userId, { importedCount })
-        └─ logAuditEvent('DATA_IMPORT_CSV')
+        +- invalidateDashboardCache(userId)
+        +- emitDashboardRefresh(userId, { importedCount })
+        +- logAuditEvent('DATA_IMPORT_CSV')
 ```
 
 #### Test Verification Proof ([test/settings-import-export.test.ts#L186-L224](file:///c:/Users/aksha/Downloads/finenace/apps/backend/test/settings-import-export.test.ts#L186-L224)):
-- **Opening Balance**: ₹500.00 (50,000 paise).
+- **Opening Balance**: INR 500.00 (50,000 paise).
 - **Import Batch**:
-  - Row 1: Salary Credit (+₹2,500.00 CREDIT)
-  - Row 2: Grocery Store (-₹300.00 DEBIT)
-  - Row 3: Mutual Fund SIP (-₹200.00 DEBIT)
-- **Resulting Balance**: ₹2,500.00 (250,000 paise) exactly. Invariant holds to the single paise.
+  - Row 1: Salary Credit (+INR 2,500.00 CREDIT)
+  - Row 2: Grocery Store (-INR 300.00 DEBIT)
+  - Row 3: Mutual Fund SIP (-INR 200.00 DEBIT)
+- **Resulting Balance**: INR 2,500.00 (250,000 paise) exactly. Invariant holds to the single paise.
 
 ---
 
@@ -212,9 +212,9 @@ All screens developed in Phase 5 comply strictly with the design architecture de
 
 | Package / Workspace | Test Suite Path | Test Files | Tests Run | Tests Passed | Failures | Duration |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`packages/shared-types`** | Static type verification | — | — | PASSED | 0 | < 1s |
-| **`packages/shared-ui-tokens`**| Static type verification | — | — | PASSED | 0 | < 1s |
-| **`packages/api-client`** | Static type verification | — | — | PASSED | 0 | < 1s |
+| **`packages/shared-types`** | Static type verification | - | - | PASSED | 0 | < 1s |
+| **`packages/shared-ui-tokens`**| Static type verification | - | - | PASSED | 0 | < 1s |
+| **`packages/api-client`** | Static type verification | - | - | PASSED | 0 | < 1s |
 | **`apps/backend`** | `apps/backend/test/*.test.ts` | 14 | 154 | 154 | 0 | 10.32s |
 | **`apps/mobile`** | `apps/mobile/src/__tests__/*.test.tsx?` | 10 | 105 | 105 | 0 | 5.10s |
 | **`apps/web`** | `apps/web/test/*.test.tsx?` | 7 | 175 | 175 | 0 | 8.61s |
@@ -282,7 +282,7 @@ The following validation commands were executed and verified against the working
 ```bash
 $ node scripts/check-placeholders.cjs
 ======================================================================
-🔍 ZERO-PLACEHOLDER & EMOJI GREP GATE
+[SEARCH] ZERO-PLACEHOLDER & EMOJI GREP GATE
 ======================================================================
 Scanning targets: apps, packages
 Root directory:   C:\Users\aksha\Downloads\finenace
@@ -291,7 +291,7 @@ Total candidate files to scan: 310
 Scanned 310 files across apps and packages.
 
 ======================================================================
-✅ ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
+[PASS] ZERO-PLACEHOLDER & EMOJI GATE PASSED (0 violations found).
 ======================================================================
 Exit Code: 0
 ```
@@ -346,11 +346,11 @@ packages/api-client build: Done
 Scope: 3 of 7 workspace projects (apps)
 apps/backend build: Done
 apps/web build:
-  ✓ 1778 modules transformed.
-  dist/index.html                   0.82 kB │ gzip:   0.47 kB
-  dist/assets/index-DA-ZsyK6.css   52.76 kB │ gzip:   9.05 kB
-  dist/assets/index-DROHABL5.js   727.92 kB │ gzip: 180.91 kB
-  ✓ built in 5.36s
+  [PASS] 1778 modules transformed.
+  dist/index.html                   0.82 kB | gzip:   0.47 kB
+  dist/assets/index-DA-ZsyK6.css   52.76 kB | gzip:   9.05 kB
+  dist/assets/index-DROHABL5.js   727.92 kB | gzip: 180.91 kB
+  [PASS] built in 5.36s
 Exit Code: 0
 ```
 
@@ -370,11 +370,11 @@ All acceptance criteria and exit checklist requirements for **Phase 5: Settings,
 
 ### Advancement to Phase 6:
 The project is officially certified to advance to **Phase 6: Production Hardening & Mobile Parity**, covering:
-- **`TASK-6.1`**: Accessibility & Mobile Polish Pass (Lighthouse accessibility score ≥ 95 on web, mobile accessibility inspector clean).
+- **`TASK-6.1`**: Accessibility & Mobile Polish Pass (Lighthouse accessibility score >= 95 on web, mobile accessibility inspector clean).
 - **`TASK-6.2`**: Observability, Metrics & Nginx Production Config (Prometheus `/metrics`, Sentry error tracking).
 - **`TASK-6.3`**: Staging & Production Deployment Pipelines (`compose.prod.yml` boots and serves cleanly).
-- **`TASK-6.4`**: End-to-End Automated Regression Suite (Playwright user journey: Signup → Onboarding → Accounts → Transactions → Dashboard → Reports → Admin).
-- **`TASK-6.5`**: Visual Fidelity Audit & Final PRD §7 Checklist Verification (Element-by-element verification against all 21 `UI Snaps/` reference images).
+- **`TASK-6.4`**: End-to-End Automated Regression Suite (Playwright user journey: Signup -> Onboarding -> Accounts -> Transactions -> Dashboard -> Reports -> Admin).
+- **`TASK-6.5`**: Visual Fidelity Audit & Final PRD Section 7 Checklist Verification (Element-by-element verification against all 21 `UI Snaps/` reference images).
 
 ---
 *Report certified by: Senior QA Architect & Automation Engineer (`qa-agent`)*  

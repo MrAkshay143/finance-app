@@ -1,3 +1,7 @@
+> [!NOTE]
+> Specification Modernization Notice:
+> This document contains the original project requirements and functional rules. As specified in the active product delivery architecture (see Plan/prd.md, Plan/architecture.md, Plan/backend.md, and Plan/database.md), the application is implemented with Node.js 20+, Express, TypeScript, and Prisma ORM supporting dual-engine databases (PostgreSQL 16+ for local/container development and MySQL 8.0+ for Hostinger cloud production). For the definitive current architecture and API inventory, refer to the Plan/ folder.
+
 # ============================================================ FINANCE TRACKER FULL PROJECT PRD FRONTEND + BACKEND + SQLITE + ADMIN + SECURITY
 
 ## DOCUMENT PURPOSE

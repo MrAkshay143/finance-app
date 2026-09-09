@@ -25,7 +25,7 @@
         +----------------+                    +----------------+                   +----------------+
 ```
 
-Cross-cutting: structured JSON logging (Pino), error boundaries, Prometheus metrics (/metrics), and health endpoints (/healthz) are wired into the backend process.
+Cross-cutting: structured JSON logging (Pino), error boundaries, Prometheus metrics (/metrics), and health endpoints (/healthz, /readyz) are wired into the backend process.
 
 ## 2. Confirmed Technology Stack
 
@@ -33,18 +33,18 @@ Cross-cutting: structured JSON logging (Pino), error boundaries, Prometheus metr
 |---|---|
 | Backend API | Node.js (v20+) + Express + TypeScript |
 | Web Frontend | React 18 + TypeScript + Vite 6 + Tailwind CSS |
+| Mobile Frontend | React Native 0.76 + NativeWind (@finance/mobile) |
 | PWA Architecture | Service Worker + Web Manifest + Install Prompt |
 | Database Engines | PostgreSQL 16+ (local/container) and MySQL 8.0+ (Hostinger cloud production) |
 | Database ORM | Prisma ORM (schema.prisma and schema.mysql.prisma) |
-| Cache & Message Broker | Redis 7+ (with automatic development fallback) |
-| Queue / Background Jobs | BullMQ |
-| Authentication | Short-lived access tokens (15m) + sliding refresh tokens |
+| Cache & Message Broker | Redis 7+ (with automatic development in-memory fallback) |
+| Queue / Background Jobs | BullMQ (recurringWorker, reminderWorker) |
+| Authentication | Short-lived access tokens (15m) + sliding refresh tokens (30d) |
 | API Style | REST (/api/v1), versioned |
 | Realtime Gateway | Socket.IO namespaces (/notifications, /dashboard) |
 | Reverse Proxy | Nginx / Hostinger Application Proxy |
-| Monitoring | Structured JSON logs + Prometheus metrics |
-| CI / CD | GitHub Actions + Hostinger deployment pipeline |
-| Testing | Vitest + React Testing Library (266 web tests, 210 backend tests) |
+| Monitoring | Structured JSON logs (Pino) + Prometheus metrics (/metrics) |
+| Testing | Vitest + React Testing Library (39 test suites across backend, web, and mobile) |
 
 ## 3. Repository Layout (Monorepo)
 
@@ -53,10 +53,11 @@ finance-tracker/
 +-- apps/
 |   +-- backend/        Express + TS API, Prisma ORM, BullMQ workers, Socket.IO gateway
 |   +-- web/            React 18 + TS + Vite SPA with PWA support
+|   +-- mobile/         React Native 0.76 + NativeWind mobile application
 +-- packages/
 |   +-- shared-types/   API request/response types, DTOs, and schemas
 |   +-- shared-ui-tokens/ Design tokens (colors, radii, shadow-card)
-|   +-- api-client/     Typed REST client + token interceptors
+|   +-- api-client/     Typed REST client + token interceptors + Socket.IO client
 +-- infra/
 |   +-- docker/         Dockerfiles for backend and web
 |   +-- nginx/          Reverse proxy configurations
@@ -95,30 +96,3 @@ Package manager: pnpm workspaces. Node LTS pinned via .nvmrc.
 |---|---|---|
 | recurring-transactions | Materialize due recurring transactions | Scheduled (daily / manual trigger) |
 | reminders | Evaluate due-date reminders and notifications | Scheduled (daily) |
-| notifications-dispatch | Dispatch real-time socket events | On notification creation |
-| csv-import | Parse and ingest bank statement CSV uploads | On file upload |
-| report-export | Generate structured data exports (JSON / CSV) | On user request |
-| audit-log-write | Non-blocking audit record creation | On critical action |
-
-## 8. Frontend Layout & PWA
-
-- Primary Viewport: Mobile-first responsive layout centered in a ~390-430px container on desktop viewports.
-- Progressive Web App: Custom app icon, standalone display manifest, and offline service worker caching.
-- Navigation:
-  - Consumer: AppHeader (dark navy) + 5-item bottom bar (Home, Transactions, Center FAB, Reports, More).
-  - Admin: AppHeader (with Exit Admin and Log Out) + 5-item bottom bar (Users, Categories, Reports, Audit, Settings).
-- Design Tokens: shadow-card elevation, rounded-2xl radii, and border-borderDefault borders used uniformly across all screens.
-
-## 9. Security Baseline
-
-- Helmet headers, CORS restricted to permitted origins, input validation (Zod) on every endpoint.
-- Parameterized database queries exclusively via Prisma ORM.
-- Server-side user ownership checks on all private resources.
-- Server-side role checks on all /admin/* endpoints.
-- Rate limiting on authentication routes.
-- Immutable security audit logging.
-
-## 10. Environments
-
-- local: Local PostgreSQL/MySQL, Redis, Vite dev server, Express backend.
-- production: Live Hostinger cloud deployment (finance.imakshay.in) running bundled Node 20 backend with Express static asset hosting and cloud MySQL database.
