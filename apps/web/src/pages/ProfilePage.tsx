@@ -422,7 +422,7 @@ export const ProfilePage: React.FC = () => {
             More
           </h3>
           <Card padding="none" className="divide-y divide-borderDefault overflow-hidden shadow-card">
-            {/* Integrations */}
+            {/* Preferences & Security */}
             <button
               type="button"
               onClick={() => navigate('/settings')}
@@ -433,9 +433,9 @@ export const ProfilePage: React.FC = () => {
                   <Link2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-textDefault">Integrations</h4>
+                  <h4 className="text-xs font-bold text-textDefault">Preferences, Security & Integrations</h4>
                   <p className="text-[11px] text-textMuted mt-0.5">
-                    Connect with third-party services
+                    Manage currency, donuts, active sessions & integrations
                   </p>
                 </div>
               </div>

@@ -790,9 +790,9 @@ export const CategoriesPage: React.FC = () => {
           <Modal
             isOpen={Boolean(deleteConfirm)}
             onClose={() => setDeleteConfirm(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            icon={<Trash2 className="w-4 h-4 text-semantic-danger" />}
             footer={
               <>
                 <Button
@@ -832,9 +832,9 @@ export const CategoriesPage: React.FC = () => {
           <Modal
             isOpen={Boolean(deleteMerchantConfirm)}
             onClose={() => setDeleteMerchantConfirm(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            icon={<Trash2 className="w-4 h-4 text-semantic-danger" />}
             footer={
               <>
                 <Button

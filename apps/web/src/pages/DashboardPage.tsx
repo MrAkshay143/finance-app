@@ -136,6 +136,21 @@ export const DashboardPage: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
+  // Query user preferences
+  const { data: userSettings } = useQuery<any>({
+    queryKey: ['userSettings'],
+    queryFn: async () => {
+      const res = await apiClient.settings.get();
+      return (res as any)?.data || res;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const donutConfig = userSettings?.dashboardDonutsConfig || userSettings?.dashboardDonuts;
+  const showExpenseDonut = donutConfig?.expense !== false && userSettings?.donutVisualsEnabled !== false;
+  const showIncomeDonut = donutConfig?.income !== false;
+  const showQuickAdd = userSettings?.quickAddEnabled !== false && userSettings?.quickAdd !== false;
+
   // Extract real backend data with safe fallbacks
   const fam = dashboardData?.fam;
   const famGrade = fam?.gradeDisplay || fam?.grade || null;
@@ -555,6 +570,7 @@ export const DashboardPage: React.FC = () => {
              * Donut chart on left with center count, category legend list on right,
              * Expenses / Income pill toggle in header.
              * ============================================================== */}
+            {(showExpenseDonut || showIncomeDonut) && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="expense-overview-donut-card"
@@ -765,6 +781,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
               )}
             </div>
+            )}
 
             {/* ==============================================================
              * SECTION 5: CONNECTED ACCOUNTS CARD
@@ -1003,6 +1020,18 @@ export const DashboardPage: React.FC = () => {
           </>
         )}
       </div>
+      {/* Floating Quick-Add Button */}
+      {showQuickAdd && (
+        <button
+          type="button"
+          onClick={openPicker}
+          className="fixed bottom-20 right-4 sm:right-6 md:right-8 z-40 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-lg flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          aria-label="Quick Add Transaction"
+          title="Quick Add Transaction"
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </button>
+      )}
     </div>
   );
 };

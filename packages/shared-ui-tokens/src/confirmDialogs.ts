@@ -14,10 +14,9 @@ export const CONFIRM_DIALOGS = {
   transactions: {
     delete: (description?: string): ConfirmDialogDefinition => ({
       title: 'Delete Transaction',
-      subtitle: 'Confirm deletion',
       message: description
-        ? `Delete "${description}"? Associated account balance will revert.`
-        : 'Delete this transaction? Associated account balance will revert.',
+        ? `Delete "${description}"? Account balance will revert.`
+        : 'Delete this transaction? Account balance will revert.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -25,7 +24,6 @@ export const CONFIRM_DIALOGS = {
     }),
     deleteTransfer: (): ConfirmDialogDefinition => ({
       title: 'Delete Transfer',
-      subtitle: 'Confirm deletion',
       message: 'Delete this transfer? Both account balances will revert.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
@@ -36,11 +34,10 @@ export const CONFIRM_DIALOGS = {
   accounts: {
     toggleStatus: (name: string, isCurrentlyActive: boolean): ConfirmDialogDefinition => ({
       title: isCurrentlyActive ? 'Deactivate Account' : 'Activate Account',
-      subtitle: 'Confirm account status change',
       message: isCurrentlyActive
-        ? `Deactivate "${name}"? Existing history is retained, but new transactions cannot be added.`
-        : `Reactivate "${name}"? It will be available for new transactions immediately.`,
-      confirmLabel: isCurrentlyActive ? 'Deactivate Account' : 'Activate Account',
+        ? `Deactivate "${name}"? Past records remain, but new entries will be disabled.`
+        : `Reactivate "${name}" for new transactions?`,
+      confirmLabel: isCurrentlyActive ? 'Deactivate' : 'Activate',
       cancelLabel: 'Cancel',
       severity: isCurrentlyActive ? 'danger' : 'primary',
       icon: 'power',
@@ -49,10 +46,9 @@ export const CONFIRM_DIALOGS = {
   planning: {
     deleteBudget: (categoryName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Budget',
-      subtitle: 'This action cannot be undone',
       message: categoryName
-        ? `Permanently delete budget for "${categoryName}"? History will not be affected.`
-        : 'Permanently delete this budget? History will not be affected.',
+        ? `Delete budget for "${categoryName}"? Past records remain intact.`
+        : 'Delete this budget? Past records remain intact.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -60,10 +56,9 @@ export const CONFIRM_DIALOGS = {
     }),
     deleteGoal: (goalName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Goal',
-      subtitle: 'This action cannot be undone',
       message: goalName
-        ? `Permanently delete savings goal "${goalName}"? Target history will be removed.`
-        : 'Permanently delete this savings goal? Target history will be removed.',
+        ? `Delete savings goal "${goalName}"? Target progress will be removed.`
+        : 'Delete this savings goal? Target progress will be removed.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -73,10 +68,9 @@ export const CONFIRM_DIALOGS = {
   categories: {
     delete: (categoryName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Category',
-      subtitle: 'Confirm category removal',
       message: categoryName
-        ? `Permanently delete category "${categoryName}"? Existing transactions remain intact.`
-        : 'Permanently delete this category? Existing transactions remain intact.',
+        ? `Delete category "${categoryName}"? Existing transactions remain intact.`
+        : 'Delete this category? Existing transactions remain intact.',
       confirmLabel: 'Delete Category',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -86,10 +80,9 @@ export const CONFIRM_DIALOGS = {
   merchants: {
     delete: (merchantName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Merchant',
-      subtitle: 'Confirm merchant removal',
       message: merchantName
-        ? `Permanently delete merchant "${merchantName}"? This action cannot be undone.`
-        : 'Permanently delete this merchant? This action cannot be undone.',
+        ? `Delete merchant "${merchantName}"? Associated records remain intact.`
+        : 'Delete this merchant? Associated records remain intact.',
       confirmLabel: 'Delete Merchant',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -98,11 +91,10 @@ export const CONFIRM_DIALOGS = {
   },
   recurring: {
     delete: (description?: string): ConfirmDialogDefinition => ({
-      title: 'Delete Recurring Schedule',
-      subtitle: 'Confirm schedule removal',
+      title: 'Delete Schedule',
       message: description
-        ? `Stop and delete schedule "${description}"? Historical transactions remain intact.`
-        : 'Stop and delete this recurring schedule? Historical transactions remain intact.',
+        ? `Delete schedule "${description}"? Past transactions remain intact.`
+        : 'Delete this recurring schedule? Past transactions remain intact.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -111,9 +103,8 @@ export const CONFIRM_DIALOGS = {
   },
   settings: {
     resetTargets: (): ConfirmDialogDefinition => ({
-      title: 'Reset Targets?',
-      subtitle: 'Restore defaults',
-      message: 'This clears monthly budget and investment targets. Transactions and login remain safe.',
+      title: 'Reset Targets',
+      message: 'Reset monthly budget and investment targets to defaults? Transactions remain safe.',
       confirmLabel: 'Reset Targets',
       cancelLabel: 'Cancel',
       severity: 'warning',
@@ -121,8 +112,7 @@ export const CONFIRM_DIALOGS = {
     }),
     deleteAccount: (): ConfirmDialogDefinition => ({
       title: 'Delete Account',
-      subtitle: 'Permanent deletion of account and data',
-      message: 'Permanently delete your account and all financial data? This action cannot be undone.',
+      message: 'Delete your account and all associated financial data?',
       confirmLabel: 'Delete Account',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -130,8 +120,7 @@ export const CONFIRM_DIALOGS = {
     }),
     signOut: (): ConfirmDialogDefinition => ({
       title: 'Sign Out',
-      subtitle: 'End current session',
-      message: 'Are you sure you want to sign out?',
+      message: 'Sign out of your account now?',
       confirmLabel: 'Sign Out',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -140,55 +129,50 @@ export const CONFIRM_DIALOGS = {
   },
   admin: {
     softDeleteUser: (emailOrName?: string): ConfirmDialogDefinition => ({
-      title: 'Deactivate & Delete User',
-      subtitle: 'Soft delete account',
+      title: 'Delete User',
       message: emailOrName
-        ? `Access will be revoked and account for "${emailOrName}" hidden. An admin can restore it anytime.`
-        : 'Access will be revoked and account hidden. An admin can restore it anytime.',
-      confirmLabel: 'Delete Account',
+        ? `Revoke access and hide account for "${emailOrName}"? Can be restored anytime.`
+        : 'Revoke access and hide account? Can be restored anytime.',
+      confirmLabel: 'Delete User',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'trash',
     }),
     resetPassword: (emailOrName?: string): ConfirmDialogDefinition => ({
       title: 'Reset Password',
-      subtitle: 'Temporary password generated',
       message: emailOrName
-        ? `A temporary password has been generated for ${emailOrName}. User must update it on login.`
-        : 'A temporary password has been generated.',
-      confirmLabel: 'Done',
-      cancelLabel: 'Close',
+        ? `Generate temporary password for ${emailOrName} and revoke active sessions?`
+        : 'Generate temporary password and revoke active sessions?',
+      confirmLabel: 'Reset Password',
+      cancelLabel: 'Cancel',
       severity: 'primary',
       icon: 'lock',
     }),
     resetKba: (userName?: string): ConfirmDialogDefinition => ({
       title: 'Reset Security Questions',
-      subtitle: 'Force KBA re-enrollment',
       message: userName
-        ? `Clear security questions for ${userName}? They must set up new questions on next login.`
-        : 'Clear security questions? User must set up new questions on next login.',
+        ? `Clear security questions for ${userName}? They will re-enroll on next login.`
+        : 'Clear security questions? User will re-enroll on next login.',
       confirmLabel: 'Reset Questions',
       cancelLabel: 'Cancel',
       severity: 'warning',
       icon: 'refresh',
     }),
     lockAccount: (emailOrName?: string): ConfirmDialogDefinition => ({
-      title: 'Lock User Account',
-      subtitle: 'Suspend account access',
+      title: 'Lock Account',
       message: emailOrName
-        ? `Lock account for "${emailOrName}"? They will be immediately prevented from logging in.`
-        : 'Lock this account? The user will be immediately prevented from logging in.',
+        ? `Lock account for "${emailOrName}"? Login access will be suspended.`
+        : 'Lock this account? Login access will be suspended.',
       confirmLabel: 'Lock Account',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'lock',
     }),
     unlockAccount: (emailOrName?: string): ConfirmDialogDefinition => ({
-      title: 'Unlock User Account',
-      subtitle: 'Restore account access',
+      title: 'Unlock Account',
       message: emailOrName
-        ? `Unlock account for "${emailOrName}"? They will regain access to log in.`
-        : 'Unlock this account? The user will regain access to log in.',
+        ? `Unlock account for "${emailOrName}"? Login access will be restored.`
+        : 'Unlock this account? Login access will be restored.',
       confirmLabel: 'Unlock Account',
       cancelLabel: 'Cancel',
       severity: 'primary',
@@ -196,11 +180,10 @@ export const CONFIRM_DIALOGS = {
     }),
     forceLogout: (emailOrName?: string): ConfirmDialogDefinition => ({
       title: 'Force Logout',
-      subtitle: 'Revoke all active sessions',
       message: emailOrName
-        ? `Revoke all active sessions for "${emailOrName}"? They will be signed out on all devices.`
-        : 'Revoke all active sessions? The user will be signed out on all devices.',
-      confirmLabel: 'Revoke Sessions',
+        ? `Revoke active sessions for "${emailOrName}" across all devices?`
+        : 'Revoke all active sessions across all devices?',
+      confirmLabel: 'Force Logout',
       cancelLabel: 'Cancel',
       severity: 'warning',
       icon: 'power',

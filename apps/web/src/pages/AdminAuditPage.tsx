@@ -19,6 +19,7 @@ import {
   RotateCw,
   LogOut,
   ArrowLeftFromLine,
+  Download,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -27,6 +28,7 @@ import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AdminAuditPage: React.FC = () => {
@@ -36,8 +38,30 @@ export const AdminAuditPage: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [inspectRecord, setInspectRecord] = useState<AuditLogRecord | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const categories = ['All', 'Login', 'Profile', 'Settings', 'Security', 'Admin'];
+
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      const res = await apiClient.admin.exportAuditLogsCsv();
+      const blob = res.data;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `system_audit_logs_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Audit logs exported successfully');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to export audit logs');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Query audit logs
   const { data, isLoading, isError, refetch } = useQuery({
@@ -250,13 +274,24 @@ export const AdminAuditPage: React.FC = () => {
           })}
         </div>
 
-        {/* Activity Header with Sort */}
+        {/* Activity Header with Sort & Export */}
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-textDefault">
             Activity ({logs.length})
           </h3>
 
-          <div className="flex items-center gap-1 text-xs text-textMuted">
+          <div className="flex items-center gap-2 text-xs text-textMuted">
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={isExporting}
+              className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-brand-primary bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 whitespace-nowrap"
+              title="Export all audit logs as CSV"
+            >
+              <Download className="w-3 h-3" />
+              <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+            </button>
+
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as any)}

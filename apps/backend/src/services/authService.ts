@@ -15,6 +15,7 @@ import {
   NotFoundError,
   AccountLockedError,
   ValidationError,
+  ForbiddenError,
 } from '../utils/errors.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import jwt from 'jsonwebtoken';
@@ -89,6 +90,29 @@ export class AuthService {
       mobileNumber = phoneVal.normalized!;
     }
 
+    // Check AppSettings: allow_user_registration
+    const regSetting = await prisma.appSetting.findUnique({
+      where: { key: 'allow_user_registration' },
+    });
+    if (regSetting && (regSetting.value === false || regSetting.value === 'false')) {
+      throw new ForbiddenError('New user registration is currently disabled by administrator');
+    }
+
+    // Check AppSettings: password_min_length
+    const minLenSetting = await prisma.appSetting.findUnique({
+      where: { key: 'password_min_length' },
+    });
+    const minLen = Number(minLenSetting?.value ?? 8);
+    if (data.password.length < minLen) {
+      throw new ValidationError(`Password must be at least ${minLen} characters long`);
+    }
+
+    // Read AppSettings: default_base_currency
+    const currSetting = await prisma.appSetting.findUnique({
+      where: { key: 'default_base_currency' },
+    });
+    const defaultCurrency = typeof currSetting?.value === 'string' ? currSetting.value : 'INR';
+
     // Hash password
     const passwordHash = await hashPassword(data.password);
 
@@ -106,7 +130,7 @@ export class AuthService {
         onboardingCompleted: false,
         userSettings: {
           create: {
-            currency: 'INR',
+            currency: defaultCurrency,
             timezone: 'Asia/Kolkata',
             financialMonthStartDay: 1,
             quickAddEnabled: true,
@@ -564,6 +588,80 @@ export class AuthService {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       userSettings: user.userSettings,
+    };
+  }
+
+  /**
+   * Retrieves active refresh token sessions for user.
+   */
+  async getSessions(userId: string) {
+    const sessions = await prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        userAgent: true,
+        ipAddress: true,
+        createdAt: true,
+        expiresAt: true,
+      },
+    });
+
+    return sessions.map((s, idx) => ({
+      id: s.id,
+      userAgent: s.userAgent || 'Current Device/Browser',
+      ipAddress: s.ipAddress || '127.0.0.1',
+      createdAt: s.createdAt.toISOString(),
+      expiresAt: s.expiresAt.toISOString(),
+      isCurrent: idx === 0,
+    }));
+  }
+
+  /**
+   * Revokes all other active sessions for user.
+   */
+  async revokeOtherSessions(userId: string, ipAddress?: string) {
+    // Find the latest active session
+    const latest = await prisma.refreshToken.findFirst({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const whereClause: any = {
+      userId,
+      revokedAt: null,
+    };
+
+    if (latest) {
+      whereClause.id = { not: latest.id };
+    }
+
+    const result = await prisma.refreshToken.updateMany({
+      where: whereClause,
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'AUTH_SESSIONS_REVOKED_OTHERS',
+      details: { revokedCount: result.count },
+      ipAddress,
+    });
+
+    return {
+      success: true,
+      revokedCount: result.count,
+      message: `Signed out of ${result.count} other session(s)`,
     };
   }
 }

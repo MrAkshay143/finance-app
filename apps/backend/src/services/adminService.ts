@@ -4,6 +4,9 @@ import { UserRole, UserStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { logAuditEvent, auditService, FormattedAuditLog } from './auditService.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
+import { getRedisClient } from '../lib/redis.js';
+import { recurringService } from './recurringService.js';
+import { invalidateMaintenanceCache } from '../middleware/maintenanceMiddleware.js';
 
 export interface AdminDashboardMetrics {
   totalUsers: number;
@@ -103,9 +106,9 @@ export class AdminService {
     if (options.search) {
       const q = options.search.trim();
       where.OR = [
-        { email: { contains: q, mode: 'insensitive' } },
-        { firstName: { contains: q, mode: 'insensitive' } },
-        { lastName: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q } },
+        { firstName: { contains: q } },
+        { lastName: { contains: q } },
       ];
     }
 
@@ -437,17 +440,37 @@ export class AdminService {
       settingsMap.set(row.key, row.value);
     }
 
+    const platformName = String(settingsMap.get('platform_name') ?? 'Finance Tracker');
+    const supportEmail = String(settingsMap.get('support_email') ?? 'support@imakshay.in');
+    const maintenanceMode = Boolean(settingsMap.get('maintenance_mode') ?? false);
+    const allowUserRegistration = Boolean(settingsMap.get('allow_user_registration') ?? true);
     const sessionTimeout = Number(settingsMap.get('session_timeout_minutes') ?? 60);
     const maxFailed = Number(settingsMap.get('max_failed_attempts') ?? 5);
     const lockoutDuration = Number(settingsMap.get('lockout_duration_minutes') ?? 15);
     const requireKba = Boolean(settingsMap.get('require_kba_for_sensitive_actions') ?? true);
+    const passwordMinLength = Number(settingsMap.get('password_min_length') ?? 8);
+    const defaultBaseCurrency = String(settingsMap.get('default_base_currency') ?? 'INR');
+    const defaultBudgetPeriod = String(settingsMap.get('default_budget_period') ?? 'MONTHLY');
+    const famExpenseThresholdPercent = Number(settingsMap.get('fam_expense_threshold_percent') ?? 80);
+    const famInvestmentThresholdPercent = Number(settingsMap.get('fam_investment_threshold_percent') ?? 100);
+    const famIncomeThresholdPercent = Number(settingsMap.get('fam_income_threshold_percent') ?? 100);
 
     return {
+      platformName,
+      supportEmail,
+      maintenanceMode,
+      allowUserRegistration,
       sessionTimeoutMinutes: sessionTimeout,
       maxFailedLoginAttempts: maxFailed,
       maxFailedAttempts: maxFailed,
       lockoutDurationMinutes: lockoutDuration,
       requireKbaForSensitiveActions: requireKba,
+      passwordMinLength,
+      defaultBaseCurrency,
+      defaultBudgetPeriod,
+      famExpenseThresholdPercent,
+      famInvestmentThresholdPercent,
+      famIncomeThresholdPercent,
       ...Object.fromEntries(settingsMap.entries()),
     };
   }
@@ -461,11 +484,21 @@ export class AdminService {
     ipAddress?: string
   ): Promise<AppSettingsData> {
     const keyMap: Record<string, string> = {
+      platformName: 'platform_name',
+      supportEmail: 'support_email',
+      maintenanceMode: 'maintenance_mode',
+      allowUserRegistration: 'allow_user_registration',
       sessionTimeoutMinutes: 'session_timeout_minutes',
       maxFailedLoginAttempts: 'max_failed_attempts',
       maxFailedAttempts: 'max_failed_attempts',
       lockoutDurationMinutes: 'lockout_duration_minutes',
       requireKbaForSensitiveActions: 'require_kba_for_sensitive_actions',
+      passwordMinLength: 'password_min_length',
+      defaultBaseCurrency: 'default_base_currency',
+      defaultBudgetPeriod: 'default_budget_period',
+      famExpenseThresholdPercent: 'fam_expense_threshold_percent',
+      famInvestmentThresholdPercent: 'fam_investment_threshold_percent',
+      famIncomeThresholdPercent: 'fam_income_threshold_percent',
     };
 
     for (const [key, value] of Object.entries(data)) {
@@ -484,6 +517,10 @@ export class AdminService {
       });
     }
 
+    if ('maintenanceMode' in data || 'maintenance_mode' in data) {
+      invalidateMaintenanceCache();
+    }
+
     await logAuditEvent({
       actorUserId: adminId,
       action: 'ADMIN_APP_SETTINGS_UPDATE',
@@ -492,6 +529,126 @@ export class AdminService {
     });
 
     return this.getAppSettings();
+  }
+
+  /**
+   * Flushes Redis application cache keys.
+   */
+  async clearRedisCache(
+    adminId: string,
+    ipAddress?: string
+  ): Promise<{ success: boolean; message: string; keysCleared: number }> {
+    let keysCleared = 0;
+    try {
+      const redis = getRedisClient();
+      if (redis && redis.isOpen) {
+        await redis.flushDb();
+        keysCleared = 1;
+      }
+    } catch {
+      // Redis optional in fallback mode
+    }
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_CACHE_CLEAR',
+      details: { keysCleared },
+      ipAddress,
+    });
+
+    return {
+      success: true,
+      message: 'System and Redis cache cleared successfully',
+      keysCleared,
+    };
+  }
+
+  /**
+   * Triggers synchronous materialization of due recurring transactions.
+   */
+  async runRecurringMaterialization(
+    adminId: string,
+    ipAddress?: string
+  ): Promise<{ success: boolean; materializedCount: number; message: string }> {
+    const result = await recurringService.materializeDueTransactions(new Date());
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_RUN_RECURRING',
+      details: { materializedCount: result.materializedCount },
+      ipAddress,
+    });
+
+    return {
+      success: true,
+      materializedCount: result.materializedCount,
+      message: `Processed recurring schedule: ${result.materializedCount} transaction(s) materialized.`,
+    };
+  }
+
+  /**
+   * Exports system-wide audit logs to structured CSV format.
+   */
+  async exportAuditLogsCsv(): Promise<string> {
+    const logs = await prisma.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10000,
+      include: {
+        actor: { select: { email: true, firstName: true, lastName: true } },
+        target: { select: { email: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const headers = ['Log ID', 'Timestamp', 'Action', 'Actor Email', 'Target Email', 'IP Address', 'Details'];
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
+    const rows = logs.map((log) =>
+      [
+        escapeCsv(log.id),
+        escapeCsv(new Date(log.createdAt).toISOString()),
+        escapeCsv(log.action),
+        escapeCsv(log.actor?.email || ''),
+        escapeCsv(log.target?.email || ''),
+        escapeCsv(log.ipAddress || ''),
+        escapeCsv(log.details || {}),
+      ].join(',')
+    );
+
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  /**
+   * Purges audit logs older than the specified retention days.
+   */
+  async purgeOldAuditLogs(
+    adminId: string,
+    retentionDays: number,
+    ipAddress?: string
+  ): Promise<{ purgedCount: number; retentionDays: number }> {
+    const days = Math.max(7, Number(retentionDays) || 90);
+    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const result = await prisma.auditLog.deleteMany({
+      where: {
+        createdAt: { lt: cutoffDate },
+      },
+    });
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_AUDIT_LOG_PURGE',
+      details: { purgedCount: result.count, retentionDays: days, cutoffDate: cutoffDate.toISOString() },
+      ipAddress,
+    });
+
+    return {
+      purgedCount: result.count,
+      retentionDays: days,
+    };
   }
 
   /**

@@ -524,15 +524,15 @@ export const TransactionsPage: React.FC = () => {
           <Modal
             isOpen={deletingItem !== null}
             onClose={() => setDeletingItem(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            icon={<Trash2 className="w-4 h-4 text-semantic-danger" />}
             footer={
-              <div className="flex items-center gap-2.5 w-full justify-end">
+              <>
                 <Button
                   type="button"
                   variant="outline"
-                  size="md"
+                  size="sm"
                   onClick={() => setDeletingItem(null)}
                 >
                   {dialogDef.cancelLabel}
@@ -540,13 +540,13 @@ export const TransactionsPage: React.FC = () => {
                 <Button
                   type="button"
                   variant="danger"
-                  size="md"
+                  size="sm"
                   isLoading={deleteTxnMutation.isPending || deleteTransferMutation.isPending}
                   onClick={handleDeleteConfirm}
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
             <div className="space-y-2 text-xs text-textMuted leading-relaxed">

@@ -143,6 +143,32 @@ export class AuthController {
       next(err);
     }
   }
+
+  async getSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const sessions = await authService.getSessions(userId);
+      res.status(200).json({
+        success: true,
+        data: sessions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async revokeOtherSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const result = await authService.revokeOtherSessions(userId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const authController = new AuthController();

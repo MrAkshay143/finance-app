@@ -682,21 +682,21 @@ export const AccountsPage: React.FC = () => {
           <Modal
             isOpen={statusConfirmAccount !== null}
             onClose={() => setStatusConfirmAccount(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
             icon={
               isCurrentlyActive ? (
-                <CircleOff className="w-5 h-5 text-semantic-danger" />
+                <CircleOff className="w-4 h-4 text-semantic-danger" />
               ) : (
-                <CheckCircle2 className="w-5 h-5 text-semantic-success" />
+                <CheckCircle2 className="w-4 h-4 text-semantic-success" />
               )
             }
             footer={
-              <div className="flex items-center gap-2.5 w-full justify-end">
+              <>
                 <Button
                   type="button"
                   variant="outline"
-                  size="md"
+                  size="sm"
                   onClick={() => setStatusConfirmAccount(null)}
                 >
                   {dialogDef.cancelLabel}
@@ -704,16 +704,16 @@ export const AccountsPage: React.FC = () => {
                 <Button
                   type="button"
                   variant={isCurrentlyActive ? 'danger' : 'primary'}
-                  size="md"
+                  size="sm"
                   isLoading={toggleStatusMutation.isPending}
                   onClick={handleConfirmToggleStatus}
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
-            <div className="space-y-2 text-xs text-textMuted leading-relaxed">
+            <div className="text-xs text-textMuted leading-relaxed">
               <p>{dialogDef.message}</p>
             </div>
           </Modal>

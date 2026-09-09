@@ -11,6 +11,7 @@ export interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   maxWidth?: string;
+  compact?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -22,7 +23,8 @@ export const Modal: React.FC<ModalProps> = ({
   icon,
   children,
   footer,
-  maxWidth = 'max-w-[390px]',
+  maxWidth,
+  compact = false,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
@@ -118,6 +120,8 @@ export const Modal: React.FC<ModalProps> = ({
   const titleId = `modal-title-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
   const descriptionId = subOrDesc ? `modal-description-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined;
 
+  const effectiveMaxWidth = maxWidth || (compact ? 'max-w-[340px]' : 'max-w-[390px]');
+
   return (
     <div
       role="dialog"
@@ -130,19 +134,19 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`w-full ${maxWidth} bg-white rounded-modal shadow-modal border border-borderDefault overflow-hidden flex flex-col max-h-[90vh] focus:outline-none`}
+        className={`w-full ${effectiveMaxWidth} bg-white ${compact ? 'rounded-2xl shadow-lg' : 'rounded-modal shadow-modal'} border border-borderDefault overflow-hidden flex flex-col max-h-[90vh] focus:outline-none`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 pt-5 pb-4 border-b border-borderDefault flex items-start justify-between bg-white relative">
-          <div className="flex items-center gap-3 pr-8">
+        <div className={`${compact ? 'px-4 pt-4 pb-3' : 'px-5 pt-5 pb-4'} border-b border-borderDefault flex items-start justify-between bg-white relative`}>
+          <div className="flex items-center gap-2.5 pr-8">
             {icon && (
-              <div className="w-10 h-10 rounded-xl bg-brand-primary-soft text-brand-primary flex items-center justify-center shrink-0" aria-hidden="true">
+              <div className={`${compact ? 'w-8 h-8 rounded-lg' : 'w-10 h-10 rounded-xl'} bg-brand-primary-soft text-brand-primary flex items-center justify-center shrink-0`} aria-hidden="true">
                 {icon}
               </div>
             )}
             <div>
-              <h2 id={titleId} className="text-base font-bold text-textDefault tracking-tight leading-tight">
+              <h2 id={titleId} className={`${compact ? 'text-sm' : 'text-base'} font-bold text-textDefault tracking-tight leading-tight`}>
                 {title}
               </h2>
               {subOrDesc && (
@@ -156,20 +160,20 @@ export const Modal: React.FC<ModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="w-8 h-8 rounded-full text-textMuted hover:text-textDefault hover:bg-gray-100 flex items-center justify-center transition-colors absolute right-4 top-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="w-8 h-8 rounded-full text-textMuted hover:text-textDefault hover:bg-gray-100 flex items-center justify-center transition-colors absolute right-3 top-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto space-y-4 flex-1">
+        <div className={`${compact ? 'p-4 space-y-3' : 'p-5 space-y-4'} overflow-y-auto flex-1`}>
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-5 py-4 border-t border-borderDefault bg-gray-50 flex items-center justify-end gap-2.5">
+          <div className={`${compact ? 'px-4 py-3 gap-2' : 'px-5 py-4 gap-2.5'} border-t border-borderDefault bg-gray-50 flex items-center justify-end`}>
             {footer}
           </div>
         )}

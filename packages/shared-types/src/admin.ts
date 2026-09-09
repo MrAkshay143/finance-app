@@ -66,11 +66,26 @@ export const AdminResetPasswordResponseSchema = z.object({
 export type AdminResetPasswordResponse = z.infer<typeof AdminResetPasswordResponseSchema>;
 
 export const AppSettingsSchema = z.object({
+  // General / Platform
+  platformName: z.string().min(1).max(100).default('Finance Tracker'),
+  supportEmail: z.string().email().default('support@finance.local'),
+  maintenanceMode: z.boolean().default(false),
+  allowUserRegistration: z.boolean().default(true),
+
+  // Security Policies
   sessionTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
   maxFailedLoginAttempts: z.number().int().min(1).max(20).default(5),
   maxFailedAttempts: z.number().int().min(1).max(20).optional().default(5),
   lockoutDurationMinutes: z.number().int().min(1).max(1440).default(15),
   requireKbaForSensitiveActions: z.boolean().default(true),
+  passwordMinLength: z.number().int().min(6).max(32).default(8),
+
+  // Financial Defaults
+  defaultBaseCurrency: z.string().default('INR'),
+  defaultBudgetPeriod: z.enum(['MONTHLY', 'WEEKLY', 'QUARTERLY', 'YEARLY']).default('MONTHLY'),
+  famExpenseThresholdPercent: z.number().min(10).max(200).default(80),
+  famInvestmentThresholdPercent: z.number().min(10).max(200).default(100),
+  famIncomeThresholdPercent: z.number().min(10).max(200).default(100),
 });
 export type AppSettings = z.infer<typeof AppSettingsSchema>;
 

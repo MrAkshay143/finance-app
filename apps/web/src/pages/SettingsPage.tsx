@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -23,6 +23,7 @@ import {
   Repeat,
   Check,
   Sparkles,
+  Smartphone,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -62,14 +63,51 @@ export const SettingsPage: React.FC = () => {
   const [expenseDonut, setExpenseDonut] = useState(true);
   const [investmentDonut, setInvestmentDonut] = useState(true);
 
-  // Query Settings
+  // Query Settings with standardized key
   const { data: settingsData } = useQuery<UserSettings>({
-    queryKey: ['user-settings'],
+    queryKey: ['userSettings'],
     queryFn: async () => {
       const res = await apiClient.settings.get();
       return (res as any)?.data || res;
     },
   });
+
+  // Query Active Sessions
+  const { data: sessionsData, refetch: refetchSessions } = useQuery({
+    queryKey: ['user-active-sessions'],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.auth.getSessions();
+        return (res as any)?.data?.sessions || (res as any)?.sessions || [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const revokeOthersMutation = useMutation({
+    mutationFn: async () => {
+      return await apiClient.auth.revokeOtherSessions();
+    },
+    onSuccess: (res: any) => {
+      refetchSessions();
+      toast.success(res?.message || 'Signed out of other sessions');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to sign out other sessions');
+    },
+  });
+
+  useEffect(() => {
+    if (settingsData) {
+      const donuts = (settingsData as any).dashboardDonutsConfig || (settingsData as any).dashboardDonuts;
+      if (donuts) {
+        setIncomeDonut(donuts.income ?? true);
+        setExpenseDonut(donuts.expense ?? true);
+        setInvestmentDonut(donuts.investment ?? true);
+      }
+    }
+  }, [settingsData]);
 
   // Settings default fallback
   const settings: UserSettings = {
@@ -93,7 +131,10 @@ export const SettingsPage: React.FC = () => {
       return (res as any)?.data || res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['fam'] });
       toast.success('Preferences updated successfully');
     },
     onError: (err: any) => {
@@ -103,23 +144,50 @@ export const SettingsPage: React.FC = () => {
 
   const handleToggle = (key: string, value: boolean) => {
     if (key === 'quickAdd') {
-      updateSettingsMutation.mutate({ quickAddEnabled: value });
+      updateSettingsMutation.mutate({ quickAddEnabled: value, quickAdd: value });
     } else if (key === 'incomeDonut') {
       setIncomeDonut(value);
+      const updated = { income: value, expense: expenseDonut, investment: investmentDonut };
       const anyDonut = value || expenseDonut || investmentDonut;
-      updateSettingsMutation.mutate({ donutVisualsEnabled: anyDonut });
+      updateSettingsMutation.mutate({
+        dashboardDonutsConfig: updated,
+        dashboardDonuts: updated,
+        donutVisualsEnabled: anyDonut,
+      });
     } else if (key === 'expenseDonut') {
       setExpenseDonut(value);
+      const updated = { income: incomeDonut, expense: value, investment: investmentDonut };
       const anyDonut = incomeDonut || value || investmentDonut;
-      updateSettingsMutation.mutate({ donutVisualsEnabled: anyDonut });
+      updateSettingsMutation.mutate({
+        dashboardDonutsConfig: updated,
+        dashboardDonuts: updated,
+        donutVisualsEnabled: anyDonut,
+      });
     } else if (key === 'investmentDonut') {
       setInvestmentDonut(value);
+      const updated = { income: incomeDonut, expense: expenseDonut, investment: value };
       const anyDonut = incomeDonut || expenseDonut || value;
-      updateSettingsMutation.mutate({ donutVisualsEnabled: anyDonut });
+      updateSettingsMutation.mutate({
+        dashboardDonutsConfig: updated,
+        dashboardDonuts: updated,
+        donutVisualsEnabled: anyDonut,
+      });
     } else if (key === 'investments') {
-      updateSettingsMutation.mutate({ investmentsTrackingEnabled: value });
+      updateSettingsMutation.mutate({
+        investmentsTrackingEnabled: value,
+        featuresConfig: {
+          investments: value,
+          recurring: settings.featuresConfig?.recurring ?? settings.features?.recurring ?? true,
+        },
+      });
     } else if (key === 'recurring') {
-      updateSettingsMutation.mutate({ recurringTrackingEnabled: value });
+      updateSettingsMutation.mutate({
+        recurringTrackingEnabled: value,
+        featuresConfig: {
+          investments: settings.featuresConfig?.investments ?? settings.features?.investments ?? true,
+          recurring: value,
+        },
+      });
     }
   };
 
@@ -587,6 +655,37 @@ export const SettingsPage: React.FC = () => {
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
+
+            {/* Active Sessions */}
+            <div className="p-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-textDefault">Active Sessions</div>
+                  <div className="text-[11px] text-textMuted">
+                    {sessionsData && sessionsData.length > 0
+                      ? `${sessionsData.length} active device session${sessionsData.length > 1 ? 's' : ''}`
+                      : 'Current browser session'}
+                  </div>
+                </div>
+              </div>
+              {sessionsData && sessionsData.length > 1 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  isLoading={revokeOthersMutation.isPending}
+                  onClick={() => revokeOthersMutation.mutate()}
+                >
+                  Sign Out Others
+                </Button>
+              ) : (
+                <span className="text-[10px] font-semibold text-emerald-700 px-2 py-0.5 bg-emerald-50 rounded-md border border-emerald-200">
+                  This device
+                </span>
+              )}
+            </div>
           </Card>
         </div>
 
@@ -774,15 +873,14 @@ export const SettingsPage: React.FC = () => {
           setIsPasswordModalOpen(false);
           setPasswordError(null);
         }}
+        compact
         title="Change Password"
-        subtitle="Update your account password"
-        icon={<Lock className="w-5 h-5 text-brand-primary" />}
+        icon={<Lock className="w-4 h-4 text-brand-primary" />}
         footer={
-          <div className="flex gap-2 w-full">
+          <>
             <Button
               variant="outline"
               size="sm"
-              fullWidth
               onClick={() => setIsPasswordModalOpen(false)}
             >
               Cancel
@@ -790,13 +888,12 @@ export const SettingsPage: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              fullWidth
               isLoading={changePasswordMutation.isPending}
               onClick={handleSavePassword}
             >
               Save Password
             </Button>
-          </div>
+          </>
         }
       >
         <form onSubmit={handleSavePassword} className="space-y-3">
@@ -837,15 +934,14 @@ export const SettingsPage: React.FC = () => {
           <Modal
             isOpen={isResetModalOpen}
             onClose={() => setIsResetModalOpen(false)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<RotateCcw className="w-5 h-5 text-amber-600" />}
+            icon={<RotateCcw className="w-4 h-4 text-amber-600" />}
             footer={
-              <div className="flex gap-2 w-full">
+              <>
                 <Button
                   variant="outline"
                   size="sm"
-                  fullWidth
                   onClick={() => setIsResetModalOpen(false)}
                 >
                   {dialogDef.cancelLabel}
@@ -853,16 +949,15 @@ export const SettingsPage: React.FC = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  fullWidth
                   isLoading={resetProfileMutation.isPending}
                   onClick={() => resetProfileMutation.mutate()}
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
-            <div className="space-y-3 text-xs text-textMuted leading-relaxed">
+            <div className="text-xs text-textMuted leading-relaxed">
               <p>{dialogDef.message}</p>
             </div>
           </Modal>
@@ -880,15 +975,14 @@ export const SettingsPage: React.FC = () => {
               setDeleteError(null);
               setDeletePassword('');
             }}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-rose-600" />}
+            icon={<Trash2 className="w-4 h-4 text-rose-600" />}
             footer={
-              <div className="flex gap-2 w-full">
+              <>
                 <Button
                   variant="outline"
                   size="sm"
-                  fullWidth
                   onClick={() => {
                     setIsDeleteModalOpen(false);
                     setDeleteError(null);
@@ -900,18 +994,17 @@ export const SettingsPage: React.FC = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  fullWidth
                   isLoading={deleteAccountMutation.isPending}
                   disabled={!deletePassword}
                   onClick={() => deleteAccountMutation.mutate(deletePassword)}
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
             <div className="space-y-3 text-xs text-textMuted leading-relaxed">
-              <p className="text-rose-700 font-medium">{dialogDef.message}</p>
+              <p className="text-textDefault font-medium">{dialogDef.message}</p>
 
               <div className="space-y-1 pt-1">
                 <label className="text-xs font-bold text-textDefault">

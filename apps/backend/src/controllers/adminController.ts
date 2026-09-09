@@ -215,6 +215,58 @@ export class AdminController {
       next(err);
     }
   }
+
+  async clearCache(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const result = await adminService.clearRedisCache(adminId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async runRecurring(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const result = await adminService.runRecurringMaterialization(adminId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async exportAuditLogsCsv(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const csvData = await adminService.exportAuditLogsCsv();
+      const filename = `institutional_audit_logs_${Date.now()}.csv`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.status(200).send(csvData);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async purgeAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const { retentionDays } = req.body || {};
+      const result = await adminService.purgeOldAuditLogs(adminId, Number(retentionDays) || 90, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const adminController = new AdminController();

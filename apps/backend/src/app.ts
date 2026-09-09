@@ -8,6 +8,8 @@ import { corsMiddleware } from './middleware/cors.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { optionalAuthenticate } from './middleware/authenticate.js';
+import { maintenanceMiddleware } from './middleware/maintenanceMiddleware.js';
 import { apiV1Router } from './routes/index.js';
 import { register } from './lib/metrics.js';
 import { prisma } from './lib/prisma.js';
@@ -79,8 +81,8 @@ export function createApp(): Express {
     }
   });
 
-  // Versioned API routes (/api/v1/...)
-  app.use('/api/v1', apiV1Router);
+  // Versioned API routes (/api/v1/...) with optional auth and maintenance mode
+  app.use('/api/v1', optionalAuthenticate, maintenanceMiddleware, apiV1Router);
 
   // Serve static SPA files if public/ directory exists
   const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');

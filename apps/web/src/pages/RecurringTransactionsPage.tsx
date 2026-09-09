@@ -738,15 +738,14 @@ export const RecurringTransactionsPage: React.FC = () => {
           <Modal
             isOpen={Boolean(deleteTarget)}
             onClose={() => setDeleteTarget(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            icon={<Trash2 className="w-4 h-4 text-semantic-danger" />}
             footer={
-              <div className="flex gap-2 w-full">
+              <>
                 <Button
                   variant="outline"
                   size="sm"
-                  fullWidth
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleteMutation.isPending}
                 >
@@ -755,7 +754,6 @@ export const RecurringTransactionsPage: React.FC = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  fullWidth
                   isLoading={deleteMutation.isPending}
                   onClick={() => {
                     if (deleteTarget) {
@@ -765,7 +763,7 @@ export const RecurringTransactionsPage: React.FC = () => {
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
             <p className="text-xs text-textMuted leading-relaxed">

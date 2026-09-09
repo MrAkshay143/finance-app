@@ -213,6 +213,16 @@ export class FinanceApiClient {
       this.request<{ success: boolean }>({ method: 'POST', url: '/security-questions', data: input }),
     changePassword: (input: { currentPassword: string; newPassword: string }) =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/change-password', data: input }),
+    getSessions: () =>
+      this.request<{ sessions: Array<{ id: string; userAgent: string | null; ipAddress: string | null; createdAt: string; isCurrent: boolean }> }>({
+        method: 'GET',
+        url: '/auth/sessions',
+      }),
+    revokeOtherSessions: () =>
+      this.request<{ success: boolean; revokedCount: number; message: string }>({
+        method: 'POST',
+        url: '/auth/sessions/revoke-others',
+      }),
   };
 
   // Profile endpoints
@@ -506,6 +516,24 @@ export class FinanceApiClient {
       this.request<UserSessionItem[]>({ method: 'GET', url: `/admin/users/${id}/sessions` }),
     revokeAllUserSessions: (id: string) =>
       this.request<{ revokedCount: number }>({ method: 'POST', url: `/admin/users/${id}/sessions/revoke-all` }),
+    clearCache: () =>
+      this.request<{ success: boolean; clearedKeys: number; message: string }>({
+        method: 'POST',
+        url: '/admin/maintenance/clear-cache',
+      }),
+    runRecurringTransactions: () =>
+      this.request<{ success: boolean; materializedCount: number; message: string }>({
+        method: 'POST',
+        url: '/admin/maintenance/run-recurring',
+      }),
+    exportAuditLogsCsv: () =>
+      this.client.get<Blob>('/admin/audit/export', { responseType: 'blob' }),
+    purgeAuditLogs: (retentionDays: number) =>
+      this.request<{ success: boolean; deletedCount: number; message: string }>({
+        method: 'POST',
+        url: '/admin/maintenance/purge-audit-logs',
+        data: { retentionDays },
+      }),
   };
 
   // Import & Export

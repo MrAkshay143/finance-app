@@ -1110,9 +1110,9 @@ export const PlanningPage: React.FC = () => {
           <Modal
             isOpen={Boolean(deleteConfirm)}
             onClose={() => setDeleteConfirm(null)}
+            compact
             title={dialogDef.title}
-            subtitle={dialogDef.subtitle}
-            icon={<Trash2 className="w-5 h-5 text-semantic-danger" />}
+            icon={<Trash2 className="w-4 h-4 text-semantic-danger" />}
             footer={
               <>
                 <Button

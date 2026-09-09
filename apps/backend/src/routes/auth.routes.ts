@@ -41,4 +41,12 @@ authRouter.get('/me', authenticate, (req, res, next) => {
   authController.me(req, res, next);
 });
 
+authRouter.get('/sessions', authenticate, (req, res, next) => {
+  authController.getSessions(req, res, next);
+});
+
+authRouter.post('/sessions/revoke-others', authenticate, (req, res, next) => {
+  authController.revokeOtherSessions(req, res, next);
+});
+
 export default authRouter;

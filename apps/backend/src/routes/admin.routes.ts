@@ -49,7 +49,14 @@ adminRouter.patch('/app-settings', (req, res, next) =>
   adminController.updateAppSettings(req, res, next)
 );
 
+// Maintenance & Cache Actions
+adminRouter.post('/maintenance/clear-cache', (req, res, next) => adminController.clearCache(req, res, next));
+adminRouter.post('/maintenance/run-recurring', (req, res, next) => adminController.runRecurring(req, res, next));
+
 // Audit logs (supports both /audit and /audit-logs)
+adminRouter.get('/audit/export', (req, res, next) => adminController.exportAuditLogsCsv(req, res, next));
+adminRouter.post('/audit/purge', (req, res, next) => adminController.purgeAuditLogs(req, res, next));
+adminRouter.post('/maintenance/purge-audit-logs', (req, res, next) => adminController.purgeAuditLogs(req, res, next));
 adminRouter.get('/audit', (req, res, next) => adminController.listSystemAuditLogs(req, res, next));
 adminRouter.get('/audit-logs', (req, res, next) => adminController.listSystemAuditLogs(req, res, next));
 

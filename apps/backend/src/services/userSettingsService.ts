@@ -28,6 +28,11 @@ export interface UserSettingsResponse {
     investments: boolean;
     recurring: boolean;
   };
+  donutVisualsEnabled?: boolean;
+  investmentsTrackingEnabled?: boolean;
+  recurringTrackingEnabled?: boolean;
+  reminderDaysBeforeDue?: number;
+  notificationsEnabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -108,6 +113,11 @@ function formatSettingsResponse(settings: any, userId: string): UserSettingsResp
       investments: rawFeatures.investments ?? true,
       recurring: rawFeatures.recurring ?? true,
     },
+    donutVisualsEnabled: Boolean(rawDonuts.income || rawDonuts.expense || rawDonuts.investment),
+    investmentsTrackingEnabled: rawFeatures.investments ?? true,
+    recurringTrackingEnabled: rawFeatures.recurring ?? true,
+    reminderDaysBeforeDue: 3,
+    notificationsEnabled: true,
     createdAt: settings?.createdAt ? new Date(settings.createdAt).toISOString() : undefined,
     updatedAt: settings?.updatedAt ? new Date(settings.updatedAt).toISOString() : undefined,
   };
@@ -176,6 +186,16 @@ export class UserSettingsService {
     const mergedDonuts = incomingDonuts
       ? { ...currentDonuts, ...incomingDonuts }
       : currentDonuts;
+
+    if (data.donutVisualsEnabled === false) {
+      mergedDonuts.income = false;
+      mergedDonuts.expense = false;
+      mergedDonuts.investment = false;
+    } else if (data.donutVisualsEnabled === true && !mergedDonuts.income && !mergedDonuts.expense && !mergedDonuts.investment) {
+      mergedDonuts.income = true;
+      mergedDonuts.expense = true;
+      mergedDonuts.investment = true;
+    }
 
     // Resolve features config
     const incomingFeatures = data.featuresConfig || data.features;

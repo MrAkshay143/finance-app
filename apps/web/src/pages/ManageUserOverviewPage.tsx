@@ -643,24 +643,23 @@ export const ManageUserOverviewPage: React.FC = () => {
           <Modal
             isOpen={isDeleteModalOpen}
             onClose={() => setIsDeleteModalOpen(false)}
+            compact
             title={dialogDef.title}
-            subtitle={`User ID: ${user.id}`}
-            icon={<Trash2 className="w-5 h-5 text-rose-600" />}
+            icon={<Trash2 className="w-4 h-4 text-rose-600" />}
             footer={
-              <div className="flex gap-2 w-full">
-                <Button variant="outline" size="sm" fullWidth onClick={() => setIsDeleteModalOpen(false)}>
+              <>
+                <Button variant="outline" size="sm" onClick={() => setIsDeleteModalOpen(false)}>
                   {dialogDef.cancelLabel}
                 </Button>
                 <Button
                   variant="danger"
                   size="sm"
-                  fullWidth
                   isLoading={deleteUserMutation.isPending}
                   onClick={() => deleteUserMutation.mutate()}
                 >
                   {dialogDef.confirmLabel}
                 </Button>
-              </div>
+              </>
             }
           >
             <div className="space-y-3 text-xs text-textMuted leading-relaxed">
