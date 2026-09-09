@@ -20,6 +20,8 @@ import { useSafeQueryClient } from '../../hooks/useSafeQueryClient.js';
 import { getCurrencySymbol } from '../../utils/currency.js';
 import type { TxnType } from '@finance/shared-types';
 import { validateAmount } from '../../utils/validation.js';
+import { toast } from '../../store/toastStore.js';
+import { MerchantAutoSuggest } from './MerchantAutoSuggest.js';
 
 // NO hardcoded category or account fallbacks: all values must come from the real API.
 
@@ -148,9 +150,12 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         handleClose();
+        toast.success('Transaction recorded successfully');
       },
       onError: (err: any) => {
-        setError(err?.message || 'Failed to save transaction.');
+        const msg = err?.response?.data?.message || err?.message || 'Failed to save transaction.';
+        setError(msg);
+        toast.error(msg);
       },
     },
     queryClient
@@ -172,9 +177,12 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         queryClient.invalidateQueries({ queryKey: ['transfers'] });
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         handleClose();
+        toast.success('Transfer recorded successfully');
       },
       onError: (err: any) => {
-        setError(err?.message || 'Failed to save transfer.');
+        const msg = err?.response?.data?.message || err?.message || 'Failed to save transfer.';
+        setError(msg);
+        toast.error(msg);
       },
     },
     queryClient
@@ -204,9 +212,12 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         queryClient.invalidateQueries({ queryKey: ['transfers'] });
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         handleClose();
+        toast.success('Transaction updated successfully');
       },
       onError: (err: any) => {
-        setError(err?.message || 'Failed to update transaction.');
+        const msg = err?.response?.data?.message || err?.message || 'Failed to update transaction.';
+        setError(msg);
+        toast.error(msg);
       },
     },
     queryClient
@@ -448,37 +459,34 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           </div>
         )}
 
-        {/* Category Selector */}
-        <div>
-          {!categoriesLoaded ? (
-            <div className="p-3 bg-slate-50 border border-borderDefault rounded-xl text-xs text-textMuted font-medium">
-              Loading categories…
-            </div>
-          ) : categoryOptions.length === 0 ? (
-            <div className="p-3 bg-slate-50 border border-borderDefault rounded-xl text-xs text-textMuted font-medium">
-              No categories available for this type.
-            </div>
-          ) : (
-            <Select
-              label={type === 'transfer' ? 'Transfer Purpose' : 'Category'}
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              options={categoryOptions}
-            />
-          )}
-        </div>
-
-
-        {/* Merchant / Payee (for non-transfers) */}
+        {/* Category Selector (hidden for transfers) */}
         {type !== 'transfer' && (
           <div>
-            <Input
-              label="Merchant / Counterparty"
-              type="text"
-              placeholder="e.g. Swiggy, Amazon, Employer Name, Brokerage"
+            {!categoriesLoaded ? (
+              <div className="p-3 bg-slate-50 border border-borderDefault rounded-xl text-xs text-textMuted font-medium">
+                Loading categories…
+              </div>
+            ) : categoryOptions.length === 0 ? (
+              <div className="p-3 bg-slate-50 border border-borderDefault rounded-xl text-xs text-textMuted font-medium">
+                No categories available for this type.
+              </div>
+            ) : (
+              <Select
+                label="Category"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                options={categoryOptions}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Merchant / Payee (for non-transfers) with dynamic auto-suggest */}
+        {type !== 'transfer' && (
+          <div>
+            <MerchantAutoSuggest
               value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
-              icon={<Building className="w-4 h-4" />}
+              onChange={(val) => setMerchant(val)}
             />
           </div>
         )}

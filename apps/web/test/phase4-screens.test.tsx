@@ -62,7 +62,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
       // Subheader
       expect(html).toContain('Reports');
       expect(html).toContain('FAM score &amp; projected vs actual');
-      expect(html).toContain('Export JSON');
+      expect(html).toContain('Export');
       expect(html).toContain('aria-label="Go back"');
     });
 

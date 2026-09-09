@@ -165,6 +165,9 @@ export const DashboardPage: React.FC = () => {
   const activeBreakdown = breakdownView === 'EXPENSE' ? expenseBreakdown : incomeBreakdown;
   const totalBreakdownAmount = activeBreakdown.reduce((sum, item) => sum + item.amount, 0);
 
+  // Interactive state for Section 4 Donut Chart (exact styling, gap, mouseover & touch details)
+  const [hoveredSliceIndex, setHoveredSliceIndex] = React.useState<number | null>(null);
+
   return (
     <div className="flex-1 flex flex-col bg-slate-50/50">
       {/* 1. Centralized Branded Dark Navy Header (Preserved exactly as requested) */}
@@ -626,8 +629,25 @@ export const DashboardPage: React.FC = () => {
                   onAction={openPicker}
                 />
               ) : (
-                <div className="flex items-center justify-between gap-4 pt-1">
-                  {/* Left: SVG Multi-segment Donut */}
+                <div className="relative flex items-center justify-between gap-4 pt-1">
+                  {/* Floating Compact Detail Badge on Mouseover or Touch */}
+                  {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 text-white shadow-xl backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 whitespace-nowrap animate-in fade-in zoom-in-95 pointer-events-none border border-white/10">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: CATEGORY_COLORS[hoveredSliceIndex % CATEGORY_COLORS.length],
+                        }}
+                      />
+                      <span>{activeBreakdown[hoveredSliceIndex].categoryName}:</span>
+                      <span className="font-bold text-emerald-300">
+                        {formatCurrency(activeBreakdown[hoveredSliceIndex].amount, userCurrency)}
+                      </span>
+                      <span className="text-slate-300">({activeBreakdown[hoveredSliceIndex].percentage}%)</span>
+                    </div>
+                  )}
+
+                  {/* Left: SVG Multi-segment Donut with 1.5px gaps and interactive highlights */}
                   <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                       <circle
@@ -643,9 +663,14 @@ export const DashboardPage: React.FC = () => {
                         let accumulatedPercent = 0;
                         return activeBreakdown.map((item, index) => {
                           const strokeColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-                          const dashLength = (item.percentage / 100) * circumference;
+                          const rawDashLength = (item.percentage / 100) * circumference;
+                          // 1.5px gap between segments to match exact reference geometry
+                          const gap = activeBreakdown.length > 1 ? 1.5 : 0;
+                          const dashLength = Math.max(0.5, rawDashLength - gap);
                           const offset = (accumulatedPercent / 100) * circumference;
                           accumulatedPercent += item.percentage;
+                          const isHovered = hoveredSliceIndex === index;
+
                           return (
                             <circle
                               key={item.categoryId || `cat-${index}`}
@@ -654,40 +679,79 @@ export const DashboardPage: React.FC = () => {
                               r="38"
                               fill="none"
                               stroke={strokeColor}
-                              strokeWidth="11"
-                              strokeDasharray={`${dashLength} ${circumference}`}
+                              strokeWidth={isHovered ? 13 : 11}
+                              strokeDasharray={`${dashLength} ${circumference - dashLength}`}
                               strokeDashoffset={-offset}
-                              strokeLinecap="round"
+                              strokeLinecap="butt"
+                              className="cursor-pointer transition-all duration-200"
+                              style={{
+                                opacity: hoveredSliceIndex === null || isHovered ? 1 : 0.4,
+                              }}
+                              onMouseEnter={() => setHoveredSliceIndex(index)}
+                              onMouseLeave={() => setHoveredSliceIndex(null)}
+                              onTouchStart={() => {
+                                setHoveredSliceIndex(hoveredSliceIndex === index ? null : index);
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`${item.categoryName}: ${item.percentage}%`}
                             />
                           );
                         });
                       })()}
                     </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-                      <span className="text-base font-black text-slate-900 leading-none">
-                        {activeBreakdown.length}
-                      </span>
-                      <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
-                        Categories
-                      </span>
+
+                    {/* Center Readout: Default count or selected slice details */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-1">
+                      {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] ? (
+                        <>
+                          <span className="text-sm font-black text-slate-900 leading-none">
+                            {activeBreakdown[hoveredSliceIndex].percentage}%
+                          </span>
+                          <span className="text-[9px] font-bold text-slate-500 truncate max-w-[65px] mt-0.5">
+                            {activeBreakdown[hoveredSliceIndex].categoryName}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-base font-black text-slate-900 leading-none">
+                            {activeBreakdown.length}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                            Categories
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  {/* Right: Category Legend List */}
+                  {/* Right: Category Legend List with two-way hover sync */}
                   <div className="flex-1 space-y-1.5 min-w-0 max-h-52 overflow-y-auto pr-1">
                     {activeBreakdown.map((item, index) => {
                       const bulletColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+                      const isHovered = hoveredSliceIndex === index;
+
                       return (
                         <div
                           key={item.categoryId || `legend-${index}`}
-                          className="flex items-center justify-between text-xs"
+                          onMouseEnter={() => setHoveredSliceIndex(index)}
+                          onMouseLeave={() => setHoveredSliceIndex(null)}
+                          onClick={() => setHoveredSliceIndex(hoveredSliceIndex === index ? null : index)}
+                          role="button"
+                          tabIndex={0}
+                          className={`flex items-center justify-between text-xs p-1 rounded-xl cursor-pointer transition-all ${
+                            isHovered ? 'bg-blue-50/80 shadow-xs' : 'hover:bg-slate-50'
+                          }`}
                         >
                           <div className="flex items-center gap-2 min-w-0 pr-1">
                             <span
-                              className="w-2 h-2 rounded-full shrink-0"
-                              style={{ backgroundColor: bulletColor }}
+                              className="w-2 h-2 rounded-full shrink-0 transition-transform"
+                              style={{
+                                backgroundColor: bulletColor,
+                                transform: isHovered ? 'scale(1.3)' : 'scale(1)',
+                              }}
                             />
-                            <span className="font-semibold text-slate-700 truncate max-w-[100px]">
+                            <span className={`font-semibold truncate max-w-[100px] ${isHovered ? 'text-blue-700' : 'text-slate-700'}`}>
                               {item.categoryName}
                             </span>
                           </div>

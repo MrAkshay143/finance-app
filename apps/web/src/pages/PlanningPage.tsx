@@ -30,6 +30,7 @@ import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
 import { formatDate } from '../utils/date.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Category } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export interface Budget {
   id: string;
@@ -149,9 +150,12 @@ export const PlanningPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setIsAddBudgetOpen(false);
       resetBudgetForm();
+      toast.success('Budget created successfully');
     },
     onError: (err: any) => {
-      setBudgetError(err.response?.data?.error?.message || err.message || 'Failed to create budget');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to create budget';
+      setBudgetError(msg);
+      toast.error(msg);
     },
   });
 
@@ -165,9 +169,12 @@ export const PlanningPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setIsEditBudgetOpen(false);
       resetBudgetForm();
+      toast.success('Budget updated successfully');
     },
     onError: (err: any) => {
-      setBudgetError(err.response?.data?.error?.message || err.message || 'Failed to update budget');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to update budget';
+      setBudgetError(msg);
+      toast.error(msg);
     },
   });
 
@@ -180,6 +187,10 @@ export const PlanningPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setDeleteConfirm(null);
+      toast.success('Budget deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete budget');
     },
   });
 
@@ -193,9 +204,12 @@ export const PlanningPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsAddGoalOpen(false);
       resetGoalForm();
+      toast.success('Goal created successfully');
     },
     onError: (err: any) => {
-      setGoalError(err.response?.data?.error?.message || err.message || 'Failed to create goal');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to create goal';
+      setGoalError(msg);
+      toast.error(msg);
     },
   });
 
@@ -208,9 +222,12 @@ export const PlanningPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setIsEditGoalOpen(false);
       resetGoalForm();
+      toast.success('Goal updated successfully');
     },
     onError: (err: any) => {
-      setGoalError(err.response?.data?.error?.message || err.message || 'Failed to update goal');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to update goal';
+      setGoalError(msg);
+      toast.error(msg);
     },
   });
 
@@ -222,6 +239,10 @@ export const PlanningPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       setDeleteConfirm(null);
+      toast.success('Goal deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete goal');
     },
   });
 
@@ -444,15 +465,6 @@ export const PlanningPage: React.FC = () => {
                   {budgets.length}
                 </Badge>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openAddBudgetModal}
-                icon={<Plus className="w-3.5 h-3.5" />}
-                className="!py-1 !px-2.5 !text-xs"
-              >
-                Add Budget
-              </Button>
             </div>
 
             {isBudgetsLoading ? (
@@ -638,15 +650,6 @@ export const PlanningPage: React.FC = () => {
                   {goals.length}
                 </Badge>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openAddGoalModal}
-                icon={<Plus className="w-3.5 h-3.5" />}
-                className="!py-1 !px-2.5 !text-xs"
-              >
-                Add Goal
-              </Button>
             </div>
 
             {isGoalsLoading ? (

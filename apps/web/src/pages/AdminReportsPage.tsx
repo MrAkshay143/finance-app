@@ -133,10 +133,10 @@ export const AdminReportsPage: React.FC = () => {
               onClick={() => navigate('/dashboard')}
               aria-label="Exit to personal mode"
               title="Exit to personal mode"
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-brand-primary bg-slate-100 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-brand-primary bg-slate-100 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200 whitespace-nowrap shrink-0"
             >
-              <ArrowLeftFromLine className="w-3.5 h-3.5" />
-              <span>Exit Admin</span>
+              <ArrowLeftFromLine className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">Exit Admin</span>
             </button>
             <button
               type="button"

@@ -20,6 +20,7 @@ import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export const AdminAppSettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,7 +28,6 @@ export const AdminAppSettingsPage: React.FC = () => {
 
   const [sessionTimeout, setSessionTimeout] = useState<number>(120);
   const [maxFailedAttempts, setMaxFailedAttempts] = useState<number>(5);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Fetch app settings
   const { data: settingsData, isLoading, isError } = useQuery<AppSettings>({
@@ -43,9 +43,8 @@ export const AdminAppSettingsPage: React.FC = () => {
       if (settingsData.sessionTimeoutMinutes) {
         setSessionTimeout(settingsData.sessionTimeoutMinutes);
       }
-      const attempts = settingsData.maxFailedAttempts ?? settingsData.maxFailedLoginAttempts;
-      if (attempts) {
-        setMaxFailedAttempts(attempts);
+      if (settingsData.maxFailedLoginAttempts || settingsData.maxFailedAttempts) {
+        setMaxFailedAttempts(settingsData.maxFailedLoginAttempts || settingsData.maxFailedAttempts || 5);
       }
     }
   }, [settingsData]);
@@ -57,11 +56,13 @@ export const AdminAppSettingsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-app-settings'] });
-      setSaveSuccess(true);
+      toast.success('Settings updated successfully');
       setTimeout(() => {
-        setSaveSuccess(false);
         navigate('/admin');
-      }, 1500);
+      }, 500);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to update settings');
     },
   });
 
@@ -95,10 +96,10 @@ export const AdminAppSettingsPage: React.FC = () => {
               onClick={() => navigate('/dashboard')}
               aria-label="Exit to personal mode"
               title="Exit to personal mode"
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20 whitespace-nowrap shrink-0"
             >
-              <ArrowLeftFromLine className="w-3.5 h-3.5" />
-              <span>Exit Admin</span>
+              <ArrowLeftFromLine className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">Exit Admin</span>
             </button>
             <button
               type="button"
@@ -252,14 +253,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                 <Info className="w-4 h-4 shrink-0" />
                 <span className="font-medium">These settings apply to all users in the system.</span>
               </div>
-
-              {/* Success Notification */}
-              {saveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs font-semibold text-emerald-700">
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Settings updated successfully</span>
-                </div>
-              )}
 
               {/* Footer Actions */}
               <div className="grid grid-cols-2 gap-3 pt-2">

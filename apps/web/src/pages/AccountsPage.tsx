@@ -31,6 +31,7 @@ import { apiClient } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Account, CreateAccountInput, UpdateAccountInput } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 const ACCOUNT_TYPE_OPTIONS = [
   { value: 'BANK', label: 'Savings & Checking' },
@@ -139,9 +140,12 @@ export const AccountsPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         setIsAddModalOpen(false);
         resetAddForm();
+        toast.success('Account created successfully');
       },
       onError: (err: any) => {
-        setAddError(err?.message || 'Failed to create account. Please try again.');
+        const msg = err?.message || 'Failed to create account. Please try again.';
+        setAddError(msg);
+        toast.error(msg);
       },
     },
     queryClient
@@ -156,9 +160,12 @@ export const AccountsPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         setEditingAccount(null);
         resetEditForm();
+        toast.success('Account updated successfully');
       },
       onError: (err: any) => {
-        setEditError(err?.message || 'Failed to update account. Please try again.');
+        const msg = err?.message || 'Failed to update account. Please try again.';
+        setEditError(msg);
+        toast.error(msg);
       },
     },
     queryClient
@@ -173,6 +180,10 @@ export const AccountsPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         setStatusConfirmAccount(null);
         setEditingAccount(null);
+        toast.success('Account status updated');
+      },
+      onError: (err: any) => {
+        toast.error(err?.message || 'Failed to update account status');
       },
     },
     queryClient

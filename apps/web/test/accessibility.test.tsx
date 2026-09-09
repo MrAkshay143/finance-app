@@ -396,7 +396,7 @@ describe('TASK-6.1: Web Accessibility & Polish Pass Test Suite', () => {
       );
 
       expect(reportsHtml).toContain('aria-label="Go back"');
-      expect(reportsHtml).toContain('aria-label="Export report as JSON"');
+      expect(reportsHtml).toContain('aria-label="Export report"');
       expect(reportsHtml).toContain('role="tablist"');
       expect(reportsHtml).toContain('role="tab"');
       expect(reportsHtml).toContain('focus-visible:ring-brand-primary');

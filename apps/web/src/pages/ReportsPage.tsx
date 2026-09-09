@@ -17,6 +17,8 @@ import {
   Wallet,
   CreditCard,
   Check,
+  FileSpreadsheet,
+  FileCode,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -24,6 +26,8 @@ import { Button } from '../components/ui/Button.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Select } from '../components/ui/Select.js';
 import { Input } from '../components/ui/Input.js';
+import { Modal } from '../components/ui/Modal.js';
+import { toast } from '../store/toastStore.js';
 import { formatCurrency, formatCompactCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { apiClient } from '../services/apiClient.js';
@@ -37,10 +41,14 @@ export const ReportsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useSafeQueryClient();
   const { currency: userCurrency } = useUserCurrency();
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  });
+
+  const currentYear = new Date().getFullYear();
+  const currentMonthNum = String(new Date().getMonth() + 1).padStart(2, '0');
+
+  const [monthlyYear, setMonthlyYear] = useState<string>(String(currentYear));
+  const [monthlyMonth, setMonthlyMonth] = useState<string>(currentMonthNum);
+  const selectedMonth = `${monthlyYear}-${monthlyMonth}`;
+
   const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
   const [customStartDate, setCustomStartDate] = useState<string>(() => {
     const d = new Date();
@@ -52,22 +60,26 @@ export const ReportsPage: React.FC = () => {
   });
   const [activeTab, setActiveTab] = useState<'monthly' | 'year' | 'custom'>('monthly');
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [exportSuccess, setExportSuccess] = useState<boolean>(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
-  // Generate last 6 months for selector
-  const monthOptions = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date();
-    d.setDate(1);
-    d.setMonth(d.getMonth() - i);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    return { value: val, label: i === 0 ? `${label} (current)` : label };
+  const availableYears = Array.from({ length: 6 }, (_, i) => {
+    const y = currentYear - i;
+    return { value: String(y), label: String(y) };
   });
 
-  const yearOptions = [
-    { value: new Date().getFullYear().toString(), label: `${new Date().getFullYear()}` },
-    { value: (new Date().getFullYear() - 1).toString(), label: `${new Date().getFullYear() - 1}` },
-    { value: (new Date().getFullYear() - 2).toString(), label: `${new Date().getFullYear() - 2}` },
+  const MONTHS_LIST = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
   ];
 
   // 1. Monthly Report Query
@@ -165,42 +177,73 @@ export const ReportsPage: React.FC = () => {
 
   const maxChartVal = Math.max(earnedActual, earnedProjected, expenseActual, expenseProjected, investmentActual, investmentProjected, 100);
 
-  const handleExport = async () => {
+  const handleExportFormat = async (format: 'csv' | 'json') => {
     try {
       setIsExporting(true);
-      // Export data for the currently active report tab
       let res: any;
       if (activeTab === 'year') {
         res = await apiClient.reports.getAnnual(selectedYear);
       } else if (activeTab === 'custom') {
         res = await apiClient.reports.getCustom(customStartDate, customEndDate);
       } else {
-        res = await apiClient.reports.export({
-          month: selectedMonth,
-          format: 'json',
-        });
+        res = await apiClient.reports.getMonthly(selectedMonth);
       }
 
-      const blob = new Blob([JSON.stringify(res?.data ?? res, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      const rawData = (res as any)?.data ?? res;
       const fileLabel = activeTab === 'year' ? selectedYear.toString() : activeTab === 'custom' ? `${customStartDate}_${customEndDate}` : selectedMonth;
-      a.download = `finance-report-${fileLabel}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 3000);
+      if (format === 'json') {
+        const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance-report-${fileLabel}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Report exported as JSON');
+      } else {
+        // Excel-compatible CSV export
+        let csv = 'Report,Financial Statement\r\n';
+        csv += `Period,${fileLabel}\r\n`;
+        csv += `Export Date,${new Date().toISOString()}\r\n\r\n`;
+        csv += 'Section,Metric,Value\r\n';
+        if (rawData?.totals) {
+          const inc = (rawData.totals.earnedPaise ?? 0) / 100 || rawData.totals.totalIncome || 0;
+          const exp = (rawData.totals.spentPaise ?? 0) / 100 || rawData.totals.totalExpense || 0;
+          const inv = (rawData.totals.investedPaise ?? 0) / 100 || rawData.totals.totalInvested || 0;
+          const sav = (rawData.totals.netSavingsPaise ?? 0) / 100 || rawData.totals.netSavings || 0;
+          csv += `Totals,Total Income,${inc}\r\n`;
+          csv += `Totals,Total Expense,${exp}\r\n`;
+          csv += `Totals,Total Invested,${inv}\r\n`;
+          csv += `Totals,Net Savings,${sav}\r\n`;
+        }
+        if (rawData?.categoryBreakdown && Array.isArray(rawData.categoryBreakdown)) {
+          csv += '\r\nCategory Breakdown,Category,Spent,Percentage\r\n';
+          rawData.categoryBreakdown.forEach((c: any) => {
+            csv += `Category,${c.categoryName || c.name || 'Category'},${c.amount ?? 0},${c.percentage ?? c.percent ?? 0}%\r\n`;
+          });
+        }
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance-report-${fileLabel}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Report exported to Excel (CSV)');
+      }
+
+      setIsExportModalOpen(false);
     } catch {
-      window.print();
+      toast.error('Failed to export report');
     } finally {
       setIsExporting(false);
     }
   };
-
 
   return (
     <div className="flex-1 flex flex-col pb-20">
@@ -219,7 +262,7 @@ export const ReportsPage: React.FC = () => {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Go back"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-textDefault hover:bg-gray-100 active:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-textDefault hover:bg-gray-100 active:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-colors shrink-0"
             >
               <ChevronLeft className="w-5 h-5 text-slate-800 stroke-[2.5]" aria-hidden="true" />
             </button>
@@ -236,18 +279,13 @@ export const ReportsPage: React.FC = () => {
           {/* Export Report Button */}
           <button
             type="button"
-            onClick={handleExport}
+            onClick={() => setIsExportModalOpen(true)}
             disabled={isExporting}
-            aria-label="Export report as JSON"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-brand-primary/60 text-slate-700 text-xs font-semibold shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-all"
+            aria-label="Export report"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-brand-primary/60 text-slate-700 text-xs font-semibold shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-all whitespace-nowrap shrink-0"
           >
-            {exportSuccess ? (
-              <Check className="w-4 h-4 text-semantic-success stroke-[2.5]" aria-hidden="true" />
-            ) : (
-              <Download className="w-4 h-4 text-brand-primary" aria-hidden="true" />
-            )}
-            <span>Export JSON</span>
-            <ChevronDown className="w-3.5 h-3.5 text-textMuted" aria-hidden="true" />
+            <Download className="w-3.5 h-3.5 text-brand-primary shrink-0" aria-hidden="true" />
+            <span className="whitespace-nowrap">Export</span>
           </button>
 
         </div>
@@ -300,24 +338,26 @@ export const ReportsPage: React.FC = () => {
         {/* ============================================================ */}
         {activeTab === 'monthly' && (
           <div className="space-y-4">
-            {/* Report Month Picker/Selector */}
+            {/* Report Month Picker/Selector: Dynamic Year & Month */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 pl-1">
-                Report month
+                Report period
               </label>
-              <Card padding="sm" className="flex items-center justify-between gap-3 bg-white border-slate-200">
-                <div className="flex items-center gap-2 pl-2 text-slate-700">
-                  <Calendar className="w-4 h-4 text-slate-500" />
-                </div>
-                <div className="flex-1">
-                  <Select
-                    options={monthOptions}
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="py-1.5 text-xs font-medium border-0 focus:ring-0 text-slate-800 bg-transparent"
-                  />
-                </div>
-              </Card>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Select
+                  options={availableYears}
+                  value={monthlyYear}
+                  onChange={(e) => setMonthlyYear(e.target.value)}
+                  size="sm"
+                  leftIcon={<Calendar className="w-3.5 h-3.5" />}
+                />
+                <Select
+                  options={MONTHS_LIST}
+                  value={monthlyMonth}
+                  onChange={(e) => setMonthlyMonth(e.target.value)}
+                  size="sm"
+                />
+              </div>
             </div>
 
             {/* 3 Summary Cards Side-by-Side */}
@@ -720,19 +760,15 @@ export const ReportsPage: React.FC = () => {
               <label className="text-xs font-semibold text-slate-600 pl-1">
                 Select Year
               </label>
-              <Card padding="sm" className="flex items-center justify-between gap-3 bg-white border-slate-200">
-                <div className="flex items-center gap-2 pl-2 text-slate-700">
-                  <Calendar className="w-4 h-4 text-slate-500" />
-                </div>
-                <div className="flex-1">
-                  <Select
-                    options={yearOptions}
-                    value={selectedYear.toString()}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-                    className="py-1.5 text-xs font-medium border-0 focus:ring-0 text-slate-800 bg-transparent"
-                  />
-                </div>
-              </Card>
+              <div className="max-w-xs">
+                <Select
+                  options={availableYears}
+                  value={selectedYear.toString()}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                  size="sm"
+                  leftIcon={<Calendar className="w-3.5 h-3.5" />}
+                />
+              </div>
             </div>
 
             {/* 3 Annual Metrics Cards */}
@@ -940,6 +976,63 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Export Options Modal */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Financial Report"
+        subtitle="Select file format to download"
+        icon={<Download className="w-5 h-5 text-brand-primary" />}
+      >
+        <div className="space-y-3 pt-1">
+          <div
+            onClick={() => handleExportFormat('csv')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleExportFormat('csv')}
+            className="p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-borderDefault hover:border-emerald-300 rounded-2xl cursor-pointer transition-all flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 group-hover:scale-105 transition-transform shrink-0">
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-textDefault group-hover:text-emerald-900">
+                  Excel Spreadsheet (.csv)
+                </div>
+                <div className="text-[11px] text-textMuted">
+                  Compatible with Microsoft Excel, Numbers &amp; Google Sheets
+                </div>
+              </div>
+            </div>
+            <ChevronDown className="w-4 h-4 text-textMuted -rotate-90 group-hover:text-emerald-700" />
+          </div>
+
+          <div
+            onClick={() => handleExportFormat('json')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleExportFormat('json')}
+            className="p-3.5 bg-slate-50 hover:bg-blue-50/50 border border-borderDefault hover:border-blue-300 rounded-2xl cursor-pointer transition-all flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-brand-primary group-hover:scale-105 transition-transform shrink-0">
+                <FileCode className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-textDefault group-hover:text-brand-primary">
+                  JSON Data (.json)
+                </div>
+                <div className="text-[11px] text-textMuted">
+                  Raw structured financial records &amp; category breakdown
+                </div>
+              </div>
+            </div>
+            <ChevronDown className="w-4 h-4 text-textMuted -rotate-90 group-hover:text-brand-primary" />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

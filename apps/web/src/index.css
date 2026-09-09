@@ -33,3 +33,10 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+@layer components {
+  .dropdown-select-compact {
+    @apply appearance-none bg-white border border-borderDefault rounded-xl px-3 py-1.5 pr-8 text-xs font-medium text-textDefault shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary disabled:bg-gray-50 disabled:text-textMuted;
+  }
+}
+

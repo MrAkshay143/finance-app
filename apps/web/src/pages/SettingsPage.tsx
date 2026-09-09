@@ -34,6 +34,7 @@ import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { UserSettings, UpdateUserSettingsInput } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,7 +50,6 @@ export const SettingsPage: React.FC = () => {
   // Form states for modals
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -94,14 +94,12 @@ export const SettingsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-settings'] });
-      showSuccessToast('Preferences updated successfully');
+      toast.success('Preferences updated successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to update preferences');
     },
   });
-
-  const showSuccessToast = (msg: string) => {
-    setActionSuccess(msg);
-    setTimeout(() => setActionSuccess(null), 3000);
-  };
 
   const handleToggle = (key: string, value: boolean) => {
     if (key === 'quickAdd') {
@@ -133,7 +131,10 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => {
       setIsResetModalOpen(false);
       queryClient.invalidateQueries();
-      showSuccessToast('Profile and transactions reset cleanly');
+      toast.success('Profile and transactions reset cleanly');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to reset profile');
     },
   });
 
@@ -148,7 +149,9 @@ export const SettingsPage: React.FC = () => {
       navigate('/login');
     },
     onError: (err: any) => {
-      setDeleteError(err?.response?.data?.message || err?.message || 'Incorrect password');
+      const msg = err?.response?.data?.message || err?.message || 'Incorrect password';
+      setDeleteError(msg);
+      toast.error(msg);
     },
   });
 
@@ -167,10 +170,12 @@ export const SettingsPage: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
       setIsPasswordModalOpen(false);
-      showSuccessToast('Password updated successfully');
+      toast.success('Password updated successfully');
     },
     onError: (err: any) => {
-      setPasswordError(err?.response?.data?.message || err?.message || 'Failed to update password');
+      const msg = err?.response?.data?.message || err?.message || 'Failed to update password';
+      setPasswordError(msg);
+      toast.error(msg);
     },
   });
 
@@ -218,14 +223,6 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Success Banner */}
-        {actionSuccess && (
-          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>{actionSuccess}</span>
-          </div>
-        )}
 
         {/* 1. Preferences Section */}
         <div className="space-y-1.5">

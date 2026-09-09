@@ -32,6 +32,7 @@ import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export const ProfileSettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,15 +63,11 @@ export const ProfileSettingsPage: React.FC = () => {
   const [investmentHorizon, setInvestmentHorizon] = useState<InvestmentHorizon>('MEDIUM');
 
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Sync tab change
   const handleTabChange = (tab: 'basic' | 'finance') => {
     setActiveTab(tab);
     setSearchParams({ tab });
-    setSuccessMessage(null);
-    setErrorMessage(null);
   };
 
   // Fetch initial profile data
@@ -117,14 +114,12 @@ export const ProfileSettingsPage: React.FC = () => {
   const handleSaveBasic = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setSuccessMessage(null);
-    setErrorMessage(null);
 
     if (mobileNumber.trim()) {
       const phoneVal = validateAndNormalizePhone(mobileNumber.trim());
       if (!phoneVal.isValid) {
         setIsLoading(false);
-        setErrorMessage(phoneVal.error || 'Please enter a valid mobile number.');
+        toast.error(phoneVal.error || 'Please enter a valid mobile number.');
         return;
       }
     }
@@ -147,10 +142,9 @@ export const ProfileSettingsPage: React.FC = () => {
         mobileNumber: mobileNumber.trim() || null,
       });
 
-      setSuccessMessage('Basic profile updated successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      toast.success('Basic profile updated successfully');
     } catch (err: any) {
-      setErrorMessage(
+      toast.error(
         err?.response?.data?.error?.message ||
           err?.message ||
           'Failed to update profile. Please try again.'
@@ -164,8 +158,6 @@ export const ProfileSettingsPage: React.FC = () => {
   const handleSaveFinance = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setSuccessMessage(null);
-    setErrorMessage(null);
 
     try {
       const inc = Number(monthlyIncome);
@@ -185,10 +177,9 @@ export const ProfileSettingsPage: React.FC = () => {
         investmentHorizon,
       });
 
-      setSuccessMessage('Finance profile targets updated successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      toast.success('Finance profile targets updated successfully');
     } catch (err: any) {
-      setErrorMessage(
+      toast.error(
         err?.response?.data?.error?.message ||
           err?.message ||
           'Failed to save financial profile. Please try again.'
@@ -237,8 +228,8 @@ export const ProfileSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Segmented Control */}
-        <div className="flex p-1 bg-slate-200/80 rounded-2xl">
+        {/* Tab Toggle Navigation */}
+        <div className="flex bg-slate-200/80 p-1 rounded-2xl">
           <button
             type="button"
             onClick={() => handleTabChange('basic')}
@@ -262,28 +253,6 @@ export const ProfileSettingsPage: React.FC = () => {
             Finance Targets
           </button>
         </div>
-
-        {/* Success Alert */}
-        {successMessage && (
-          <div
-            role="status"
-            className="p-3.5 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-2 text-semantic-success text-xs font-semibold"
-          >
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* Error Alert */}
-        {errorMessage && (
-          <div
-            role="alert"
-            className="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2 text-semantic-danger text-xs font-semibold"
-          >
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
 
         {/* BASIC PROFILE TAB */}
         {activeTab === 'basic' && (

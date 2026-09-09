@@ -32,6 +32,7 @@ import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Category, Merchant, TxnType } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export const CategoriesPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -100,9 +101,12 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setIsAddCategoryOpen(false);
       resetCategoryForm();
+      toast.success('Category created successfully');
     },
     onError: (err: any) => {
-      setCategoryError(err.response?.data?.error?.message || err.message || 'Failed to create category');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to create category';
+      setCategoryError(msg);
+      toast.error(msg);
     },
   });
 
@@ -114,9 +118,12 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setIsEditCategoryOpen(false);
       resetCategoryForm();
+      toast.success('Category updated successfully');
     },
     onError: (err: any) => {
-      setCategoryError(err.response?.data?.error?.message || err.message || 'Failed to update category');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to update category';
+      setCategoryError(msg);
+      toast.error(msg);
     },
   });
 
@@ -127,6 +134,10 @@ export const CategoriesPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setDeleteConfirm(null);
+      toast.success('Category deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete category');
     },
   });
 
@@ -136,6 +147,10 @@ export const CategoriesPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Categories reordered');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || err.message || 'Failed to reorder categories');
     },
   });
 
@@ -148,9 +163,12 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['merchants'] });
       setIsAddMerchantOpen(false);
       resetMerchantForm();
+      toast.success('Merchant created successfully');
     },
     onError: (err: any) => {
-      setMerchantError(err.response?.data?.error?.message || err.message || 'Failed to create merchant');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to create merchant';
+      setMerchantError(msg);
+      toast.error(msg);
     },
   });
 
@@ -162,9 +180,12 @@ export const CategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['merchants'] });
       setIsEditMerchantOpen(false);
       resetMerchantForm();
+      toast.success('Merchant updated successfully');
     },
     onError: (err: any) => {
-      setMerchantError(err.response?.data?.error?.message || err.message || 'Failed to update merchant');
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to update merchant';
+      setMerchantError(msg);
+      toast.error(msg);
     },
   });
 

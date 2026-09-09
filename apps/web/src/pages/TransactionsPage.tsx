@@ -30,6 +30,7 @@ import { apiClient } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Transaction, TxnType } from '@finance/shared-types';
+import { toast } from '../store/toastStore.js';
 
 export interface DisplayItem {
   id: string;
@@ -54,11 +55,20 @@ export const TransactionsPage: React.FC = () => {
   const accountIdParam = searchParams.get('accountId') || '';
 
   const openPicker = useUiStore((state) => state.openPicker);
+  const openAddModal = useUiStore((state) => state.openAddModal);
   const openEditModal = useUiStore((state) => state.openEditModal);
 
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+
+  const TAB_EMPTY_CONFIG: Record<string, { label: string; actionType: TransactionType }> = {
+    all: { label: 'Add Transaction', actionType: 'expense' },
+    expense: { label: 'Add Expense', actionType: 'expense' },
+    income: { label: 'Add Income', actionType: 'income' },
+    investment: { label: 'Add Investment', actionType: 'investment' },
+    transfer: { label: 'Add Transfer', actionType: 'transfer' },
+  };
 
   // Delete confirmation modal state
   const [deletingItem, setDeletingItem] = useState<DisplayItem | null>(null);
@@ -146,6 +156,10 @@ export const TransactionsPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         setDeletingItem(null);
+        toast.success('Transaction deleted successfully');
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || err?.message || 'Failed to delete transaction');
       },
     },
     queryClient
@@ -161,6 +175,10 @@ export const TransactionsPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['transfers'] });
         queryClient.invalidateQueries({ queryKey: ['accounts'] });
         setDeletingItem(null);
+        toast.success('Transfer deleted successfully');
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || err?.message || 'Failed to delete transfer');
       },
     },
     queryClient
@@ -423,8 +441,8 @@ export const TransactionsPage: React.FC = () => {
                   ? `No transactions match "${searchQuery}". Try another search.`
                   : 'No transactions recorded yet. Tap below to add one.'
               }
-              actionLabel="Add Transaction"
-              onAction={openPicker}
+              actionLabel={TAB_EMPTY_CONFIG[activeFilter]?.label || 'Add Transaction'}
+              onAction={() => openAddModal(TAB_EMPTY_CONFIG[activeFilter]?.actionType || 'expense')}
             />
           ) : (
             <div className="space-y-2.5">
