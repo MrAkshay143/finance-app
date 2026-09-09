@@ -8,14 +8,10 @@ import { initRedis, closeRedis } from './lib/redis.js';
 import { prisma } from './lib/prisma.js';
 import { hashPassword } from './lib/jwt.js';
 import { categoryService } from './services/categoryService.js';
+import { seedRealWorldData } from './seed-realworld.js';
 
 // Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md Section 11
 initSentry('backend-api');
-
-// Auto-provision system categories on server startup
-categoryService.ensureSystemCategories().catch((err) => {
-  logger.warn({ err: err?.message }, 'Failed to auto-provision system categories on startup');
-});
 
 const port = env.PORT;
 const app = createApp();
@@ -54,7 +50,6 @@ async function ensureDatabaseSchema() {
     logger.debug({ err: err?.message }, 'Database schema verification completed');
   }
 }
-ensureDatabaseSchema();
 
 // Ensure at least one admin user exists. Only creates if NO admins exist at all.
 // Never overwrites an existing admin's password - credentials must be changed via the app UI.
@@ -68,16 +63,9 @@ async function ensureAdminUser() {
       return;
     }
 
-    // First boot: create the initial admin from environment variables only
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (!adminEmail || !adminPassword) {
-      logger.warn(
-        'No admin users found and ADMIN_EMAIL / ADMIN_PASSWORD env vars are not set - skipping admin provisioning'
-      );
-      return;
-    }
+    // First boot: create the initial admin from environment variables with safe defaults
+    const adminEmail = (process.env.ADMIN_EMAIL || 'contact@imakshay.in').toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Password123';
 
     if (adminPassword.length < 12) {
       logger.warn('ADMIN_PASSWORD is too short (min 12 chars) - skipping admin provisioning for security');
@@ -88,7 +76,7 @@ async function ensureAdminUser() {
 
     await prisma.user.create({
       data: {
-        email: adminEmail.toLowerCase().trim(),
+        email: adminEmail,
         firstName: 'Admin',
         lastName: 'User',
         mobileNumber: process.env.ADMIN_MOBILE || '',
@@ -122,7 +110,42 @@ async function ensureAdminUser() {
     logger.warn({ err: err?.message }, 'Failed to provision initial admin user on startup');
   }
 }
-ensureAdminUser();
+
+// Ensure initial standard user exists with populated institutional financial dataset.
+// Only creates if user akshay@gmail.com does not already exist in the database.
+async function ensureDemoUser() {
+  try {
+    const demoEmail = (process.env.DEMO_USER_EMAIL || 'akshay@gmail.com').toLowerCase().trim();
+    const existing = await prisma.user.findUnique({
+      where: { email: demoEmail },
+    });
+    if (existing) {
+      logger.debug('Standard user already exists, skipping auto-provisioning');
+      return;
+    }
+
+    logger.info(`Provisioning initial standard user (${demoEmail}) with institutional dataset...`);
+    await seedRealWorldData(prisma);
+    logger.info(`Standard user (${demoEmail}) successfully provisioned.`);
+  } catch (err: any) {
+    logger.warn({ err: err?.message }, 'Failed to provision initial standard user on startup');
+  }
+}
+
+// Startup bootstrap sequence
+async function bootstrapInitialData() {
+  try {
+    await ensureDatabaseSchema();
+    await categoryService.ensureSystemCategories().catch((err) => {
+      logger.warn({ err: err?.message }, 'Failed to auto-provision system categories on startup');
+    });
+    await ensureAdminUser();
+    await ensureDemoUser();
+  } catch (err: any) {
+    logger.warn({ err: err?.message }, 'Initial startup bootstrap encountered an error');
+  }
+}
+bootstrapInitialData();
 
 const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
 

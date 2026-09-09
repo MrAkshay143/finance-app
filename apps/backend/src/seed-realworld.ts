@@ -1,20 +1,33 @@
 import { PrismaClient, TxnType, TxnDirection, AccountStatus, RecordStatus, RecurringStatus, UserRole, UserStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { createClient } from 'redis';
+import { categoryService } from './services/categoryService.js';
+import { prisma as sharedPrisma } from './lib/prisma.js';
 
-const prisma = new PrismaClient();
-
-async function main() {
+export async function seedRealWorldData(prismaClient?: PrismaClient) {
+  const prisma = prismaClient || sharedPrisma;
   console.log('Starting real-world institutional data seeding for akshay@gmail.com...');
 
-  // 1. Locate User
+  // 1. Locate User or create if missing
   let user = await prisma.user.findUnique({
     where: { email: 'akshay@gmail.com' },
   });
 
   if (!user) {
-    console.error('User akshay@gmail.com does not exist!');
-    return;
+    console.log('User akshay@gmail.com does not exist. Creating demo user...');
+    const passwordHash = await bcrypt.hash('Akshay@12345', 10);
+    user = await prisma.user.create({
+      data: {
+        email: 'akshay@gmail.com',
+        firstName: 'Akshay',
+        lastName: 'Mondal',
+        mobileNumber: '+919876543210',
+        passwordHash,
+        role: UserRole.USER,
+        status: UserStatus.ACTIVE,
+        onboardingCompleted: true,
+      },
+    });
   }
 
   const userId = user.id;
@@ -128,6 +141,7 @@ async function main() {
   await prisma.merchant.deleteMany({ where: { userId } });
 
   // 7. System categories lookup
+  await categoryService.ensureSystemCategories();
   const systemCategories = await prisma.category.findMany({
     where: { isSystem: true, userId: null },
   });
@@ -776,11 +790,20 @@ async function main() {
   console.log('Security Status: 100% (3 KBA questions set)');
 }
 
-main()
-  .catch((e) => {
-    console.error('Real-world seeding error:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+const isDirectExecution =
+  typeof process !== 'undefined' &&
+  process.argv[1] &&
+  (process.argv[1].endsWith('seed-realworld.ts') ||
+    process.argv[1].endsWith('seed-realworld.js') ||
+    process.argv[1].includes('seed-realworld'));
+
+if (isDirectExecution) {
+  seedRealWorldData()
+    .catch((e) => {
+      console.error('Real-world seeding error:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await sharedPrisma.$disconnect();
+    });
+}
