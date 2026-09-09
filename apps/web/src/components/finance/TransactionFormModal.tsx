@@ -19,6 +19,7 @@ import { apiClient } from '../../services/apiClient.js';
 import { useSafeQueryClient } from '../../hooks/useSafeQueryClient.js';
 import { getCurrencySymbol } from '../../utils/currency.js';
 import type { TxnType } from '@finance/shared-types';
+import { validateAmount } from '../../utils/validation.js';
 
 // NO hardcoded category or account fallbacks: all values must come from the real API.
 
@@ -266,6 +267,11 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     createTransferMutation.isPending ||
     updateTxnMutation.isPending;
 
+  const userCurr = userSettings?.currency || 'INR';
+  const amountResult = amount ? validateAmount(amount, userCurr, false) : null;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isFutureDate = Boolean(date && date > todayStr);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
@@ -401,6 +407,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
               setAmount(e.target.value);
               if (error) setError('');
             }}
+            status={amountResult ? (amountResult.isValid ? 'valid' : 'invalid') : 'idle'}
+            validMessage={amountResult?.formattedDisplay}
             icon={<span className="text-xs font-bold text-textMuted">{currencySymbol}</span>}
           />
         </div>
@@ -483,7 +491,13 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
             required
             max={new Date().toISOString().slice(0, 10)}
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => {
+              setDate(e.target.value);
+              if (error) setError('');
+            }}
+            status={date ? (isFutureDate ? 'invalid' : 'valid') : 'idle'}
+            validMessage={date && !isFutureDate ? 'Valid transaction date' : undefined}
+            error={isFutureDate ? 'Transaction date cannot be in the future' : undefined}
             icon={<Calendar className="w-4 h-4" />}
           />
         </div>

@@ -27,6 +27,7 @@ export const ROUTES = {
   ADMIN_USER_MANAGE: '/admin/users/:id/manage',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_AUDIT: '/admin/audit',
+  ADMIN_PROFILE: '/admin/profile',
   AI_ANALYSIS: '/ai-analysis',
   ABOUT: '/about',
   IMPORT: '/import',

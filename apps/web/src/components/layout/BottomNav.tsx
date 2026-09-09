@@ -11,6 +11,7 @@ import {
   BarChart2,
   Sliders,
   FileText,
+  User,
 } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore.js';
 
@@ -27,7 +28,7 @@ export const BottomNav: React.FC = () => {
     const isAdminUsersActive = pathname.startsWith('/admin/users');
     const isAdminReportsActive = pathname.startsWith('/admin/reports');
     const isAdminSettingsActive = pathname.startsWith('/admin/settings');
-    const isAdminAuditActive = pathname.startsWith('/admin/audit');
+    const isAdminProfileActive = pathname.startsWith('/admin/profile');
 
     return (
       <nav
@@ -90,18 +91,18 @@ export const BottomNav: React.FC = () => {
           <span className="text-[11px] mt-1 tracking-tight">Settings</span>
         </NavLink>
 
-        {/* 5. Admin Audit */}
+        {/* 5. Admin Profile */}
         <NavLink
-          to="/admin/audit"
-          aria-label="Audit Logs"
+          to="/admin/profile"
+          aria-label="Admin Profile"
           className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminAuditActive
+            isAdminProfileActive
               ? 'text-brand-primary font-semibold'
               : 'text-textMuted hover:text-brand-primary'
           }`}
         >
-          <FileText className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Audit</span>
+          <User className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
+          <span className="text-[11px] mt-1 tracking-tight">Profile</span>
         </NavLink>
       </nav>
     );

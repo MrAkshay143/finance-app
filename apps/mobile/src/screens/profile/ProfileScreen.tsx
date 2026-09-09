@@ -198,7 +198,9 @@ export const ProfileScreen: React.FC = () => {
                 {displayEmail}
               </Text>
               <View style={styles.planBadge}>
-                <Text style={styles.planBadgeText}>Free Plan</Text>
+                <Text style={styles.planBadgeText}>
+                  {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                </Text>
               </View>
             </View>
 

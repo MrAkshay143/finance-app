@@ -15,6 +15,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { Card } from '../../components/ui/Card.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
+import { validateEmail } from '../../utils/validation.js';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,8 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
   const [lockoutRemaining, setLockoutRemaining] = useState<number | null>(null);
+
+  const emailResult = validateEmail(email);
 
   // Clear previous errors on mount
   useEffect(() => {
@@ -60,8 +63,8 @@ export const LoginPage: React.FC = () => {
 
     if (!trimmedEmail) {
       errors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      errors.email = 'Please enter a valid email address';
+    } else if (!emailResult.isValid) {
+      errors.email = emailResult.message || 'Please enter a valid email address';
     }
 
     if (!password) {
@@ -180,6 +183,9 @@ export const LoginPage: React.FC = () => {
                   }
                 }}
                 error={validationErrors.email}
+                status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
+                validMessage="Valid email format"
+                showStatusIcon
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
                 autoComplete="email"
               />

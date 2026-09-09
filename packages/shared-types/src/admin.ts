@@ -121,6 +121,27 @@ export const PlatformAnalyticsSchema = z.object({
       signups: z.number().int().nonnegative(),
     })
   ),
+  transactionDistribution: z.array(
+    z.object({
+      type: z.string(),
+      count: z.number().int().nonnegative(),
+      volumePaise: z.number().nonnegative(),
+    })
+  ).optional(),
+  topSpendingCategories: z.array(
+    z.object({
+      categoryName: z.string(),
+      count: z.number().int().nonnegative(),
+      volumePaise: z.number().nonnegative(),
+    })
+  ).optional(),
+  liquidityBreakdown: z.array(
+    z.object({
+      accountType: z.string(),
+      count: z.number().int().nonnegative(),
+      balancePaise: z.number(),
+    })
+  ).optional(),
 });
 export type PlatformAnalyticsData = z.infer<typeof PlatformAnalyticsSchema>;
 

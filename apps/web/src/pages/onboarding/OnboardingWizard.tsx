@@ -27,6 +27,7 @@ import { formatCurrency, getCurrencySymbol } from '../../utils/currency.js';
 import { useUserCurrency } from '../../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
+import { validateAge, validateAmount } from '../../utils/validation.js';
 
 export const OnboardingWizard: React.FC = () => {
   const navigate = useNavigate();
@@ -58,6 +59,13 @@ export const OnboardingWizard: React.FC = () => {
   const [investmentExperience, setInvestmentExperience] = useState('Intermediate');
   const [riskAppetite, setRiskAppetite] = useState<RiskAppetite>('MEDIUM');
   const [investmentHorizon, setInvestmentHorizon] = useState<InvestmentHorizon>('MEDIUM');
+
+  // Real-time validation checks
+  const dobResult = dateOfBirth ? validateAge(dateOfBirth, 16) : null;
+  const incomeResult = monthlyIncome ? validateAmount(monthlyIncome, userCurrency, false) : null;
+  const expenseResult = monthlyExpenseBudget ? validateAmount(monthlyExpenseBudget, userCurrency, true) : null;
+  const investResult = monthlyInvestmentTarget ? validateAmount(monthlyInvestmentTarget, userCurrency, true) : null;
+  const savingsResult = savingsTarget ? validateAmount(savingsTarget, userCurrency, true) : null;
 
   const handleStep1Next = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,6 +230,9 @@ export const OnboardingWizard: React.FC = () => {
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
                   icon={<Calendar className="w-4 h-4 text-slate-400" />}
+                  status={dobResult ? (dobResult.isValid ? 'valid' : 'invalid') : 'idle'}
+                  validMessage={dobResult?.isValid ? dobResult.message : undefined}
+                  error={dobResult && !dobResult.isValid ? dobResult.message : undefined}
                   helperText="Must be at least 16 years old to register."
                 />
 
@@ -290,7 +301,9 @@ export const OnboardingWizard: React.FC = () => {
                     value={monthlyIncome}
                     onChange={(e) => setMonthlyIncome(e.target.value)}
                     icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                    helperText={monthlyIncome ? `Formatted: ${formatCurrency(Number(monthlyIncome), userCurrency)}` : 'Expected monthly take-home income'}
+                    status={incomeResult ? (incomeResult.isValid ? 'valid' : 'invalid') : 'idle'}
+                    validMessage={incomeResult?.formattedDisplay}
+                    helperText={!incomeResult ? 'Expected monthly take-home income' : undefined}
                   />
                 </div>
 
@@ -305,7 +318,9 @@ export const OnboardingWizard: React.FC = () => {
                     value={monthlyExpenseBudget}
                     onChange={(e) => setMonthlyExpenseBudget(e.target.value)}
                     icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                    helperText={monthlyExpenseBudget ? `Formatted: ${formatCurrency(Number(monthlyExpenseBudget), userCurrency)}` : 'Planned monthly spending cap'}
+                    status={expenseResult ? (expenseResult.isValid ? 'valid' : 'invalid') : 'idle'}
+                    validMessage={expenseResult?.formattedDisplay}
+                    helperText={!expenseResult ? 'Planned monthly spending cap' : undefined}
                   />
                 </div>
 
@@ -319,7 +334,9 @@ export const OnboardingWizard: React.FC = () => {
                     value={monthlyInvestmentTarget}
                     onChange={(e) => setMonthlyInvestmentTarget(e.target.value)}
                     icon={<TrendingUp className="w-4 h-4 text-slate-400" />}
-                    helperText={monthlyInvestmentTarget ? `Formatted: ${formatCurrency(Number(monthlyInvestmentTarget), userCurrency)}` : 'Optional monthly investment allocation'}
+                    status={investResult ? (investResult.isValid ? 'valid' : 'idle') : 'idle'}
+                    validMessage={investResult?.formattedDisplay}
+                    helperText={!investResult ? 'Optional monthly investment allocation' : undefined}
                   />
                 </div>
 
@@ -417,7 +434,9 @@ export const OnboardingWizard: React.FC = () => {
                   value={savingsTarget}
                   onChange={(e) => setSavingsTarget(e.target.value)}
                   icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                  helperText={savingsTarget ? `Target: ${formatCurrency(Number(savingsTarget), userCurrency)}` : 'Target annual savings goal'}
+                  status={savingsResult ? (savingsResult.isValid ? 'valid' : 'idle') : 'idle'}
+                  validMessage={savingsResult?.formattedDisplay}
+                  helperText={!savingsResult ? 'Target annual savings goal' : undefined}
                 />
 
                 <Select

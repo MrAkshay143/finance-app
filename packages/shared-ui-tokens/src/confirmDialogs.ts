@@ -159,6 +159,39 @@ export const CONFIRM_DIALOGS = {
       severity: 'warning',
       icon: 'refresh',
     }),
+    lockAccount: (emailOrName?: string): ConfirmDialogDefinition => ({
+      title: 'Lock User Account',
+      subtitle: 'Suspend account access',
+      message: emailOrName
+        ? `Lock account for "${emailOrName}"? They will be immediately prevented from logging in.`
+        : 'Lock this account? The user will be immediately prevented from logging in.',
+      confirmLabel: 'Lock Account',
+      cancelLabel: 'Cancel',
+      severity: 'danger',
+      icon: 'lock',
+    }),
+    unlockAccount: (emailOrName?: string): ConfirmDialogDefinition => ({
+      title: 'Unlock User Account',
+      subtitle: 'Restore account access',
+      message: emailOrName
+        ? `Unlock account for "${emailOrName}"? They will regain access to log in.`
+        : 'Unlock this account? The user will regain access to log in.',
+      confirmLabel: 'Unlock Account',
+      cancelLabel: 'Cancel',
+      severity: 'primary',
+      icon: 'lock',
+    }),
+    forceLogout: (emailOrName?: string): ConfirmDialogDefinition => ({
+      title: 'Force Logout',
+      subtitle: 'Revoke all active sessions',
+      message: emailOrName
+        ? `Revoke all active sessions for "${emailOrName}"? They will be signed out on all devices.`
+        : 'Revoke all active sessions? The user will be signed out on all devices.',
+      confirmLabel: 'Revoke Sessions',
+      cancelLabel: 'Cancel',
+      severity: 'warning',
+      icon: 'power',
+    }),
   },
 } as const;
 

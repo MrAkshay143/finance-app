@@ -233,8 +233,8 @@ export const ProfilePage: React.FC = () => {
                 </h3>
                 <p className="text-xs text-textMuted mt-0.5">{user?.email || 'Not Set'}</p>
                 <div className="mt-1.5">
-                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-brand-primary text-[10px] font-semibold">
-                    Free Plan
+                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-brand-primary text-[10px] font-semibold uppercase tracking-wider">
+                    {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
                   </span>
                 </div>
               </div>

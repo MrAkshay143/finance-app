@@ -44,7 +44,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
    * 1. TASK-5.4: MenuPage & AboutPage
    * ====================================================================== */
   describe('1. TASK-5.4: Menu / More Dashboard & About Screen', () => {
-    it('renders MenuPage with user profile card, 5 grouped sections, and Free Plan badge', () => {
+    it('renders MenuPage with user profile card, 5 grouped sections, and membership badge', () => {
       useAuthStore.setState({
         user: {
           id: 'usr_test_1',
@@ -72,7 +72,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
       // User profile card
       expect(html).toContain('Akshay Contact');
       expect(html).toContain('contact@imakshay.in');
-      expect(html).toContain('Free Plan');
+      expect(html).toContain('Standard Member');
       expect(html).toContain('Edit Profile');
 
       // 5 grouped sections

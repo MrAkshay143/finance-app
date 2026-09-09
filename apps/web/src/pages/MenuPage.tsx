@@ -283,8 +283,8 @@ export const MenuPage: React.FC = () => {
               </h3>
               <p className="text-xs text-textMuted mt-0.5 leading-tight truncate">{userEmail}</p>
               <div className="mt-1.5">
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100/90 text-brand-primary">
-                  Free Plan
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100/90 text-brand-primary uppercase tracking-wider">
+                  {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
                 </span>
               </div>
             </div>

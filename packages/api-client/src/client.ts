@@ -478,8 +478,12 @@ export class FinanceApiClient {
       this.request<AdminUserDetails>({ method: 'GET', url: `/admin/users/${id}` }),
     updateUser: (id: string, input: AdminUpdateUserInput) =>
       this.request<AdminUserItem>({ method: 'PATCH', url: `/admin/users/${id}`, data: input }),
-    resetUserPassword: (id: string) =>
-      this.request<AdminResetPasswordResponse>({ method: 'POST', url: `/admin/users/${id}/reset-password` }),
+    resetUserPassword: (id: string, newPassword?: string) =>
+      this.request<AdminResetPasswordResponse>({
+        method: 'POST',
+        url: `/admin/users/${id}/reset-password`,
+        data: newPassword ? { newPassword } : {},
+      }),
     resetUserKba: (id: string) =>
       this.request<{ success: boolean; message: string }>({ method: 'POST', url: `/admin/users/${id}/reset-kba` }),
     deleteUser: (id: string) =>

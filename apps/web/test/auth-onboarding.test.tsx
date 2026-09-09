@@ -299,7 +299,7 @@ describe('Web Auth, Onboarding Wizard & KBA Setup Test Suite (TASK-1.3)', () => 
       expect(html).toContain('Profile');
       expect(html).toContain('Manage your personal and finance details');
       expect(html).toContain('Edit Profile');
-      expect(html).toContain('Free Plan');
+      expect(html).toContain('Standard Member');
       expect(html).toContain('Profile Completion');
       expect(html).toContain('Basic Profile');
       expect(html).toContain('Finance Profile');

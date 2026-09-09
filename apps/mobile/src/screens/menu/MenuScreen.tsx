@@ -269,7 +269,9 @@ export const MenuScreen: React.FC = () => {
                   {user?.fullName || 'Finance User'}
                 </Text>
                 <View style={styles.planBadge}>
-                  <Text style={styles.planBadgeText}>Free Plan</Text>
+                  <Text style={styles.planBadgeText}>
+                    {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                  </Text>
                 </View>
               </View>
               <Text style={styles.profileEmail} numberOfLines={1}>

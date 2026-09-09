@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Phone, Search } from 'lucide-react';
+import { ChevronDown, Phone, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   COUNTRIES,
   CountryCode,
@@ -7,6 +7,7 @@ import {
   parsePhoneNumber,
   validateAndNormalizePhone,
 } from '@finance/shared-types';
+import { validatePhoneRealtime } from '../../utils/validation';
 
 export interface PhoneInputWithCountryProps {
   label?: string;
@@ -20,6 +21,7 @@ export interface PhoneInputWithCountryProps {
   className?: string;
   defaultCountry?: CountryCode;
   placeholder?: string;
+  showLiveStatus?: boolean;
 }
 
 export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
@@ -34,6 +36,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   className = '',
   defaultCountry = 'IN',
   placeholder,
+  showLiveStatus = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +108,16 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   const inputId = id || (label ? label.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'phone-input');
   const activePlaceholder = placeholder || activeCountry.phonePlaceholder;
 
+  const liveResult = showLiveStatus && nationalNumber ? validatePhoneRealtime(nationalNumber, selectedCountryCode) : null;
+  const isLiveValid = liveResult?.isValid ?? false;
+
+  let inputBorderClass = 'border-borderDefault focus:ring-brand-primary';
+  if (error) {
+    inputBorderClass = 'border-semantic-danger focus:ring-semantic-danger';
+  } else if (isLiveValid) {
+    inputBorderClass = 'border-semantic-success focus:ring-semantic-success';
+  }
+
   return (
     <div className={`w-full ${className}`}>
       {label && (
@@ -122,7 +135,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           className={`px-3 py-2.5 bg-slate-50 hover:bg-slate-100 border rounded-xl text-xs text-textDefault font-medium flex items-center gap-1.5 shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-60 disabled:pointer-events-none ${
-            error ? 'border-semantic-danger' : 'border-borderDefault'
+            error ? 'border-semantic-danger' : isLiveValid ? 'border-semantic-success' : 'border-borderDefault'
           }`}
         >
           <span className="text-sm leading-none" aria-hidden="true">
@@ -142,10 +155,15 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
             placeholder={activePlaceholder}
             value={nationalNumber}
             onChange={handleNationalNumberChange}
-            className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-textDefault placeholder-textMuted transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
-              error ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-borderDefault'
-            }`}
+            className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-textDefault placeholder-textMuted transition-colors focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-textMuted ${
+              isLiveValid ? 'pr-9' : ''
+            } ${inputBorderClass}`}
           />
+          {isLiveValid && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <CheckCircle2 className="w-4 h-4 text-semantic-success" aria-hidden="true" />
+            </div>
+          )}
         </div>
 
         {/* Dropdown Popover */}
@@ -196,9 +214,20 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
       </div>
 
       {error ? (
-        <p role="alert" className="mt-1 text-xs text-semantic-danger font-medium">
-          {error}
+        <p role="alert" className="mt-1 text-xs text-semantic-danger font-medium flex items-center gap-1">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </p>
+      ) : isLiveValid ? (
+        <p className="mt-1 text-xs text-semantic-success font-medium flex items-center gap-1">
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          <span>{liveResult?.message}</span>
+        </p>
+      ) : liveResult ? (
+        <div className="mt-1 flex items-center justify-between text-xs text-textMuted">
+          <span>{liveResult.message}</span>
+          <span className="font-mono text-[11px] text-textMuted/80">{activeCountry.formatDescription}</span>
+        </div>
       ) : helperText ? (
         <p className="mt-1 text-xs text-textMuted">{helperText}</p>
       ) : null}

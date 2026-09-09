@@ -23,6 +23,7 @@ import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { AdminUserActionModal } from '../components/admin/AdminUserActionModal.js';
 import type { AdminDashboardMetrics, AdminUserItem } from '@finance/shared-types';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -31,6 +32,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED' | 'ADMIN'>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
+  const [actionModalUser, setActionModalUser] = useState<AdminUserItem | null>(null);
 
   // Query Metrics
   const { data: metricsData, isLoading: isMetricsLoading } = useQuery<AdminDashboardMetrics>({
@@ -376,6 +378,19 @@ export const AdminDashboardPage: React.FC = () => {
                       </span>
                     </div>
 
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActionModalUser(item);
+                      }}
+                      aria-label={`Options for ${item.fullName || item.email}`}
+                      title="User Actions"
+                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+
                     <ChevronRight className="w-4 h-4 text-slate-400" />
                   </div>
                 </div>
@@ -395,6 +410,14 @@ export const AdminDashboardPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Admin User Action Modal */}
+      <AdminUserActionModal
+        isOpen={Boolean(actionModalUser)}
+        user={actionModalUser}
+        onClose={() => setActionModalUser(null)}
+        onSuccess={() => refetchUsers()}
+      />
     </div>
   );
 };

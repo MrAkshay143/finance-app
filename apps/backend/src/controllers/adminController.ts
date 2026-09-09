@@ -66,7 +66,8 @@ export class AdminController {
     try {
       const adminId = req.user!.id;
       const { id } = req.params;
-      const result = await adminService.resetUserPassword(adminId, id, req.ip);
+      const { newPassword } = req.body || {};
+      const result = await adminService.resetUserPassword(adminId, id, newPassword, req.ip);
       res.status(200).json({
         success: true,
         data: result,

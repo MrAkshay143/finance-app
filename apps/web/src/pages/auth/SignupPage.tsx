@@ -20,6 +20,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
+import { validateEmail, validateConfirmPassword } from '../../utils/validation.js';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ export const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+
+  const emailResult = validateEmail(email);
+  const confirmResult = validateConfirmPassword(password, confirmPassword);
 
   useEffect(() => {
     clearError();
@@ -76,8 +80,8 @@ export const SignupPage: React.FC = () => {
 
     if (!email.trim()) {
       errs.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Please enter a valid email address';
+    } else if (!emailResult.isValid) {
+      errs.email = emailResult.message || 'Please enter a valid email address';
     }
 
     if (mobileNumber.trim()) {
@@ -97,7 +101,7 @@ export const SignupPage: React.FC = () => {
 
     if (!confirmPassword) {
       errs.confirmPassword = 'Confirmation password is required';
-    } else if (password !== confirmPassword) {
+    } else if (!confirmResult.isValid) {
       errs.confirmPassword = 'Passwords do not match';
     }
 
@@ -181,6 +185,7 @@ export const SignupPage: React.FC = () => {
                     }
                   }}
                   error={validationErrors.firstName}
+                  status={firstName.trim().length >= 2 ? 'valid' : validationErrors.firstName ? 'invalid' : 'idle'}
                   icon={<User className="w-4 h-4 text-slate-400" />}
                   autoComplete="given-name"
                 />
@@ -210,6 +215,9 @@ export const SignupPage: React.FC = () => {
                   }
                 }}
                 error={validationErrors.email}
+                status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
+                validMessage="Valid email address"
+                showStatusIcon
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
                 autoComplete="email"
               />
@@ -245,6 +253,7 @@ export const SignupPage: React.FC = () => {
                       }
                     }}
                     error={validationErrors.password}
+                    status={password.length >= 8 && strengthScore >= 4 ? 'valid' : validationErrors.password ? 'invalid' : 'idle'}
                     icon={<Lock className="w-4 h-4 text-slate-400" />}
                     autoComplete="new-password"
                   />
@@ -315,7 +324,9 @@ export const SignupPage: React.FC = () => {
                         setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
                       }
                     }}
-                    error={validationErrors.confirmPassword}
+                    error={validationErrors.confirmPassword || (confirmPassword && !confirmResult.isValid ? 'Passwords do not match' : undefined)}
+                    status={confirmPassword ? (confirmResult.isValid ? 'valid' : 'invalid') : 'idle'}
+                    validMessage="Passwords match"
                     icon={<Lock className="w-4 h-4 text-slate-400" />}
                     autoComplete="new-password"
                   />

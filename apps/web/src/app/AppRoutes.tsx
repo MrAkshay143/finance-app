@@ -32,6 +32,7 @@ import { ManageUserOverviewPage } from '../pages/ManageUserOverviewPage.js';
 import { ManageUserDetailTabsPage } from '../pages/ManageUserDetailTabsPage.js';
 import { AdminAppSettingsPage } from '../pages/AdminAppSettingsPage.js';
 import { AdminAuditPage } from '../pages/AdminAuditPage.js';
+import { AdminProfilePage } from '../pages/AdminProfilePage.js';
 import { AiAnalysisPage } from '../pages/AiAnalysisPage.js';
 import { AboutPage } from '../pages/AboutPage.js';
 import { ImportPage } from '../pages/ImportPage.js';
@@ -126,6 +127,9 @@ export const AppRoutes: React.FC = () => {
 
         {/* 19. Admin Activity Audit */}
         <Route path={ROUTES.ADMIN_AUDIT} element={<AdminAuditPage />} />
+
+        {/* Admin Profile */}
+        <Route path={ROUTES.ADMIN_PROFILE} element={<AdminProfilePage />} />
 
         {/* 20. AI Analysis Dashboard */}
         <Route path={ROUTES.AI_ANALYSIS} element={<AiAnalysisPage />} />

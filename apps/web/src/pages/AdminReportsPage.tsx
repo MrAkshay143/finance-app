@@ -14,7 +14,9 @@ import {
   LogOut,
   ArrowLeftFromLine,
   RefreshCw,
-  CheckCircle2,
+  TrendingUp,
+  PieChart,
+  Wallet,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -22,25 +24,26 @@ import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 import { formatCurrency } from '@finance/shared-ui-tokens';
 import type { PlatformAnalyticsData, SystemHealthData } from '@finance/shared-types';
 
 export const AdminReportsPage: React.FC = () => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const [timeframe, setTimeframe] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [isExporting, setIsExporting] = useState(false);
-  const [exportSuccess, setExportSuccess] = useState(false);
 
-  // Fetch Platform Analytics
+  // Fetch Platform Analytics with dynamic timeframe
   const {
     data: analyticsData,
     isLoading: isAnalyticsLoading,
     refetch: refetchAnalytics,
     isRefetching: isAnalyticsRefetching,
   } = useQuery<PlatformAnalyticsData>({
-    queryKey: ['admin-platform-analytics'],
+    queryKey: ['admin-platform-analytics', timeframe],
     queryFn: async () => {
-      const res = await apiClient.admin.getPlatformAnalytics();
+      const res = await apiClient.admin.getPlatformAnalytics({ timeframe });
       return (res as any)?.data || res;
     },
   });
@@ -71,7 +74,6 @@ export const AdminReportsPage: React.FC = () => {
   const handleExportCsv = async () => {
     try {
       setIsExporting(true);
-      setExportSuccess(false);
       const res = await apiClient.admin.exportUsersCsv();
       const blob = res.data;
       const url = window.URL.createObjectURL(blob);
@@ -82,10 +84,9 @@ export const AdminReportsPage: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 4000);
-    } catch (err) {
-      console.error('Failed to export CSV report', err);
+      toast.success('User directory CSV exported successfully');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to export CSV report');
     } finally {
       setIsExporting(false);
     }
@@ -93,6 +94,11 @@ export const AdminReportsPage: React.FC = () => {
 
   const summary = analyticsData?.summary;
   const funnel = analyticsData?.funnel;
+  const transactionDistribution = analyticsData?.transactionDistribution || [];
+  const topSpendingCategories = analyticsData?.topSpendingCategories || [];
+  const liquidityBreakdown = analyticsData?.liquidityBreakdown || [];
+
+  const totalTxnVolume = transactionDistribution.reduce((acc, t) => acc + t.volumePaise, 0);
 
   return (
     <div className="flex-1 flex flex-col bg-[#F3F6FC] pb-12">
@@ -145,7 +151,41 @@ export const AdminReportsPage: React.FC = () => {
         }
       />
 
-      <div className="px-4 py-4 space-y-4 max-w-[430px] mx-auto w-full">
+      <div className="px-4 py-3 space-y-4 max-w-[430px] mx-auto w-full">
+        {/* Compact Toolbar: Timeframe Selector + Compact CSV Export */}
+        <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-borderDefault rounded-2xl shadow-xs">
+          {/* Timeframe Buttons */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            {(['7d', '30d', '90d', '1y'] as const).map((tf) => (
+              <button
+                key={tf}
+                type="button"
+                onClick={() => setTimeframe(tf)}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase transition-colors ${
+                  timeframe === tf
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-textMuted hover:text-textDefault'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
+
+          {/* Compact Export CSV Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isExporting}
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 text-xs font-semibold border-borderDefault hover:border-brand-primary shrink-0"
+          >
+            <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce text-brand-primary' : ''}`} />
+            <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+          </Button>
+        </div>
+
         {/* 2. Platform KPI Metrics */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
@@ -172,7 +212,7 @@ export const AdminReportsPage: React.FC = () => {
           <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Platform GTV
+                Platform GTV ({timeframe.toUpperCase()})
               </span>
               <Activity className="w-4 h-4 text-emerald-600" />
             </div>
@@ -184,7 +224,7 @@ export const AdminReportsPage: React.FC = () => {
                   {formatCurrency((summary?.grossTransactionVolumePaise ?? 0) / 100, 'INR')}
                 </p>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  {summary?.totalTransactionsCount ?? 0} transactions
+                  {summary?.totalTransactionsCount ?? 0} txns recorded
                 </p>
               </div>
             )}
@@ -214,7 +254,7 @@ export const AdminReportsPage: React.FC = () => {
           <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                User Activity
+                Activity Index
               </span>
               <BarChart2 className="w-4 h-4 text-indigo-600" />
             </div>
@@ -233,7 +273,160 @@ export const AdminReportsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 3. Onboarding & Security Funnel */}
+        {/* 3. Transaction Breakdown by Type */}
+        <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div className="flex items-center gap-2">
+              <PieChart className="w-4 h-4 text-brand-primary" />
+              <h3 className="text-sm font-bold text-slate-900">Transaction Distribution</h3>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-blue-50 text-brand-primary rounded-full">
+              {timeframe.toUpperCase()} Breakdown
+            </span>
+          </div>
+
+          {isAnalyticsLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ) : transactionDistribution.length === 0 ? (
+            <p className="text-xs text-textMuted text-center py-3">
+              No transactions recorded in this timeframe.
+            </p>
+          ) : (
+            <div className="space-y-2.5">
+              {transactionDistribution.map((item) => {
+                const percentage =
+                  totalTxnVolume > 0
+                    ? Math.round((item.volumePaise / totalTxnVolume) * 100)
+                    : 0;
+
+                let badgeColor = 'bg-slate-100 text-slate-700';
+                let barColor = 'bg-slate-500';
+                if (item.type === 'INCOME') {
+                  badgeColor = 'bg-emerald-50 text-emerald-700';
+                  barColor = 'bg-emerald-500';
+                } else if (item.type === 'EXPENSE') {
+                  badgeColor = 'bg-rose-50 text-rose-700';
+                  barColor = 'bg-rose-500';
+                } else if (item.type === 'TRANSFER') {
+                  badgeColor = 'bg-blue-50 text-blue-700';
+                  barColor = 'bg-blue-500';
+                } else if (item.type === 'INVESTMENT') {
+                  badgeColor = 'bg-purple-50 text-purple-700';
+                  barColor = 'bg-purple-500';
+                }
+
+                return (
+                  <div key={item.type} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badgeColor}`}>
+                          {item.type}
+                        </span>
+                        <span className="text-textMuted font-normal text-[11px]">
+                          ({item.count} txns)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-textDefault">
+                          {formatCurrency(item.volumePaise / 100, 'INR')}
+                        </span>
+                        <span className="text-textMuted text-[10px]">({percentage}%)</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${barColor}`} style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* 4. Top Spending Categories & Liquidity Breakdown */}
+        <div className="grid grid-cols-1 gap-3">
+          {/* Top Spending Categories */}
+          <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-rose-500" />
+                <h3 className="text-sm font-bold text-slate-900">Top Spending Categories</h3>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {timeframe.toUpperCase()}
+              </span>
+            </div>
+
+            {isAnalyticsLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : topSpendingCategories.length === 0 ? (
+              <p className="text-xs text-textMuted text-center py-3">
+                No categorized expenses in this timeframe.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {topSpendingCategories.map((cat, idx) => (
+                  <div key={cat.categoryName} className="flex items-center justify-between text-xs py-1 border-b border-slate-50 last:border-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-textMuted font-bold text-[10px] flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="font-semibold text-textDefault truncate">
+                        {cat.categoryName}
+                      </span>
+                      <span className="text-[10px] text-textMuted">({cat.count} txns)</span>
+                    </div>
+                    <span className="font-bold text-semantic-danger shrink-0">
+                      {formatCurrency(cat.volumePaise / 100, 'INR')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* System Liquidity by Account Type */}
+          <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-sm font-bold text-slate-900">System Liquidity Breakdown</h3>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Live
+              </span>
+            </div>
+
+            {isAnalyticsLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : liquidityBreakdown.length === 0 ? (
+              <p className="text-xs text-textMuted text-center py-3">
+                No active accounts registered.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {liquidityBreakdown.map((liq) => (
+                  <div key={liq.accountType} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      {liq.accountType}
+                    </div>
+                    <div className="text-sm font-black text-slate-900 mt-0.5">
+                      {formatCurrency(liq.balancePaise / 100, 'INR')}
+                    </div>
+                    <div className="text-[10px] text-textMuted mt-0.5">
+                      {liq.count} account{liq.count === 1 ? '' : 's'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* 5. Onboarding & Security Funnel */}
         <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div>
@@ -315,39 +508,7 @@ export const AdminReportsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 4. Institutional CSV Export */}
-        <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">User Directory Export</h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Generate full compliance CSV report with balances, KBA status, and dates.
-              </p>
-            </div>
-            <ShieldCheck className="w-5 h-5 text-brand-primary shrink-0" />
-          </div>
-
-          <div className="mt-4 flex items-center gap-3">
-            <Button
-              type="button"
-              onClick={handleExportCsv}
-              disabled={isExporting}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-brand-primary text-white font-semibold rounded-xl text-xs hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              <span>{isExporting ? 'Generating Report...' : 'Export User Directory (CSV)'}</span>
-            </Button>
-          </div>
-
-          {exportSuccess && (
-            <div className="mt-2.5 flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Report generated and download initiated.</span>
-            </div>
-          )}
-        </Card>
-
-        {/* 5. System Health & Telemetry */}
+        {/* 6. System Health & Telemetry */}
         <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
@@ -420,3 +581,4 @@ export const AdminReportsPage: React.FC = () => {
 };
 
 export default AdminReportsPage;
+

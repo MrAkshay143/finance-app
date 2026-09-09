@@ -289,8 +289,9 @@ export class AdminService {
   async resetUserPassword(
     adminId: string,
     targetUserId: string,
+    newPassword?: string,
     ipAddress?: string
-  ): Promise<{ success: boolean; temporaryPassword: string; message: string }> {
+  ): Promise<{ success: boolean; temporaryPassword?: string; message: string }> {
     const user = await prisma.user.findUnique({
       where: { id: targetUserId },
     });
@@ -299,8 +300,12 @@ export class AdminService {
       throw new NotFoundError(`User not found: ${targetUserId}`);
     }
 
-    const temporaryPassword = `Temp#${crypto.randomBytes(4).toString('hex')}9A`;
-    const passwordHash = await bcrypt.hash(temporaryPassword, 10);
+    if (newPassword && newPassword.length < 8) {
+      throw new ValidationError('Password must be at least 8 characters');
+    }
+
+    const effectivePassword = newPassword || `Temp#${crypto.randomBytes(4).toString('hex')}9A`;
+    const passwordHash = await bcrypt.hash(effectivePassword, 10);
 
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
@@ -324,15 +329,17 @@ export class AdminService {
       action: 'ADMIN_RESET_PASSWORD',
       targetUserId,
       details: {
-        operation: 'admin_reset_password',
+        operation: newPassword ? 'admin_set_custom_password' : 'admin_reset_password',
       },
       ipAddress,
     });
 
     return {
       success: true,
-      temporaryPassword,
-      message: 'Temporary password generated successfully. All active sessions have been revoked.',
+      temporaryPassword: newPassword ? undefined : effectivePassword,
+      message: newPassword
+        ? 'Password has been set successfully. All active sessions have been revoked.'
+        : 'Temporary password generated successfully. All active sessions have been revoked.',
     };
   }
 
@@ -498,8 +505,10 @@ export class AdminService {
    * Aggregates platform analytics, onboarding funnels, and user growth.
    */
   async getPlatformAnalytics(timeframe = '30d') {
+    const tf = (timeframe || '30d').toLowerCase();
+    const days = tf === '7d' ? 7 : tf === '90d' ? 90 : tf === '1y' ? 365 : 30;
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const timeframeAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
@@ -513,6 +522,9 @@ export class AdminService {
       allTxns,
       allAccounts,
       recentUsers,
+      txnGroups,
+      topCategories,
+      liquidityGroups,
     ] = await Promise.all([
       prisma.user.count({ where: { status: { not: 'DELETED' } } }),
       prisma.user.count({ where: { status: 'ACTIVE' } }),
@@ -531,9 +543,11 @@ export class AdminService {
           accounts: { some: { status: 'ACTIVE' } },
         },
       }),
-      prisma.transaction.count({ where: { status: 'ACTIVE' } }),
+      prisma.transaction.count({
+        where: { status: 'ACTIVE', createdAt: { gte: timeframeAgo } },
+      }),
       prisma.transaction.aggregate({
-        where: { status: 'ACTIVE' },
+        where: { status: 'ACTIVE', createdAt: { gte: timeframeAgo } },
         _sum: { amount: true },
       }),
       prisma.account.aggregate({
@@ -542,31 +556,98 @@ export class AdminService {
       }),
       prisma.user.findMany({
         where: {
-          createdAt: { gte: thirtyDaysAgo },
+          createdAt: { gte: timeframeAgo },
           status: { not: 'DELETED' },
         },
         select: { createdAt: true },
       }),
+      prisma.transaction.groupBy({
+        by: ['type'],
+        where: { status: 'ACTIVE', createdAt: { gte: timeframeAgo } },
+        _count: { id: true },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.groupBy({
+        by: ['categoryId'],
+        where: {
+          status: 'ACTIVE',
+          type: 'EXPENSE',
+          createdAt: { gte: timeframeAgo },
+          categoryId: { not: null },
+        },
+        _count: { id: true },
+        _sum: { amount: true },
+        orderBy: { _sum: { amount: 'desc' } },
+        take: 5,
+      }),
+      prisma.account.groupBy({
+        by: ['accountType'],
+        where: { status: 'ACTIVE' },
+        _count: { id: true },
+        _sum: { currentBalance: true },
+      }),
     ]);
 
-    // Build 30-day daily growth buckets
+    // Build growth buckets
     const growthMap: Record<string, number> = {};
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const key = d.toISOString().split('T')[0];
-      growthMap[key] = 0;
-    }
-
-    recentUsers.forEach((u) => {
-      const key = u.createdAt.toISOString().split('T')[0];
-      if (growthMap[key] !== undefined) {
-        growthMap[key]++;
+    if (days <= 90) {
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const key = d.toISOString().split('T')[0];
+        growthMap[key] = 0;
       }
-    });
+      recentUsers.forEach((u) => {
+        const key = u.createdAt.toISOString().split('T')[0];
+        if (growthMap[key] !== undefined) {
+          growthMap[key]++;
+        }
+      });
+    } else {
+      // 1 year: 12 monthly buckets
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        growthMap[key] = 0;
+      }
+      recentUsers.forEach((u) => {
+        const d = u.createdAt;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (growthMap[key] !== undefined) {
+          growthMap[key]++;
+        }
+      });
+    }
 
     const growth = Object.entries(growthMap).map(([date, signups]) => ({
       date,
       signups,
+    }));
+
+    // Resolve category names for top spending categories
+    const catIds = topCategories.map((c) => c.categoryId!).filter(Boolean);
+    const categories = catIds.length > 0
+      ? await prisma.category.findMany({
+          where: { id: { in: catIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const catMap = new Map(categories.map((c) => [c.id, c.name]));
+    const topSpendingCategories = topCategories.map((c) => ({
+      categoryName: catMap.get(c.categoryId!) || 'Uncategorized',
+      count: (c._count as any)?.id || 0,
+      volumePaise: Number(c._sum?.amount || 0),
+    }));
+
+    const transactionDistribution = (txnGroups || []).map((g) => ({
+      type: g.type,
+      count: (g._count as any)?.id || 0,
+      volumePaise: Number(g._sum?.amount || 0),
+    }));
+
+    const liquidityBreakdown = (liquidityGroups || []).map((g) => ({
+      accountType: g.accountType,
+      count: (g._count as any)?.id || 0,
+      balancePaise: Number(g._sum?.currentBalance || 0),
     }));
 
     const grossTransactionVolumePaise = Number(allTxns._sum.amount || 0);
@@ -600,6 +681,9 @@ export class AdminService {
           totalUsers > 0 ? Math.round((usersWithAccounts / totalUsers) * 100) : 0,
       },
       growth,
+      transactionDistribution,
+      topSpendingCategories,
+      liquidityBreakdown,
     };
   }
 
