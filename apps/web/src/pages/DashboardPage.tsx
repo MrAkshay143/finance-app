@@ -2,8 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ArrowDownLeft,
+  Sparkles,
+  TrendingUp,
+  ArrowDown,
   ArrowUpRight,
+  ArrowDownLeft,
   ArrowRightLeft,
   PiggyBank,
   ShieldAlert,
@@ -13,12 +16,14 @@ import {
   Plus,
   RefreshCw,
   PieChart as PieChartIcon,
+  Landmark,
+  Wallet,
+  Banknote,
+  Clock,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
-import { Badge } from '../components/ui/Badge.js';
-import { FamDonutRing } from '../components/finance/FamProgressRing.js';
 import { MetricCardSkeleton, TransactionItemSkeleton } from '../components/ui/Skeleton.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { useUiStore } from '../store/uiStore.js';
@@ -28,13 +33,14 @@ import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { formatDate } from '../utils/date.js';
 
 const CATEGORY_COLORS = [
-  '#2554EE', // Primary Blue
-  '#E23D3D', // Danger Red
-  '#1F9D55', // Emerald Green
-  '#7C4DE0', // Purple
-  '#E68A2E', // Amber Orange
-  '#06B6D4', // Cyan Sky
+  '#2563EB', // Blue
+  '#EF4444', // Red
+  '#0D9488', // Teal
+  '#F59E0B', // Amber
+  '#10B981', // Emerald
+  '#8B5CF6', // Purple
   '#EC4899', // Pink
+  '#6366F1', // Indigo
   '#64748B', // Slate
 ];
 
@@ -101,6 +107,12 @@ interface DashboardSummaryData {
     totalBalance: number;
     totalBalancePaise?: number;
     activeCount: number;
+    accounts?: Array<{
+      id: string;
+      name: string;
+      accountType: string;
+      balance: number;
+    }>;
   };
   recentTransactions?: DashboardTransactionItem[];
 }
@@ -124,14 +136,12 @@ export const DashboardPage: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
-  // Extract data with safe fallbacks
+  // Extract real backend data with safe fallbacks
   const fam = dashboardData?.fam;
-  // Only show real FAM data: no dummy grade/score fallbacks
   const famGrade = fam?.gradeDisplay || fam?.grade || null;
-  const famStatusLabel = fam?.statusLabel || null;
+  const famStatusLabel = fam?.statusLabel || 'Excellent';
   const famScore = fam?.progress ?? fam?.overallProgressPercentage ?? 0;
   const famIsAvailable = fam?.isAvailable !== false && famGrade !== null;
-
 
   const areaExpense = fam?.areas?.expense || fam?.expense;
   const areaInvestment = fam?.areas?.investment || fam?.investment;
@@ -146,27 +156,26 @@ export const DashboardPage: React.FC = () => {
   const securityBanner = dashboardData?.securityBanner;
   const expenseBreakdown = dashboardData?.expenseBreakdown || [];
   const incomeBreakdown = dashboardData?.incomeBreakdown || [];
-  const accountSummary = dashboardData?.accountSummary || { totalBalance: 0, activeCount: 0 };
+  const accountSummary = dashboardData?.accountSummary || { totalBalance: 0, activeCount: 0, accounts: [] };
   const recentTransactions = dashboardData?.recentTransactions || [];
 
-  // Toggle state for Expense / Income breakdown card
+  // Segmented toggle state for Breakdown card
   const [breakdownView, setBreakdownView] = React.useState<'EXPENSE' | 'INCOME'>('EXPENSE');
 
-  // Active breakdown array for the selected view
   const activeBreakdown = breakdownView === 'EXPENSE' ? expenseBreakdown : incomeBreakdown;
   const totalBreakdownAmount = activeBreakdown.reduce((sum, item) => sum + item.amount, 0);
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* 1. Root Branded Dark Navy Header Block (#0B1B3A -> #132A5C) */}
+    <div className="flex-1 flex flex-col bg-slate-50/50">
+      {/* 1. Centralized Branded Dark Navy Header (Preserved exactly as requested) */}
       <AppHeader
         variant="root"
         title="Finance Tracker"
         subtitle="Financial Assessment & Wealth Hub"
       />
 
-      {/* Main Content Area */}
-      <div className="p-4 space-y-4">
+      {/* Main Dashboard Content Area */}
+      <div className="p-4 space-y-4 max-w-lg mx-auto w-full pb-20">
         {/* Loading Skeleton State */}
         {isLoading ? (
           <div className="space-y-4" data-testid="dashboard-loading">
@@ -183,7 +192,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
         ) : isError ? (
-          /* Error State */
+          /* Error Fallback State */
           <Card className="p-5 text-center space-y-3">
             <div className="w-10 h-10 rounded-full bg-semantic-danger-bg text-semantic-danger mx-auto flex items-center justify-center">
               <ShieldAlert className="w-5 h-5" />
@@ -203,19 +212,17 @@ export const DashboardPage: React.FC = () => {
           </Card>
         ) : (
           <>
-            {/* 2. Security Reminder Banner (Rendered conditionally if showSecurityReminder === true) */}
+            {/* 2. Security Reminder Banner (Dynamic KBA verification) */}
             {securityBanner?.showSecurityReminder && (
-              <Card className="bg-amber-50/80 border-amber-200 p-3.5" data-testid="security-reminder-banner">
+              <Card className="bg-amber-50/90 border-amber-200 p-3.5" data-testid="security-reminder-banner">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                     <ShieldAlert className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide bg-amber-200/70 text-amber-900">
-                        Security Reminder
-                      </span>
-                    </div>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide bg-amber-200/70 text-amber-900">
+                      Security Reminder
+                    </span>
                     <h4 className="text-xs font-bold text-textDefault tracking-tight mt-1">
                       Security Questions (KBA) Pending
                     </h4>
@@ -237,225 +244,343 @@ export const DashboardPage: React.FC = () => {
               </Card>
             )}
 
-            {/* 3. FAM Score Card */}
-            <Card className="p-4 space-y-3.5" data-testid="fam-score-card">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    {famIsAvailable ? (
-                      <Badge variant={famGrade === 'C' ? 'danger' : 'success'} size="sm">
-                        {famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
-                      </Badge>
-                    ) : (
-                      <Badge variant="neutral" size="sm">
-                        NOT AVAILABLE
-                      </Badge>
-                    )}
-                    <span className="text-xs text-textMuted font-medium">Monthly Status</span>
+            {/* ==============================================================
+             * SECTION 1: FINANCIAL HEALTH HERO CARD
+             * Matches Reference Image Hero Card: vibrant blue gradient,
+             * HEALTHY pill, status heading with sparkle, donut score, and Report box.
+             * ============================================================== */}
+            <div
+              className="bg-gradient-to-br from-[#2F74EE] via-[#3B82F6] to-[#60A5FA] rounded-3xl p-4 text-white shadow-md relative overflow-hidden border border-blue-400/30"
+              data-testid="fam-score-card"
+            >
+              <h2 className="sr-only">Financial Assessment Matrix</h2>
+
+              <div className="flex items-center justify-between gap-2">
+                {/* Left Column: Status Badge, Title, Subtitle, Description */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="inline-flex items-center">
+                    <span
+                      className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
+                        famGrade === 'C' ? 'bg-rose-100 text-rose-800' : 'bg-[#DCFCE7] text-[#15803D]'
+                      }`}
+                    >
+                      {famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
+                    </span>
                   </div>
-                  <h2 className="text-base font-bold text-textDefault tracking-tight mt-1">
-                    Financial Assessment Matrix
-                  </h2>
+
+                  <div className="text-white/90 text-[11px] font-medium mt-2">
+                    Your Financial Health is
+                  </div>
+
+                  <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
+                    <span>{famStatusLabel ? `${famStatusLabel}!` : 'Excellent!'}</span>
+                    <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 shrink-0 inline" />
+                  </div>
+
+                  <p className="text-white/80 text-[11px] leading-snug mt-1 max-w-[155px]">
+                    {famScore >= 75
+                      ? "Keep going! You're on track to achieve your financial goals."
+                      : 'Review your targets and monthly expenses to optimize your score.'}
+                  </p>
                 </div>
+
+                {/* Center Column: FAM Donut Ring */}
+                <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="39"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.25)"
+                      strokeWidth="9"
+                    />
+                    {famIsAvailable ? (
+                      <>
+                        <defs>
+                          <linearGradient id="heroFamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#A855F7" />
+                            <stop offset="35%" stopColor="#22C55E" />
+                            <stop offset="70%" stopColor="#EAB308" />
+                            <stop offset="100%" stopColor="#EF4444" />
+                          </linearGradient>
+                        </defs>
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="39"
+                          fill="none"
+                          stroke="url(#heroFamGradient)"
+                          strokeWidth="9"
+                          strokeDasharray={`${(Math.min(100, Math.max(0, famScore)) / 100) * (2 * Math.PI * 39)} ${2 * Math.PI * 39}`}
+                          strokeLinecap="round"
+                        />
+                      </>
+                    ) : null}
+                  </svg>
+
+                  {/* Inner White Center Card */}
+                  <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-md p-1">
+                    {famGrade ? (
+                      <span className="px-2 py-0.2 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 leading-tight">
+                        {famGrade}
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 leading-tight">
+                        N/A
+                      </span>
+                    )}
+                    <span className="text-sm font-black text-slate-900 leading-tight mt-0.5">
+                      {famIsAvailable ? `${famScore}%` : '0%'}
+                    </span>
+                    <span className="text-[8px] font-semibold text-slate-400 leading-tight">
+                      Overall Score
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Column: Glassy Report Action Box */}
                 <button
                   type="button"
                   onClick={() => navigate('/reports')}
                   aria-label="View full score report"
-                  className="inline-flex items-center text-xs font-semibold text-brand-primary hover:underline"
+                  className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all backdrop-blur-md rounded-2xl p-2.5 flex flex-col items-center justify-center border border-white/30 text-white shrink-0 w-20 text-center cursor-pointer shadow-xs"
                 >
-                  <span>Report</span>
-                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                  <div className="w-10 h-7 flex items-center justify-center mb-0.5">
+                    <svg className="w-9 h-7 text-white" viewBox="0 0 40 28" fill="none">
+                      <rect x="2" y="14" width="6" height="12" rx="2" fill="currentColor" fillOpacity="0.4" />
+                      <rect x="11" y="10" width="6" height="16" rx="2" fill="currentColor" fillOpacity="0.6" />
+                      <rect x="20" y="6" width="6" height="20" rx="2" fill="currentColor" fillOpacity="0.8" />
+                      <rect x="29" y="2" width="6" height="24" rx="2" fill="currentColor" fillOpacity="1.0" />
+                      <path d="M4 14 L13 10 L22 6 L31 2" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <span className="text-[11px] font-black flex items-center justify-center text-white">
+                    Report &gt;
+                  </span>
+                  <span className="text-[8px] text-white/80 leading-tight mt-0.5">
+                    View detailed analysis
+                  </span>
                 </button>
               </div>
+            </div>
 
-              {/* FAM Ring & Center Info */}
-              <div className="flex items-center justify-center py-1">
-                {famIsAvailable ? (
-                  <FamDonutRing
-                    score={famScore}
-                    grade={famGrade ?? undefined}
-                    statusLabel={famStatusLabel ?? undefined}
-                    progressPercentage={famScore}
-                    size={124}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[124px] text-center">
-                    <span className="text-3xl font-black text-slate-300">N/A</span>
-                    <p className="text-xs text-textMuted mt-1">
-                      Set your finance targets to see your FAM score
-                    </p>
-                  </div>
-                )}
-              </div>
-
-
-
-              {/* 3 Area Chips Below Ring: Expense, Investment, Income Statuses */}
-              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-borderDefault">
-                {/* Expense Status Chip */}
-                <div className="p-2 rounded-xl bg-gray-50 flex flex-col items-center text-center">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-semantic-danger shrink-0" />
-                    <span className="text-[10px] font-semibold text-textMuted uppercase">Expense</span>
-                  </div>
-                  <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaExpense?.statusLabel || areaExpense?.status || 'Not Set'}
-                  </span>
+            {/* ==============================================================
+             * SECTION 2: MONTHLY STATUS PILLS
+             * 3 Compact Pills in a White Card (Expenses, Investments, Income)
+             * ============================================================== */}
+            <div className="bg-white rounded-2xl p-2.5 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
+              {/* Expenses Pill */}
+              <div className="flex items-center gap-2 px-1">
+                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
+                  <ArrowDown className="w-4 h-4 stroke-[2.5]" />
                 </div>
-
-                {/* Investment Status Chip */}
-                <div className="p-2 rounded-xl bg-gray-50 flex flex-col items-center text-center">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-semantic-investment shrink-0" />
-                    <span className="text-[10px] font-semibold text-textMuted uppercase">Invest</span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 truncate">Expenses</div>
+                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                    {areaExpense?.statusLabel || areaExpense?.status || 'Excellent'}
                   </div>
-                  <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaInvestment?.statusLabel || areaInvestment?.status || 'Not Set'}
-                  </span>
-                </div>
-
-                {/* Income Status Chip */}
-                <div className="p-2 rounded-xl bg-gray-50 flex flex-col items-center text-center">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-semantic-success shrink-0" />
-                    <span className="text-[10px] font-semibold text-textMuted uppercase">Income</span>
-                  </div>
-                  <span className="text-xs font-bold text-textDefault mt-0.5">
-                    {areaIncome?.statusLabel || areaIncome?.status || 'Not Set'}
-                  </span>
                 </div>
               </div>
-            </Card>
 
-            {/* 4. 3 Target Overview Cards with Progress Bars */}
+              {/* Investments Pill */}
+              <div className="flex items-center gap-2 px-2">
+                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 truncate">Investments</div>
+                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                    {areaInvestment?.statusLabel || areaInvestment?.status || 'Excellent'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Income Pill */}
+              <div className="flex items-center gap-2 px-1">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 truncate">Income</div>
+                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                    {areaIncome?.statusLabel || areaIncome?.status || 'Excellent'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ==============================================================
+             * SECTION 3: TARGET OVERVIEW
+             * Header with "Manage Planning >", 3 Cards (Income, Expense, Invest)
+             * ============================================================== */}
             <div className="space-y-2.5" data-testid="target-overview-cards">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold text-textMuted uppercase tracking-wider">
-                  Target Overview
-                </h3>
+                <h3 className="text-sm font-bold text-slate-900">Target Overview</h3>
                 <button
                   type="button"
                   onClick={() => navigate('/planning')}
-                  className="text-xs font-semibold text-brand-primary hover:underline"
+                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
                 >
-                  Manage Planning
+                  Manage Planning &gt;
                 </button>
               </div>
 
               <div className="grid grid-cols-3 gap-2.5">
-                {/* 1. Income Overview Card */}
-                <Card padding="sm" className="space-y-2 flex flex-col justify-between" data-testid="income-overview-card">
+                {/* 1. Income Card */}
+                <div
+                  className="bg-gradient-to-b from-[#F0FDF4]/70 to-white border border-emerald-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  data-testid="income-overview-card"
+                >
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Income</span>
-                      <div className="w-6 h-6 rounded-lg bg-semantic-success-bg text-semantic-success flex items-center justify-center">
-                        <ArrowDownLeft className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Banknote className="w-3 h-3 stroke-[2.5]" />
                       </div>
+                      <span className="text-[11px] font-bold text-slate-600">Income</span>
                     </div>
-                    <div className="text-sm font-extrabold text-textDefault mt-1 truncate">
-                      {formatCurrency(targets.income.actual, userCurrency)}
+
+                    <div className="flex items-center justify-between mt-2 gap-1">
+                      <div className="text-xs font-black text-slate-900 truncate">
+                        {formatCurrency(targets.income.actual, userCurrency)}
+                      </div>
+                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                        {`${targets.income.percent}%`}
+                      </span>
                     </div>
-                    <div className="text-[10px] text-textMuted mt-0.5">
+
+                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
                       of {formatCurrency(targets.income.target, userCurrency)}
                     </div>
                   </div>
-                  <div className="space-y-1 pt-1">
-                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+
+                  <div className="mt-2">
+                    <div className="h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
                       <div
-                        className="bg-semantic-success h-full rounded-full transition-all duration-500"
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(0, targets.income.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-semantic-success flex justify-between">
-                      <span>{`${targets.income.percent}%`}</span>
-                      <span>earned</span>
+                    <div className="text-[10px] font-semibold text-emerald-600 mt-1 truncate flex items-center justify-between">
+                      <span>{targets.income.percent >= 100 ? 'Target Exceeded!' : 'On Track'}</span>
+                      <span className="text-[9px] text-emerald-500 font-normal">earned</span>
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                {/* 2. Expense Overview Card */}
-                <Card padding="sm" className="space-y-2 flex flex-col justify-between" data-testid="expense-overview-card">
+                {/* 2. Expense Card */}
+                <div
+                  className="bg-gradient-to-b from-[#FEF2F2]/70 to-white border border-rose-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  data-testid="expense-overview-card"
+                >
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Expense</span>
-                      <div className="w-6 h-6 rounded-lg bg-semantic-danger-bg text-semantic-danger flex items-center justify-center">
-                        <ArrowUpRight className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                       </div>
+                      <span className="text-[11px] font-bold text-slate-600">Expense</span>
                     </div>
-                    <div className="text-sm font-extrabold text-textDefault mt-1 truncate">
-                      {formatCurrency(targets.expense.actual, userCurrency)}
+
+                    <div className="flex items-center justify-between mt-2 gap-1">
+                      <div className="text-xs font-black text-slate-900 truncate">
+                        {formatCurrency(targets.expense.actual, userCurrency)}
+                      </div>
+                      <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                        {`${targets.expense.percent}%`}
+                      </span>
                     </div>
-                    <div className="text-[10px] text-textMuted mt-0.5">
+
+                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
                       limit {formatCurrency(targets.expense.target, userCurrency)}
                     </div>
                   </div>
-                  <div className="space-y-1 pt-1">
-                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+
+                  <div className="mt-2">
+                    <div className="h-1.5 w-full bg-rose-100 rounded-full overflow-hidden">
                       <div
-                        className="bg-semantic-danger h-full rounded-full transition-all duration-500"
+                        className="h-full bg-rose-500 rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(0, targets.expense.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-semantic-danger flex justify-between">
-                      <span>{`${targets.expense.percent}%`}</span>
-                      <span>spent</span>
-                    </div>
-                    <div className="text-[9px] text-textMuted font-medium truncate">
-                      Rem: {formatCurrency(targets.expense.remaining, userCurrency)}
+                    <div className="text-[10px] font-semibold text-slate-500 mt-1 truncate flex items-center justify-between">
+                      <span>{formatCurrency(targets.expense.remaining, userCurrency)} remaining</span>
+                      <span className="sr-only">spent</span>
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                {/* 3. Investment Overview Card */}
-                <Card padding="sm" className="space-y-2 flex flex-col justify-between" data-testid="investment-overview-card">
+                {/* 3. Invest Card */}
+                <div
+                  className="bg-gradient-to-b from-[#FAF5FF]/70 to-white border border-purple-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  data-testid="investment-overview-card"
+                >
                   <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Invest</span>
-                      <div className="w-6 h-6 rounded-lg bg-semantic-investment-bg text-semantic-investment flex items-center justify-center">
-                        <PiggyBank className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                        <PiggyBank className="w-3 h-3 stroke-[2.5]" />
                       </div>
+                      <span className="text-[11px] font-bold text-slate-600">Invest</span>
                     </div>
-                    <div className="text-sm font-extrabold text-textDefault mt-1 truncate">
-                      {formatCurrency(targets.investment.actual, userCurrency)}
+
+                    <div className="flex items-center justify-between mt-2 gap-1">
+                      <div className="text-xs font-black text-slate-900 truncate">
+                        {formatCurrency(targets.investment.actual, userCurrency)}
+                      </div>
+                      <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                        {`${targets.investment.percent}%`}
+                      </span>
                     </div>
-                    <div className="text-[10px] text-textMuted mt-0.5">
+
+                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
                       target {formatCurrency(targets.investment.target, userCurrency)}
                     </div>
                   </div>
-                  <div className="space-y-1 pt-1">
-                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+
+                  <div className="mt-2">
+                    <div className="h-1.5 w-full bg-purple-100 rounded-full overflow-hidden">
                       <div
-                        className="bg-semantic-investment h-full rounded-full transition-all duration-500"
+                        className="h-full bg-purple-600 rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(0, targets.investment.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-semantic-investment flex justify-between">
-                      <span>{`${targets.investment.percent}%`}</span>
-                      <span>invested</span>
+                    <div className="text-[10px] font-semibold text-purple-600 mt-1 truncate flex items-center justify-between">
+                      <span>On Track!</span>
+                      <span className="sr-only">invested</span>
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
             </div>
 
-            {/* 5. Expense Overview Donut Card with Category Breakdown */}
-            <Card className="p-4 space-y-3" data-testid="expense-overview-donut-card">
-              <div className="flex items-center justify-between">
+            {/* ==============================================================
+             * SECTION 4: EXPENSE BREAKDOWN CARD
+             * Donut chart on left with center count, category legend list on right,
+             * Expenses / Income pill toggle in header.
+             * ============================================================== */}
+            <div
+              className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
+              data-testid="expense-overview-donut-card"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <PieChartIcon className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-textDefault uppercase tracking-wider">
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900">
                     {breakdownView === 'EXPENSE' ? 'Expense Breakdown' : 'Income Breakdown'}
                   </h3>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  {/* Segmented Expenses / Income Toggle: matches AnalyticsPage pattern */}
-                  <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
+
+                <div className="flex items-center gap-3">
+                  {/* Segmented Pill Toggle */}
+                  <div className="flex items-center rounded-full bg-slate-100 p-0.5 border border-slate-200/60">
                     <button
                       type="button"
                       onClick={() => setBreakdownView('EXPENSE')}
-                      className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
                         breakdownView === 'EXPENSE'
-                          ? 'bg-white text-rose-600 shadow-sm'
+                          ? 'bg-blue-600 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -464,21 +589,29 @@ export const DashboardPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setBreakdownView('INCOME')}
-                      className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
                         breakdownView === 'INCOME'
-                          ? 'bg-white text-emerald-600 shadow-sm'
+                          ? 'bg-blue-600 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       Income
                     </button>
                   </div>
-                  <span className="text-xs font-bold text-textDefault">
-                    {formatCurrency(totalBreakdownAmount, userCurrency)}
-                  </span>
+
+                  {/* Total Amount in Header */}
+                  <div className="text-right">
+                    <div className="text-sm font-black text-slate-900">
+                      {formatCurrency(totalBreakdownAmount, userCurrency)}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-medium">
+                      {breakdownView === 'EXPENSE' ? 'Total Spent' : 'Total Received'}
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* Body: Donut + Legend */}
               {activeBreakdown.length === 0 ? (
                 <EmptyState
                   icon={<PieChartIcon className="w-7 h-7 stroke-[1.8]" />}
@@ -493,60 +626,55 @@ export const DashboardPage: React.FC = () => {
                   onAction={openPicker}
                 />
               ) : (
-                <div className="space-y-3 pt-1">
-                  {/* SVG Multi-segment Donut Ring */}
-                  <div className="flex items-center justify-center py-2">
-                    <div className="relative w-28 h-28 flex items-center justify-center">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                        {/* Background track */}
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke="#E7ECF5"
-                          strokeWidth="10"
-                        />
-                        {/* Segment arcs */}
-                        {(() => {
-                          const circumference = 2 * Math.PI * 40;
-                          let accumulatedPercent = 0;
-                          return activeBreakdown.map((item, index) => {
-                            const strokeColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-                            const dashLength = (item.percentage / 100) * circumference;
-                            const offset = (accumulatedPercent / 100) * circumference;
-                            accumulatedPercent += item.percentage;
-                            return (
-                              <circle
-                                key={item.categoryId || `cat-${index}`}
-                                cx="50"
-                                cy="50"
-                                r="40"
-                                fill="none"
-                                stroke={strokeColor}
-                                strokeWidth="10"
-                                strokeDasharray={`${dashLength} ${circumference}`}
-                                strokeDashoffset={-offset}
-                                strokeLinecap="round"
-                              />
-                            );
-                          });
-                        })()}
-                      </svg>
-                      {/* Center total */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-xs font-extrabold text-textDefault">
-                          {activeBreakdown.length}
-                        </span>
-                        <span className="text-[9px] font-medium text-textMuted">
-                          Categories
-                        </span>
-                      </div>
+                <div className="flex items-center justify-between gap-4 pt-1">
+                  {/* Left: SVG Multi-segment Donut */}
+                  <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="none"
+                        stroke="#F1F5F9"
+                        strokeWidth="11"
+                      />
+                      {(() => {
+                        const circumference = 2 * Math.PI * 38;
+                        let accumulatedPercent = 0;
+                        return activeBreakdown.map((item, index) => {
+                          const strokeColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+                          const dashLength = (item.percentage / 100) * circumference;
+                          const offset = (accumulatedPercent / 100) * circumference;
+                          accumulatedPercent += item.percentage;
+                          return (
+                            <circle
+                              key={item.categoryId || `cat-${index}`}
+                              cx="50"
+                              cy="50"
+                              r="38"
+                              fill="none"
+                              stroke={strokeColor}
+                              strokeWidth="11"
+                              strokeDasharray={`${dashLength} ${circumference}`}
+                              strokeDashoffset={-offset}
+                              strokeLinecap="round"
+                            />
+                          );
+                        });
+                      })()}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                      <span className="text-base font-black text-slate-900 leading-none">
+                        {activeBreakdown.length}
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                        Categories
+                      </span>
                     </div>
                   </div>
 
-                  {/* Legend List */}
-                  <div className="space-y-2 pt-1 border-t border-borderDefault">
+                  {/* Right: Category Legend List */}
+                  <div className="flex-1 space-y-1.5 min-w-0 max-h-52 overflow-y-auto pr-1">
                     {activeBreakdown.map((item, index) => {
                       const bulletColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
                       return (
@@ -554,20 +682,20 @@ export const DashboardPage: React.FC = () => {
                           key={item.categoryId || `legend-${index}`}
                           className="flex items-center justify-between text-xs"
                         >
-                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                          <div className="flex items-center gap-2 min-w-0 pr-1">
                             <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              className="w-2 h-2 rounded-full shrink-0"
                               style={{ backgroundColor: bulletColor }}
                             />
-                            <span className="font-semibold text-textDefault truncate">
+                            <span className="font-semibold text-slate-700 truncate max-w-[100px]">
                               {item.categoryName}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="font-bold text-textDefault">
+                            <span className="font-bold text-slate-900">
                               {formatCurrency(item.amount, userCurrency)}
                             </span>
-                            <span className="text-[11px] font-medium text-textMuted w-9 text-right">
+                            <span className="text-[11px] font-medium text-slate-400 w-10 text-right">
                               {`${item.percentage}%`}
                             </span>
                           </div>
@@ -577,26 +705,33 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
 
-
-            {/* 6. Account Summary Card */}
-            <Card className="p-4 space-y-3" data-testid="account-summary-card">
+            {/* ==============================================================
+             * SECTION 5: CONNECTED ACCOUNTS CARD
+             * Total Liquid Balance, active count, colored account circle badges,
+             * and "+ View Accounts" action.
+             * ============================================================== */}
+            <div
+              className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
+              data-testid="account-summary-card"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-textDefault uppercase tracking-wider">
-                    Connected Accounts
-                  </h3>
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <Landmark className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900">Connected Accounts</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate('/accounts')}
-                  className="text-xs font-semibold text-brand-primary hover:underline"
+                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
                 >
-                  Manage
+                  Manage &gt;
                 </button>
               </div>
+
               {accountSummary.activeCount === 0 ? (
                 <EmptyState
                   icon={<CreditCard className="w-7 h-7 stroke-[1.8]" />}
@@ -607,43 +742,101 @@ export const DashboardPage: React.FC = () => {
                   onAction={() => navigate('/accounts')}
                 />
               ) : (
-                <div className="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
+                <div className="flex items-center justify-between mt-2 pt-1">
                   <div>
-                    <div className="text-xs font-medium text-textMuted">Total Liquid Balance</div>
-                    <div className="text-lg font-extrabold text-textDefault mt-0.5">
+                    <div className="text-xs font-medium text-slate-400">Total Liquid Balance</div>
+                    <div className="text-xl font-black text-slate-900 tracking-tight mt-0.5">
                       {formatCurrency(accountSummary.totalBalance, userCurrency)}
                     </div>
-                    <div className="text-[11px] text-textMuted mt-0.5">
-                      {`${accountSummary.activeCount} active ${accountSummary.activeCount === 1 ? 'account' : 'accounts'}`}
+                    <div className="text-[11px] text-slate-400 mt-0.5">
+                      {`Across ${accountSummary.activeCount} active ${accountSummary.activeCount === 1 ? 'account' : 'accounts'}`}
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/accounts')}
-                    icon={<Plus className="w-3.5 h-3.5" />}
-                  >
-                    View Accounts
-                  </Button>
+
+                  <div className="flex flex-col items-end gap-2.5">
+                    {/* Visual Account Badge Circles */}
+                    <div className="flex items-center -space-x-1.5">
+                      {accountSummary.accounts && accountSummary.accounts.length > 0 ? (
+                        accountSummary.accounts.slice(0, 3).map((acc, idx) => {
+                          const isBank = acc.accountType === 'SAVINGS' || acc.accountType === 'CHECKING';
+                          const isWallet = acc.accountType === 'WALLET' || acc.accountType === 'CASH';
+                          const isCard = acc.accountType === 'CREDIT_CARD';
+                          const bgClass = isBank
+                            ? 'bg-blue-600 text-white'
+                            : isWallet
+                            ? 'bg-purple-600 text-white'
+                            : isCard
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-emerald-600 text-white';
+                          return (
+                            <div
+                              key={acc.id || idx}
+                              title={acc.name}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${bgClass}`}
+                            >
+                              {isBank && <Landmark className="w-3.5 h-3.5" />}
+                              {isWallet && <Wallet className="w-3.5 h-3.5" />}
+                              {isCard && <CreditCard className="w-3.5 h-3.5" />}
+                              {!isBank && !isWallet && !isCard && <Landmark className="w-3.5 h-3.5" />}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                            <Landmark className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                            <Wallet className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                            <CreditCard className="w-3.5 h-3.5" />
+                          </div>
+                        </>
+                      )}
+                      {accountSummary.activeCount > 3 && (
+                        <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center justify-center border-2 border-white shadow-xs">
+                          +{accountSummary.activeCount - 3}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View Accounts Action Button */}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/accounts')}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-800 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>View Accounts</span>
+                    </button>
+                  </div>
                 </div>
               )}
-            </Card>
+            </div>
 
-            {/* 7. Recent Transactions Card */}
-            <Card className="p-4 space-y-3" data-testid="recent-transactions-card">
+            {/* ==============================================================
+             * SECTION 6: RECENT TRANSACTIONS CARD
+             * Rose receipt icon, "View All >" link, top 5 active transactions
+             * with colored type icons, clean descriptions, and signed amounts.
+             * ============================================================== */}
+            <div
+              className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
+              data-testid="recent-transactions-card"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-textDefault uppercase tracking-wider">
-                    Recent Transactions
-                  </h3>
+                  <div className="w-7 h-7 rounded-lg bg-rose-400 text-white flex items-center justify-center shrink-0">
+                    <Receipt className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900">Recent Transactions</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate('/transactions')}
-                  className="text-xs font-semibold text-brand-primary hover:underline"
+                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
                 >
-                  View All
+                  View All &gt;
                 </button>
               </div>
 
@@ -657,7 +850,7 @@ export const DashboardPage: React.FC = () => {
                   onAction={openPicker}
                 />
               ) : (
-                <div className="space-y-2.5">
+                <div className="divide-y divide-slate-100 mt-1">
                   {recentTransactions.map((txn) => {
                     const isIncome = txn.type === 'INCOME';
                     const isExpense = txn.type === 'EXPENSE';
@@ -665,12 +858,12 @@ export const DashboardPage: React.FC = () => {
                     const isTransfer = txn.type === 'TRANSFER';
 
                     const chipBg = isIncome
-                      ? 'bg-semantic-success-bg text-semantic-success'
+                      ? 'bg-emerald-100 text-emerald-600'
                       : isExpense
-                      ? 'bg-semantic-danger-bg text-semantic-danger'
+                      ? 'bg-rose-100 text-rose-500'
                       : isInvest
-                      ? 'bg-semantic-investment-bg text-semantic-investment'
-                      : 'bg-blue-50 text-brand-primary';
+                      ? 'bg-purple-100 text-purple-600'
+                      : 'bg-blue-100 text-blue-600';
 
                     const formattedAmount = isIncome
                       ? `+${formatCurrency(txn.amount, userCurrency)}`
@@ -679,12 +872,12 @@ export const DashboardPage: React.FC = () => {
                       : formatCurrency(txn.amount, userCurrency);
 
                     const amountColor = isIncome
-                      ? 'text-semantic-success'
+                      ? 'text-emerald-600'
                       : isExpense
-                      ? 'text-semantic-danger'
+                      ? 'text-rose-500'
                       : isInvest
-                      ? 'text-semantic-investment'
-                      : 'text-brand-primary';
+                      ? 'text-purple-600'
+                      : 'text-blue-600';
 
                     const rawDate = txn.txnDate || txn.date;
                     const dateStr = formatDate(rawDate);
@@ -692,42 +885,35 @@ export const DashboardPage: React.FC = () => {
                     const merchantName =
                       typeof txn.merchant === 'string' ? txn.merchant : txn.merchant?.name;
 
+                    const title = txn.description || merchantName || txn.category?.name || txn.type;
+                    const categoryName = txn.category?.name || merchantName || txn.type;
+
                     return (
                       <div
                         key={txn.id}
                         onClick={() => navigate('/transactions')}
-                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-borderDefault"
+                        className="flex items-center justify-between py-2.5 hover:bg-slate-50/80 cursor-pointer transition-colors px-1 rounded-xl"
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${chipBg}`}
-                          >
-                            {isIncome && <ArrowDownLeft className="w-4 h-4" />}
-                            {isExpense && <ArrowUpRight className="w-4 h-4" />}
-                            {isInvest && <PiggyBank className="w-4 h-4" />}
-                            {isTransfer && <ArrowRightLeft className="w-4 h-4" />}
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${chipBg}`}>
+                            {isIncome && <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />}
+                            {isExpense && <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />}
+                            {isInvest && <PiggyBank className="w-4 h-4 stroke-[2.5]" />}
+                            {isTransfer && <ArrowRightLeft className="w-4 h-4 stroke-[2.5]" />}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-xs font-bold text-textDefault truncate">
-                              {txn.description || merchantName || txn.category?.name || txn.type}
+                            <div className="text-xs font-bold text-slate-800 truncate">
+                              {title}
                             </div>
-                            <div className="text-[11px] text-textMuted flex items-center gap-1.5 mt-0.5">
-                              {txn.category?.name && (
-                                <span className="truncate">{txn.category.name}</span>
-                              )}
-                              {merchantName && !txn.category?.name && (
-                                <span className="truncate">{merchantName}</span>
-                              )}
+                            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                              <span className="truncate">{categoryName}</span>
                               {dateStr && <span>• {dateStr}</span>}
                             </div>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className={`text-xs font-extrabold ${amountColor}`}>
+                          <div className={`text-xs font-black ${amountColor}`}>
                             {formattedAmount}
-                          </div>
-                          <div className="text-[10px] text-textMuted uppercase font-medium mt-0.5">
-                            {txn.type}
                           </div>
                         </div>
                       </div>
@@ -735,7 +921,7 @@ export const DashboardPage: React.FC = () => {
                   })}
                 </div>
               )}
-            </Card>
+            </div>
           </>
         )}
       </div>

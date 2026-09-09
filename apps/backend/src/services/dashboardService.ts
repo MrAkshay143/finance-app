@@ -273,6 +273,12 @@ export class DashboardService {
       totalBalance: Number(totalBalancePaise) / 100,
       totalBalancePaise: Number(totalBalancePaise),
       activeCount: activeAccounts.length,
+      accounts: activeAccounts.map((acc) => ({
+        id: acc.id,
+        name: acc.name,
+        accountType: acc.accountType,
+        balance: Number(acc.currentBalance) / 100,
+      })),
     };
 
     // F. Top 5 Recent Active Transactions
