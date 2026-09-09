@@ -53,6 +53,34 @@ export class ProfileService {
 
     // Convert BigInt paise to readable numbers and rupees
     const fp = user.financeProfile;
+    const rawRisk = (fp?.riskAppetite || '').toUpperCase().trim();
+    const normalizedRisk =
+      rawRisk === 'CONSERVATIVE' || rawRisk === 'LOW'
+        ? 'LOW'
+        : rawRisk === 'AGGRESSIVE' || rawRisk === 'HIGH'
+        ? 'HIGH'
+        : 'MEDIUM';
+
+    const rawHorizon = (fp?.investmentHorizon || '').toUpperCase().trim();
+    const normalizedHorizon =
+      rawHorizon === 'SHORT' || rawHorizon === 'SHORT_TERM'
+        ? 'SHORT'
+        : rawHorizon === 'LONG' || rawHorizon === 'LONG_TERM'
+        ? 'LONG'
+        : 'MEDIUM';
+
+    const rawExp = (fp?.investmentExperience || '').toLowerCase().trim();
+    const normalizedExp =
+      rawExp === 'beginner'
+        ? 'Beginner'
+        : rawExp === 'intermediate'
+        ? 'Intermediate'
+        : rawExp === 'experienced'
+        ? 'Experienced'
+        : rawExp === 'advanced'
+        ? 'Advanced'
+        : fp?.investmentExperience;
+
     const formattedFinanceProfile = fp
       ? {
           id: fp.id,
@@ -69,9 +97,9 @@ export class ProfileService {
           incomeRange: fp.incomeRange,
           savingsTarget: fp.savingsTarget !== null ? Number(fp.savingsTarget) / 100 : null,
           savingsTargetPaise: fp.savingsTarget !== null ? Number(fp.savingsTarget) : null,
-          investmentExperience: fp.investmentExperience,
-          riskAppetite: fp.riskAppetite,
-          investmentHorizon: fp.investmentHorizon,
+          investmentExperience: normalizedExp,
+          riskAppetite: normalizedRisk,
+          investmentHorizon: normalizedHorizon,
           createdAt: fp.createdAt,
           updatedAt: fp.updatedAt,
         }
@@ -212,12 +240,44 @@ export class ProfileService {
         ? BigInt(Math.round(data.monthlyInvestmentTarget * 100))
         : undefined;
 
-    const savingsTargetPaise =
+    let savingsTargetPaise =
       data.savingsTarget !== undefined && data.savingsTarget !== null
         ? BigInt(Math.round(data.savingsTarget * 100))
         : data.savingsTarget === null
         ? null
         : undefined;
+
+    if (
+      savingsTargetPaise === undefined &&
+      data.savingsTargetPercentage !== undefined &&
+      data.savingsTargetPercentage !== null &&
+      incomeVal !== undefined
+    ) {
+      const annualIncome = incomeVal * 12;
+      savingsTargetPaise = BigInt(
+        Math.round(annualIncome * (data.savingsTargetPercentage / 100) * 100)
+      );
+    }
+
+    const rawRiskInput = data.riskAppetite ? String(data.riskAppetite).toUpperCase().trim() : undefined;
+    const sanitizedRisk = rawRiskInput
+      ? rawRiskInput === 'CONSERVATIVE' || rawRiskInput === 'LOW'
+        ? 'LOW'
+        : rawRiskInput === 'AGGRESSIVE' || rawRiskInput === 'HIGH'
+        ? 'HIGH'
+        : 'MEDIUM'
+      : undefined;
+
+    const rawHorizonInput = data.investmentHorizon
+      ? String(data.investmentHorizon).toUpperCase().trim()
+      : undefined;
+    const sanitizedHorizon = rawHorizonInput
+      ? rawHorizonInput === 'SHORT' || rawHorizonInput === 'SHORT_TERM'
+        ? 'SHORT'
+        : rawHorizonInput === 'LONG' || rawHorizonInput === 'LONG_TERM'
+        ? 'LONG'
+        : 'MEDIUM'
+      : undefined;
 
     // Upsert FinanceProfile
     await prisma.financeProfile.upsert({
@@ -230,8 +290,8 @@ export class ProfileService {
         incomeRange: data.incomeRange ?? null,
         savingsTarget: savingsTargetPaise ?? null,
         investmentExperience: data.investmentExperience ?? null,
-        riskAppetite: data.riskAppetite ?? 'MEDIUM',
-        investmentHorizon: data.investmentHorizon ?? 'MEDIUM',
+        riskAppetite: sanitizedRisk ?? 'MEDIUM',
+        investmentHorizon: sanitizedHorizon ?? 'MEDIUM',
       },
       update: {
         ...(monthlyIncomePaise !== undefined ? { monthlyIncome: monthlyIncomePaise } : {}),
@@ -246,10 +306,8 @@ export class ProfileService {
         ...(data.investmentExperience !== undefined
           ? { investmentExperience: data.investmentExperience }
           : {}),
-        ...(data.riskAppetite !== undefined ? { riskAppetite: data.riskAppetite } : {}),
-        ...(data.investmentHorizon !== undefined
-          ? { investmentHorizon: data.investmentHorizon }
-          : {}),
+        ...(sanitizedRisk !== undefined ? { riskAppetite: sanitizedRisk } : {}),
+        ...(sanitizedHorizon !== undefined ? { investmentHorizon: sanitizedHorizon } : {}),
       },
     });
 

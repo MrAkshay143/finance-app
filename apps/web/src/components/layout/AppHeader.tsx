@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Bell, Wallet } from 'lucide-react';
+import { ChevronLeft, Bell, Wallet, Download } from 'lucide-react';
 import { AvatarProgressRing } from '../finance/FamProgressRing.js';
 import { useUiStore } from '../../store/uiStore.js';
 import { useAuthStore } from '../../store/authStore.js';
+import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 
 export interface AppHeaderProps {
   variant?: 'root' | 'nested';
@@ -31,6 +32,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   unreadCount: propUnreadCount,
 }) => {
   const navigate = useNavigate();
+  const { isInstallable, installApp } = usePwaInstall();
   const storeUnreadCount = typeof window === 'undefined'
     ? useUiStore.getState().unreadCount
     : useUiStore((state) => state.unreadCount);
@@ -72,14 +74,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Left Section */}
         {variant === 'root' ? (
           <div className="flex items-center gap-3 min-w-0">
-            {/* Square rounded app icon */}
+            {/* Square rounded AI-generated premium app icon */}
             <button
               type="button"
               onClick={handleAppIconClick}
               aria-label="Finance Tracker Home"
-              className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-primary to-blue-400 flex items-center justify-center shrink-0 shadow-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A]"
+              className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A] border border-white/20 bg-[#0B0F17]"
             >
-              <Wallet className="w-5 h-5 text-white" aria-hidden="true" />
+              <img
+                src="/pwa-192x192.png"
+                alt="Finance"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to Wallet icon if image fails
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
             </button>
             <div className="min-w-0">
               <h1 className="text-lg font-bold tracking-tight text-white leading-tight truncate">
@@ -122,6 +132,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             rightAction
           ) : (
             <>
+              {isInstallable && (
+                <button
+                  type="button"
+                  onClick={installApp}
+                  aria-label="Install Finance Chrome App"
+                  title="Install Finance App"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 active:bg-white/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A] bg-white/10"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+                </button>
+              )}
               {showNotifications && (
                 <button
                   type="button"

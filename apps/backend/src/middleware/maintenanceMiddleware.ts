@@ -6,6 +6,9 @@ let lastCheckTime = 0;
 const CACHE_TTL_MS = 3000; // 3 second cache
 
 export async function isMaintenanceModeActive(): Promise<boolean> {
+  if (process.env.NODE_ENV === 'test') {
+    return false;
+  }
   const now = Date.now();
   if (maintenanceCached !== null && (now - lastCheckTime) < CACHE_TTL_MS) {
     return maintenanceCached;

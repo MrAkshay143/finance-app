@@ -147,8 +147,11 @@ export const DashboardPage: React.FC = () => {
   });
 
   const donutConfig = userSettings?.dashboardDonutsConfig || userSettings?.dashboardDonuts;
-  const showExpenseDonut = donutConfig?.expense !== false && userSettings?.donutVisualsEnabled !== false;
-  const showIncomeDonut = donutConfig?.income !== false;
+  const donutVisualsEnabled = userSettings?.donutVisualsEnabled !== false;
+  const showExpenseDonut = donutVisualsEnabled && donutConfig?.expense !== false;
+  const showIncomeDonut = donutVisualsEnabled && donutConfig?.income !== false;
+  const showInvestmentDonut = donutVisualsEnabled && donutConfig?.investment !== false;
+  const showDonutSection = showExpenseDonut || showIncomeDonut || showInvestmentDonut;
   const showQuickAdd = userSettings?.quickAddEnabled !== false && userSettings?.quickAdd !== false;
 
   // Extract real backend data with safe fallbacks
@@ -171,13 +174,32 @@ export const DashboardPage: React.FC = () => {
   const securityBanner = dashboardData?.securityBanner;
   const expenseBreakdown = dashboardData?.expenseBreakdown || [];
   const incomeBreakdown = dashboardData?.incomeBreakdown || [];
+  const investmentBreakdown = (dashboardData as any)?.investmentBreakdown || [];
   const accountSummary = dashboardData?.accountSummary || { totalBalance: 0, activeCount: 0, accounts: [] };
   const recentTransactions = dashboardData?.recentTransactions || [];
 
   // Segmented toggle state for Breakdown card
-  const [breakdownView, setBreakdownView] = React.useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  type BreakdownTab = 'EXPENSE' | 'INCOME' | 'INVESTMENT';
+  const [breakdownView, setBreakdownView] = React.useState<BreakdownTab>('EXPENSE');
 
-  const activeBreakdown = breakdownView === 'EXPENSE' ? expenseBreakdown : incomeBreakdown;
+  // Compute available tabs according to user settings and sync active tab if needed
+  React.useEffect(() => {
+    const availableTabs: BreakdownTab[] = [];
+    if (showExpenseDonut) availableTabs.push('EXPENSE');
+    if (showIncomeDonut) availableTabs.push('INCOME');
+    if (showInvestmentDonut) availableTabs.push('INVESTMENT');
+
+    if (availableTabs.length > 0 && !availableTabs.includes(breakdownView)) {
+      setBreakdownView(availableTabs[0]);
+    }
+  }, [showExpenseDonut, showIncomeDonut, showInvestmentDonut]);
+
+  const activeBreakdown: Array<{ categoryId?: string; categoryName: string; amount: number; percentage: number }> =
+    breakdownView === 'EXPENSE'
+      ? expenseBreakdown
+      : breakdownView === 'INCOME'
+      ? incomeBreakdown
+      : investmentBreakdown;
   const totalBreakdownAmount = activeBreakdown.reduce((sum, item) => sum + item.amount, 0);
 
   // Interactive state for Section 4 Donut Chart (exact styling, gap, mouseover & touch details)
@@ -566,11 +588,11 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* ==============================================================
-             * SECTION 4: EXPENSE BREAKDOWN CARD
+             * SECTION 4: EXPENSE / INCOME / INVESTMENT BREAKDOWN CARD
              * Donut chart on left with center count, category legend list on right,
-             * Expenses / Income pill toggle in header.
+             * Expenses / Income / Investments pill toggle in header.
              * ============================================================== */}
-            {(showExpenseDonut || showIncomeDonut) && (
+            {showDonutSection && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="expense-overview-donut-card"
@@ -578,39 +600,62 @@ export const DashboardPage: React.FC = () => {
               {/* Header */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                  <div className={`w-7 h-7 rounded-lg text-white flex items-center justify-center shrink-0 ${
+                    breakdownView === 'INVESTMENT' ? 'bg-purple-600' : 'bg-blue-600'
+                  }`}>
                     <Clock className="w-4 h-4" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    {breakdownView === 'EXPENSE' ? 'Expense Breakdown' : 'Income Breakdown'}
+                    {breakdownView === 'EXPENSE'
+                      ? 'Expense Breakdown'
+                      : breakdownView === 'INCOME'
+                      ? 'Income Breakdown'
+                      : 'Investment Breakdown'}
                   </h3>
                 </div>
 
                 <div className="flex items-center gap-3">
                   {/* Segmented Pill Toggle */}
                   <div className="flex items-center rounded-full bg-slate-100 p-0.5 border border-slate-200/60">
-                    <button
-                      type="button"
-                      onClick={() => setBreakdownView('EXPENSE')}
-                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
-                        breakdownView === 'EXPENSE'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Expenses
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBreakdownView('INCOME')}
-                      className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
-                        breakdownView === 'INCOME'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Income
-                    </button>
+                    {showExpenseDonut && (
+                      <button
+                        type="button"
+                        onClick={() => setBreakdownView('EXPENSE')}
+                        className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                          breakdownView === 'EXPENSE'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Expenses
+                      </button>
+                    )}
+                    {showIncomeDonut && (
+                      <button
+                        type="button"
+                        onClick={() => setBreakdownView('INCOME')}
+                        className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                          breakdownView === 'INCOME'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Income
+                      </button>
+                    )}
+                    {showInvestmentDonut && (
+                      <button
+                        type="button"
+                        onClick={() => setBreakdownView('INVESTMENT')}
+                        className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                          breakdownView === 'INVESTMENT'
+                            ? 'bg-purple-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Investments
+                      </button>
+                    )}
                   </div>
 
                   {/* Total Amount in Header */}
@@ -619,7 +664,11 @@ export const DashboardPage: React.FC = () => {
                       {formatCurrency(totalBreakdownAmount, userCurrency)}
                     </div>
                     <div className="text-[10px] text-slate-400 font-medium">
-                      {breakdownView === 'EXPENSE' ? 'Total Spent' : 'Total Received'}
+                      {breakdownView === 'EXPENSE'
+                        ? 'Total Spent'
+                        : breakdownView === 'INCOME'
+                        ? 'Total Received'
+                        : 'Total Invested'}
                     </div>
                   </div>
                 </div>
@@ -629,13 +678,27 @@ export const DashboardPage: React.FC = () => {
               {activeBreakdown.length === 0 ? (
                 <EmptyState
                   icon={<PieChartIcon className="w-7 h-7 stroke-[1.8]" />}
-                  title={breakdownView === 'EXPENSE' ? 'No expense breakdown' : 'No income breakdown'}
+                  title={
+                    breakdownView === 'EXPENSE'
+                      ? 'No expense breakdown'
+                      : breakdownView === 'INCOME'
+                      ? 'No income breakdown'
+                      : 'No investment breakdown'
+                  }
                   description={
                     breakdownView === 'EXPENSE'
                       ? 'Record your expenses to see category distribution.'
-                      : 'Record your income to see source distribution.'
+                      : breakdownView === 'INCOME'
+                      ? 'Record your income to see source distribution.'
+                      : 'Record your investments to see asset allocation.'
                   }
-                  actionLabel={breakdownView === 'EXPENSE' ? 'Add Expense' : 'Add Income'}
+                  actionLabel={
+                    breakdownView === 'EXPENSE'
+                      ? 'Add Expense'
+                      : breakdownView === 'INCOME'
+                      ? 'Add Income'
+                      : 'Add Investment'
+                  }
                   actionIcon={<Plus className="w-4 h-4" />}
                   onAction={openPicker}
                 />

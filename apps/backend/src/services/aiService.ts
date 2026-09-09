@@ -124,7 +124,11 @@ export class AiService {
     // Annual return rate based on user's risk appetite: CONSERVATIVE (6%), AGGRESSIVE (12%), MODERATE/default (8%)
     const riskAppetite = (user.financeProfile?.riskAppetite || '').toUpperCase();
     const annualReturnRate =
-      riskAppetite === 'CONSERVATIVE' ? 0.06 : riskAppetite === 'AGGRESSIVE' ? 0.12 : 0.08;
+      riskAppetite === 'CONSERVATIVE' || riskAppetite === 'LOW'
+        ? 0.06
+        : riskAppetite === 'AGGRESSIVE' || riskAppetite === 'HIGH'
+        ? 0.12
+        : 0.08;
     const monthlyReturnRate = annualReturnRate / 12;
     const currentSurplusPaise = Math.max(0, netSavingsPaise);
     const monthlyInvestmentBasePaise =

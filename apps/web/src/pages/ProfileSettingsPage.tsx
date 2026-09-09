@@ -34,6 +34,30 @@ import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
+export const deriveAnnualIncomeRange = (
+  monthlyIncome: number | string,
+  currency = 'INR'
+): string => {
+  const num = Number(monthlyIncome);
+  if (isNaN(num) || num <= 0) return '';
+  const annual = num * 12;
+
+  if (currency === 'INR') {
+    if (annual < 300000) return 'Below ₹3,00,000';
+    if (annual <= 500000) return '₹3,00,000 - ₹5,00,000';
+    if (annual <= 1000000) return '₹5,00,000 - ₹10,00,000';
+    if (annual <= 2500000) return '₹10,00,000 - ₹25,00,000';
+    return 'Above ₹25,00,000';
+  } else {
+    const symbol = getCurrencySymbol(currency);
+    if (annual < 30000) return `Below ${symbol}30,000`;
+    if (annual <= 60000) return `${symbol}30,000 - ${symbol}60,000`;
+    if (annual <= 100000) return `${symbol}60,000 - ${symbol}100,000`;
+    if (annual <= 250000) return `${symbol}100,000 - ${symbol}250,000`;
+    return `Above ${symbol}250,000`;
+  }
+};
+
 export const ProfileSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { currency: userCurrency } = useUserCurrency();
@@ -70,6 +94,15 @@ export const ProfileSettingsPage: React.FC = () => {
     setSearchParams({ tab });
   };
 
+  // Expected Monthly Income change handler: updates monthlyIncome and auto-selects Annual Income Range bracket
+  const handleMonthlyIncomeChange = (val: string) => {
+    setMonthlyIncome(val);
+    const derived = deriveAnnualIncomeRange(val, userCurrency);
+    if (derived) {
+      setIncomeRange(derived);
+    }
+  };
+
   // Fetch initial profile data
   useEffect(() => {
     let mounted = true;
@@ -96,11 +129,61 @@ export const ProfileSettingsPage: React.FC = () => {
           if (fp.monthlyIncome !== undefined) setMonthlyIncome(fp.monthlyIncome);
           if (fp.monthlyExpenseBudget !== undefined) setMonthlyExpenseBudget(fp.monthlyExpenseBudget);
           if (fp.monthlyInvestmentTarget !== undefined) setMonthlyInvestmentTarget(fp.monthlyInvestmentTarget);
-          if (fp.incomeRange) setIncomeRange(fp.incomeRange);
-          if (fp.savingsTarget !== undefined && fp.savingsTarget !== null) setSavingsTarget(fp.savingsTarget);
-          if (fp.investmentExperience) setInvestmentExperience(fp.investmentExperience);
-          if (fp.riskAppetite) setRiskAppetite(fp.riskAppetite);
-          if (fp.investmentHorizon) setInvestmentHorizon(fp.investmentHorizon);
+
+          // Normalize Annual Income Range: if empty or legacy invalid string, auto-derive from monthlyIncome
+          const inrOptions = [
+            'Below ₹3,00,000',
+            '₹3,00,000 - ₹5,00,000',
+            '₹5,00,000 - ₹10,00,000',
+            '₹10,00,000 - ₹25,00,000',
+            'Above ₹25,00,000',
+          ];
+          const currIncomeRange = fp.incomeRange;
+          const derived = deriveAnnualIncomeRange(fp.monthlyIncome, userCurrency);
+          const validOptions = userCurrency === 'INR'
+            ? inrOptions
+            : [
+                `Below ${getCurrencySymbol(userCurrency)}30,000`,
+                `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000`,
+                `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000`,
+                `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000`,
+                `Above ${getCurrencySymbol(userCurrency)}250,000`,
+              ];
+
+          if (currIncomeRange && validOptions.includes(currIncomeRange)) {
+            setIncomeRange(currIncomeRange);
+          } else if (derived) {
+            setIncomeRange(derived);
+          } else if (currIncomeRange) {
+            setIncomeRange(currIncomeRange);
+          }
+
+          if (fp.savingsTarget !== undefined && fp.savingsTarget !== null) {
+            setSavingsTarget(fp.savingsTarget);
+          }
+
+          if (fp.investmentExperience) {
+            const exp = String(fp.investmentExperience).toLowerCase().trim();
+            if (exp === 'beginner') setInvestmentExperience('Beginner');
+            else if (exp === 'intermediate') setInvestmentExperience('Intermediate');
+            else if (exp === 'experienced') setInvestmentExperience('Experienced');
+            else if (exp === 'advanced') setInvestmentExperience('Advanced');
+            else setInvestmentExperience(fp.investmentExperience);
+          }
+
+          if (fp.riskAppetite) {
+            const r = String(fp.riskAppetite).toUpperCase().trim();
+            if (r === 'LOW' || r === 'CONSERVATIVE') setRiskAppetite('LOW');
+            else if (r === 'HIGH' || r === 'AGGRESSIVE') setRiskAppetite('HIGH');
+            else setRiskAppetite('MEDIUM');
+          }
+
+          if (fp.investmentHorizon) {
+            const h = String(fp.investmentHorizon).toUpperCase().trim();
+            if (h === 'SHORT' || h === 'SHORT_TERM') setInvestmentHorizon('SHORT');
+            else if (h === 'LONG' || h === 'LONG_TERM') setInvestmentHorizon('LONG');
+            else setInvestmentHorizon('MEDIUM');
+          }
         }
       })
       .catch(() => {});
@@ -108,7 +191,7 @@ export const ProfileSettingsPage: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [userCurrency]);
 
   // Save Basic Profile (PUT /api/v1/profile/basic)
   const handleSaveBasic = async (e: React.FormEvent) => {
@@ -165,6 +248,23 @@ export const ProfileSettingsPage: React.FC = () => {
       const inv = Number(monthlyInvestmentTarget);
       const sav = Number(savingsTarget);
 
+      // Ensure riskAppetite and investmentHorizon are strictly valid enums
+      const rawRisk = String(riskAppetite).toUpperCase().trim();
+      const cleanRisk: RiskAppetite =
+        rawRisk === 'LOW' || rawRisk === 'CONSERVATIVE'
+          ? 'LOW'
+          : rawRisk === 'HIGH' || rawRisk === 'AGGRESSIVE'
+          ? 'HIGH'
+          : 'MEDIUM';
+
+      const rawHorizon = String(investmentHorizon).toUpperCase().trim();
+      const cleanHorizon: InvestmentHorizon =
+        rawHorizon === 'SHORT' || rawHorizon === 'SHORT_TERM'
+          ? 'SHORT'
+          : rawHorizon === 'LONG' || rawHorizon === 'LONG_TERM'
+          ? 'LONG'
+          : 'MEDIUM';
+
       await apiClient.profile.updateFinanceProfile({
         monthlyIncome: inc,
         monthlyIncomeTarget: inc,
@@ -173,8 +273,8 @@ export const ProfileSettingsPage: React.FC = () => {
         incomeRange,
         savingsTarget: isNaN(sav) ? 0 : sav,
         investmentExperience,
-        riskAppetite,
-        investmentHorizon,
+        riskAppetite: cleanRisk,
+        investmentHorizon: cleanHorizon,
       });
 
       toast.success('Finance profile targets updated successfully');
@@ -427,7 +527,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 min={0}
                 step={500}
                 value={monthlyIncome}
-                onChange={(e) => setMonthlyIncome(e.target.value)}
+                onChange={(e) => handleMonthlyIncomeChange(e.target.value)}
                 icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
                 helperText={`Formatted: ${formatCurrency(monthlyIncome, userCurrency)}`}
               />

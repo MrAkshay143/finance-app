@@ -216,6 +216,60 @@ export class AnalyticsService {
       }))
       .sort((a, b) => b.amountPaise - a.amountPaise);
 
+    // Investment Category Breakdown
+    const investmentTxns = await prisma.transaction.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        direction: 'DEBIT',
+        type: 'INVESTMENT',
+        txnDate: { gte: currentPeriod.start, lt: currentPeriod.end },
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    let totalInvestmentPaise = 0;
+    const investmentCatMap = new Map<
+      string,
+      { categoryId: string | null; categoryName: string; amountPaise: number; count: number }
+    >();
+
+    for (const t of investmentTxns) {
+      const amt = Number(t.amount);
+      totalInvestmentPaise += amt;
+      const catId = t.categoryId || 'uncategorized';
+      const catName = t.category?.name || 'Other Investments';
+
+      const existing = investmentCatMap.get(catId);
+      if (existing) {
+        existing.amountPaise += amt;
+        existing.count += 1;
+      } else {
+        investmentCatMap.set(catId, {
+          categoryId: t.categoryId,
+          categoryName: catName,
+          amountPaise: amt,
+          count: 1,
+        });
+      }
+    }
+
+    const investmentCategoryBreakdown = Array.from(investmentCatMap.values())
+      .map((item) => ({
+        categoryId: item.categoryId,
+        categoryName: item.categoryName,
+        totalAmount: item.amountPaise / 100,
+        amountPaise: item.amountPaise,
+        percentage:
+          totalInvestmentPaise > 0
+            ? Math.round((item.amountPaise / totalInvestmentPaise) * 100 * 10) / 10
+            : 0,
+        transactionCount: item.count,
+      }))
+      .sort((a, b) => b.amountPaise - a.amountPaise);
+
     // 3. Current Month Summary & Comparison
     const currentTrend = spendingTrends[spendingTrends.length - 1];
     const monthlyComparison = {
@@ -247,6 +301,7 @@ export class AnalyticsService {
       categoryBreakdown: expenseCategoryBreakdown,
       expenseCategoryBreakdown,
       incomeCategoryBreakdown,
+      investmentCategoryBreakdown,
       monthlyComparison,
     };
   }

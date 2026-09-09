@@ -45,11 +45,11 @@ async function main() {
       monthlyIncome: BigInt(18000000), // ₹1,80,000.00
       monthlyExpenseBudget: BigInt(7500000), // ₹75,000.00
       monthlyInvestmentTarget: BigInt(5000000), // ₹50,000.00
-      savingsTarget: BigInt(20), // 20%
-      incomeRange: '₹15,00,000 - ₹25,00,000',
-      investmentExperience: 'INTERMEDIATE',
-      riskAppetite: 'MODERATE',
-      investmentHorizon: 'LONG_TERM',
+      savingsTarget: BigInt(43200000), // ₹4,32,000.00 (20% of ₹21,60,000 annual income in paise)
+      incomeRange: '₹10,00,000 - ₹25,00,000',
+      investmentExperience: 'Intermediate',
+      riskAppetite: 'MEDIUM',
+      investmentHorizon: 'LONG',
     },
     create: {
       userId,
@@ -58,11 +58,11 @@ async function main() {
       monthlyIncome: BigInt(18000000),
       monthlyExpenseBudget: BigInt(7500000),
       monthlyInvestmentTarget: BigInt(5000000),
-      savingsTarget: BigInt(20),
-      incomeRange: '₹15,00,000 - ₹25,00,000',
-      investmentExperience: 'INTERMEDIATE',
-      riskAppetite: 'MODERATE',
-      investmentHorizon: 'LONG_TERM',
+      savingsTarget: BigInt(43200000), // ₹4,32,000.00
+      incomeRange: '₹10,00,000 - ₹25,00,000',
+      investmentExperience: 'Intermediate',
+      riskAppetite: 'MEDIUM',
+      investmentHorizon: 'LONG',
     },
   });
   console.log('Upserted FinanceProfile with institutional Bengaluru tech professional parameters.');

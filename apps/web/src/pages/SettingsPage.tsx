@@ -24,6 +24,7 @@ import {
   Check,
   Sparkles,
   Smartphone,
+  Download,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -36,11 +37,13 @@ import { useAuthStore } from '../store/authStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { UserSettings, UpdateUserSettingsInput } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
+import { usePwaInstall } from '../hooks/usePwaInstall.js';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { logout } = useAuthStore();
+  const { isInstallable, isInstalled, installApp } = usePwaInstall();
 
   // Modals state
   const [prefModal, setPrefModal] = useState<'currency' | 'timezone' | 'startDay' | null>(null);
@@ -689,7 +692,70 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 7. Danger Zone */}
+        {/* 7. App & Device Section */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 px-1">
+            <Download className="w-4 h-4 text-brand-primary" />
+            <div>
+              <h3 className="text-xs font-bold text-textDefault">App & Device</h3>
+              <p className="text-[11px] text-textMuted leading-tight">Install Finance as a standalone desktop or mobile application.</p>
+            </div>
+          </div>
+
+          <Card padding="none" className="bg-white border border-borderDefault shadow-xs overflow-hidden">
+            <div className="p-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/pwa-192x192.png"
+                  alt="Finance Icon"
+                  className="w-9 h-9 rounded-xl object-cover shadow-xs border border-slate-200/60"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = 'none';
+                  }}
+                />
+                <div>
+                  <div className="text-xs font-bold text-textDefault flex items-center gap-1.5">
+                    <span>Finance</span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-brand-primary">PWA</span>
+                  </div>
+                  <div className="text-[11px] text-textMuted">
+                    {isInstalled
+                      ? 'Running as installed standalone application'
+                      : isInstallable
+                      ? 'Ready to install on this device for offline and fast access'
+                      : 'Web application • Chrome PWA enabled'}
+                  </div>
+                </div>
+              </div>
+
+              {isInstalled ? (
+                <span className="text-[10px] font-semibold text-emerald-700 px-2 py-0.5 bg-emerald-50 rounded-md border border-emerald-200 shrink-0">
+                  Installed
+                </span>
+              ) : isInstallable ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Download className="w-3.5 h-3.5" />}
+                  onClick={async () => {
+                    const installed = await installApp();
+                    if (installed) {
+                      toast.success('Finance installed successfully!');
+                    }
+                  }}
+                >
+                  Install App
+                </Button>
+              ) : (
+                <span className="text-[10px] font-medium text-slate-500 px-2 py-0.5 bg-slate-100 rounded-md shrink-0">
+                  Ready
+                </span>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* 8. Danger Zone */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <AlertTriangle className="w-4 h-4 text-rose-600" />

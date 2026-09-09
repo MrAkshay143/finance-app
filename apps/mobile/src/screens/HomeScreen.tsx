@@ -89,8 +89,14 @@ export const HomeScreen: React.FC = () => {
   const security = data?.securityBanner;
   const expenseBreakdown = data?.expenseBreakdown || [];
   const incomeBreakdown = (data as any)?.incomeBreakdown || [];
-  const [breakdownView, setBreakdownView] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
-  const activeBreakdown = breakdownView === 'EXPENSE' ? expenseBreakdown : incomeBreakdown;
+  const investmentBreakdown = (data as any)?.investmentBreakdown || [];
+  const [breakdownView, setBreakdownView] = useState<'EXPENSE' | 'INCOME' | 'INVESTMENT'>('EXPENSE');
+  const activeBreakdown =
+    breakdownView === 'EXPENSE'
+      ? expenseBreakdown
+      : breakdownView === 'INCOME'
+      ? incomeBreakdown
+      : investmentBreakdown;
   const accountSummary = data?.accountSummary;
   const recentTransactions = data?.recentTransactions || [];
 
@@ -419,6 +425,28 @@ export const HomeScreen: React.FC = () => {
                 }}
               >
                 Income
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setBreakdownView('INVESTMENT')}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel="Show investment breakdown"
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 6,
+                backgroundColor: breakdownView === 'INVESTMENT' ? '#FFFFFF' : 'transparent',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontWeight: '700',
+                  color: breakdownView === 'INVESTMENT' ? '#8B5CF6' : colors.textMuted,
+                }}
+              >
+                Invest
               </Text>
             </Pressable>
           </View>

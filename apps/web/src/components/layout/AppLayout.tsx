@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav.js';
 import { AddTransactionPickerModal } from '../finance/AddTransactionPickerModal.js';
 import { TransactionFormModal } from '../finance/TransactionFormModal.js';
+import { InstallAppBanner } from './InstallAppBanner.js';
 
 export interface AppLayoutProps {
   children?: React.ReactNode;
@@ -27,6 +28,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
         {/* Fixed Bottom Navigation (5 items) */}
         <BottomNav />
+
+        {/* PWA Install Banner */}
+        <InstallAppBanner />
 
         {/* Global Modals: Suppressed on admin routes */}
         {!isAdminRoute && (

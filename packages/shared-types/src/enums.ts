@@ -27,10 +27,26 @@ export type RecurringFrequency = z.infer<typeof RecurringFrequencySchema>;
 export const RecurringStatusSchema = z.enum(['ACTIVE', 'PAUSED', 'DELETED']);
 export type RecurringStatus = z.infer<typeof RecurringStatusSchema>;
 
-export const RiskAppetiteSchema = z.enum(['LOW', 'MEDIUM', 'HIGH']);
+export const RiskAppetiteSchema = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    const v = val.toUpperCase().trim();
+    if (v === 'LOW' || v === 'CONSERVATIVE') return 'LOW';
+    if (v === 'MEDIUM' || v === 'MODERATE') return 'MEDIUM';
+    if (v === 'HIGH' || v === 'AGGRESSIVE') return 'HIGH';
+  }
+  return val;
+}, z.enum(['LOW', 'MEDIUM', 'HIGH']));
 export type RiskAppetite = z.infer<typeof RiskAppetiteSchema>;
 
-export const InvestmentHorizonSchema = z.enum(['SHORT', 'MEDIUM', 'LONG']);
+export const InvestmentHorizonSchema = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    const v = val.toUpperCase().trim();
+    if (v === 'SHORT' || v === 'SHORT_TERM') return 'SHORT';
+    if (v === 'MEDIUM' || v === 'MEDIUM_TERM') return 'MEDIUM';
+    if (v === 'LONG' || v === 'LONG_TERM') return 'LONG';
+  }
+  return val;
+}, z.enum(['SHORT', 'MEDIUM', 'LONG']));
 export type InvestmentHorizon = z.infer<typeof InvestmentHorizonSchema>;
 
 export const NotificationTypeSchema = z.enum([

@@ -13,3 +13,20 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+if (
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  import.meta.env.PROD
+) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('Finance PWA ServiceWorker active with scope:', registration.scope);
+      })
+      .catch((err) => {
+        console.warn('Finance PWA ServiceWorker registration failed:', err);
+      });
+  });
+}

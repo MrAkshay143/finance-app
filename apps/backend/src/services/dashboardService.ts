@@ -256,6 +256,62 @@ export class DashboardService {
       })
       .sort((a, b) => b.amount - a.amount);
 
+    // D3. Investment Breakdown by Category
+    const investmentTxns = await prisma.transaction.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        direction: 'DEBIT',
+        type: 'INVESTMENT',
+        txnDate: { gte: periodRange.start, lt: periodRange.end },
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    let totalInvestmentPaise = BigInt(0);
+    const investmentCategoryTotals = new Map<
+      string,
+      { categoryId: string | null; categoryName: string; amountPaise: bigint }
+    >();
+
+    for (const txn of investmentTxns) {
+      const amt = BigInt(txn.amount);
+      totalInvestmentPaise += amt;
+      const catId = txn.categoryId || 'uncategorized';
+      const catName = txn.category?.name || 'Other Investments';
+
+      const existing = investmentCategoryTotals.get(catId);
+      if (existing) {
+        existing.amountPaise += amt;
+      } else {
+        investmentCategoryTotals.set(catId, {
+          categoryId: txn.categoryId,
+          categoryName: catName,
+          amountPaise: amt,
+        });
+      }
+    }
+
+    const totalInvestmentNumber = Number(totalInvestmentPaise) / 100;
+    const investmentBreakdown = Array.from(investmentCategoryTotals.values())
+      .map((item) => {
+        const amount = Number(item.amountPaise) / 100;
+        const percentage =
+          totalInvestmentNumber > 0
+            ? Math.round((amount / totalInvestmentNumber) * 100 * 10) / 10
+            : 0;
+        return {
+          categoryId: item.categoryId,
+          categoryName: item.categoryName,
+          amount,
+          amountPaise: Number(item.amountPaise),
+          percentage,
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
     // E. Account Summary
     const activeAccounts = await prisma.account.findMany({
       where: {
@@ -310,6 +366,7 @@ export class DashboardService {
       securityBanner,
       expenseBreakdown,
       incomeBreakdown,
+      investmentBreakdown,
       accountSummary,
       recentTransactions,
     };

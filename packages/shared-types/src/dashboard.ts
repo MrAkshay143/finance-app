@@ -68,6 +68,8 @@ export interface DashboardSummary {
     configuredQuestionsCount: number;
   };
   expenseBreakdown: DashboardExpenseCategory[];
+  incomeBreakdown?: DashboardExpenseCategory[];
+  investmentBreakdown?: DashboardExpenseCategory[];
   accountSummary: DashboardAccountSummary;
   recentTransactions: Transaction[];
 }

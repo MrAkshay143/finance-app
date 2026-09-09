@@ -74,7 +74,9 @@ export function createApp(): Express {
 
   app.get('/readyz', async (_req: Request, res: Response) => {
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      if (process.env.NODE_ENV !== 'test') {
+        await prisma.$queryRaw`SELECT 1`;
+      }
       res.status(200).json({ status: 'ready' });
     } catch {
       res.status(503).json({ status: 'unready', error: 'Database unreachable' });

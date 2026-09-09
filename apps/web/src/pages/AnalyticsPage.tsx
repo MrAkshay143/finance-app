@@ -42,7 +42,7 @@ export const AnalyticsPage: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('This Month');
   const [selectedTrendHorizon, setSelectedTrendHorizon] = useState<string>('Last 6 Months');
   const [selectedCategoryPeriod, setSelectedCategoryPeriod] = useState<string>('This Month');
-  const [categoryType, setCategoryType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  const [categoryType, setCategoryType] = useState<'EXPENSE' | 'INCOME' | 'INVESTMENT'>('EXPENSE');
 
   const { data: analyticsData, isLoading } = useQuery<AnalyticsOverview>({
     queryKey: ['analytics', selectedMonth],
@@ -86,10 +86,12 @@ export const AnalyticsPage: React.FC = () => {
     0,
   ];
 
-  const activeCategoryBreakdown =
+  const activeCategoryBreakdown: Array<{ categoryId?: string; categoryName: string; totalAmount: number; percentage: number }> =
     categoryType === 'EXPENSE'
       ? (analyticsData?.expenseCategoryBreakdown || analyticsData?.categoryBreakdown || [])
-      : (analyticsData?.incomeCategoryBreakdown || []);
+      : categoryType === 'INCOME'
+      ? (analyticsData?.incomeCategoryBreakdown || [])
+      : ((analyticsData as any)?.investmentCategoryBreakdown || []);
 
   const hasSpendingTrendData = displayedTrends.some((t) => t.spent > 0);
   const hasCategoryData = activeCategoryBreakdown.length > 0;
@@ -445,6 +447,17 @@ export const AnalyticsPage: React.FC = () => {
                   }`}
                 >
                   Income
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryType('INVESTMENT')}
+                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                    categoryType === 'INVESTMENT'
+                      ? 'bg-white text-purple-600 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Investments
                 </button>
               </div>
 
