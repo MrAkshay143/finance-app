@@ -29,6 +29,12 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
+      - key: JWT_RESET_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: contact@imakshay.in
+      - key: ADMIN_PASSWORD
+        value: Admin@Password123
       - key: CORS_ALLOWED_ORIGINS
         value: "*"
 
