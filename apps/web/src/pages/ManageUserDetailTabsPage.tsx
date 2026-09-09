@@ -47,6 +47,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tempPasswordModal, setTempPasswordModal] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
 
   // Fetch user details
   const { data: userDetails, isLoading, isError } = useQuery<AdminUserDetails>({
@@ -95,6 +96,22 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       const tempPass = res?.data?.temporaryPassword || res?.temporaryPassword || '';
       setTempPasswordModal(tempPass);
       showToast('Temporary password generated');
+    },
+  });
+
+  // Revoke all sessions mutation
+  const revokeSessionsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiClient.admin.revokeAllUserSessions(id);
+    },
+    onSuccess: (res: any) => {
+      const count = res?.revokedCount ?? res?.data?.revokedCount ?? 0;
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
+      setIsRevokeModalOpen(false);
+      showToast(`Revoked ${count} active session${count === 1 ? '' : 's'}`);
+    },
+    onError: (err: any) => {
+      showToast(err?.message || 'Failed to revoke sessions');
     },
   });
 
@@ -216,7 +233,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
 
       <div className="p-4 space-y-4">
         {/* User Card */}
-        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-4 shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="relative shrink-0">
               <div className="w-14 h-14 rounded-full bg-blue-100 text-brand-primary text-lg font-bold flex items-center justify-center border-2 border-blue-200">
@@ -253,7 +270,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(`/admin/users/${id}`)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-borderDefault shadow-xs rounded-full text-xs font-semibold text-brand-primary hover:bg-blue-50 transition shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
+            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-borderDefault shadow-card rounded-full text-xs font-semibold text-brand-primary hover:bg-blue-50 transition shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
           >
             <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Edit User</span>
@@ -285,7 +302,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-4">
             {/* Account Details Card */}
-            <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
+            <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
               <div className="p-3.5 bg-slate-50/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-brand-primary" aria-hidden="true" />
@@ -347,7 +364,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                   onClick={() =>
                     updateUserMutation.mutate({ status: isActive ? 'SUSPENDED' : 'ACTIVE' })
                   }
-                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
                 >
                   <div>
                     <div
@@ -372,7 +389,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                   onClick={() =>
                     updateUserMutation.mutate({ role: isAdmin ? 'USER' : 'ADMIN' })
                   }
-                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
                 >
                   <div>
                     <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2">
@@ -391,7 +408,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => resetPasswordMutation.mutate()}
-                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
                 >
                   <div>
                     <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2">
@@ -410,7 +427,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => resetKbaMutation.mutate()}
-                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
                 >
                   <div>
                     <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center mb-2">
@@ -429,7 +446,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
             </div>
 
             {/* Delete Account Card */}
-            <Card padding="none" className="bg-rose-50/40 border border-rose-200/60 shadow-xs overflow-hidden">
+            <Card padding="none" className="bg-rose-50/40 border border-rose-200/60 shadow-card overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(true)}
@@ -453,7 +470,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         {/* TAB 2: PERMISSIONS */}
         {activeTab === 'permissions' && (
           <div className="space-y-4">
-            <Card padding="sm" className="bg-white border border-borderDefault shadow-xs space-y-3">
+            <Card padding="sm" className="bg-white border border-borderDefault shadow-card space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-bold text-textDefault">Admin Role Status</h3>
@@ -509,7 +526,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         {/* TAB 3: SECURITY */}
         {activeTab === 'security' && (
           <div className="space-y-4">
-            <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
+            <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
               <div className="p-3.5 flex items-center justify-between text-xs">
                 <div>
                   <div className="font-bold text-textDefault">Failed Login Attempts</div>
@@ -570,6 +587,21 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                   Reset Password
                 </Button>
               </div>
+
+              <div className="p-3.5 flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-bold text-textDefault">Active Sessions</div>
+                  <div className="text-[11px] text-textMuted">Force logout and revoke all active sessions</div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                  onClick={() => setIsRevokeModalOpen(true)}
+                >
+                  Revoke Sessions
+                </Button>
+              </div>
             </Card>
           </div>
         )}
@@ -607,6 +639,36 @@ export const ManageUserDetailTabsPage: React.FC = () => {
               Copy
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Revoke Sessions Modal */}
+      <Modal
+        isOpen={isRevokeModalOpen}
+        onClose={() => setIsRevokeModalOpen(false)}
+        compact
+        title="Revoke All Sessions"
+        icon={<LogOut className="w-4 h-4 text-rose-600" />}
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setIsRevokeModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              isLoading={revokeSessionsMutation.isPending}
+              onClick={() => revokeSessionsMutation.mutate()}
+            >
+              Revoke All Sessions
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-xs text-textMuted leading-relaxed">
+          <p>
+            Force logout all active sessions for <strong>{user.email}</strong>? The user will be required to authenticate again.
+          </p>
         </div>
       </Modal>
 

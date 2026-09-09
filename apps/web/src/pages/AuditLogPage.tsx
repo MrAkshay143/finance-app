@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -24,8 +24,10 @@ import { Card } from '../components/ui/Card.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
+import { Pagination } from '../components/ui/Pagination.js';
 import { apiClient } from '../services/apiClient.js';
 import { formatDate, formatDateTime } from '../utils/date.js';
+import { formatAuditAction } from '../utils/auditFormatters.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AuditLogPage: React.FC = () => {
@@ -65,10 +67,32 @@ export const AuditLogPage: React.FC = () => {
     });
   }, [data, search]);
 
-  // Group logs by date
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 15;
+
+  // Reset currentPage to 1 on search or category filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+
+  // Clamp current page if logs list shrinks
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  // Paginated logs slice
+  const paginatedLogs = useMemo(() => {
+    return logs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  }, [logs, currentPage]);
+
+  // Group paginated logs by date
   const groupedLogs = useMemo(() => {
     const groups: { [dateStr: string]: AuditLogRecord[] } = {};
-    logs.forEach((log) => {
+    paginatedLogs.forEach((log) => {
       const dateKey = formatDate(log.createdAt) || 'Recent Activity';
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -76,7 +100,7 @@ export const AuditLogPage: React.FC = () => {
       groups[dateKey].push(log);
     });
     return groups;
-  }, [logs]);
+  }, [paginatedLogs]);
 
   const getActionIcon = (action: string, category?: string) => {
     const cat = category?.toLowerCase() || '';
@@ -248,6 +272,7 @@ export const AuditLogPage: React.FC = () => {
                 <div className="space-y-2">
                   {entries.map((log) => {
                     const client = parseClientDevice(log.details?.userAgent, log.ipAddress);
+                    const actionInfo = formatAuditAction(log.action);
                     return (
                       <Card
                         key={log.id}
@@ -259,8 +284,12 @@ export const AuditLogPage: React.FC = () => {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-xs font-bold font-mono text-textDefault truncate">
-                                {log.action}
+                              <h4
+                                className="text-xs font-bold text-textDefault truncate"
+                                title={log.action}
+                                data-action={log.action}
+                              >
+                                {actionInfo.title}
                               </h4>
                               <span className="text-[10px] text-textMuted shrink-0">
                                 {formatTimestamp(log.createdAt)}
@@ -270,6 +299,7 @@ export const AuditLogPage: React.FC = () => {
                             <p className="text-xs text-textMuted mt-0.5 leading-tight">
                               {log.details?.description ||
                                 log.details?.message ||
+                                actionInfo.description ||
                                 log.category ||
                                 'Activity recorded.'}
                             </p>
@@ -304,8 +334,18 @@ export const AuditLogPage: React.FC = () => {
               </div>
             ))}
 
+            {/* Centralized App-Style Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={logs.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+              itemLabel="logs"
+            />
+
             {/* End of Feed Illustration */}
-            <div className="pt-6 pb-2 flex flex-col items-center justify-center text-center space-y-2">
+            <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shadow-xs">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -338,11 +378,15 @@ export const AuditLogPage: React.FC = () => {
             <div className="p-2.5 bg-slate-50 rounded-xl space-y-1">
               <div className="flex justify-between">
                 <span className="text-textMuted">Action:</span>
-                <span className="font-mono font-bold text-textDefault">{inspectRecord.action}</span>
+                <span className="font-semibold text-textDefault">{formatAuditAction(inspectRecord.action).title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-textMuted">Technical ID:</span>
+                <span className="font-mono text-[11px] text-textMuted">{inspectRecord.action}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-textMuted">Category:</span>
-                <span className="font-semibold text-textDefault">{inspectRecord.category || 'General'}</span>
+                <span className="font-semibold text-textDefault">{inspectRecord.category || formatAuditAction(inspectRecord.action).category || 'General'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-textMuted">Timestamp:</span>

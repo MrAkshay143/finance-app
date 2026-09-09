@@ -23,6 +23,10 @@ import {
   KeyRound,
   DollarSign,
   BarChart3,
+  Tag,
+  Layers,
+  UserCheck,
+  ArrowRight,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -37,11 +41,15 @@ import { toast } from '../store/toastStore.js';
 export const AdminAppSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
 
   // General Platform State
   const [platformName, setPlatformName] = useState<string>('Finance Tracker');
   const [supportEmail, setSupportEmail] = useState<string>('support@imakshay.in');
   const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState<string>(
+    'Platform is currently undergoing scheduled maintenance. Please try again shortly.'
+  );
   const [allowUserRegistration, setAllowUserRegistration] = useState<boolean>(true);
 
   // Security Policies State
@@ -76,6 +84,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       if (settingsData.platformName) setPlatformName(settingsData.platformName);
       if (settingsData.supportEmail) setSupportEmail(settingsData.supportEmail);
       if (settingsData.maintenanceMode !== undefined) setMaintenanceMode(settingsData.maintenanceMode);
+      if (settingsData.maintenanceMessage !== undefined) setMaintenanceMessage(settingsData.maintenanceMessage);
       if (settingsData.allowUserRegistration !== undefined) setAllowUserRegistration(settingsData.allowUserRegistration);
 
       if (settingsData.sessionTimeoutMinutes) setSessionTimeout(settingsData.sessionTimeoutMinutes);
@@ -175,6 +184,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       platformName,
       supportEmail,
       maintenanceMode,
+      maintenanceMessage,
       allowUserRegistration,
       sessionTimeoutMinutes: sessionTimeout,
       maxFailedAttempts,
@@ -239,8 +249,35 @@ export const AdminAppSettingsPage: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Admin Profile Hero Card */}
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-4 sm:p-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+                  {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-textDefault truncate">{user?.fullName || 'Administrator'}</h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                      {user?.role === 'ADMIN' ? 'System Admin' : 'User'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-textMuted truncate mt-0.5">{user?.email || 'admin@imakshay.in'}</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/admin/profile')}
+                icon={<UserCheck className="w-3.5 h-3.5 shrink-0" />}
+                className="whitespace-nowrap shrink-0"
+              >
+                My Profile
+              </Button>
+            </div>
+
             {/* Card 1: App Settings (General Platform) */}
-            <div className="bg-white border border-borderDefault rounded-3xl shadow-sm p-5 space-y-4">
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
@@ -339,11 +376,26 @@ export const AdminAppSettingsPage: React.FC = () => {
                     />
                   </button>
                 </div>
+
+                {/* Custom Maintenance Notice */}
+                <div className="space-y-1 pt-1">
+                  <label className="text-xs font-semibold text-textDefault">Custom Maintenance Notice</label>
+                  <textarea
+                    value={maintenanceMessage}
+                    onChange={(e) => setMaintenanceMessage(e.target.value)}
+                    placeholder="Platform is currently undergoing scheduled maintenance. Please try again shortly."
+                    rows={2}
+                    className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary resize-none"
+                  />
+                  <p className="text-[11px] text-textMuted">
+                    Displayed dynamically on the maintenance screen to non-admin users.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Card 2: Security Policies */}
-            <div className="bg-white border border-borderDefault rounded-3xl shadow-sm p-5 space-y-4">
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                   <Shield className="w-5 h-5" />
@@ -511,11 +563,11 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Require KBA Toggle */}
+                {/* Require Security Questions Toggle */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
-                    <h3 className="text-xs font-bold text-textDefault">Require KBA For Sensitive Actions</h3>
-                    <p className="text-[11px] text-textMuted mt-0.5">Prompt security questions for password changes</p>
+                    <h3 className="text-xs font-bold text-textDefault">Require Security Questions for Sensitive Actions</h3>
+                    <p className="text-[11px] text-textMuted mt-0.5">Prompt security questions before sensitive operations</p>
                   </div>
                   <button
                     type="button"
@@ -542,8 +594,8 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 3: Financial Defaults & Institutional Thresholds */}
-            <div className="bg-white border border-borderDefault rounded-3xl shadow-sm p-5 space-y-4">
+            {/* Card 3: Financial Defaults & Targets */}
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <DollarSign className="w-5 h-5" />
@@ -551,7 +603,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                 <div>
                   <h2 className="text-base font-bold text-textDefault leading-tight">Financial Defaults</h2>
                   <p className="text-xs text-textMuted mt-0.5 leading-tight">
-                    Base currency, budgeting cycles and FAM rules
+                    Base currency, default period, and financial targets
                   </p>
                 </div>
               </div>
@@ -595,9 +647,9 @@ export const AdminAppSettingsPage: React.FC = () => {
                   <div className="flex items-start gap-2.5">
                     <BarChart3 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="text-xs font-bold text-textDefault">FAM Score Baseline Weights</h3>
+                      <h3 className="text-xs font-bold text-textDefault">Financial Health Target Ratios</h3>
                       <p className="text-[11px] text-textMuted mt-0.5">
-                        Target thresholds for financial health evaluation
+                        Target thresholds for budget and financial health scoring
                       </p>
                     </div>
                   </div>
@@ -648,15 +700,15 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
 
             {/* Card 4: System Maintenance & Controls */}
-            <div className="bg-white border border-borderDefault rounded-3xl shadow-sm p-5 space-y-4">
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                   <Database className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-textDefault leading-tight">System Controls & Ops</h2>
+                  <h2 className="text-base font-bold text-textDefault leading-tight">System Controls</h2>
                   <p className="text-xs text-textMuted mt-0.5 leading-tight">
-                    On-demand operations, cache flushing and data retention
+                    Maintenance actions, cache, and data exports
                   </p>
                 </div>
               </div>
@@ -665,8 +717,8 @@ export const AdminAppSettingsPage: React.FC = () => {
                 {/* Clear Cache */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
-                    <h3 className="text-xs font-bold text-textDefault">Clear Application Cache</h3>
-                    <p className="text-[11px] text-textMuted mt-0.5">Flush Redis & in-memory caches</p>
+                    <h3 className="text-xs font-bold text-textDefault">Clear System Cache</h3>
+                    <p className="text-[11px] text-textMuted mt-0.5">Refresh temporary system data</p>
                   </div>
                   <Button
                     variant="outline"
@@ -683,8 +735,8 @@ export const AdminAppSettingsPage: React.FC = () => {
                 {/* Run Recurring Materialization */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
-                    <h3 className="text-xs font-bold text-textDefault">Process Recurring Schedules</h3>
-                    <p className="text-[11px] text-textMuted mt-0.5">Materialize all due recurring transactions</p>
+                    <h3 className="text-xs font-bold text-textDefault">Process Scheduled Transactions</h3>
+                    <p className="text-[11px] text-textMuted mt-0.5">Post all due scheduled transactions now</p>
                   </div>
                   <Button
                     variant="outline"
@@ -701,8 +753,8 @@ export const AdminAppSettingsPage: React.FC = () => {
                 {/* Export Audit Logs CSV */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
-                    <h3 className="text-xs font-bold text-textDefault">Export Audit Trail</h3>
-                    <p className="text-[11px] text-textMuted mt-0.5">Download full system audit logs (CSV)</p>
+                    <h3 className="text-xs font-bold text-textDefault">Export Audit Logs</h3>
+                    <p className="text-[11px] text-textMuted mt-0.5">Download all system audit logs as CSV</p>
                   </div>
                   <Button
                     variant="outline"
@@ -719,8 +771,8 @@ export const AdminAppSettingsPage: React.FC = () => {
                 {/* Purge Audit Logs */}
                 <div className="flex items-center justify-between p-3 bg-rose-50/50 border border-rose-100 rounded-2xl">
                   <div>
-                    <h3 className="text-xs font-bold text-rose-950">Purge Historic Logs</h3>
-                    <p className="text-[11px] text-rose-700/80 mt-0.5">Prune logs beyond retention horizon</p>
+                    <h3 className="text-xs font-bold text-rose-950">Clear Old Audit Logs</h3>
+                    <p className="text-[11px] text-rose-700/80 mt-0.5">Delete logs older than retention period</p>
                   </div>
                   <Button
                     variant="danger"
@@ -729,7 +781,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                     icon={<Trash2 className="w-3.5 h-3.5" />}
                     className="whitespace-nowrap shrink-0"
                   >
-                    Purge Logs
+                    Clear Logs
                   </Button>
                 </div>
               </div>

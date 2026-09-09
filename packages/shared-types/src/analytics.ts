@@ -60,5 +60,6 @@ export const AnalyticsQuerySchema = z.object({
   period: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  accountId: z.string().optional(),
 });
 export type AnalyticsQuery = z.infer<typeof AnalyticsQuerySchema>;

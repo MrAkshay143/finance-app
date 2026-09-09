@@ -19,11 +19,12 @@ import { Select } from '../components/ui/Select.js';
 import { apiClient } from '../services/apiClient.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
+import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import type { Account, ImportCsvResponse } from '@finance/shared-types';
 
 export const ImportPage: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const queryClient = useSafeQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { currency: userCurrency } = useUserCurrency();
 
@@ -34,16 +35,18 @@ export const ImportPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch accounts to populate dropdown
-  const { data: accountsData, isLoading: isAccountsLoading } = useQuery<Account[]>({
+  const { data: accountsData, isLoading: isAccountsLoading } = useQuery({
     queryKey: ['accounts'],
-    queryFn: async () => {
-      const res = await apiClient.accounts.list();
-      const list = (res as any)?.accounts || (res as any)?.data?.accounts || res;
-      return Array.isArray(list) ? list : [];
-    },
-  });
+    queryFn: async () => apiClient.accounts.list(),
+  }, queryClient);
 
-  const accounts = accountsData || [];
+  const accounts: Account[] = React.useMemo(() => {
+    if (!accountsData) return [];
+    if (Array.isArray(accountsData)) return accountsData;
+    if (Array.isArray((accountsData as any)?.accounts)) return (accountsData as any).accounts;
+    if (Array.isArray((accountsData as any)?.data?.accounts)) return (accountsData as any).data.accounts;
+    return [];
+  }, [accountsData]);
 
   // Set default account once loaded
   React.useEffect(() => {
@@ -182,7 +185,7 @@ export const ImportPage: React.FC = () => {
             ) : (
               accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type}) · Balance: {formatCurrency(acc.currentBalance / 100, (acc as any).currency || userCurrency)}
+                  {acc.name} ({acc.type}) · Balance: {formatCurrency(acc.currentBalance, (acc as any).currency || userCurrency)}
                 </option>
               ))
             )}

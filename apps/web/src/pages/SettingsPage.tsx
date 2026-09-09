@@ -652,8 +652,8 @@ export const SettingsPage: React.FC = () => {
                   <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-textDefault">Security questions (KBA)</div>
-                  <div className="text-[11px] text-textMuted">Configure recovery answers and challenge tier</div>
+                  <div className="text-xs font-bold text-textDefault">Security Questions</div>
+                  <div className="text-[11px] text-textMuted">Set recovery questions to protect your account</div>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400" />

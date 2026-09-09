@@ -131,242 +131,205 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-clip">
-        {/* Navy Header Block */}
-        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-8 pb-7 px-6 rounded-b-[28px] shadow-header sticky top-0 z-30 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white shadow-lg mb-3">
-            <Wallet className="w-7 h-7" />
+    <div className="min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-3 sm:p-4">
+      <div className="w-full max-w-[420px] flex flex-col justify-center">
+        {/* Compact Brand Header */}
+        <div className="text-center mb-2">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1">
+            <img
+              src="/pwa-192x192.png"
+              alt="Finance"
+              className="w-8 h-8 rounded-xl object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+              }}
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Finance Tracker</h1>
-          <p className="text-xs text-slate-300 mt-1 font-normal">
-            Personal Wealth & Spending Hub
+          <h1 className="text-base font-bold tracking-tight text-slate-900 leading-tight">
+            Create Your Account
+          </h1>
+          <p className="text-[11px] text-slate-500 font-normal">
+            Start your journey to financial clarity and discipline
           </p>
-        </header>
+        </div>
 
-        {/* Signup Form Container */}
-        <main className="flex-1 p-5 space-y-4">
-          {/* Welcome Card */}
-          <div className="text-center pt-1 pb-2">
-            <h2 className="text-xl font-bold text-textDefault tracking-tight">
-              Create Your Account
-            </h2>
-            <p className="text-xs text-textMuted mt-1">
-              Start your journey to financial clarity and discipline
-            </p>
-          </div>
-
+        {/* Card Container */}
+        <div className="bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-200/80 space-y-2.5">
           {/* Friendly API Error Display */}
           {error && (
             <div
               role="alert"
-              className="p-3.5 bg-red-50/90 border border-red-200 rounded-2xl flex items-center gap-2.5 text-semantic-danger"
+              className="p-2.5 bg-red-50/90 border border-red-200 rounded-xl flex items-center gap-2 text-semantic-danger text-xs font-medium"
             >
               <AlertCircle className="w-4 h-4 shrink-0 text-semantic-danger" />
-              <p className="text-xs font-medium leading-tight">{error}</p>
+              <p className="leading-tight">{error}</p>
             </div>
           )}
 
-          {/* Form Card */}
-          <Card className="p-5 space-y-4 shadow-card">
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              {/* Name Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="First Name"
-                  required
-                  placeholder="First name"
-                  value={firstName}
-                  disabled={isLoading}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    if (validationErrors.firstName) {
-                      setValidationErrors((prev) => ({ ...prev, firstName: undefined }));
-                    }
-                  }}
-                  error={validationErrors.firstName}
-                  status={firstName.trim().length >= 2 ? 'valid' : validationErrors.firstName ? 'invalid' : 'idle'}
-                  icon={<User className="w-4 h-4 text-slate-400" />}
-                  autoComplete="given-name"
-                />
-
-                <Input
-                  label="Last Name"
-                  placeholder="Last name"
-                  value={lastName}
-                  disabled={isLoading}
-                  onChange={(e) => setLastName(e.target.value)}
-                  autoComplete="family-name"
-                />
-              </div>
-
-              {/* Email Address */}
+          <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
+            {/* Name Row (2 columns) */}
+            <div className="grid grid-cols-2 gap-2.5">
               <Input
-                label="Email Address"
-                type="email"
+                label="First Name"
                 required
-                placeholder="name@example.com"
-                value={email}
+                placeholder="First name"
+                value={firstName}
                 disabled={isLoading}
                 onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (validationErrors.email) {
-                    setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                  setFirstName(e.target.value);
+                  if (validationErrors.firstName) {
+                    setValidationErrors((prev) => ({ ...prev, firstName: undefined }));
                   }
                 }}
-                error={validationErrors.email}
-                status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
-                validMessage="Valid email"
-                showStatusIcon
-                icon={<Mail className="w-4 h-4 text-slate-400" />}
-                autoComplete="email"
+                error={validationErrors.firstName}
+                status={firstName.trim().length >= 2 ? 'valid' : validationErrors.firstName ? 'invalid' : 'idle'}
+                icon={<User className="w-3.5 h-3.5 text-slate-400" />}
+                autoComplete="given-name"
               />
 
-              {/* Mobile Number */}
-              <PhoneInputWithCountry
-                label="Mobile Number"
-                value={mobileNumber}
+              <Input
+                label="Last Name"
+                placeholder="Last name"
+                value={lastName}
                 disabled={isLoading}
-                onChange={(val) => {
-                  setMobileNumber(val);
-                  if (validationErrors.mobileNumber) {
-                    setValidationErrors((prev) => ({ ...prev, mobileNumber: undefined }));
-                  }
-                }}
-                error={validationErrors.mobileNumber}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
               />
+            </div>
 
-              {/* Password */}
-              <div>
-                <div className="relative">
-                  <Input
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Create a strong password"
-                    value={password}
-                    disabled={isLoading}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      if (validationErrors.password) {
-                        setValidationErrors((prev) => ({ ...prev, password: undefined }));
-                      }
-                    }}
-                    error={validationErrors.password}
-                    status={password.length >= 8 && strengthScore >= 4 ? 'valid' : validationErrors.password ? 'invalid' : 'idle'}
-                    icon={<Lock className="w-4 h-4 text-slate-400" />}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 p-1"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
+            {/* Email Address */}
+            <Input
+              label="Email Address"
+              type="email"
+              required
+              placeholder="name@example.com"
+              value={email}
+              disabled={isLoading}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (validationErrors.email) {
+                  setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
+              error={validationErrors.email}
+              status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
+              validMessage="Valid email"
+              showStatusIcon
+              icon={<Mail className="w-3.5 h-3.5 text-slate-400" />}
+              autoComplete="email"
+            />
 
-                {/* Password Strength Meter */}
-                {password.length > 0 && (
-                  <div className="mt-2.5 p-2.5 bg-slate-50 rounded-xl space-y-2 border border-slate-100">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-slate-600">Password Strength</span>
-                      <span className={`font-bold ${strengthLabel.text}`}>
-                        {strengthLabel.label}
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${strengthLabel.color}`}
-                        style={{ width: strengthLabel.width }}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 pt-1 text-[10px] text-slate-500">
-                      <span className={`flex items-center gap-1 ${passwordCriteria.minLength ? 'text-emerald-600 font-medium' : ''}`}>
-                        {passwordCriteria.minLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 text-slate-400" />}
-                        8+ characters
-                      </span>
-                      <span className={`flex items-center gap-1 ${passwordCriteria.hasUpper ? 'text-emerald-600 font-medium' : ''}`}>
-                        {passwordCriteria.hasUpper ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 text-slate-400" />}
-                        Uppercase letter
-                      </span>
-                      <span className={`flex items-center gap-1 ${passwordCriteria.hasLower ? 'text-emerald-600 font-medium' : ''}`}>
-                        {passwordCriteria.hasLower ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 text-slate-400" />}
-                        Lowercase letter
-                      </span>
-                      <span className={`flex items-center gap-1 ${passwordCriteria.hasNumber ? 'text-emerald-600 font-medium' : ''}`}>
-                        {passwordCriteria.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 text-slate-400" />}
-                        Numeric digit
-                      </span>
-                    </div>
+            {/* Mobile Number */}
+            <PhoneInputWithCountry
+              label="Mobile Number"
+              value={mobileNumber}
+              disabled={isLoading}
+              onChange={(val) => {
+                setMobileNumber(val);
+                if (validationErrors.mobileNumber) {
+                  setValidationErrors((prev) => ({ ...prev, mobileNumber: undefined }));
+                }
+              }}
+              error={validationErrors.mobileNumber}
+            />
+
+            {/* Password and Confirm Password Row (2 columns) */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="relative">
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="At least 8 chars"
+                  value={password}
+                  disabled={isLoading}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (validationErrors.password) {
+                      setValidationErrors((prev) => ({ ...prev, password: undefined }));
+                    }
+                  }}
+                  error={validationErrors.password}
+                  icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-2.5 top-8 text-slate-400 hover:text-slate-600 rounded-md p-1"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+
+              <div className="relative">
+                <Input
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  disabled={isLoading}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (validationErrors.confirmPassword) {
+                      setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                    }
+                  }}
+                  error={validationErrors.confirmPassword || (confirmPassword && !confirmResult.isValid ? 'Passwords do not match' : undefined)}
+                  icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
+                  className="absolute right-2.5 top-8 text-slate-400 hover:text-slate-600 rounded-md p-1"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Compact Password Strength Indicator */}
+            {password.length > 0 && (
+              <div className="flex items-center justify-between text-[11px] px-1 py-0.5">
+                <div className="flex items-center gap-1.5 flex-1 mr-3">
+                  <div className="flex-1 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${strengthLabel.color}`}
+                      style={{ width: strengthLabel.width }}
+                    />
                   </div>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <div className="relative">
-                  <Input
-                    label="Confirm Password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Re-enter password"
-                    value={confirmPassword}
-                    disabled={isLoading}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      if (validationErrors.confirmPassword) {
-                        setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-                      }
-                    }}
-                    error={validationErrors.confirmPassword || (confirmPassword && !confirmResult.isValid ? 'Passwords do not match' : undefined)}
-                    status={confirmPassword ? (confirmResult.isValid ? 'valid' : 'invalid') : 'idle'}
-                    validMessage="Passwords match"
-                    icon={<Lock className="w-4 h-4 text-slate-400" />}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
-                    className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 p-1"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
                 </div>
+                <span className={`font-semibold shrink-0 ${strengthLabel.text}`}>
+                  {strengthLabel.label}
+                </span>
               </div>
+            )}
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                disabled={isLoading}
-                iconRight={<ArrowRight className="w-4 h-4" />}
-              >
-                {isLoading ? 'Creating account...' : 'Create Account'}
-              </Button>
-            </form>
-          </Card>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              fullWidth
+              disabled={isLoading}
+              iconRight={<ArrowRight className="w-4 h-4" />}
+            >
+              {isLoading ? 'Creating account...' : 'Create Account'}
+            </Button>
+          </form>
 
           {/* Privacy Security Callout */}
-          <div className="p-3.5 bg-blue-50/60 border border-blue-100 rounded-2xl flex items-center gap-2.5 text-textMuted text-xs">
-            <ShieldCheck className="w-4 h-4 text-brand-primary shrink-0" />
-            <span>Your data is encrypted and securely stored.</span>
+          <div className="py-1.5 px-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+            <span>Bank-grade encrypted registration and credential security.</span>
           </div>
 
           {/* Link to Login */}
-          <div className="text-center pt-2 pb-6">
+          <div className="text-center pt-0.5">
             <p className="text-xs text-textMuted">
               Already have an account?{' '}
               <Link
@@ -377,7 +340,7 @@ export const SignupPage: React.FC = () => {
               </Link>
             </p>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

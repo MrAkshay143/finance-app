@@ -207,8 +207,10 @@ model Transaction {
   transferAsCredit Transfer? @relation("CreditTxn")
 
   @@index([userId, txnDate])
+  @@index([userId, status, txnDate])
   @@index([accountId])
   @@index([categoryId])
+  @@index([merchantId])
   @@map("transactions")
 }
 
@@ -228,6 +230,8 @@ model Transfer {
   createdAt            DateTime    @default(now())
 
   @@index([userId])
+  @@index([sourceAccountId])
+  @@index([destinationAccountId])
   @@map("transfers")
 }
 
@@ -246,6 +250,7 @@ model Budget {
   updatedAt    DateTime     @updatedAt
 
   @@index([userId])
+  @@index([categoryId])
   @@map("budgets")
 }
 
@@ -285,6 +290,8 @@ model RecurringTransaction {
 
   @@index([userId])
   @@index([nextOccurrence])
+  @@index([accountId])
+  @@index([categoryId])
   @@map("recurring_transactions")
 }
 
@@ -328,6 +335,7 @@ model AuditLog {
   createdAt    DateTime @default(now())
 
   @@index([actorUserId])
+  @@index([targetUserId])
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")

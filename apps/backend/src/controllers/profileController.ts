@@ -72,6 +72,20 @@ export class ProfileController {
       next(err);
     }
   }
+
+  async deleteAvatar(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const result = await profileService.deleteAvatar(userId);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const profileController = new ProfileController();

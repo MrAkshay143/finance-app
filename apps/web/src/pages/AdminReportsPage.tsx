@@ -25,12 +25,14 @@ import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
+import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { formatCurrency } from '@finance/shared-ui-tokens';
 import type { PlatformAnalyticsData, SystemHealthData } from '@finance/shared-types';
 
 export const AdminReportsPage: React.FC = () => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const { currency } = useUserCurrency();
   const [timeframe, setTimeframe] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -111,7 +113,7 @@ export const AdminReportsPage: React.FC = () => {
         showNotifications={false}
         showAvatar={false}
         rightAction={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -120,7 +122,7 @@ export const AdminReportsPage: React.FC = () => {
               }}
               aria-label="Refresh platform reports"
               title="Refresh reports"
-              className="p-1.5 text-slate-600 hover:text-brand-primary hover:bg-slate-100 rounded-lg transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <RefreshCw
                 className={`w-4 h-4 ${
@@ -133,7 +135,7 @@ export const AdminReportsPage: React.FC = () => {
               onClick={() => navigate('/dashboard')}
               aria-label="Exit to personal mode"
               title="Exit to personal mode"
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-brand-primary bg-slate-100 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200 whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/20 whitespace-nowrap shrink-0"
             >
               <ArrowLeftFromLine className="w-3.5 h-3.5 shrink-0" />
               <span className="whitespace-nowrap">Exit Admin</span>
@@ -141,11 +143,11 @@ export const AdminReportsPage: React.FC = () => {
             <button
               type="button"
               onClick={handleLogout}
-              aria-label="Log out"
-              title="Log out"
-              className="p-1.5 text-rose-600 hover:text-white hover:bg-rose-600 rounded-lg border border-rose-200 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 shrink-0"
+              aria-label="Log Out"
+              title="Log Out"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         }
@@ -153,15 +155,15 @@ export const AdminReportsPage: React.FC = () => {
 
       <div className="px-4 py-3 space-y-4 max-w-[430px] mx-auto w-full">
         {/* Compact Toolbar: Timeframe Selector + Compact CSV Export */}
-        <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-borderDefault rounded-2xl shadow-xs">
+        <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-borderDefault rounded-2xl shadow-card">
           {/* Timeframe Buttons */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-none">
             {(['7d', '30d', '90d', '1y'] as const).map((tf) => (
               <button
                 key={tf}
                 type="button"
                 onClick={() => setTimeframe(tf)}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase transition-colors ${
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase transition-colors whitespace-nowrap shrink-0 ${
                   timeframe === tf
                     ? 'bg-brand-primary text-white shadow-xs'
                     : 'text-textMuted hover:text-textDefault'
@@ -178,103 +180,133 @@ export const AdminReportsPage: React.FC = () => {
             variant="outline"
             size="sm"
             disabled={isExporting}
+            isLoading={isExporting}
             onClick={handleExportCsv}
-            className="flex items-center gap-1.5 text-xs font-semibold border-borderDefault hover:border-brand-primary shrink-0"
+            icon={<Download className={`w-3.5 h-3.5 shrink-0 ${isExporting ? 'animate-bounce text-brand-primary' : ''}`} />}
+            className="whitespace-nowrap shrink-0 font-semibold min-h-[32px] px-2.5"
           >
-            <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce text-brand-primary' : ''}`} />
-            <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+            Export CSV
           </Button>
         </div>
 
         {/* 2. Platform KPI Metrics */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          {/* Total Users */}
+          <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                 Total Users
               </span>
-              <Users className="w-4 h-4 text-brand-primary" />
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
             {isAnalyticsLoading ? (
               <Skeleton className="h-7 w-20" />
             ) : (
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">
+                <p className="text-2xl font-black text-textDefault tracking-tight">
                   {summary?.totalUsers ?? 0}
                 </p>
-                <p className="text-[11px] text-emerald-600 font-medium mt-0.5">
-                  {summary?.activeUsers ?? 0} active · {summary?.suspendedUsers ?? 0} suspended
-                </p>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    {summary?.activeUsers ?? 0} active
+                  </span>
+                  {(summary?.suspendedUsers ?? 0) > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100">
+                      {summary?.suspendedUsers} suspended
+                    </span>
+                  )}
+                </div>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          {/* Platform GTV */}
+          <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                 Platform GTV ({timeframe.toUpperCase()})
               </span>
-              <Activity className="w-4 h-4 text-emerald-600" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Activity className="w-4 h-4" />
+              </div>
             </div>
             {isAnalyticsLoading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">
-                  {formatCurrency((summary?.grossTransactionVolumePaise ?? 0) / 100, 'INR')}
+                <p className="text-2xl font-black text-textDefault tracking-tight">
+                  {formatCurrency((summary?.grossTransactionVolumePaise ?? 0) / 100, currency)}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  {summary?.totalTransactionsCount ?? 0} txns recorded
-                </p>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    {summary?.totalTransactionsCount ?? 0} txns
+                  </span>
+                  <span className="text-[10px] text-textMuted font-medium">recorded</span>
+                </div>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          {/* Managed Balances */}
+          <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                 Managed Balances
               </span>
-              <CreditCard className="w-4 h-4 text-blue-600" />
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <CreditCard className="w-4 h-4" />
+              </div>
             </div>
             {isAnalyticsLoading ? (
               <Skeleton className="h-7 w-24" />
             ) : (
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">
-                  {formatCurrency((summary?.totalSystemBalancePaise ?? 0) / 100, 'INR')}
+                <p className="text-2xl font-black text-textDefault tracking-tight">
+                  {formatCurrency((summary?.totalSystemBalancePaise ?? 0) / 100, currency)}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Across all active accounts
-                </p>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    Live Pool
+                  </span>
+                  <span className="text-[10px] text-textMuted font-medium">all accounts</span>
+                </div>
               </div>
             )}
-          </Card>
+          </div>
 
-          <Card className="p-3.5 bg-white border border-slate-200 shadow-sm rounded-xl">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+          {/* Activity Index */}
+          <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
                 Activity Index
               </span>
-              <BarChart2 className="w-4 h-4 text-indigo-600" />
+              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <BarChart2 className="w-4 h-4" />
+              </div>
             </div>
             {isAnalyticsLoading ? (
               <Skeleton className="h-7 w-16" />
             ) : (
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">
+                <p className="text-2xl font-black text-textDefault tracking-tight">
                   {summary?.avgTransactionsPerUser ?? 0}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Avg txns per user
-                </p>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                    Txns / User
+                  </span>
+                  <span className="text-[10px] text-textMuted font-medium">avg velocity</span>
+                </div>
               </div>
             )}
-          </Card>
+          </div>
         </div>
 
         {/* 3. Transaction Breakdown by Type */}
-        <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+        <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
               <PieChart className="w-4 h-4 text-brand-primary" />
@@ -331,7 +363,7 @@ export const AdminReportsPage: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-textDefault">
-                          {formatCurrency(item.volumePaise / 100, 'INR')}
+                          {formatCurrency(item.volumePaise / 100, currency)}
                         </span>
                         <span className="text-textMuted text-[10px]">({percentage}%)</span>
                       </div>
@@ -349,7 +381,7 @@ export const AdminReportsPage: React.FC = () => {
         {/* 4. Top Spending Categories & Liquidity Breakdown */}
         <div className="grid grid-cols-1 gap-3">
           {/* Top Spending Categories */}
-          <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+          <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-rose-500" />
@@ -380,7 +412,7 @@ export const AdminReportsPage: React.FC = () => {
                       <span className="text-[10px] text-textMuted">({cat.count} txns)</span>
                     </div>
                     <span className="font-bold text-semantic-danger shrink-0">
-                      {formatCurrency(cat.volumePaise / 100, 'INR')}
+                      {formatCurrency(cat.volumePaise / 100, currency)}
                     </span>
                   </div>
                 ))}
@@ -389,7 +421,7 @@ export const AdminReportsPage: React.FC = () => {
           </Card>
 
           {/* System Liquidity by Account Type */}
-          <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl space-y-3">
+          <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-emerald-600" />
@@ -414,7 +446,7 @@ export const AdminReportsPage: React.FC = () => {
                       {liq.accountType}
                     </div>
                     <div className="text-sm font-black text-slate-900 mt-0.5">
-                      {formatCurrency(liq.balancePaise / 100, 'INR')}
+                      {formatCurrency(liq.balancePaise / 100, currency)}
                     </div>
                     <div className="text-[10px] text-textMuted mt-0.5">
                       {liq.count} account{liq.count === 1 ? '' : 's'}
@@ -427,7 +459,7 @@ export const AdminReportsPage: React.FC = () => {
         </div>
 
         {/* 5. Onboarding & Security Funnel */}
-        <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
+        <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div>
               <h3 className="text-sm font-bold text-slate-900">User Progression Funnel</h3>
@@ -476,7 +508,7 @@ export const AdminReportsPage: React.FC = () => {
               {/* Step 3: KBA Secured */}
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700">
-                  <span>3. Security Questions (KBA)</span>
+                  <span>3. Security Questions</span>
                   <span>
                     {funnel?.kbaConfiguredCount ?? 0} ({funnel?.kbaPercentage ?? 0}%)
                   </span>
@@ -509,7 +541,7 @@ export const AdminReportsPage: React.FC = () => {
         </Card>
 
         {/* 6. System Health & Telemetry */}
-        <Card className="p-4 bg-white border border-slate-200 shadow-sm rounded-xl">
+        <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
               <Server className="w-4 h-4 text-slate-600" />

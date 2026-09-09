@@ -109,8 +109,7 @@ export class AuditService {
 
   /**
    * Lists user-scoped audit logs filtered by actorUserId or targetUserId.
-   * Supports search, category filtering (Login, Transactions, Profile, Settings, Security),
-   * and pagination.
+   * Uses DB-level skip/take pagination — no in-memory slicing (SEC-16).
    */
   async listUserAuditLogs(
     userId: string,
@@ -132,24 +131,50 @@ export class AuditService {
       where.AND = [
         {
           OR: [
-            { action: { contains: q, mode: 'insensitive' } },
-            { ipAddress: { contains: q, mode: 'insensitive' } },
+            { action: { contains: q } },
+            { ipAddress: { contains: q } },
           ],
         },
       ];
     }
 
-    const allLogs = await prisma.auditLog.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        actor: { select: { id: true, email: true, firstName: true, lastName: true } },
-        target: { select: { id: true, email: true, firstName: true, lastName: true } },
-      },
-    });
+    // Category filter maps to action prefix in the DB
+    if (options.category && options.category.trim()) {
+      const cat = options.category.trim().toLowerCase();
+      const actionPrefixMap: Record<string, string[]> = {
+        login: ['AUTH_LOGIN', 'AUTH_LOGOUT', 'AUTH_SIGNUP', 'AUTH_REFRESH'],
+        transactions: ['TXN_', 'TRANSFER_', 'DATA_IMPORT', 'DATA_EXPORT', 'TRANSACTION'],
+        profile: ['PROFILE', 'ACCOUNT_RESET', 'ACCOUNT_DELETED', 'FINANCE_PROFILE'],
+        settings: ['SETTINGS'],
+        security: ['SECURITY', 'PASSWORD', 'KBA', 'LOCK'],
+        admin: ['ADMIN_'],
+      };
+      const prefixes = actionPrefixMap[cat] || [];
+      if (prefixes.length > 0) {
+        where.AND = [
+          ...(where.AND || []),
+          { OR: prefixes.map(p => ({ action: { startsWith: p } })) },
+        ];
+      }
+    }
 
-    // Map each log with its derived category
-    let mapped = allLogs.map((log) => {
+    const [allLogs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        include: {
+          actor: { select: { id: true, email: true, firstName: true, lastName: true } },
+          target: { select: { id: true, email: true, firstName: true, lastName: true } },
+        },
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / pageSize) || 1;
+
+    const logs = allLogs.map((log) => {
       const category = deriveAuditCategory(log.action);
       const actorName = log.actor
         ? `${log.actor.firstName || ''} ${log.actor.lastName || ''}`.trim()
@@ -174,33 +199,12 @@ export class AuditService {
       };
     });
 
-    // Filter by category if requested
-    if (options.category && options.category.trim()) {
-      const requestedCategory = options.category.trim().toLowerCase();
-      mapped = mapped.filter(
-        (log) =>
-          log.category.toLowerCase() === requestedCategory ||
-          log.action.toLowerCase().includes(requestedCategory)
-      );
-    }
-
-    const total = mapped.length;
-    const totalPages = Math.ceil(total / pageSize) || 1;
-    const paginatedLogs = mapped.slice(skip, skip + pageSize);
-
-    return {
-      logs: paginatedLogs,
-      pagination: {
-        page,
-        pageSize,
-        total,
-        totalPages,
-      },
-    };
+    return { logs, pagination: { page, pageSize, total, totalPages } };
   }
 
   /**
    * System-wide audit log query for administrators.
+   * Uses DB-level skip/take pagination — no in-memory slicing (SEC-16).
    */
   async listSystemAuditLogs(options: ListSystemAuditLogsOptions = {}): Promise<{
     logs: FormattedAuditLog[];
@@ -213,7 +217,7 @@ export class AuditService {
     const where: any = {};
 
     if (options.action) {
-      where.action = { contains: options.action, mode: 'insensitive' };
+      where.action = { contains: options.action };
     }
 
     if (options.startDate || options.endDate) {
@@ -229,23 +233,50 @@ export class AuditService {
     if (options.search) {
       const q = options.search.trim();
       where.OR = [
-        { action: { contains: q, mode: 'insensitive' } },
-        { ipAddress: { contains: q, mode: 'insensitive' } },
-        { actor: { email: { contains: q, mode: 'insensitive' } } },
-        { target: { email: { contains: q, mode: 'insensitive' } } },
+        { action: { contains: q } },
+        { ipAddress: { contains: q } },
+        { actor: { email: { contains: q } } },
+        { target: { email: { contains: q } } },
       ];
     }
 
-    const allLogs = await prisma.auditLog.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        actor: { select: { id: true, email: true, firstName: true, lastName: true } },
-        target: { select: { id: true, email: true, firstName: true, lastName: true } },
-      },
-    });
+    // Category filter maps to action prefix in the DB
+    if (options.category && options.category.trim()) {
+      const cat = options.category.trim().toLowerCase();
+      const actionPrefixMap: Record<string, string[]> = {
+        login: ['AUTH_LOGIN', 'AUTH_LOGOUT', 'AUTH_SIGNUP', 'AUTH_REFRESH'],
+        transactions: ['TXN_', 'TRANSFER_', 'DATA_IMPORT', 'DATA_EXPORT', 'TRANSACTION'],
+        profile: ['PROFILE', 'ACCOUNT_RESET', 'ACCOUNT_DELETED', 'FINANCE_PROFILE'],
+        settings: ['SETTINGS'],
+        security: ['SECURITY', 'PASSWORD', 'KBA', 'LOCK'],
+        admin: ['ADMIN_'],
+      };
+      const prefixes = actionPrefixMap[cat] || [];
+      if (prefixes.length > 0) {
+        where.AND = [
+          ...(where.AND || []),
+          { OR: prefixes.map((p: string) => ({ action: { startsWith: p } })) },
+        ];
+      }
+    }
 
-    let mapped = allLogs.map((log) => {
+    const [allLogs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        include: {
+          actor: { select: { id: true, email: true, firstName: true, lastName: true } },
+          target: { select: { id: true, email: true, firstName: true, lastName: true } },
+        },
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / pageSize) || 1;
+
+    const logs = allLogs.map((log) => {
       const category = deriveAuditCategory(log.action);
       const actorName = log.actor
         ? `${log.actor.firstName || ''} ${log.actor.lastName || ''}`.trim()
@@ -270,28 +301,7 @@ export class AuditService {
       };
     });
 
-    if (options.category && options.category.trim()) {
-      const requestedCategory = options.category.trim().toLowerCase();
-      mapped = mapped.filter(
-        (log) =>
-          log.category.toLowerCase() === requestedCategory ||
-          log.action.toLowerCase().includes(requestedCategory)
-      );
-    }
-
-    const total = mapped.length;
-    const totalPages = Math.ceil(total / pageSize) || 1;
-    const paginatedLogs = mapped.slice(skip, skip + pageSize);
-
-    return {
-      logs: paginatedLogs,
-      pagination: {
-        page,
-        pageSize,
-        total,
-        totalPages,
-      },
-    };
+    return { logs, pagination: { page, pageSize, total, totalPages } };
   }
 }
 

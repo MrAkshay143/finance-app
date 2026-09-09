@@ -17,6 +17,11 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
   try {
     const payload = verifyAccessToken(token);
 
+    // Reject password reset tokens or any token not explicitly typed as ACCESS (SEC-04)
+    if (payload.type && payload.type !== 'ACCESS') {
+      return next(new UnauthorizedError('Invalid token type'));
+    }
+
     // Check if token jti or token itself is denylisted
     const denylisted = await isDenylisted(payload.jti || token);
     if (denylisted) {

@@ -377,7 +377,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
 
       expect(html).toContain('data-testid="security-reminder-banner"');
       expect(html).toContain('Security Reminder');
-      expect(html).toContain('Security Questions (KBA) Pending');
+      expect(html).toContain('Set Up Security Questions');
       expect(html).toContain('Set up now');
     });
 

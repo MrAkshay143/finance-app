@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
@@ -342,37 +344,111 @@ export class ProfileService {
   }
 
   /**
-   * Updates user avatar URL with base64 data URI or valid image URL (<= 5MB).
+   * Safely deletes an existing uploaded avatar file from disk with path-traversal safeguards.
+   */
+  private async deleteOldAvatarFile(oldAvatarUrl?: string | null) {
+    if (!oldAvatarUrl || typeof oldAvatarUrl !== 'string') return;
+    if (!oldAvatarUrl.startsWith('/uploads/avatars/')) return;
+    try {
+      const baseDir = path.resolve(process.cwd(), 'uploads', 'avatars');
+      const relativePath = oldAvatarUrl.replace(/^\//, '');
+      const fullPath = path.resolve(process.cwd(), relativePath);
+      // Path traversal security check
+      if (fullPath.startsWith(baseDir) && fs.existsSync(fullPath)) {
+        await fs.promises.unlink(fullPath);
+      }
+    } catch {
+      // Ignore unlink errors safely
+    }
+  }
+
+  /**
+   * Updates user avatar: compresses/saves to disk under uploads/avatars/ and deletes old file.
    */
   async uploadAvatar(userId: string, avatarData: string) {
     if (!avatarData || typeof avatarData !== 'string') {
       throw new ValidationError('Avatar image data is required');
     }
 
-    // Limit image payload size to 5MB (base64 ~7MB max)
+    // Limit image payload size to 7MB base64
     if (avatarData.length > 7 * 1024 * 1024) {
       throw new ValidationError('Avatar image must not exceed 5MB in size');
     }
 
-    // If data URI, ensure valid image MIME type
-    if (avatarData.startsWith('data:')) {
-      if (!/^data:image\/(jpeg|jpg|png|webp|gif);base64,/.test(avatarData)) {
-        throw new ValidationError('Only JPEG, PNG, WEBP, and GIF images are supported');
+    let finalAvatarUrl = avatarData;
+
+    // If data URI (e.g. data:image/webp;base64,...), persist to disk under uploads/avatars/
+    if (avatarData.startsWith('data:image/')) {
+      const match = avatarData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (!match) {
+        throw new ValidationError('Only valid image data URIs are supported');
       }
+
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const base64Data = match[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const avatarsDir = path.resolve(process.cwd(), 'uploads', 'avatars');
+      if (!fs.existsSync(avatarsDir)) {
+        fs.mkdirSync(avatarsDir, { recursive: true });
+      }
+
+      const filename = `avatar-${userId}-${Date.now()}.${ext}`;
+      const filePath = path.resolve(avatarsDir, filename);
+
+      await fs.promises.writeFile(filePath, buffer);
+      finalAvatarUrl = `/uploads/avatars/${filename}`;
+    }
+
+    // Get existing avatar to delete old file
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+
+    if (existingUser?.avatarUrl && existingUser.avatarUrl !== finalAvatarUrl) {
+      await this.deleteOldAvatarFile(existingUser.avatarUrl);
     }
 
     const updated = await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: avatarData },
+      data: { avatarUrl: finalAvatarUrl },
     });
 
     await logAuditEvent({
       actorUserId: userId,
       action: 'PROFILE_AVATAR_UPDATE',
-      details: { avatarLength: avatarData.length },
+      details: { avatarUrl: finalAvatarUrl },
     });
 
     return { avatarUrl: updated.avatarUrl };
+  }
+
+  /**
+   * Removes user avatar, unlinks disk file, and sets avatarUrl to null.
+   */
+  async deleteAvatar(userId: string) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+
+    if (existingUser?.avatarUrl) {
+      await this.deleteOldAvatarFile(existingUser.avatarUrl);
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: null },
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'PROFILE_AVATAR_DELETE',
+      details: { previousAvatarUrl: existingUser?.avatarUrl || null },
+    });
+
+    return { avatarUrl: null };
   }
 }
 

@@ -304,7 +304,16 @@ export const RecurringTransactionsPage: React.FC = () => {
         )}
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <div
+          role="tablist"
+          aria-label="Filter recurring transactions"
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex items-center gap-1.5 overflow-x-auto pt-0.5 pb-2.5 text-xs scrollbar-tab-thin"
+        >
           {[
             { id: 'all', label: 'All' },
             { id: 'active', label: 'Active' },
@@ -316,8 +325,10 @@ export const RecurringTransactionsPage: React.FC = () => {
             <button
               key={pill.id}
               type="button"
+              role="tab"
+              aria-selected={activeFilter === pill.id}
               onClick={() => setActiveFilter(pill.id)}
-              className={`px-3 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-full font-semibold whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 ${
                 activeFilter === pill.id
                   ? 'bg-brand-primary text-white shadow-sm'
                   : 'bg-white border border-slate-200 text-slate-700 hover:border-brand-primary/60'

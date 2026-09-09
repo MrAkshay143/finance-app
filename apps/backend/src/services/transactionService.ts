@@ -5,6 +5,15 @@ import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
 import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+// Lazy import to avoid circular dependency — resolved at call time
+let _transferService: typeof import('./transferService.js').transferService | null = null;
+async function getTransferService() {
+  if (!_transferService) {
+    const mod = await import('./transferService.js');
+    _transferService = mod.transferService;
+  }
+  return _transferService;
+}
 
 export interface CreateTransactionData {
   accountId: string;
@@ -383,6 +392,8 @@ export class TransactionService {
 
   /**
    * Soft deletes transaction by setting status = DELETED and reverting account balance inside $transaction.
+   * If the transaction is part of a transfer, delegates to transferService.deleteTransfer() to
+   * atomically delete both transfer legs (FIN-02).
    */
   async deleteTransaction(userId: string, id: string) {
     const existing = await prisma.transaction.findUnique({
@@ -401,6 +412,14 @@ export class TransactionService {
     }
     if (existing.status === 'DELETED') {
       throw new ValidationError('Transaction is already deleted');
+    }
+
+    // FIN-02: If this transaction is a leg of a transfer, cascade deletion through transferService
+    // to ensure both legs (debit + credit) are removed atomically.
+    const transferId = existing.transferAsDebit?.id || existing.transferAsCredit?.id;
+    if (transferId) {
+      const ts = await getTransferService();
+      return ts.deleteTransfer(userId, transferId);
     }
 
     // Atomic soft-delete and balance reversion inside $transaction

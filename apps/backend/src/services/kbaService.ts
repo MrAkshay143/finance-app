@@ -3,6 +3,58 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { ValidationError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
 import { logAuditEvent } from './auditService.js';
+import { getRedisClient } from '../lib/redis.js';
+import { logger } from '../lib/logger.js';
+
+// In-memory fallback for KBA attempt tracking when Redis is unavailable
+const kbaAttemptMemory = new Map<string, { count: number; resetAt: number }>();
+
+const KBA_MAX_ATTEMPTS = 5;
+const KBA_LOCKOUT_SECONDS = 15 * 60; // 15 minutes
+
+async function getKbaAttemptCount(userId: string): Promise<number> {
+  const key = `kba_attempts:${userId}`;
+  const redis = getRedisClient();
+  if (redis?.isOpen) {
+    try {
+      const val = await redis.get(key);
+      return val ? parseInt(val, 10) : 0;
+    } catch { /* fall through */ }
+  }
+  const entry = kbaAttemptMemory.get(key);
+  if (!entry || Date.now() > entry.resetAt) return 0;
+  return entry.count;
+}
+
+async function incrementKbaAttempt(userId: string): Promise<number> {
+  const key = `kba_attempts:${userId}`;
+  const redis = getRedisClient();
+  if (redis?.isOpen) {
+    try {
+      const count = await redis.incr(key);
+      if (count === 1) await redis.expire(key, KBA_LOCKOUT_SECONDS);
+      return count;
+    } catch { /* fall through */ }
+  }
+  const now = Date.now();
+  const entry = kbaAttemptMemory.get(key);
+  if (!entry || now > entry.resetAt) {
+    kbaAttemptMemory.set(key, { count: 1, resetAt: now + KBA_LOCKOUT_SECONDS * 1000 });
+    return 1;
+  }
+  entry.count += 1;
+  return entry.count;
+}
+
+async function resetKbaAttempts(userId: string): Promise<void> {
+  const key = `kba_attempts:${userId}`;
+  const redis = getRedisClient();
+  if (redis?.isOpen) {
+    try { await redis.del(key); return; } catch { /* fall through */ }
+  }
+  kbaAttemptMemory.delete(key);
+}
+
 
 export interface SecurityQuestionSetupItem {
   questionKey?: string;
@@ -176,28 +228,57 @@ export class KbaService {
       throw new ValidationError('Security questions are not configured for this account');
     }
 
-    if (!Array.isArray(answers) || answers.length === 0) {
-      throw new ValidationError('Answers to verify must be provided');
+    if (!Array.isArray(answers) || answers.length !== 3) {
+      throw new ValidationError('Exactly 3 security question answers must be provided');
+    }
+
+    // Ensure all submitted keys are distinct
+    const submittedKeys = answers.map((item) => (item.questionKey || item.questionId || '').trim());
+    const uniqueSubmittedKeys = new Set(submittedKeys);
+    if (uniqueSubmittedKeys.size !== 3) {
+      throw new ValidationError('All 3 security question answers must be for distinct questions');
+    }
+
+    // SEC-03: Check KBA brute-force lockout before processing
+    const currentAttempts = await getKbaAttemptCount(targetUserId!);
+    if (currentAttempts >= KBA_MAX_ATTEMPTS) {
+      await logAuditEvent({
+        actorUserId: targetUserId,
+        action: 'SECURITY_QUESTIONS_LOCKED',
+        details: { reason: 'Too many failed attempts' },
+      });
+      throw new UnauthorizedError(
+        'Too many failed security question attempts. Please try again after 15 minutes.'
+      );
+    }
+
+    // Ensure all 3 submitted keys actually match the user's stored questions
+    const storedKeys = new Set(storedQuestions.map((q) => q.questionKey));
+    for (const key of submittedKeys) {
+      if (!storedKeys.has(key)) {
+        await incrementKbaAttempt(targetUserId!);
+        throw new UnauthorizedError(`Invalid security question key: ${key}`);
+      }
     }
 
     for (const item of answers) {
       const key = (item.questionKey || item.questionId || '').trim();
-      const stored = storedQuestions.find((q) => q.questionKey === key);
-
-      if (!stored) {
-        throw new UnauthorizedError(`Invalid security question key: ${key}`);
-      }
+      const stored = storedQuestions.find((q) => q.questionKey === key)!;
 
       const isMatch = await verifyAnswerHash(item.answer || '', stored.answerHash);
       if (!isMatch) {
+        const attempts = await incrementKbaAttempt(targetUserId!);
         await logAuditEvent({
           actorUserId: targetUserId,
           action: 'SECURITY_QUESTIONS_VERIFY_FAILED',
-          details: { questionKey: key },
+          details: { questionKey: key, attempts },
         });
         throw new UnauthorizedError('Security question verification failed: incorrect answer');
       }
     }
+
+    // All correct — reset attempt counter
+    await resetKbaAttempts(targetUserId!);
 
     await logAuditEvent({
       actorUserId: targetUserId,

@@ -86,6 +86,14 @@ export function createApp(): Express {
   // Versioned API routes (/api/v1/...) with optional auth and maintenance mode
   app.use('/api/v1', optionalAuthenticate, maintenanceMiddleware, apiV1Router);
 
+  // Serve uploaded files (e.g. compressed WebP avatars) statically
+  const uploadsDir = path.resolve(process.cwd(), 'uploads');
+  const avatarsDir = path.resolve(uploadsDir, 'avatars');
+  if (!fs.existsSync(avatarsDir)) {
+    fs.mkdirSync(avatarsDir, { recursive: true });
+  }
+  app.use('/uploads', express.static(uploadsDir, { maxAge: '7d' }));
+
   // Serve static SPA files if public/ directory exists
   const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');
   if (fs.existsSync(publicDir)) {
@@ -98,6 +106,13 @@ export function createApp(): Express {
         req.path.startsWith('/readyz')
       ) {
         return next();
+      }
+      // Never serve index.html for missing static assets or scripts
+      if (
+        req.path.startsWith('/assets/') ||
+        /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map|json|webmanifest)$/i.test(req.path)
+      ) {
+        return res.status(404).type('text/plain').send('Asset not found');
       }
       res.sendFile(path.resolve(publicDir, 'index.html'));
     });

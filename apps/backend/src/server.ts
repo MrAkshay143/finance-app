@@ -7,9 +7,15 @@ import { initSentry } from './lib/sentry.js';
 import { initRedis, closeRedis } from './lib/redis.js';
 import { prisma } from './lib/prisma.js';
 import { hashPassword } from './lib/jwt.js';
+import { categoryService } from './services/categoryService.js';
 
 // Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md §11
 initSentry('backend-api');
+
+// Auto-provision system categories on server startup
+categoryService.ensureSystemCategories().catch((err) => {
+  logger.warn({ err: err?.message }, 'Failed to auto-provision system categories on startup');
+});
 
 const port = env.PORT;
 const app = createApp();
@@ -19,7 +25,8 @@ const allowedOrigins = env.CORS_ALLOWED_ORIGINS.split(',').map((o) => o.trim());
 
 const io = new SocketIOServer(server, {
   cors: {
-    origin: allowedOrigins.includes('*') ? '*' : allowedOrigins,
+    // Only allow explicitly whitelisted origins — no wildcard fallback (SEC-08)
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
   },
 });
@@ -46,63 +53,70 @@ async function ensureDatabaseSchema() {
 }
 ensureDatabaseSchema();
 
-// Ensure dedicated admin user exists with requested credentials
+// Ensure at least one admin user exists. Only creates if NO admins exist at all.
+// Never overwrites an existing admin's password — credentials must be changed via the app UI.
+// Reads initial credentials from ADMIN_EMAIL / ADMIN_PASSWORD env vars with safe defaults.
 async function ensureAdminUser() {
   try {
-    const adminEmail = 'contact@imakshay.in';
-    const existing = await prisma.user.findUnique({
-      where: { email: adminEmail },
-    });
-    const passwordHash = await hashPassword('Pass@12345');
-
-    if (!existing) {
-      await prisma.user.create({
-        data: {
-          email: adminEmail,
-          firstName: 'Akshay',
-          lastName: 'Admin',
-          mobileNumber: '+919876543210',
-          passwordHash,
-          role: 'ADMIN',
-          status: 'ACTIVE',
-          onboardingCompleted: true,
-          userSettings: {
-            create: {
-              currency: 'INR',
-              timezone: 'Asia/Kolkata',
-              financialMonthStartDay: 1,
-              quickAddEnabled: true,
-              dashboardDonutsConfig: { income: true, expense: true, investment: true },
-              featuresConfig: { investments: true, recurring: true },
-            },
-          },
-          financeProfile: {
-            create: {
-              monthlyIncome: BigInt(0),
-              monthlyExpenseBudget: BigInt(0),
-              monthlyInvestmentTarget: BigInt(0),
-              riskAppetite: 'MEDIUM',
-              investmentHorizon: 'MEDIUM',
-            },
-          },
-        },
-      });
-      logger.info(`Admin user created successfully: ${adminEmail} (role: ADMIN)`);
-    } else {
-      await prisma.user.update({
-        where: { email: adminEmail },
-        data: {
-          role: 'ADMIN',
-          passwordHash,
-          status: 'ACTIVE',
-          failedLoginAttempts: 0,
-          lockedUntil: null,
-        },
-      });
-      logger.info(`Admin user verified & updated: ${adminEmail} (role: ADMIN)`);
+    // Check if ANY admin user already exists — if so, do nothing
+    const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+    if (adminCount > 0) {
+      logger.debug('Admin user already exists, skipping auto-provisioning');
+      return;
     }
+
+    // First boot: create the initial admin from environment variables only
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      logger.warn(
+        'No admin users found and ADMIN_EMAIL / ADMIN_PASSWORD env vars are not set — skipping admin provisioning'
+      );
+      return;
+    }
+
+    if (adminPassword.length < 12) {
+      logger.warn('ADMIN_PASSWORD is too short (min 12 chars) — skipping admin provisioning for security');
+      return;
+    }
+
+    const passwordHash = await hashPassword(adminPassword);
+
+    await prisma.user.create({
+      data: {
+        email: adminEmail.toLowerCase().trim(),
+        firstName: 'Admin',
+        lastName: 'User',
+        mobileNumber: process.env.ADMIN_MOBILE || '',
+        passwordHash,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        onboardingCompleted: true,
+        userSettings: {
+          create: {
+            currency: 'INR',
+            timezone: 'Asia/Kolkata',
+            financialMonthStartDay: 1,
+            quickAddEnabled: true,
+            dashboardDonutsConfig: { income: true, expense: true, investment: true },
+            featuresConfig: { investments: true, recurring: true },
+          },
+        },
+        financeProfile: {
+          create: {
+            monthlyIncome: BigInt(0),
+            monthlyExpenseBudget: BigInt(0),
+            monthlyInvestmentTarget: BigInt(0),
+            riskAppetite: 'MEDIUM',
+            investmentHorizon: 'MEDIUM',
+          },
+        },
+      },
+    });
+    logger.info(`Initial admin user provisioned: ${adminEmail} (role: ADMIN)`);
   } catch (err: any) {
-    logger.warn({ err: err?.message }, 'Failed to verify admin user on startup');
+    logger.warn({ err: err?.message }, 'Failed to provision initial admin user on startup');
   }
 }
 ensureAdminUser();

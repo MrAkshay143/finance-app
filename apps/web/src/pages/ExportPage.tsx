@@ -126,34 +126,32 @@ export const ExportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Format Selector */}
+        {/* Compact Format Selector */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-textDefault px-1">Select File Format</label>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => {
                 setFormat('csv');
                 setErrorMessage(null);
               }}
-              className={`p-4 rounded-2xl border text-left transition-colors flex items-start gap-3 ${
+              className={`p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
                 format === 'csv'
-                  ? 'border-brand-primary bg-blue-50/70 shadow-xs'
+                  ? 'border-brand-primary bg-blue-50/80 shadow-xs ring-1 ring-brand-primary/20'
                   : 'border-borderDefault bg-white hover:bg-slate-50'
               }`}
             >
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                   format === 'csv' ? 'bg-brand-primary text-white' : 'bg-emerald-50 text-emerald-600'
                 }`}
               >
-                <FileSpreadsheet className="w-5 h-5" />
+                <FileSpreadsheet className="w-4 h-4" />
               </div>
-              <div>
-                <div className="text-xs font-bold text-textDefault">Spreadsheet (CSV / Excel)</div>
-                <p className="text-[11px] text-textMuted mt-0.5 leading-tight">
-                  Best for Excel, Numbers, and spreadsheets
-                </p>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-textDefault leading-tight truncate">CSV Spreadsheet</div>
+                <p className="text-[10px] text-textMuted mt-0.5 leading-tight font-medium">.csv format</p>
               </div>
             </button>
 
@@ -163,24 +161,22 @@ export const ExportPage: React.FC = () => {
                 setFormat('json');
                 setErrorMessage(null);
               }}
-              className={`p-4 rounded-2xl border text-left transition-colors flex items-start gap-3 ${
+              className={`p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
                 format === 'json'
-                  ? 'border-brand-primary bg-blue-50/70 shadow-xs'
+                  ? 'border-brand-primary bg-blue-50/80 shadow-xs ring-1 ring-brand-primary/20'
                   : 'border-borderDefault bg-white hover:bg-slate-50'
               }`}
             >
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                   format === 'json' ? 'bg-brand-primary text-white' : 'bg-purple-50 text-purple-600'
                 }`}
               >
-                <FileCode className="w-5 h-5" />
+                <FileCode className="w-4 h-4" />
               </div>
-              <div>
-                <div className="text-xs font-bold text-textDefault">JSON Format</div>
-                <p className="text-[11px] text-textMuted mt-0.5 leading-tight">
-                  Structured raw data for developer backups
-                </p>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-textDefault leading-tight truncate">JSON Format</div>
+                <p className="text-[10px] text-textMuted mt-0.5 leading-tight font-medium">.json format</p>
               </div>
             </button>
           </div>

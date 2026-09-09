@@ -6,6 +6,7 @@ export interface AnalyticsOptions {
   period?: string;
   startDate?: string;
   endDate?: string;
+  accountId?: string;
 }
 
 const MONTH_NAMES = [
@@ -19,6 +20,7 @@ export class AnalyticsService {
    * - 6-month historical spending trends: earned, spent, invested, net savings, savings rate
    * - Category spending breakdown: categoryId, categoryName, totalAmount, amountPaise, percentage, transactionCount
    * - Income vs Expense comparison
+   * - Dynamic accountId filtering when specified
    */
   async getAnalytics(userId: string, options?: AnalyticsOptions) {
     const user = await prisma.user.findUnique({
@@ -27,6 +29,24 @@ export class AnalyticsService {
     });
 
     const startDay = user?.userSettings?.financialMonthStartDay ?? 1;
+    const accountFilter = options?.accountId ? { accountId: options.accountId } : {};
+
+    let accountInfo = null;
+    if (options?.accountId) {
+      const acc = await prisma.account.findFirst({
+        where: { id: options.accountId, userId },
+        select: { id: true, name: true, institution: true, accountType: true, currentBalance: true },
+      });
+      if (acc) {
+        accountInfo = {
+          id: acc.id,
+          name: acc.name,
+          institution: acc.institution,
+          accountType: acc.accountType,
+          currentBalance: Number(acc.currentBalance) / 100,
+        };
+      }
+    }
 
     // Parse target date for primary month
     let targetDate = new Date();
@@ -58,6 +78,7 @@ export class AnalyticsService {
             direction: 'CREDIT',
             type: 'INCOME',
             txnDate: { gte: period.start, lt: period.end },
+            ...accountFilter,
           },
         }),
         prisma.transaction.aggregate({
@@ -68,6 +89,7 @@ export class AnalyticsService {
             direction: 'DEBIT',
             type: 'EXPENSE',
             txnDate: { gte: period.start, lt: period.end },
+            ...accountFilter,
           },
         }),
         prisma.transaction.aggregate({
@@ -78,6 +100,7 @@ export class AnalyticsService {
             direction: 'DEBIT',
             type: 'INVESTMENT',
             txnDate: { gte: period.start, lt: period.end },
+            ...accountFilter,
           },
         }),
       ]);
@@ -116,6 +139,7 @@ export class AnalyticsService {
         direction: 'DEBIT',
         type: 'EXPENSE',
         txnDate: { gte: breakdownStart, lt: breakdownEnd },
+        ...accountFilter,
       },
       include: {
         category: true,
@@ -170,6 +194,7 @@ export class AnalyticsService {
         direction: 'CREDIT',
         type: 'INCOME',
         txnDate: { gte: currentPeriod.start, lt: currentPeriod.end },
+        ...accountFilter,
       },
       include: {
         category: true,
@@ -224,6 +249,7 @@ export class AnalyticsService {
         direction: 'DEBIT',
         type: 'INVESTMENT',
         txnDate: { gte: currentPeriod.start, lt: currentPeriod.end },
+        ...accountFilter,
       },
       include: {
         category: true,
@@ -296,6 +322,7 @@ export class AnalyticsService {
         startDate: startStr,
         endDate: endStr,
       },
+      account: accountInfo,
       summary: monthlyComparison,
       spendingTrends,
       categoryBreakdown: expenseCategoryBreakdown,

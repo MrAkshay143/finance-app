@@ -1,5 +1,6 @@
 import cors from 'cors';
 import { env } from '../config/env.js';
+import { logger } from '../lib/logger.js';
 
 const allowedOrigins = env.CORS_ALLOWED_ORIGINS
   .split(',')
@@ -12,16 +13,15 @@ export const corsMiddleware = cors({
     if (!origin) {
       return callback(null, true);
     }
-    // Allow wildcard, explicit match, or valid deployed subdomains
-    if (
-      allowedOrigins.includes('*') ||
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.onrender.com') ||
-      origin.endsWith('.imakshay.in') ||
-      origin.includes('localhost')
-    ) {
+    // Allow explicit wildcard for development environments only
+    if (allowedOrigins.includes('*')) {
       return callback(null, true);
     }
+    // Allow only explicitly whitelisted origins (SEC-08)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    logger.warn({ origin }, 'CORS blocked request from disallowed origin');
     return callback(null, false);
   },
   credentials: true,

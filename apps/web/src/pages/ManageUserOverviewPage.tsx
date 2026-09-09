@@ -248,7 +248,7 @@ export const ManageUserOverviewPage: React.FC = () => {
         )}
 
         {/* User Profile Card */}
-        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-5 shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-4 min-w-0">
             <div className="relative shrink-0">
               <div className="w-16 h-16 rounded-full bg-blue-100 text-brand-primary text-xl font-bold flex items-center justify-center border-2 border-blue-200">
@@ -285,7 +285,7 @@ export const ManageUserOverviewPage: React.FC = () => {
           <button
             type="button"
             onClick={openEditModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-borderDefault shadow-xs rounded-full text-xs font-semibold text-brand-primary hover:bg-blue-50 active:scale-95 transition shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-borderDefault shadow-card rounded-full text-xs font-semibold text-brand-primary hover:bg-blue-50 active:scale-95 transition shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
           >
             <Pencil className="w-3.5 h-3.5 text-brand-primary" aria-hidden="true" />
             <span>Edit</span>
@@ -293,7 +293,7 @@ export const ManageUserOverviewPage: React.FC = () => {
         </div>
 
         {/* Metadata Details Card */}
-        <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
+        <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
           {/* Email */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
@@ -413,7 +413,7 @@ export const ManageUserOverviewPage: React.FC = () => {
               onClick={() =>
                 updateUserMutation.mutate({ status: isActive ? 'SUSPENDED' : 'ACTIVE' })
               }
-              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
             >
               <div>
                 <div
@@ -439,7 +439,7 @@ export const ManageUserOverviewPage: React.FC = () => {
               onClick={() =>
                 updateUserMutation.mutate({ role: isAdmin ? 'USER' : 'ADMIN' })
               }
-              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
             >
               <div>
                 <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2">
@@ -459,7 +459,7 @@ export const ManageUserOverviewPage: React.FC = () => {
             <button
               type="button"
               onClick={() => resetPasswordMutation.mutate()}
-              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
             >
               <div>
                 <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2">
@@ -479,7 +479,7 @@ export const ManageUserOverviewPage: React.FC = () => {
             <button
               type="button"
               onClick={() => resetKbaMutation.mutate()}
-              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 transition-colors text-left flex items-start justify-between"
+              className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-blue-200 transition-colors text-left flex items-start justify-between"
             >
               <div>
                 <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center mb-2">
@@ -544,8 +544,8 @@ export const ManageUserOverviewPage: React.FC = () => {
         title="Edit User Profile"
         subtitle={`Editing ${user.email}`}
         footer={
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" size="sm" fullWidth onClick={() => setIsEditModalOpen(false)}>
+          <div className="grid grid-cols-2 gap-2 w-full">
+            <Button variant="outline" size="sm" onClick={() => setIsEditModalOpen(false)}>
               Cancel
             </Button>
             <Button

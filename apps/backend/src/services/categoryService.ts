@@ -15,19 +15,91 @@ export interface UpdateCategoryData {
   sortOrder?: number;
 }
 
+export interface SystemCategorySeed {
+  name: string;
+  type: TxnType;
+  sortOrder: number;
+}
+
+export const SYSTEM_CATEGORIES: SystemCategorySeed[] = [
+  // Expense categories
+  { name: 'Food & Dining', type: TxnType.EXPENSE, sortOrder: 1 },
+  { name: 'Groceries', type: TxnType.EXPENSE, sortOrder: 2 },
+  { name: 'Fuel', type: TxnType.EXPENSE, sortOrder: 3 },
+  { name: 'Rent', type: TxnType.EXPENSE, sortOrder: 4 },
+  { name: 'Utilities', type: TxnType.EXPENSE, sortOrder: 5 },
+  { name: 'Shopping', type: TxnType.EXPENSE, sortOrder: 6 },
+  { name: 'Health & Medical', type: TxnType.EXPENSE, sortOrder: 7 },
+  { name: 'Entertainment', type: TxnType.EXPENSE, sortOrder: 8 },
+  { name: 'Travel & Transit', type: TxnType.EXPENSE, sortOrder: 9 },
+
+  // Income categories
+  { name: 'Salary', type: TxnType.INCOME, sortOrder: 10 },
+  { name: 'Freelance', type: TxnType.INCOME, sortOrder: 11 },
+  { name: 'Investment Return', type: TxnType.INCOME, sortOrder: 12 },
+
+  // Investment categories
+  { name: 'Bonds', type: TxnType.INVESTMENT, sortOrder: 13 },
+  { name: 'Fixed Deposit', type: TxnType.INVESTMENT, sortOrder: 14 },
+  { name: 'Gold', type: TxnType.INVESTMENT, sortOrder: 15 },
+  { name: 'Mutual Funds', type: TxnType.INVESTMENT, sortOrder: 16 },
+  { name: 'Real Estate', type: TxnType.INVESTMENT, sortOrder: 17 },
+];
+
 export class CategoryService {
   /**
+   * Ensures all default system categories are provisioned in the database.
+   * Runs idempotently (inserts missing categories without modifying user custom data).
+   */
+  async ensureSystemCategories(): Promise<void> {
+    try {
+      for (const cat of SYSTEM_CATEGORIES) {
+        const existing = await prisma.category.findFirst({
+          where: {
+            name: cat.name,
+            isSystem: true,
+          },
+        });
+        if (!existing) {
+          await prisma.category.create({
+            data: {
+              name: cat.name,
+              type: cat.type,
+              sortOrder: cat.sortOrder,
+              isSystem: true,
+              userId: null,
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('ensureSystemCategories warning:', err);
+    }
+  }
+
+  /**
    * Returns system categories (userId = null or isSystem = true) plus user custom categories,
-   * sorted by sortOrder asc.
+   * sorted by sortOrder asc. Automatically provisions system categories if none exist.
    */
   async listCategories(userId: string, type?: TxnType) {
-    const categories = await prisma.category.findMany({
+    let categories = await prisma.category.findMany({
       where: {
         OR: [{ isSystem: true }, { userId }],
         ...(type ? { type } : {}),
       },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
+
+    if (categories.length === 0) {
+      await this.ensureSystemCategories();
+      categories = await prisma.category.findMany({
+        where: {
+          OR: [{ isSystem: true }, { userId }],
+          ...(type ? { type } : {}),
+        },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      });
+    }
 
     return categories;
   }
@@ -213,8 +285,9 @@ export class CategoryService {
     await prisma.$transaction(async (tx) => {
       for (let i = 0; i < categoryIds.length; i++) {
         const catId = categoryIds[i];
-        await tx.category.update({
-          where: { id: catId },
+        // Use compound where to ensure the category belongs to this user and is not a system category (SEC-07)
+        await tx.category.updateMany({
+          where: { id: catId, userId, isSystem: false },
           data: { sortOrder: i + 1 },
         });
       }
@@ -229,6 +302,207 @@ export class CategoryService {
     });
 
     return { message: 'Categories reordered successfully' };
+  }
+
+  /**
+   * Admin: Queries all system/default categories (isSystem: true, userId: null),
+   * ordered by type asc, sortOrder asc, name asc.
+   */
+  async adminListSystemCategories() {
+    return prisma.category.findMany({
+      where: { isSystem: true, userId: null },
+      orderBy: [{ type: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  /**
+   * Admin: Creates a system category with isSystem = true and userId = null.
+   * Logs ADMIN_CATEGORY_CREATE.
+   */
+  async adminCreateSystemCategory(
+    adminId: string,
+    data: { name: string; type: TxnType; sortOrder?: number }
+  ) {
+    const trimmedName = data.name?.trim();
+    if (!trimmedName) {
+      throw new ValidationError('Category name is required');
+    }
+
+    if (!data.type) {
+      throw new ValidationError('Category type is required');
+    }
+
+    // Check duplicate name for same type among system categories
+    const candidateCategories = await prisma.category.findMany({
+      where: {
+        isSystem: true,
+        type: data.type,
+      },
+      select: { id: true, name: true },
+    });
+
+    const existing = candidateCategories.find(
+      (c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      throw new ValidationError('A system category with this name and type already exists');
+    }
+
+    let sortOrder = data.sortOrder;
+    if (sortOrder === undefined) {
+      const allSystem = await prisma.category.findMany({
+        where: { isSystem: true },
+        select: { sortOrder: true },
+      });
+      const maxSort = allSystem.reduce((max, c) => Math.max(max, c.sortOrder), 0);
+      sortOrder = maxSort + 1;
+    }
+
+    const category = await prisma.category.create({
+      data: {
+        name: trimmedName,
+        type: data.type,
+        sortOrder,
+        isSystem: true,
+        userId: null,
+      },
+    });
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_CATEGORY_CREATE',
+      details: {
+        categoryId: category.id,
+        name: category.name,
+        type: category.type,
+        sortOrder: category.sortOrder,
+      },
+    });
+
+    return category;
+  }
+
+  /**
+   * Admin: Updates an existing system category if isSystem is true.
+   * Logs ADMIN_CATEGORY_UPDATE.
+   */
+  async adminUpdateSystemCategory(
+    adminId: string,
+    id: string,
+    data: { name?: string; type?: TxnType; sortOrder?: number }
+  ) {
+    const existing = await prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Category not found');
+    }
+
+    if (!existing.isSystem) {
+      throw new ForbiddenError('Category is not a system category');
+    }
+
+    const trimmedName = data.name !== undefined ? data.name.trim() : existing.name;
+    if (!trimmedName) {
+      throw new ValidationError('Category name cannot be empty');
+    }
+
+    const targetType = data.type || existing.type;
+
+    // Check duplicate if name or type changed
+    if (
+      trimmedName.toLowerCase() !== existing.name.toLowerCase() ||
+      (data.type && data.type !== existing.type)
+    ) {
+      const candidateCategories = await prisma.category.findMany({
+        where: {
+          isSystem: true,
+          type: targetType,
+          id: { not: id },
+        },
+        select: { id: true, name: true },
+      });
+
+      const duplicate = candidateCategories.find(
+        (c) => c.name.trim().toLowerCase() === trimmedName.toLowerCase()
+      );
+
+      if (duplicate) {
+        throw new ValidationError('A system category with this name and type already exists');
+      }
+    }
+
+    const updated = await prisma.category.update({
+      where: { id },
+      data: {
+        name: trimmedName,
+        type: targetType,
+        sortOrder: data.sortOrder !== undefined ? data.sortOrder : existing.sortOrder,
+      },
+    });
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_CATEGORY_UPDATE',
+      details: {
+        categoryId: id,
+        name: updated.name,
+        type: updated.type,
+        sortOrder: updated.sortOrder,
+      },
+    });
+
+    return updated;
+  }
+
+  /**
+   * Admin: Deletes a system category, safely unlinking transactions (categoryId: null)
+   * and recurringTxns, and deleting associated budgets.
+   * Logs ADMIN_CATEGORY_DELETE.
+   */
+  async adminDeleteSystemCategory(adminId: string, id: string) {
+    const existing = await prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Category not found');
+    }
+
+    if (!existing.isSystem) {
+      throw new ForbiddenError('Category is not a system category');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.transaction.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      });
+      await tx.recurringTransaction.updateMany({
+        where: { categoryId: id },
+        data: { categoryId: null },
+      });
+      await tx.budget.deleteMany({
+        where: { categoryId: id },
+      });
+      await tx.category.delete({
+        where: { id },
+      });
+    });
+
+    await logAuditEvent({
+      actorUserId: adminId,
+      action: 'ADMIN_CATEGORY_DELETE',
+      details: {
+        categoryId: id,
+        name: existing.name,
+        type: existing.type,
+      },
+    });
+
+    return { success: true, message: 'System category deleted successfully' };
   }
 }
 

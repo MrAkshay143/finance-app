@@ -6,9 +6,14 @@ import {
   signAccessToken,
   generateRefreshTokenString,
   hashRefreshToken,
+  signResetToken,
+  verifyResetToken,
 } from '../lib/jwt.js';
 import { addToDenylist } from '../lib/tokenDenylist.js';
+import { logger } from '../lib/logger.js';
 import { logAuditEvent } from './auditService.js';
+import { kbaService } from './kbaService.js';
+import { categoryService } from './categoryService.js';
 import {
   UnauthorizedError,
   ConflictError,
@@ -56,6 +61,21 @@ export interface AuthResult {
 }
 
 export class AuthService {
+  private async getSessionTimeoutMinutes(): Promise<number | undefined> {
+    try {
+      const setting = await prisma.appSetting.findUnique({
+        where: { key: 'session_timeout_minutes' },
+      });
+      if (setting && setting.value !== undefined && setting.value !== null) {
+        const val = Number(setting.value);
+        if (!isNaN(val) && val > 0) {
+          return val;
+        }
+      }
+    } catch {}
+    return undefined;
+  }
+
   /**
    * Registers a new user with default settings and issues an auth token pair.
    */
@@ -154,6 +174,9 @@ export class AuthService {
       },
     });
 
+    // Ensure default system categories are provisioned for new user
+    categoryService.ensureSystemCategories().catch(() => {});
+
     // Issue initial tokens
     const familyId = crypto.randomUUID();
     const refreshTokenString = generateRefreshTokenString();
@@ -171,10 +194,14 @@ export class AuthService {
       },
     });
 
-    const { token: accessToken, expiresIn } = signAccessToken({
-      userId: user.id,
-      role: user.role,
-    });
+    const sessionTimeout = await this.getSessionTimeoutMinutes();
+    const { token: accessToken, expiresIn } = signAccessToken(
+      {
+        userId: user.id,
+        role: user.role,
+      },
+      sessionTimeout
+    );
 
     await logAuditEvent({
       actorUserId: user.id,
@@ -326,10 +353,14 @@ export class AuthService {
       },
     });
 
-    const { token: accessToken, expiresIn } = signAccessToken({
-      userId: updatedUser.id,
-      role: updatedUser.role,
-    });
+    const sessionTimeout = await this.getSessionTimeoutMinutes();
+    const { token: accessToken, expiresIn } = signAccessToken(
+      {
+        userId: updatedUser.id,
+        role: updatedUser.role,
+      },
+      sessionTimeout
+    );
 
     await logAuditEvent({
       actorUserId: updatedUser.id,
@@ -416,6 +447,11 @@ export class AuthService {
       throw new UnauthorizedError('User account is not active');
     }
 
+    // SEC-10: Reject refresh if account is currently locked
+    if (tokenRecord.user.lockedUntil && tokenRecord.user.lockedUntil > new Date()) {
+      throw new UnauthorizedError('User account is temporarily locked. Please try again later.');
+    }
+
     // ROTATION: Revoke the presented token
     const now = new Date();
     await prisma.refreshToken.update({
@@ -440,10 +476,14 @@ export class AuthService {
     });
 
     // Issue a new access token
-    const { token: newAccessToken, expiresIn } = signAccessToken({
-      userId: tokenRecord.user.id,
-      role: tokenRecord.user.role,
-    });
+    const sessionTimeout = await this.getSessionTimeoutMinutes();
+    const { token: newAccessToken, expiresIn } = signAccessToken(
+      {
+        userId: tokenRecord.user.id,
+        role: tokenRecord.user.role,
+      },
+      sessionTimeout
+    );
 
     await logAuditEvent({
       actorUserId: tokenRecord.userId,
@@ -662,6 +702,165 @@ export class AuthService {
       success: true,
       revokedCount: result.count,
       message: `Signed out of ${result.count} other session(s)`,
+    };
+  }
+
+  /**
+   * Initiates forgot password flow: finds user by email, checks KBA status,
+   * returns the 3 security question prompts (without answers/hashes).
+   */
+  async initiateForgotPassword(email: string) {
+    if (!email || typeof email !== 'string') {
+      throw new ValidationError('Email address is required');
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      select: { id: true, email: true, status: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError('No account found with this email address');
+    }
+
+    if (user.status === 'SUSPENDED') {
+      throw new ForbiddenError('This account has been suspended. Please contact support.');
+    }
+
+    const questions = await kbaService.getSecurityQuestions(user.id);
+    if (!questions || questions.length < 3) {
+      throw new ValidationError(
+        'Security questions have not been configured for this account. Please contact an administrator.'
+      );
+    }
+
+    return {
+      email: user.email,
+      questions: questions.map((q) => ({
+        questionKey: q.questionKey,
+        questionText: q.questionText,
+      })),
+    };
+  }
+
+  /**
+   * Verifies the 3 security question answers and returns a signed 15-minute reset token.
+   */
+  async verifyForgotPassword(
+    email: string,
+    answers: Array<{ questionKey?: string; questionId?: string; answer: string }>
+  ) {
+    if (!email || typeof email !== 'string') {
+      throw new ValidationError('Email address is required');
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      select: { id: true, email: true, status: true },
+    });
+
+    if (!user) {
+      throw new NotFoundError('No account found with this email address');
+    }
+
+    if (user.status === 'SUSPENDED') {
+      throw new ForbiddenError('This account has been suspended. Please contact support.');
+    }
+
+    // Verify answers with kbaService
+    await kbaService.verifySecurityQuestions({ userId: user.id }, answers);
+
+    // Issue 15-minute password reset token
+    const resetToken = signResetToken({ userId: user.id, email: user.email });
+
+    await logAuditEvent({
+      actorUserId: user.id,
+      action: 'AUTH_FORGOT_PASSWORD_VERIFIED',
+      details: { email: user.email },
+    });
+
+    return {
+      success: true,
+      resetToken,
+    };
+  }
+
+  /**
+   * Resets password using the verified reset token.
+   */
+  async resetPasswordWithToken(resetToken: string, newPassword: string) {
+    if (!resetToken || typeof resetToken !== 'string') {
+      throw new ValidationError('Password reset token is required');
+    }
+
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      throw new ValidationError('New password must be at least 8 characters long');
+    }
+
+    let payload: { userId: string; email: string };
+    let rawResetToken = resetToken;
+
+    // SEC-05: Reject already-used reset tokens before doing any work
+    const { isDenylisted } = await import('../lib/tokenDenylist.js');
+    const alreadyUsed = await isDenylisted(`reset:${resetToken}`);
+    if (alreadyUsed) {
+      throw new UnauthorizedError('Password reset token has already been used. Please request a new one.');
+    }
+
+    try {
+      payload = verifyResetToken(resetToken);
+    } catch {
+      throw new UnauthorizedError('Invalid or expired password reset token');
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundError('User account not found');
+    }
+
+    const newHash = await hashPassword(newPassword);
+
+    await prisma.$transaction(async (tx) => {
+      // Update password and reset failed login counters / lockouts
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: newHash,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+
+      // Revoke all existing refresh tokens for security
+      await tx.refreshToken.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    });
+
+    // SEC-05: Denylist the reset token so it cannot be replayed within its 15-min window
+    try {
+      // Reset tokens expire in 15 min = 900 seconds
+      await addToDenylist(`reset:${rawResetToken}`, 900);
+    } catch (err: any) {
+      // Non-fatal: log but don't block the successful reset
+      logger.warn({ err: err?.message }, 'Failed to denylist used reset token');
+    }
+
+    await logAuditEvent({
+      actorUserId: user.id,
+      action: 'AUTH_PASSWORD_RESET_SUCCESS',
+      details: { email: user.email },
+    });
+
+    return {
+      success: true,
+      message: 'Password reset successfully. You can now log in with your new password.',
     };
   }
 }

@@ -226,7 +226,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
       expect(html).toContain('Recurring transactions');
       expect(html).toContain('Security');
       expect(html).toContain('Change password');
-      expect(html).toContain('Security questions (KBA)');
+      expect(html).toContain('Security Questions');
 
       // Danger Zone
       expect(html).toContain('Danger Zone');
@@ -518,7 +518,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
 
       expect(html).toContain('Data Export');
       expect(html).toContain('Select File Format');
-      expect(html).toContain('Spreadsheet (CSV / Excel)');
+      expect(html).toContain('CSV Spreadsheet');
       expect(html).toContain('JSON Format');
       expect(html).toContain('Export Inclusions');
       expect(html).toContain('Transactions History');

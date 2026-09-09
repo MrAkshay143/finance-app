@@ -9,6 +9,7 @@ import {
   Link2,
   Pencil,
   Camera,
+  Trash2,
   ChevronRight,
   BarChart2,
   ArrowRight,
@@ -21,6 +22,8 @@ import { Card } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient } from '../services/apiClient.js';
+import { toast } from '../store/toastStore.js';
+import { compressImageToWebP } from '../utils/imageCompressor.js';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -97,43 +100,52 @@ export const ProfilePage: React.FC = () => {
     return user?.email ? user.email[0].toUpperCase() : 'U';
   }, [user]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+    if (!file.type.startsWith('image/')) {
       setAvatarError('Please select a valid image file (JPEG, PNG, WEBP).');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError('Image size must not exceed 5MB.');
       return;
     }
 
     setAvatarError(null);
     setIsUploadingAvatar(true);
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const base64Data = reader.result as string;
-        const res = await apiClient.profile.uploadAvatar(base64Data);
-        if (res?.avatarUrl) {
-          useAuthStore.getState().updateUser({ avatarUrl: res.avatarUrl });
-        }
-        await fetchProfile();
-      } catch (err: any) {
-        setAvatarError(err?.response?.data?.message || err?.message || 'Failed to upload profile picture.');
-      } finally {
-        setIsUploadingAvatar(false);
+    try {
+      // Auto compress and convert to WebP square (512x512, 0.82 quality)
+      const compressed = await compressImageToWebP(file, 512, 0.82);
+      const res = await apiClient.profile.uploadAvatar(compressed.dataUrl);
+      if (res?.avatarUrl) {
+        useAuthStore.getState().updateUser({ avatarUrl: res.avatarUrl });
       }
-    };
-    reader.onerror = () => {
-      setAvatarError('Failed to read selected image file.');
+      await fetchProfile();
+      toast.success('Profile photo updated successfully');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to upload profile picture.';
+      setAvatarError(msg);
+      toast.error(msg);
+    } finally {
       setIsUploadingAvatar(false);
-    };
-    reader.readAsDataURL(file);
+      // Reset input value to allow selecting same file again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    try {
+      setIsUploadingAvatar(true);
+      await apiClient.profile.deleteAvatar();
+      useAuthStore.getState().updateUser({ avatarUrl: null });
+      await fetchProfile();
+      toast.success('Profile photo removed');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to remove profile photo');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -225,6 +237,18 @@ export const ProfilePage: React.FC = () => {
                 >
                   <Camera className="w-3.5 h-3.5" />
                 </button>
+                {user?.avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAvatar}
+                    disabled={isUploadingAvatar}
+                    aria-label="Remove profile photo"
+                    title="Remove photo"
+                    className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3 stroke-[2.2]" />
+                  </button>
+                )}
               </div>
 
               <div>

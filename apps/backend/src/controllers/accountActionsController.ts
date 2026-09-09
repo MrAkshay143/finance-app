@@ -6,7 +6,14 @@ export class AccountActionsController {
   async resetProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.id;
-      const result = await accountActionsService.resetProfile(userId, req.ip);
+      const { password } = req.body || {};
+
+      // SEC-09: Require password confirmation to prevent accidental/malicious data wipes
+      if (!password || typeof password !== 'string') {
+        throw new ValidationError('Password confirmation is required to reset profile data');
+      }
+
+      const result = await accountActionsService.resetProfile(userId, password, req.ip);
       res.status(200).json({
         success: true,
         data: result,

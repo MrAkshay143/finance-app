@@ -13,12 +13,15 @@ import {
   TrendingDown,
   PiggyBank,
   ArrowLeftRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Button } from '../components/ui/Button.js';
 import { Input } from '../components/ui/Input.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Modal } from '../components/ui/Modal.js';
+import { Pagination } from '../components/ui/Pagination.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { TransactionItemSkeleton } from '../components/ui/Skeleton.js';
@@ -72,6 +75,13 @@ export const TransactionsPage: React.FC = () => {
 
   // Delete confirmation modal state
   const [deletingItem, setDeletingItem] = useState<DisplayItem | null>(null);
+
+  // Expanded card state — only one at a time
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   // Debounce search input
   useEffect(() => {
@@ -250,6 +260,27 @@ export const TransactionsPage: React.FC = () => {
     // Sort by date descending
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [txnsData, transfersData, activeFilter, shouldFetchTransfers, accountIdParam, debouncedSearch, accountMap]);
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 15;
+
+  // Reset currentPage to 1 whenever activeFilter, debouncedSearch, or accountIdParam changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, debouncedSearch, accountIdParam]);
+
+  const totalPages = Math.max(1, Math.ceil(displayItems.length / PAGE_SIZE));
+
+  // Clamp current page if items shrink
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedItems = useMemo(() => {
+    return displayItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  }, [displayItems, currentPage]);
 
   const isLoading = isLoadingTxns || (shouldFetchTransfers && isLoadingTransfers);
   const totalRecordsCount = displayItems.length;
@@ -446,70 +477,143 @@ export const TransactionsPage: React.FC = () => {
             />
           ) : (
             <div className="space-y-2.5">
-              {displayItems.map((item) => (
-                <article
-                  key={item.id}
-                  className="p-3.5 bg-surface rounded-2xl border border-borderDefault shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-3"
-                >
-                  {/* Left: Icon and Details */}
-                  <div
-                    className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                    onClick={() => handleEditClick(item)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleEditClick(item);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`View transaction ${item.title}`}
+              {paginatedItems.map((item) => {
+                const isExpanded = expandedId === item.id;
+                return (
+                  <article
+                    key={item.id}
+                    className="bg-surface rounded-2xl border border-borderDefault shadow-sm hover:shadow-md transition-shadow"
                   >
-                    {getTransactionIcon(item.type)}
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-bold text-textDefault leading-tight truncate">
-                        {item.title}
+                    {/* Card Row — click to toggle expand */}
+                    <div
+                      className="p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none"
+                      onClick={() => toggleExpanded(item.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleExpanded(item.id);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-expanded={isExpanded}
+                      aria-label={`${isExpanded ? 'Collapse' : 'Expand'} transaction ${item.title}`}
+                    >
+                      {/* Left: Icon and Details */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {getTransactionIcon(item.type)}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-bold text-textDefault leading-tight truncate">
+                            {item.title}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-textMuted mt-1 truncate">
+                            <span>{formatDate(item.date)}</span>
+                            <span>&bull;</span>
+                            <span className="truncate">{item.isTransfer ? `${accountMap.get(item.accountId) || item.accountName.split(' → ')[0]} → ${accountMap.get(item.toAccountId ?? '') || item.accountName.split(' → ')[1] || ''}` : item.accountName}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-textMuted mt-1 truncate">
-                        <span>{formatDate(item.date)}</span>
-                        <span>&bull;</span>
-                        <span className="truncate">{item.accountName}</span>
+
+                      {/* Right: Amount Chip & Chevron */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right flex flex-col items-end">
+                          {getSemanticChip(item.type, item.amount)}
+                          <span className="text-[10px] text-textMuted mt-0.5 capitalize truncate max-w-[90px]">
+                            {item.categoryName || item.type}
+                          </span>
+                        </div>
+                        <div className="text-textMuted">
+                          {isExpanded
+                            ? <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                            : <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                          }
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right: Amount Chip & Actions */}
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <div className="text-right flex flex-col items-end">
-                      {getSemanticChip(item.type, item.amount)}
-                      <span className="text-[10px] text-textMuted mt-0.5 capitalize truncate max-w-[90px]">
-                        {item.categoryName || item.type}
-                      </span>
-                    </div>
+                    {/* Expanded Details Section */}
+                    <div
+                      className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-96' : 'max-h-0'}`}
+                    >
+                      <div className="px-3.5 pb-3.5 pt-0">
+                        <div className="border-t border-borderDefault pt-3 space-y-1.5">
+                          {/* Description */}
+                          {item.description && item.description !== 'Account Transfer' && (
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-textMuted w-20 shrink-0">Note</span>
+                              <span className="text-textDefault font-medium">{item.description}</span>
+                            </div>
+                          )}
+                          {/* Category */}
+                          {item.categoryName && (
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-textMuted w-20 shrink-0">Category</span>
+                              <span className="text-textDefault font-medium">{item.categoryName}</span>
+                            </div>
+                          )}
+                          {/* Merchant */}
+                          {item.merchant && (
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-textMuted w-20 shrink-0">Merchant</span>
+                              <span className="text-textDefault font-medium">{item.merchant}</span>
+                            </div>
+                          )}
+                          {/* Transfer accounts */}
+                          {item.isTransfer ? (
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-textMuted w-20 shrink-0">Transfer</span>
+                              <span className="text-textDefault font-medium">
+                                {accountMap.get(item.accountId) || 'Source'} → {accountMap.get(item.toAccountId ?? '') || 'Destination'}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-textMuted w-20 shrink-0">Account</span>
+                              <span className="text-textDefault font-medium">{item.accountName}</span>
+                            </div>
+                          )}
+                          {/* Date */}
+                          <div className="flex items-start gap-2 text-xs">
+                            <span className="text-textMuted w-20 shrink-0">Date</span>
+                            <span className="text-textDefault font-medium">{formatDate(item.date)}</span>
+                          </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleEditClick(item)}
-                        className="w-8 h-8 rounded-lg text-textMuted hover:text-brand-primary hover:bg-blue-50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
-                        aria-label="Edit transaction"
-                        title={`Edit ${item.description || item.title || 'transaction'}`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeletingItem(item)}
-                        className="w-8 h-8 rounded-lg text-textMuted hover:text-semantic-danger hover:bg-red-50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger focus-visible:ring-offset-1"
-                        aria-label="Delete transaction"
-                        title={`Delete ${item.description || item.title || 'transaction'}`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                      </button>
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2 pt-2">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleEditClick(item); }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-brand-primary hover:bg-blue-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                              aria-label="Edit transaction"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setDeletingItem(item); }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-semantic-danger hover:bg-red-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger"
+                              aria-label="Delete transaction"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={displayItems.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setCurrentPage}
+                itemLabel="transactions"
+              />
             </div>
           )}
         </section>

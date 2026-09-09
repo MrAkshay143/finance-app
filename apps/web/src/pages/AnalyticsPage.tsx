@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Calendar,
@@ -30,6 +30,9 @@ import type { AnalyticsOverview } from '@finance/shared-types';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const accountId = searchParams.get('accountId') || undefined;
+
   const queryClient = useSafeQueryClient();
   const { currency: userCurrency } = useUserCurrency();
   const onboardingCompleted = useAuthStore((state) => state.onboardingCompleted);
@@ -44,10 +47,25 @@ export const AnalyticsPage: React.FC = () => {
   const [selectedCategoryPeriod, setSelectedCategoryPeriod] = useState<string>('This Month');
   const [categoryType, setCategoryType] = useState<'EXPENSE' | 'INCOME' | 'INVESTMENT'>('EXPENSE');
 
+  // Fetch accounts list for account filter & switcher
+  const { data: accountsData } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => apiClient.accounts.list(),
+  }, queryClient);
+
+  const accounts = React.useMemo(() => {
+    if (!accountsData) return [];
+    if (Array.isArray(accountsData)) return accountsData;
+    if (Array.isArray((accountsData as any)?.accounts)) return (accountsData as any).accounts;
+    return [];
+  }, [accountsData]);
+
+  const selectedAccount = accounts.find((a: any) => a.id === accountId);
+
   const { data: analyticsData, isLoading } = useQuery<AnalyticsOverview>({
-    queryKey: ['analytics', selectedMonth],
+    queryKey: ['analytics', selectedMonth, accountId || 'all'],
     queryFn: async () => {
-      return await apiClient.analytics.get({ month: selectedMonth });
+      return await apiClient.analytics.get({ month: selectedMonth, accountId });
     },
   }, queryClient);
 
@@ -165,6 +183,85 @@ export const AnalyticsPage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Account Filter Chips */}
+        {accounts.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('accountId');
+                setSearchParams(newParams);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                !accountId
+                  ? 'bg-[#132A5C] text-white shadow-sm'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              All Accounts
+            </button>
+            {accounts.map((acc: any) => {
+              const isSelected = acc.id === accountId;
+              return (
+                <button
+                  key={acc.id}
+                  type="button"
+                  onClick={() => {
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.set('accountId', acc.id);
+                    setSearchParams(newParams);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                    isSelected
+                      ? 'bg-brand-primary text-white shadow-sm'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>{acc.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Selected Account Context Banner */}
+        {selectedAccount && (
+          <div className="flex items-center justify-between p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-slate-900 truncate">
+                    {selectedAccount.name}
+                  </h3>
+                  <span className="text-[10px] font-semibold bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md">
+                    {selectedAccount.institutionName || selectedAccount.institution || selectedAccount.type}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Individual account analytics & transaction report
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('accountId');
+                setSearchParams(newParams);
+              }}
+              className="text-xs text-slate-500 hover:text-slate-800 p-1 rounded-lg hover:bg-blue-100/60"
+              title="View all accounts report"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Dismissible Insight Banner */}
         {!isBannerDismissed && !onboardingCompleted && (

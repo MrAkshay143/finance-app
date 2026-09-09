@@ -93,9 +93,9 @@ export const SecurityQuestionsVerifySchema = z.object({
   questions: z.array(SecurityQuestionAnswerSchema).optional(),
 }).refine(data => {
   const list = data.answers || data.questions;
-  return Array.isArray(list) && list.length >= 1;
+  return Array.isArray(list) && list.length === 3;
 }, {
-  message: 'At least one answer must be provided',
+  message: 'Exactly 3 security question answers must be provided',
   path: ['answers'],
 });
 export type SecurityQuestionsVerify = z.infer<typeof SecurityQuestionsVerifySchema>;
@@ -110,3 +110,31 @@ export const ChangePasswordSchema = z.object({
     .regex(/[0-9]/, 'New password must contain at least one number'),
 });
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
+export const ForgotPasswordInitiateInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+export type ForgotPasswordInitiateInput = z.infer<typeof ForgotPasswordInitiateInputSchema>;
+
+export const ForgotPasswordVerifyInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  answers: z.array(
+    z.object({
+      questionKey: z.string().optional(),
+      questionId: z.string().optional(),
+      answer: z.string().min(1, 'Answer is required'),
+    })
+  ),
+});
+export type ForgotPasswordVerifyInput = z.infer<typeof ForgotPasswordVerifyInputSchema>;
+
+export const ResetPasswordInputSchema = z.object({
+  resetToken: z.string().min(1, 'Reset token is required'),
+  newPassword: z
+    .string()
+    .min(8, 'New password must be at least 8 characters')
+    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'New password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'New password must contain at least one number'),
+});
+export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;

@@ -1,5 +1,6 @@
 export const ROUTES = {
   LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
   SIGNUP: '/signup',
   ONBOARDING: '/onboarding',
   HOME: '/',
@@ -26,6 +27,7 @@ export const ROUTES = {
   ADMIN_USER_OVERVIEW: '/admin/users/:id',
   ADMIN_USER_MANAGE: '/admin/users/:id/manage',
   ADMIN_SETTINGS: '/admin/settings',
+  ADMIN_CATEGORIES: '/admin/categories',
   ADMIN_AUDIT: '/admin/audit',
   ADMIN_PROFILE: '/admin/profile',
   AI_ANALYSIS: '/ai-analysis',

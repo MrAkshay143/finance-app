@@ -50,6 +50,7 @@ export interface AppSettingsData {
   maxFailedAttempts: number;
   lockoutDurationMinutes: number;
   requireKbaForSensitiveActions: boolean;
+  maintenanceMessage?: string;
   [key: string]: any;
 }
 
@@ -443,6 +444,7 @@ export class AdminService {
     const platformName = String(settingsMap.get('platform_name') ?? 'Finance Tracker');
     const supportEmail = String(settingsMap.get('support_email') ?? 'support@imakshay.in');
     const maintenanceMode = Boolean(settingsMap.get('maintenance_mode') ?? false);
+    const maintenanceMessage = String(settingsMap.get('maintenance_message') ?? 'Platform is currently undergoing scheduled maintenance. Please try again shortly.');
     const allowUserRegistration = Boolean(settingsMap.get('allow_user_registration') ?? true);
     const sessionTimeout = Number(settingsMap.get('session_timeout_minutes') ?? 60);
     const maxFailed = Number(settingsMap.get('max_failed_attempts') ?? 5);
@@ -459,6 +461,7 @@ export class AdminService {
       platformName,
       supportEmail,
       maintenanceMode,
+      maintenanceMessage,
       allowUserRegistration,
       sessionTimeoutMinutes: sessionTimeout,
       maxFailedLoginAttempts: maxFailed,
@@ -487,6 +490,7 @@ export class AdminService {
       platformName: 'platform_name',
       supportEmail: 'support_email',
       maintenanceMode: 'maintenance_mode',
+      maintenanceMessage: 'maintenance_message',
       allowUserRegistration: 'allow_user_registration',
       sessionTimeoutMinutes: 'session_timeout_minutes',
       maxFailedLoginAttempts: 'max_failed_attempts',
@@ -517,7 +521,12 @@ export class AdminService {
       });
     }
 
-    if ('maintenanceMode' in data || 'maintenance_mode' in data) {
+    if (
+      'maintenanceMode' in data ||
+      'maintenance_mode' in data ||
+      'maintenanceMessage' in data ||
+      'maintenance_message' in data
+    ) {
       invalidateMaintenanceCache();
     }
 

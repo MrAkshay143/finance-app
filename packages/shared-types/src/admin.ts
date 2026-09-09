@@ -70,6 +70,7 @@ export const AppSettingsSchema = z.object({
   platformName: z.string().min(1).max(100).default('Finance Tracker'),
   supportEmail: z.string().email().default('support@finance.local'),
   maintenanceMode: z.boolean().default(false),
+  maintenanceMessage: z.string().optional().default('Platform is currently undergoing scheduled maintenance. Please try again shortly.'),
   allowUserRegistration: z.boolean().default(true),
 
   // Security Policies

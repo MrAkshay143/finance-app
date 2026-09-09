@@ -5,12 +5,13 @@ export class AnalyticsController {
   async getAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.id;
-      const { month, period, startDate, endDate } = req.query;
+      const { month, period, startDate, endDate, accountId } = req.query;
       const data = await analyticsService.getAnalytics(userId, {
         month: month as string | undefined,
         period: period as string | undefined,
         startDate: startDate as string | undefined,
         endDate: endDate as string | undefined,
+        accountId: accountId as string | undefined,
       });
       res.status(200).json({
         success: true,

@@ -343,7 +343,7 @@ describe('Web Auth, Onboarding Wizard & KBA Setup Test Suite (TASK-1.3)', () => 
       expect(html).toContain('+91');
       expect(html).toContain('Email Address');
       expect(html).toContain('Date of Birth');
-      expect(html).toContain('Security Questions (KBA)');
+      expect(html).toContain('Security Questions');
       expect(html).toContain('Save Profile');
       expect(html).toContain('Your data is secure and private');
     });

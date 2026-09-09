@@ -18,6 +18,10 @@ export const envSchema = z
       .string()
       .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters long')
       .default('default_refresh_secret_for_dev_min_32_chars_12345'),
+    JWT_RESET_SECRET: z
+      .string()
+      .min(32, 'JWT_RESET_SECRET must be at least 32 characters long')
+      .default('default_reset_secret_for_dev_min_32_chars_123456'),
     JWT_ACCESS_TTL: z.string().default('15m'),
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
     CORS_ALLOWED_ORIGINS: z
@@ -38,12 +42,13 @@ export const envSchema = z
       if (data.NODE_ENV === 'production') {
         if (data.JWT_ACCESS_SECRET.includes('default_access_secret')) return false;
         if (data.JWT_REFRESH_SECRET.includes('default_refresh_secret')) return false;
+        if (data.JWT_RESET_SECRET.includes('default_reset_secret')) return false;
       }
       return true;
     },
     {
       message:
-        'Production deployments must provide unique, non-default JWT_ACCESS_SECRET and JWT_REFRESH_SECRET',
+        'Production deployments must provide unique, non-default JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, and JWT_RESET_SECRET',
       path: ['JWT_ACCESS_SECRET'],
     }
   );

@@ -49,4 +49,9 @@ profileRouter.post('/avatar', (req, res, next) => {
   profileController.uploadAvatar(req, res, next);
 });
 
+// Delete user avatar image
+profileRouter.delete('/avatar', (req, res, next) => {
+  profileController.deleteAvatar(req, res, next);
+});
+
 export default profileRouter;

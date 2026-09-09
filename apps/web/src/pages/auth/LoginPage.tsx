@@ -20,7 +20,7 @@ import { validateEmail } from '../../utils/validation.js';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError, lockoutUntil } = useAuthStore();
+  const { login, isLoading, error, clearError, lockoutUntil, isAuthenticated, user } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +29,27 @@ export const LoginPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
   const [lockoutRemaining, setLockoutRemaining] = useState<number | null>(null);
 
-  const emailResult = validateEmail(email);
+  const searchParams = new URLSearchParams(location.search);
+  const isSessionExpired = Boolean(
+    (location.state as any)?.sessionExpired ||
+    searchParams.get('reason') === 'session_expired' ||
+    searchParams.get('expired') === 'true'
+  );
 
   // Clear previous errors on mount
   useEffect(() => {
     clearError();
   }, [clearError]);
+
+  // Guard: If already authenticated, redirect to appropriate home
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const defaultHome = user.role === 'ADMIN'
+        ? '/admin'
+        : (user.onboardingCompleted ? '/dashboard' : '/onboarding');
+      navigate(defaultHome, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -56,6 +71,8 @@ export const LoginPage: React.FC = () => {
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, [lockoutUntil]);
+
+  const emailResult = validateEmail(email);
 
   const validate = () => {
     const errors: { email?: string; password?: string } = {};
@@ -89,8 +106,16 @@ export const LoginPage: React.FC = () => {
         rememberMe
       );
 
-      const destination = (location.state as any)?.from?.pathname ||
-        (res.user.onboardingCompleted ? '/dashboard' : '/onboarding');
+      const fromPath = (location.state as any)?.from?.pathname;
+      let destination: string;
+
+      if (res.user.role === 'ADMIN') {
+        destination = fromPath && fromPath.startsWith('/admin') ? fromPath : '/admin';
+      } else {
+        const validUserPath = fromPath && !fromPath.startsWith('/admin') ? fromPath : null;
+        destination = validUserPath || (res.user.onboardingCompleted ? '/dashboard' : '/onboarding');
+      }
+
       navigate(destination, { replace: true });
     } catch {
       // Error handled in store and displayed
@@ -109,46 +134,59 @@ export const LoginPage: React.FC = () => {
       : 0;
 
   return (
-    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-clip">
-        {/* Navy Header Block */}
-        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-8 pb-7 px-6 rounded-b-[28px] shadow-header sticky top-0 z-30 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white shadow-lg mb-3">
-            <Wallet className="w-7 h-7" />
+    <div className="min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-3 sm:p-4">
+      <div className="w-full max-w-[400px] flex flex-col justify-center">
+        {/* Brand Header */}
+        <div className="text-center mb-2.5">
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5">
+            <img
+              src="/pwa-192x192.png"
+              alt="Finance"
+              className="w-9 h-9 rounded-xl object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+              }}
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Finance Tracker</h1>
-          <p className="text-xs text-slate-300 mt-1 font-normal">
+          <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
+            Finance Tracker
+          </h1>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-normal">
             Personal Wealth & Spending Hub
           </p>
-        </header>
+        </div>
 
-        {/* Login Form Container */}
-        <main className="flex-1 p-5 space-y-4">
-          {/* Welcome Card */}
-          <div className="text-center pt-1 pb-2">
-            <h2 className="text-xl font-bold text-textDefault tracking-tight">
-              Sign In to Your Account
-            </h2>
-            <p className="text-xs text-textMuted mt-1">
-              Secure access to your personal finance dashboard
-            </p>
+        {/* Card Container */}
+        <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-slate-200/80 space-y-3">
+          <div className="mb-0.5">
+            <h2 className="text-sm font-bold text-slate-900">Sign In to Your Account</h2>
           </div>
+
+          {/* Session Expired Alert Banner */}
+          {isSessionExpired && !isLocked && (
+            <div
+              role="alert"
+              className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-800 text-xs font-medium"
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+              <p className="leading-tight">Your session has expired. Please sign in again to continue.</p>
+            </div>
+          )}
 
           {/* Account Lockout Alert Banner */}
           {isLocked && (
             <div
               role="alert"
-              className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-semantic-danger"
+              className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-semantic-danger text-xs"
             >
-              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-semantic-danger" />
-              <div className="space-y-1 text-xs">
-                <p className="font-bold text-semantic-danger">Account Temporarily Locked</p>
-                <p className="text-slate-700 leading-relaxed">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-semantic-danger" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Account Temporarily Locked</p>
+                <p className="text-slate-700">
                   Too many failed login attempts. Please wait{' '}
                   <span className="font-bold text-semantic-danger font-mono">
                     {Math.floor(remainingSeconds / 60)}m {remainingSeconds % 60}s
-                  </span>{' '}
-                  before trying again.
+                  </span>
                 </p>
               </div>
             </div>
@@ -158,116 +196,111 @@ export const LoginPage: React.FC = () => {
           {error && !isLocked && (
             <div
               role="alert"
-              className="p-3.5 bg-red-50/90 border border-red-200 rounded-2xl flex items-center gap-2.5 text-semantic-danger"
+              className="p-2.5 bg-red-50/90 border border-red-200 rounded-xl flex items-center gap-2 text-semantic-danger text-xs font-medium"
             >
               <AlertCircle className="w-4 h-4 shrink-0 text-semantic-danger" />
-              <p className="text-xs font-medium leading-tight">{error}</p>
+              <p className="leading-tight">{error}</p>
             </div>
           )}
 
-          {/* Form Card */}
-          <Card className="p-5 space-y-4 shadow-card">
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              {/* Email Input */}
+          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+            {/* Email Input */}
+            <Input
+              label="Email Address"
+              type="email"
+              required
+              placeholder="name@example.com"
+              value={email}
+              disabled={isLoading || isLocked}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (validationErrors.email) {
+                  setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                }
+              }}
+              error={validationErrors.email}
+              status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
+              validMessage="Valid email"
+              showStatusIcon
+              icon={<Mail className="w-4 h-4 text-slate-400" />}
+              autoComplete="email"
+            />
+
+            {/* Password Input */}
+            <div className="relative">
               <Input
-                label="Email Address"
-                type="email"
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
                 required
-                placeholder="name@example.com"
-                value={email}
+                placeholder="Enter account password"
+                value={password}
                 disabled={isLoading || isLocked}
                 onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (validationErrors.email) {
-                    setValidationErrors((prev) => ({ ...prev, email: undefined }));
+                  setPassword(e.target.value);
+                  if (validationErrors.password) {
+                    setValidationErrors((prev) => ({ ...prev, password: undefined }));
                   }
                 }}
-                error={validationErrors.email}
-                status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
-                validMessage="Valid email"
-                showStatusIcon
-                icon={<Mail className="w-4 h-4 text-slate-400" />}
-                autoComplete="email"
+                error={validationErrors.password}
+                icon={<Lock className="w-4 h-4 text-slate-400" />}
+                autoComplete="current-password"
               />
-
-              {/* Password Input */}
-              <div>
-                <div className="relative">
-                  <Input
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Enter your account password"
-                    value={password}
-                    disabled={isLoading || isLocked}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      if (validationErrors.password) {
-                        setValidationErrors((prev) => ({ ...prev, password: undefined }));
-                      }
-                    }}
-                    error={validationErrors.password}
-                    icon={<Lock className="w-4 h-4 text-slate-400" />}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 p-1"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Session & Forgot Link */}
-              <div className="flex items-center justify-between pt-1 text-xs">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    disabled={isLoading || isLocked}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded text-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 border-slate-300"
-                  />
-                  <span className="text-textDefault font-medium">Remember session</span>
-                </label>
-
-                <Link
-                  to="/security/questions"
-                  className="text-brand-primary font-semibold hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                disabled={isLoading || isLocked}
-                iconRight={<ArrowRight className="w-4 h-4" />}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 p-1"
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
-          </Card>
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="w-4 h-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
 
-          {/* Security Notice Card */}
-          <div className="p-3.5 bg-blue-50/60 border border-blue-100 rounded-2xl flex items-center gap-2.5 text-textMuted text-xs">
-            <ShieldCheck className="w-4 h-4 text-brand-primary shrink-0" />
-            <span>End-to-end encrypted session with SHA-256 salted credentials.</span>
+            {/* Remember Session & Forgot Link */}
+            <div className="flex items-center justify-between pt-0.5 text-xs">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  disabled={isLoading || isLocked}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded text-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary border-slate-300"
+                />
+                <span className="text-slate-700 font-medium">Remember session</span>
+              </label>
+
+              <Link
+                to="/forgot-password"
+                className="text-brand-primary font-semibold hover:underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={isLoading || isLocked}
+              iconRight={<ArrowRight className="w-4 h-4" />}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+
+          {/* Security Notice */}
+          <div className="py-2 px-3 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+            <span>End-to-end encrypted session with SHA-256 credentials.</span>
           </div>
 
           {/* Link to Signup */}
-          <div className="text-center pt-2 pb-6">
+          <div className="text-center pt-1">
             <p className="text-xs text-textMuted">
               Do not have an account?{' '}
               <Link
@@ -278,7 +311,7 @@ export const LoginPage: React.FC = () => {
               </Link>
             </p>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

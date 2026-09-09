@@ -760,6 +760,8 @@ export function createMockPrisma() {
         for (const [id, txn] of transactions.entries()) {
           let match = true;
           if (where?.id?.in && !where.id.in.includes(id)) match = false;
+          if (where?.categoryId && txn.categoryId !== where.categoryId) match = false;
+          if (where?.userId && txn.userId !== where.userId) match = false;
           if (match) {
             transactions.set(id, { ...txn, ...data, updatedAt: new Date() });
             count++;
@@ -859,6 +861,12 @@ export function createMockPrisma() {
         if (where?.type) {
           list = list.filter((c) => c.type === where.type);
         }
+        if (where?.isSystem !== undefined) {
+          list = list.filter((c) => c.isSystem === where.isSystem);
+        }
+        if (where?.userId !== undefined) {
+          list = list.filter((c) => c.userId === where.userId);
+        }
         if (where?.OR) {
           list = list.filter((c) => {
             return where.OR.some((cond: any) => {
@@ -881,11 +889,19 @@ export function createMockPrisma() {
               return false;
             });
           });
-        } else if (where?.userId !== undefined) {
-          list = list.filter((c) => c.userId === where.userId);
+        } else {
+          if (where?.userId !== undefined) {
+            list = list.filter((c) => c.userId === where.userId);
+          }
+          if (where?.isSystem !== undefined) {
+            list = list.filter((c) => c.isSystem === where.isSystem);
+          }
         }
         if (where?.type) {
           list = list.filter((c) => c.type === where.type);
+        }
+        if (where?.id?.not) {
+          list = list.filter((c) => c.id !== where.id.not);
         }
         list.sort((a, b) => a.sortOrder - b.sortOrder);
         return list.map((c) => ({ ...c }));
@@ -1080,7 +1096,10 @@ export function createMockPrisma() {
       deleteMany: vi.fn(async ({ where }: any) => {
         let count = 0;
         for (const [id, b] of budgets.entries()) {
-          if (where?.userId && b.userId === where.userId) {
+          let match = true;
+          if (where?.userId && b.userId !== where.userId) match = false;
+          if (where?.categoryId && b.categoryId !== where.categoryId) match = false;
+          if (match) {
             budgets.delete(id);
             count++;
           }

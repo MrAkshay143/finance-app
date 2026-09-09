@@ -348,11 +348,10 @@ export const MenuPage: React.FC = () => {
         subtitle="Assistance and resources"
         icon={<LifeBuoy className="w-5 h-5 text-brand-primary" />}
         footer={
-          <div className="flex gap-2 w-full">
+          <div className="grid grid-cols-2 gap-2 w-full">
             <Button
               variant="outline"
               size="sm"
-              fullWidth
               onClick={() => setIsHelpModalOpen(false)}
             >
               Close
@@ -360,7 +359,6 @@ export const MenuPage: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              fullWidth
               onClick={() => {
                 setIsHelpModalOpen(false);
                 navigate('/about');

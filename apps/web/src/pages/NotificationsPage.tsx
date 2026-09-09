@@ -35,6 +35,7 @@ export const NotificationsPage: React.FC = () => {
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
   const [tempEnabled, setTempEnabled] = useState<boolean>(true);
   const [tempDays, setTempDays] = useState<number>(2);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
 
   // Fetch Reminders
   const { data: remindersData } = useQuery<Reminder[]>({
@@ -186,11 +187,7 @@ export const NotificationsPage: React.FC = () => {
     if (!item.read) {
       markAsReadMutation.mutate(item.id);
     }
-    if (item.type.includes('SECURITY') || item.title.includes('security questions')) {
-      navigate('/security/questions');
-    } else if (item.type.includes('DUE_DATE')) {
-      navigate('/recurring');
-    }
+    setSelectedNotification(item);
   };
 
   return (
@@ -450,6 +447,84 @@ export const NotificationsPage: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Compact Notification Detail Modal */}
+      {selectedNotification && (
+        <Modal
+          isOpen={true}
+          onClose={() => setSelectedNotification(null)}
+          title="Notification Details"
+          maxWidth="max-w-[380px]"
+        >
+          <div className="space-y-4">
+            {/* Header / Type / Time */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0 border border-blue-100/60 shadow-sm">
+                {getNotificationIcon(selectedNotification.type)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                  {selectedNotification.type.replace(/_/g, ' ')}
+                </span>
+                <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                  {getRelativeTime(selectedNotification.createdAt)}
+                </p>
+              </div>
+            </div>
+
+            {/* Title & Body */}
+            <div className="space-y-1.5 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                {selectedNotification.title}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+                {selectedNotification.message}
+              </p>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-2 flex items-center gap-2">
+              {(selectedNotification.type.includes('SECURITY') ||
+                selectedNotification.title.toLowerCase().includes('security') ||
+                selectedNotification.title.toLowerCase().includes('password')) && (
+                <Button
+                  variant="primary"
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    setSelectedNotification(null);
+                    navigate('/security/questions');
+                  }}
+                >
+                  Security Setup
+                </Button>
+              )}
+              {(selectedNotification.type.includes('DUE_DATE') ||
+                selectedNotification.type.includes('REMINDER')) && (
+                <Button
+                  variant="primary"
+                  size="md"
+                  fullWidth
+                  onClick={() => {
+                    setSelectedNotification(null);
+                    navigate('/recurring');
+                  }}
+                >
+                  View Recurring
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="md"
+                fullWidth
+                onClick={() => setSelectedNotification(null)}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

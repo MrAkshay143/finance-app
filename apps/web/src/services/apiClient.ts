@@ -1,68 +1,36 @@
 import { FinanceApiClient } from '@finance/api-client';
+import { useMaintenanceStore } from '../store/maintenanceStore.js';
+import {
+  TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  USER_STORAGE_KEY,
+  KBA_STORAGE_KEY,
+  getStoredAccessToken,
+  setStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredRefreshToken,
+  clearStoredTokens,
+  getStoredUser,
+  saveUserCache,
+  getStoredKba,
+  saveKbaCache,
+} from '../utils/tokenStorage.js';
 
-const TOKEN_KEY = 'finance_access_token';
-const REFRESH_TOKEN_KEY = 'finance_refresh_token';
-
-export function getStoredAccessToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function setStoredAccessToken(token: string | null, remember = true): void {
-  try {
-    if (token) {
-      if (remember) {
-        localStorage.setItem(TOKEN_KEY, token);
-      } else {
-        sessionStorage.setItem(TOKEN_KEY, token);
-      }
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-      sessionStorage.removeItem(TOKEN_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-export function getStoredRefreshToken(): string | null {
-  try {
-    return localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function setStoredRefreshToken(token: string | null, remember = true): void {
-  try {
-    if (token) {
-      if (remember) {
-        localStorage.setItem(REFRESH_TOKEN_KEY, token);
-      } else {
-        sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
-      }
-    } else {
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-export function clearStoredTokens(): void {
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-  } catch {
-    // Ignore storage errors
-  }
-}
+export {
+  TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  USER_STORAGE_KEY,
+  KBA_STORAGE_KEY,
+  getStoredAccessToken,
+  setStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredRefreshToken,
+  clearStoredTokens,
+  getStoredUser,
+  saveUserCache,
+  getStoredKba,
+  saveKbaCache,
+};
 
 function getApiBase(): string {
   if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
@@ -86,7 +54,48 @@ export const apiClient = new FinanceApiClient({
   setAccessToken: (token: string | null) => {
     setStoredAccessToken(token);
   },
+  getRefreshToken: () => getStoredRefreshToken(),
+  setRefreshToken: (token: string | null) => {
+    setStoredRefreshToken(token);
+  },
   onUnauthorized: () => {
     clearStoredTokens();
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('finance-auth-storage');
+      } catch {
+        // Ignore storage access errors
+      }
+      const currentPath = window.location.pathname;
+      if (
+        !currentPath.startsWith('/login') &&
+        !currentPath.startsWith('/signup') &&
+        !currentPath.startsWith('/forgot-password')
+      ) {
+        window.location.href = `/login?reason=session_expired&from=${encodeURIComponent(currentPath)}`;
+      }
+    }
   },
 });
+
+// Maintenance mode response interception
+apiClient.rawAxios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error?.response?.status === 503 &&
+      error?.response?.data?.error?.code === 'MAINTENANCE_MODE'
+    ) {
+      try {
+        const userRole = getStoredUser()?.role;
+        if (userRole !== 'ADMIN') {
+          const msg = error.response?.data?.error?.message;
+          useMaintenanceStore.getState().setMaintenance(true, msg);
+        }
+      } catch {
+        // Ignore store access errors
+      }
+    }
+    return Promise.reject(error);
+  }
+);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -8,8 +8,6 @@ import {
   Shield,
   Search,
   ChevronRight,
-  Settings,
-  FileText,
   Filter,
   MoreVertical,
   ChevronDown,
@@ -21,6 +19,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
+import { Pagination } from '../components/ui/Pagination.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { AdminUserActionModal } from '../components/admin/AdminUserActionModal.js';
@@ -32,7 +31,10 @@ export const AdminDashboardPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED' | 'ADMIN'>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [actionModalUser, setActionModalUser] = useState<AdminUserItem | null>(null);
+
+  const pageSize = 10;
 
   // Query Metrics
   const { data: metricsData, isLoading: isMetricsLoading } = useQuery<AdminDashboardMetrics>({
@@ -75,6 +77,20 @@ export const AdminDashboardPage: React.FC = () => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [usersData, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
+
+  // Reset to page 1 on filter/search/sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, search, sortBy]);
+
+  // Clamp current page to total pages if results shrink
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const metrics = {
     totalUsers: metricsData?.totalUsers ?? users.length,
@@ -133,26 +149,8 @@ export const AdminDashboardPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/admin/audit')}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A]"
-              aria-label="Activity Audit"
-              title="Audit Logs"
-            >
-              <FileText className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/admin/settings')}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A]"
-              aria-label="Admin Settings"
-              title="Platform Settings"
-            >
-              <Settings className="w-4 h-4" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
               onClick={handleLogout}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-500/20 text-rose-300 hover:text-rose-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 shrink-0"
               aria-label="Log Out"
               title="Log Out"
             >
@@ -163,63 +161,63 @@ export const AdminDashboardPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* 4 Metric Cards */}
+        {/* 4 Metric Cards - User Panel Inspired Design */}
         <div className="grid grid-cols-4 gap-2">
           {/* Total Users */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl p-3 flex flex-col justify-between shadow-xs">
-            <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center mb-1">
-              <Users className="w-4 h-4 text-white" />
+          <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-blue-200 transition-all">
+            <div className="w-7 h-7 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center mb-1.5 shrink-0">
+              <Users className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xl font-black leading-tight">
+              <div className="text-xl font-black text-textDefault leading-tight tracking-tight">
                 {isMetricsLoading ? '0' : metrics.totalUsers}
               </div>
-              <div className="text-[10px] text-blue-100 font-medium leading-tight mt-0.5">
+              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mt-0.5 truncate">
                 Total Users
               </div>
             </div>
           </div>
 
           {/* Active */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between shadow-xs">
-            <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1">
+          <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-emerald-200 transition-all">
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 shrink-0">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xl font-black text-emerald-900 leading-tight">
+              <div className="text-xl font-black text-emerald-950 leading-tight tracking-tight">
                 {isMetricsLoading ? '0' : metrics.activeUsers}
               </div>
-              <div className="text-[10px] text-emerald-700 font-medium leading-tight mt-0.5">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
                 Active
               </div>
             </div>
           </div>
 
           {/* Suspended */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 flex flex-col justify-between shadow-xs">
-            <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-1">
+          <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-rose-200 transition-all">
+            <div className="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1.5 shrink-0">
               <UserX className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xl font-black text-amber-900 leading-tight">
+              <div className="text-xl font-black text-rose-950 leading-tight tracking-tight">
                 {isMetricsLoading ? '0' : metrics.suspendedUsers}
               </div>
-              <div className="text-[10px] text-amber-700 font-medium leading-tight mt-0.5">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
                 Suspended
               </div>
             </div>
           </div>
 
           {/* Admins */}
-          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-3 flex flex-col justify-between shadow-xs">
-            <div className="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center mb-1">
+          <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-purple-200 transition-all">
+            <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5 shrink-0">
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xl font-black text-purple-900 leading-tight">
+              <div className="text-xl font-black text-purple-950 leading-tight tracking-tight">
                 {isMetricsLoading ? '0' : metrics.adminUsers}
               </div>
-              <div className="text-[10px] text-purple-700 font-medium leading-tight mt-0.5">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
                 Admins
               </div>
             </div>
@@ -309,7 +307,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            {users.map((item) => {
+            {users.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((item) => {
               const initials = getInitials(item);
               const isActive = item.status === 'ACTIVE';
               const isAdmin = item.role === 'ADMIN';
@@ -318,7 +316,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div
                   key={item.id}
                   onClick={() => navigate(`/admin/users/${item.id}`)}
-                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-xs hover:border-slate-300 active:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                  className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-slate-300 active:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Avatar Initials with Status Dot */}
@@ -396,12 +394,22 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Centralized Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={users.length}
+              pageSize={pageSize}
+              onPageChange={(p) => setCurrentPage(p)}
+              itemLabel="users"
+            />
           </div>
         )}
 
         {/* Footer Info Banner */}
         <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-1.5">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center border border-blue-100">
             <Users className="w-6 h-6" />
           </div>
           <h4 className="text-xs font-bold text-textDefault">All users are here!</h4>

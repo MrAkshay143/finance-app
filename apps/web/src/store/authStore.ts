@@ -7,13 +7,18 @@ import type {
   SignupInput,
   AuthResponse,
 } from '@finance/shared-types';
+import { apiClient } from '../services/apiClient.js';
 import {
-  apiClient,
   getStoredAccessToken,
   setStoredAccessToken,
+  getStoredRefreshToken,
   setStoredRefreshToken,
   clearStoredTokens,
-} from '../services/apiClient.js';
+  getStoredUser,
+  saveUserCache,
+  getStoredKba,
+  saveKbaCache,
+} from '../utils/tokenStorage.js';
 
 export interface AuthState {
   user: AuthUser | null;
@@ -37,57 +42,6 @@ export interface AuthState {
   clearError: () => void;
   setAuth: (user: AuthUser, tokens: AuthTokens, kbaConfigured?: boolean) => void;
   reset: () => void;
-}
-
-const USER_STORAGE_KEY = 'finance_user_cache';
-const KBA_STORAGE_KEY = 'finance_kba_cache';
-
-function getStoredUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY) || sessionStorage.getItem(USER_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function getStoredKba(): boolean {
-  try {
-    const raw = localStorage.getItem(KBA_STORAGE_KEY) || sessionStorage.getItem(KBA_STORAGE_KEY);
-    return raw === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function saveUserCache(user: AuthUser | null, remember = true) {
-  try {
-    if (user) {
-      const serialized = JSON.stringify(user);
-      if (remember) {
-        localStorage.setItem(USER_STORAGE_KEY, serialized);
-      } else {
-        sessionStorage.setItem(USER_STORAGE_KEY, serialized);
-      }
-    } else {
-      localStorage.removeItem(USER_STORAGE_KEY);
-      sessionStorage.removeItem(USER_STORAGE_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-function saveKbaCache(kba: boolean, remember = true) {
-  try {
-    if (remember) {
-      localStorage.setItem(KBA_STORAGE_KEY, String(kba));
-    } else {
-      sessionStorage.setItem(KBA_STORAGE_KEY, String(kba));
-    }
-  } catch {
-    // Ignore storage errors
-  }
 }
 
 const initialToken = getStoredAccessToken();

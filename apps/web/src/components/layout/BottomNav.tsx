@@ -6,12 +6,11 @@ import {
   Plus,
   BarChart3,
   MoreHorizontal,
-  LayoutDashboard,
   Users,
-  BarChart2,
-  Sliders,
-  FileText,
-  User,
+  Layers,
+  ShieldAlert,
+  Settings,
+  UserCheck,
 } from 'lucide-react';
 import { useUiStore } from '../../store/uiStore.js';
 
@@ -20,90 +19,80 @@ export const BottomNav: React.FC = () => {
   const openPicker = useUiStore((state) => state.openPicker);
 
   const pathname = location.pathname;
-  const isAdminRoute = pathname.startsWith('/admin');
+  const isAdmin = pathname.startsWith('/admin');
 
   // Dedicated Admin Bottom Navigation
-  if (isAdminRoute) {
-    const isAdminDashboardActive = pathname === '/admin';
-    const isAdminUsersActive = pathname.startsWith('/admin/users');
-    const isAdminReportsActive = pathname.startsWith('/admin/reports');
-    const isAdminSettingsActive = pathname.startsWith('/admin/settings');
-    const isAdminProfileActive = pathname.startsWith('/admin/profile');
+  if (isAdmin) {
+    const isUsersActive = pathname === '/admin' || pathname.startsWith('/admin/users');
+    const isCategoriesActive = pathname.startsWith('/admin/categories');
+    const isReportsActive = pathname.startsWith('/admin/reports');
+    const isAuditActive = pathname.startsWith('/admin/audit');
+    const isSettingsActive = pathname.startsWith('/admin/settings');
+
+    const adminNavItems = [
+      {
+        to: '/admin',
+        label: 'Users',
+        icon: Users,
+        isActive: isUsersActive,
+      },
+      {
+        to: '/admin/categories',
+        label: 'Categories',
+        icon: Layers,
+        isActive: isCategoriesActive,
+      },
+      {
+        to: '/admin/reports',
+        label: 'Reports',
+        icon: BarChart3,
+        isActive: isReportsActive,
+      },
+      {
+        to: '/admin/audit',
+        label: 'Audit',
+        icon: ShieldAlert,
+        isActive: isAuditActive,
+      },
+      {
+        to: '/admin/settings',
+        label: 'Settings',
+        icon: Settings,
+        isActive: isSettingsActive,
+      },
+    ];
 
     return (
       <nav
-        aria-label="Admin Bottom Navigation"
+        aria-label="Bottom Navigation"
         className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[430px] bg-white border-t border-borderDefault px-2 py-2 flex items-center justify-around z-40 shadow-lg"
       >
-        {/* 1. Admin Dashboard */}
-        <NavLink
-          to="/admin"
-          aria-label="Admin Dashboard"
-          className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminDashboardActive
-              ? 'text-brand-primary font-semibold'
-              : 'text-textMuted hover:text-brand-primary'
-          }`}
-        >
-          <LayoutDashboard className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Dashboard</span>
-        </NavLink>
-
-        {/* 2. Admin Users */}
-        <NavLink
-          to="/admin/users"
-          aria-label="Users Directory"
-          className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminUsersActive
-              ? 'text-brand-primary font-semibold'
-              : 'text-textMuted hover:text-brand-primary'
-          }`}
-        >
-          <Users className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Users</span>
-        </NavLink>
-
-        {/* 3. Admin Reports */}
-        <NavLink
-          to="/admin/reports"
-          aria-label="Platform Reports"
-          className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminReportsActive
-              ? 'text-brand-primary font-semibold'
-              : 'text-textMuted hover:text-brand-primary'
-          }`}
-        >
-          <BarChart2 className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Reports</span>
-        </NavLink>
-
-        {/* 4. Admin Settings */}
-        <NavLink
-          to="/admin/settings"
-          aria-label="Platform Settings"
-          className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminSettingsActive
-              ? 'text-brand-primary font-semibold'
-              : 'text-textMuted hover:text-brand-primary'
-          }`}
-        >
-          <Sliders className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Settings</span>
-        </NavLink>
-
-        {/* 5. Admin Profile */}
-        <NavLink
-          to="/admin/profile"
-          aria-label="Admin Profile"
-          className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-            isAdminProfileActive
-              ? 'text-brand-primary font-semibold'
-              : 'text-textMuted hover:text-brand-primary'
-          }`}
-        >
-          <User className="w-5 h-5 stroke-[2.2]" aria-hidden="true" />
-          <span className="text-[11px] mt-1 tracking-tight">Profile</span>
-        </NavLink>
+        {adminNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              aria-label={item.label}
+              className={`flex flex-col items-center justify-center min-w-[56px] py-1 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+                item.isActive
+                  ? 'text-brand-primary font-bold'
+                  : 'text-textMuted hover:text-brand-primary'
+              }`}
+            >
+              <div className="relative flex flex-col items-center">
+                <Icon
+                  className={`w-5 h-5 stroke-[2.2] transition-transform ${item.isActive ? 'scale-105' : ''}`}
+                  aria-hidden="true"
+                />
+                {item.isActive && (
+                  <span className="w-1 h-1 bg-brand-primary rounded-full mt-0.5" />
+                )}
+              </div>
+              <span className="text-[11px] mt-0.5 tracking-tight">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
     );
   }
@@ -187,3 +176,5 @@ export const BottomNav: React.FC = () => {
     </nav>
   );
 };
+
+export default BottomNav;

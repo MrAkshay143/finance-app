@@ -56,6 +56,7 @@ export class BalanceService {
 
   /**
    * Applies an incremental balance change on an account inside an existing Prisma transaction.
+   * Uses atomic Prisma increment/decrement to avoid lost-update race conditions (FIN-01).
    *
    * If isReversal is false:
    *   - CREDIT: increases currentBalance by amount
@@ -71,30 +72,36 @@ export class BalanceService {
     amount: bigint,
     isReversal = false
   ): Promise<bigint> {
-    const account = await tx.account.findUnique({
+    // Verify account exists
+    const exists = await tx.account.findUnique({
       where: { id: accountId },
-      select: { id: true, currentBalance: true },
+      select: { id: true },
     });
 
-    if (!account) {
+    if (!exists) {
       throw new NotFoundError(`Account not found: ${accountId}`);
     }
 
-    let delta: bigint;
+    // Determine direction of the atomic delta
+    let isIncrement: boolean;
     if (isReversal) {
-      delta = direction === 'CREDIT' ? -amount : amount;
+      isIncrement = direction === 'DEBIT'; // Reversal of a debit = add back
     } else {
-      delta = direction === 'CREDIT' ? amount : -amount;
+      isIncrement = direction === 'CREDIT'; // Normal credit = add
     }
 
-    const newBalance = account.currentBalance + delta;
-
-    await tx.account.update({
+    // Atomic increment/decrement — no read-modify-write race condition (FIN-01)
+    const updated = await tx.account.update({
       where: { id: accountId },
-      data: { currentBalance: newBalance },
+      data: {
+        currentBalance: isIncrement
+          ? { increment: amount }
+          : { decrement: amount },
+      },
+      select: { currentBalance: true },
     });
 
-    return newBalance;
+    return updated.currentBalance;
   }
 }
 

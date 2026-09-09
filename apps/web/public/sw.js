@@ -55,22 +55,41 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: Cache-first / Stale-while-revalidate
+  // Static assets: Cache-first with MIME verification
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
+      const url = event.request.url;
+      const isJs = url.includes('.js');
+      const isCss = url.includes('.css');
+
       if (cachedResponse) {
-        return cachedResponse;
+        const cachedType = cachedResponse.headers.get('content-type') || '';
+        // If cached response has corrupted MIME type (e.g. HTML or JSON for a JS chunk), purge it
+        if ((isJs && !cachedType.includes('javascript')) || (isCss && !cachedType.includes('css'))) {
+          caches.open(CACHE_NAME).then((cache) => cache.delete(event.request));
+        } else {
+          return cachedResponse;
+        }
       }
+
       return fetch(event.request).then((networkResponse) => {
         if (
           networkResponse &&
           networkResponse.status === 200 &&
           networkResponse.type === 'basic'
         ) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          const contentType = networkResponse.headers.get('content-type') || '';
+          // Only cache JS/CSS files if Content-Type is valid (never cache HTML fallback or JSON errors)
+          const isValidMime =
+            (!isJs || contentType.includes('javascript')) &&
+            (!isCss || contentType.includes('css'));
+
+          if (isValidMime) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
         }
         return networkResponse;
       });

@@ -7,21 +7,33 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
-  Info,
   ArrowRight,
   ChevronLeft,
   CheckCircle2,
   AlertCircle,
+  Pencil,
+  KeyRound,
+  RotateCcw,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
+import { Input } from '../components/ui/Input.js';
+import { Modal } from '../components/ui/Modal.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 
 interface QuestionItem {
   key: string;
   text: string;
+}
+
+interface ExistingQuestion {
+  id: string;
+  questionKey: string;
+  questionText: string;
+  createdAt?: string;
 }
 
 const DEFAULT_QUESTIONS: QuestionItem[] = [
@@ -36,9 +48,18 @@ const DEFAULT_QUESTIONS: QuestionItem[] = [
 
 export const SecurityQuestionsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, setKbaConfigured } = useAuthStore();
+  const { setKbaConfigured } = useAuthStore();
 
+  // Mode: 'VIEW' (when questions are already configured) vs 'EDIT' (setup wizard)
+  const [mode, setMode] = useState<'VIEW' | 'EDIT'>('EDIT');
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [existingQuestions, setExistingQuestions] = useState<ExistingQuestion[]>([]);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+
+  // Available questions for dropdown selection
   const [availableQuestions, setAvailableQuestions] = useState<QuestionItem[]>(DEFAULT_QUESTIONS);
+
+  // Wizard state
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [answers, setAnswers] = useState<Record<number, { key: string; answer: string }>>({
     1: { key: 'first_pet', answer: '' },
@@ -46,41 +67,60 @@ export const SecurityQuestionsPage: React.FC = () => {
     3: { key: 'elementary_school', answer: '' },
   });
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [wizardError, setWizardError] = useState<string | null>(null);
 
-  // Fetch available questions from backend
+  // Verify modal state
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [verifyAnswers, setVerifyAnswers] = useState<Record<string, string>>({});
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+
+  // Fetch initial KBA status and available questions
   useEffect(() => {
     let mounted = true;
-    apiClient.auth
-      .getAvailableSecurityQuestions()
-      .then((res) => {
-        if (mounted && Array.isArray(res) && res.length > 0) {
-          const mapped = res.map((q) => ({
+
+    Promise.all([
+      apiClient.auth.getSecurityQuestions().catch(() => []),
+      apiClient.auth.getAvailableSecurityQuestions().catch(() => DEFAULT_QUESTIONS),
+    ])
+      .then(([existingRes, availableRes]) => {
+        if (!mounted) return;
+
+        // Process available questions
+        if (Array.isArray(availableRes) && availableRes.length > 0) {
+          const mapped = availableRes.map((q: any) => ({
             key: q.key || q.questionKey || '',
             text: q.text || q.questionText || '',
           }));
           setAvailableQuestions(mapped);
+        }
 
-          // Update defaults if needed
-          if (mapped[0] && mapped[1] && mapped[2]) {
-            setAnswers((prev) => ({
-              1: { key: mapped[0].key, answer: prev[1]?.answer || '' },
-              2: { key: mapped[1].key, answer: prev[2]?.answer || '' },
-              3: { key: mapped[2].key, answer: prev[3]?.answer || '' },
-            }));
-          }
+        // Process existing questions
+        const questionsList = Array.isArray(existingRes)
+          ? existingRes
+          : (existingRes as any)?.data || [];
+
+        if (questionsList.length >= 3) {
+          setIsConfigured(true);
+          setExistingQuestions(questionsList);
+          setMode('VIEW');
+          setKbaConfigured(true);
+        } else {
+          setIsConfigured(false);
+          setMode('EDIT');
         }
       })
-      .catch(() => {
-        // Fallback to default questions if API fails or offline
+      .finally(() => {
+        if (mounted) {
+          setIsInitialLoading(false);
+        }
       });
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [setKbaConfigured]);
 
   const currentAnswerData = answers[currentStep] || { key: '', answer: '' };
 
@@ -115,13 +155,13 @@ export const SecurityQuestionsPage: React.FC = () => {
   });
 
   const handleNextStep = () => {
-    setErrorMessage(null);
+    setWizardError(null);
     if (!currentAnswerData.key) {
-      setErrorMessage('Please choose a security question.');
+      setWizardError('Please choose a security question.');
       return;
     }
     if (!currentAnswerData.answer.trim()) {
-      setErrorMessage('Please enter your secret answer.');
+      setWizardError('Please enter your secret answer.');
       return;
     }
 
@@ -132,36 +172,37 @@ export const SecurityQuestionsPage: React.FC = () => {
   };
 
   const handlePreviousStep = () => {
-    setErrorMessage(null);
+    setWizardError(null);
     if (currentStep > 1) {
       setCurrentStep((prev) => ((prev - 1) as 1 | 2 | 3));
       setShowAnswer(false);
+    } else if (isConfigured) {
+      setMode('VIEW');
     } else {
-      navigate(-1);
+      navigate('/profile');
     }
   };
 
-  const handleSubmit = async () => {
-    setErrorMessage(null);
+  const handleSubmitQuestions = async () => {
+    setWizardError(null);
     if (!currentAnswerData.key) {
-      setErrorMessage('Please choose a security question.');
+      setWizardError('Please choose a security question.');
       return;
     }
     if (!currentAnswerData.answer.trim()) {
-      setErrorMessage('Please enter your secret answer.');
+      setWizardError('Please enter your secret answer.');
       return;
     }
 
-    // Check all 3 answers are present
     for (let i = 1; i <= 3; i++) {
       if (!answers[i]?.key || !answers[i]?.answer.trim()) {
-        setErrorMessage(`Please complete question ${i} before submitting.`);
+        setWizardError(`Please complete question ${i} before submitting.`);
         setCurrentStep(i as 1 | 2 | 3);
         return;
       }
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const payload = {
         questions: [
@@ -173,294 +214,445 @@ export const SecurityQuestionsPage: React.FC = () => {
 
       await apiClient.auth.setupSecurityQuestions(payload);
       setKbaConfigured(true);
-      setSuccessMessage('Security questions configured successfully!');
+      setIsConfigured(true);
 
-      setTimeout(() => {
-        navigate('/profile', { replace: true });
-      }, 1500);
+      // Refresh existing questions
+      const updated = await apiClient.auth.getSecurityQuestions();
+      const list = Array.isArray(updated) ? updated : (updated as any)?.data || [];
+      setExistingQuestions(list);
+
+      toast.success('Security questions saved successfully');
+      setMode('VIEW');
     } catch (err: any) {
-      setErrorMessage(
+      const msg =
         err?.response?.data?.error?.message ||
-          err?.message ||
-          'Failed to save security questions. Please check your answers and try again.'
-      );
+        err?.message ||
+        'Failed to save security questions. Please check your inputs.';
+      setWizardError(msg);
+      toast.error(msg);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  // Open Verify Modal
+  const handleOpenVerify = () => {
+    const init: Record<string, string> = {};
+    existingQuestions.forEach((q) => {
+      init[q.questionKey] = '';
+    });
+    setVerifyAnswers(init);
+    setVerifyError(null);
+    setIsVerifyModalOpen(true);
+  };
+
+  // Submit test verification
+  const handleVerifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifyError(null);
+
+    const payload = existingQuestions.map((q) => ({
+      questionKey: q.questionKey,
+      answer: (verifyAnswers[q.questionKey] || '').trim(),
+    }));
+
+    if (payload.some((p) => !p.answer)) {
+      setVerifyError('Please enter answers for all 3 questions.');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      await apiClient.auth.verifySecurityQuestions({ answers: payload });
+      toast.success('All 3 security answers verified successfully');
+      setIsVerifyModalOpen(false);
+    } catch (err: any) {
+      setVerifyError(
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        'Verification failed. One or more answers are incorrect.'
+      );
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  if (isInitialLoading) {
+    return (
+      <div className="flex-1 flex flex-col pb-6">
+        <AppHeader
+          variant="nested"
+          title="Security Questions"
+          subtitle="Account Recovery & Identity Verification"
+          backTo="/profile"
+        />
+        <div className="p-4 space-y-3">
+          <div className="h-28 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-44 bg-slate-100 rounded-2xl animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col pb-6">
-      {/* Root Branded Header */}
+      {/* Streamlined Branded Header */}
       <AppHeader
-        variant="root"
-        title="Finance Tracker"
-        subtitle={`Welcome back, ${user?.firstName || user?.fullName || 'User'}`}
+        variant="nested"
+        title="Security Questions"
+        subtitle={
+          mode === 'VIEW'
+            ? 'Account Recovery & Verification'
+            : 'Set up security questions to keep your account safe'
+        }
+        backTo={mode === 'VIEW' ? '/profile' : undefined}
+        onBack={mode === 'EDIT' && isConfigured ? () => setMode('VIEW') : undefined}
+        rightAction={
+          mode === 'VIEW' ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMode('EDIT');
+                setCurrentStep(1);
+              }}
+              icon={<Pencil className="w-3.5 h-3.5" />}
+            >
+              Update
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="p-4 space-y-4">
-        {/* Sub-Header Title Row */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePreviousStep}
-              aria-label="Go back"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-colors text-slate-700"
-            >
-              <ChevronLeft className="w-6 h-6" aria-hidden="true" />
-            </button>
-            <div>
-              <h2 className="text-base font-bold text-textDefault tracking-tight leading-tight">
-                Security Questions
-              </h2>
-              <p className="text-xs text-textMuted mt-0.5">
-                Set up security questions to keep your account safe
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50/80 border border-blue-100 text-brand-primary text-[11px] font-semibold shrink-0">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Your security matters</span>
-          </div>
-        </div>
-
-        {/* Security Advisory Callout Card */}
-        <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-start gap-3.5 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-brand-primary shrink-0">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-xs font-bold text-slate-800">Add 3 security questions</h3>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Used to recover your password. Answers are encrypted and case-insensitive.
-            </p>
-          </div>
-        </div>
-
-        {/* 3-Step Stepper */}
-        <div className="px-4 py-2">
-          <div className="flex items-center justify-between relative">
-            {/* Connecting Lines */}
-            <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 -z-0" />
-            <div
-              className="absolute top-4 left-6 h-0.5 bg-brand-primary transition-all duration-300 -z-0"
-              style={{
-                width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : 'calc(100% - 48px)',
-              }}
-            />
-
-            {/* Step 1 */}
-            <div className="flex flex-col items-center relative z-10">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-                  currentStep >= 1
-                    ? 'bg-brand-primary text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-400 border border-slate-200'
-                }`}
-              >
-                1
-              </button>
-              <span
-                className={`text-[11px] mt-1.5 font-semibold ${
-                  currentStep === 1 ? 'text-brand-primary font-bold' : 'text-slate-500'
-                }`}
-              >
-                Question 1
-              </span>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex flex-col items-center relative z-10">
-              <button
-                type="button"
-                onClick={() => {
-                  if (answers[1]?.answer) setCurrentStep(2);
-                }}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-                  currentStep >= 2
-                    ? 'bg-brand-primary text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-400 border border-slate-200'
-                }`}
-              >
-                2
-              </button>
-              <span
-                className={`text-[11px] mt-1.5 font-semibold ${
-                  currentStep === 2 ? 'text-brand-primary font-bold' : 'text-slate-500'
-                }`}
-              >
-                Question 2
-              </span>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex flex-col items-center relative z-10">
-              <button
-                type="button"
-                onClick={() => {
-                  if (answers[1]?.answer && answers[2]?.answer) setCurrentStep(3);
-                }}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-                  currentStep >= 3
-                    ? 'bg-brand-primary text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-400 border border-slate-200'
-                }`}
-              >
-                3
-              </button>
-              <span
-                className={`text-[11px] mt-1.5 font-semibold ${
-                  currentStep === 3 ? 'text-brand-primary font-bold' : 'text-slate-500'
-                }`}
-              >
-                Question 3
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Alert */}
-        {errorMessage && (
-          <div
-            role="alert"
-            className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-semantic-danger text-xs"
-          >
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successMessage && (
-          <div
-            role="status"
-            className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-semantic-success text-xs"
-          >
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* Question Form Card */}
-        <Card className="p-5 space-y-4 shadow-card">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              {`QUESTION ${currentStep} OF 3`}
-            </span>
-            <h3 className="text-base font-bold text-textDefault mt-0.5">
-              Choose a security question
-            </h3>
-            <p className="text-xs text-textMuted mt-0.5">
-              Select a question from the list and provide your answer.
-            </p>
-          </div>
-
-          {/* Security Question Selector */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-textDefault">
-              Security Question <span className="text-semantic-danger">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3 w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 pointer-events-none">
-                <HelpCircle className="w-4 h-4" />
+        {/* VIEW MODE: Questions Already Configured */}
+        {mode === 'VIEW' && (
+          <div className="space-y-4">
+            {/* Status Card */}
+            <div className="p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-emerald-950">Security Questions Active</h3>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  </div>
+                  <p className="text-[11px] text-emerald-800 mt-0.5">
+                    Configured for password recovery & identity verification.
+                  </p>
+                </div>
               </div>
-              <select
-                value={currentAnswerData.key}
-                onChange={(e) => handleQuestionChange(e.target.value)}
-                className="w-full pl-12 pr-8 py-2.5 bg-white border border-borderDefault rounded-xl text-xs text-textDefault appearance-none focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              >
-                <option value="" disabled>
-                  Choose a question...
-                </option>
-                {selectableQuestions.map((q) => (
-                  <option key={q.key} value={q.key}>
-                    {q.text}
-                  </option>
+            </div>
+
+            {/* List of 3 Configured Questions */}
+            <Card className="p-4 space-y-3.5 shadow-sm border border-slate-200">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Configured Questions (3 of 3)
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                  Bcrypt Encrypted
+                </span>
+              </div>
+
+              <div className="space-y-3 divide-y divide-slate-100">
+                {existingQuestions.map((q, index) => (
+                  <div key={q.id || q.questionKey} className={`space-y-1 ${index > 0 ? 'pt-3' : ''}`}>
+                    <div className="flex items-start gap-2">
+                      <span className="w-4 h-4 rounded-full bg-blue-100 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        {index + 1}
+                      </span>
+                      <p className="text-xs font-semibold text-slate-800 leading-snug">
+                        {q.questionText}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pl-6 text-xs text-slate-400 font-mono">
+                      <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>••••••••••••</span>
+                    </div>
+                  </div>
                 ))}
-              </select>
-              <div className="absolute right-3 pointer-events-none text-slate-400">
-                <ChevronLeft className="w-4 h-4 -rotate-90" />
               </div>
-            </div>
-          </div>
+            </Card>
 
-          {/* Answer Input */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-textDefault">
-              Your Answer <span className="text-semantic-danger">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3 w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 pointer-events-none">
-                <Lock className="w-4 h-4" />
-              </div>
-              <input
-                type={showAnswer ? 'text' : 'password'}
-                placeholder="Enter your answer"
-                value={currentAnswerData.answer}
-                onChange={(e) => handleAnswerChange(e.target.value)}
-                className="w-full pl-12 pr-10 py-2.5 bg-white border border-borderDefault rounded-xl text-xs text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAnswer(!showAnswer)}
-                aria-label={showAnswer ? 'Hide answer' : 'Show answer'}
-                className="absolute right-3 text-slate-400 hover:text-slate-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 p-1"
-              >
-                {showAnswer ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Info Callout */}
-          <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-start gap-2.5 text-xs text-slate-600">
-            <Info className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
-            <span>Choose an answer easy for you to remember, hard to guess.</span>
-          </div>
-        </Card>
-
-        {/* Bottom Actions */}
-        <div className="pt-2">
-          {currentStep < 3 ? (
-            <Button
-              type="button"
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={handleNextStep}
-              iconRight={<ArrowRight className="w-4 h-4" />}
-            >
-              Next Question
-            </Button>
-          ) : (
-            <div className="flex items-center gap-3">
+            {/* Actions Card */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <Button
                 type="button"
                 variant="outline"
-                size="lg"
-                onClick={handlePreviousStep}
-                icon={<ChevronLeft className="w-4 h-4" />}
+                size="md"
+                onClick={handleOpenVerify}
+                icon={<KeyRound className="w-4 h-4 text-brand-primary" />}
               >
-                Back
+                Test Answers
               </Button>
+
               <Button
                 type="button"
                 variant="primary"
-                size="lg"
-                fullWidth
-                disabled={isLoading}
-                onClick={handleSubmit}
-                iconRight={<Shield className="w-4 h-4" />}
+                size="md"
+                onClick={() => {
+                  setMode('EDIT');
+                  setCurrentStep(1);
+                }}
+                icon={<RotateCcw className="w-4 h-4" />}
               >
-                {isLoading ? 'Saving Security Questions...' : 'Save Security Questions'}
+                Change Questions
               </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* EDIT / SETUP MODE: 3-Step Progressive Wizard */}
+        {mode === 'EDIT' && (
+          <div className="space-y-4">
+            {/* Security Banner */}
+            <div className="p-3 bg-blue-50/80 border border-blue-200/70 rounded-2xl flex items-start gap-2.5">
+              <Shield className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-xs font-bold text-slate-900">Your security matters</h3>
+                <p className="text-[11px] text-slate-600 mt-0.5">
+                  Add 3 security questions to keep your account safe.
+                </p>
+              </div>
+            </div>
+
+            {/* Streamlined Stepper */}
+            <div className="px-3 py-1">
+              <div className="flex items-center justify-between relative">
+                <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 -z-0" />
+                <div
+                  className="absolute top-4 left-6 h-0.5 bg-brand-primary transition-all duration-300 -z-0"
+                  style={{
+                    width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : 'calc(100% - 48px)',
+                  }}
+                />
+
+                {[1, 2, 3].map((stepNum) => (
+                  <div key={stepNum} className="flex flex-col items-center relative z-10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (stepNum === 1 || answers[stepNum - 1]?.answer) {
+                          setCurrentStep(stepNum as 1 | 2 | 3);
+                        }
+                      }}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary ${
+                        currentStep >= stepNum
+                          ? 'bg-brand-primary text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-400 border border-slate-200'
+                      }`}
+                    >
+                      {stepNum}
+                    </button>
+                    <span
+                      className={`text-[11px] mt-1 font-semibold ${
+                        currentStep === stepNum ? 'text-brand-primary' : 'text-slate-500'
+                      }`}
+                    >
+                      {`Question ${stepNum}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Error Alert */}
+            {wizardError && (
+              <div
+                role="alert"
+                className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-medium"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{wizardError}</span>
+              </div>
+            )}
+
+            {/* Question Card */}
+            <Card className="p-4 space-y-3.5 shadow-card">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {`QUESTION ${currentStep} OF 3`}
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+                  Select Question & Secret Answer
+                </h3>
+              </div>
+
+              {/* Question Dropdown */}
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Choose a security question
+                </label>
+                <div className="relative flex items-center">
+                  <select
+                    value={currentAnswerData.key}
+                    onChange={(e) => handleQuestionChange(e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 bg-white border border-borderDefault rounded-xl text-xs text-textDefault appearance-none focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  >
+                    <option value="" disabled>
+                      Choose a security question
+                    </option>
+                    {selectableQuestions.map((q) => (
+                      <option key={q.key} value={q.key}>
+                        {q.text}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 pointer-events-none text-slate-400">
+                    <ChevronLeft className="w-4 h-4 -rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Secret Answer */}
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Your Answer
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type={showAnswer ? 'text' : 'password'}
+                    placeholder="Enter your secret answer"
+                    value={currentAnswerData.answer}
+                    onChange={(e) => handleAnswerChange(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 bg-white border border-borderDefault rounded-xl text-xs text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAnswer(!showAnswer)}
+                    aria-label={showAnswer ? 'Hide answer' : 'Show answer'}
+                    className="absolute right-2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showAnswer ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Stepper Navigation Buttons */}
+            <div className="pt-1">
+              {currentStep < 3 ? (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    onClick={handlePreviousStep}
+                    icon={<ChevronLeft className="w-4 h-4" />}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    onClick={handleNextStep}
+                    iconRight={<ArrowRight className="w-4 h-4" />}
+                  >
+                    Next Question
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    onClick={handlePreviousStep}
+                    icon={<ChevronLeft className="w-4 h-4" />}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    disabled={isSubmitting}
+                    onClick={handleSubmitQuestions}
+                    iconRight={<Shield className="w-4 h-4" />}
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save All Questions'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Verify Test Modal */}
+      <Modal
+        isOpen={isVerifyModalOpen}
+        onClose={() => setIsVerifyModalOpen(false)}
+        title="Test Security Answers"
+      >
+        <form onSubmit={handleVerifySubmit} className="space-y-3 p-1" noValidate>
+          <p className="text-xs text-slate-600">
+            Verify that you remember the answers to your 3 security questions:
+          </p>
+
+          {verifyError && (
+            <div
+              role="alert"
+              className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-medium"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{verifyError}</span>
+            </div>
+          )}
+
+          <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 scrollbar-thin">
+            {existingQuestions.map((q, idx) => (
+              <div key={q.questionKey} className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-blue-100 text-brand-primary text-[10px] font-bold flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="truncate">{q.questionText}</span>
+                </label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="Your answer"
+                  value={verifyAnswers[q.questionKey] || ''}
+                  onChange={(e) => {
+                    setVerifyAnswers((prev) => ({
+                      ...prev,
+                      [q.questionKey]: e.target.value,
+                    }));
+                    setVerifyError(null);
+                  }}
+                  icon={<HelpCircle className="w-4 h-4 text-slate-400" />}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsVerifyModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={isVerifying}
+            >
+              {isVerifying ? 'Checking...' : 'Verify Answers'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

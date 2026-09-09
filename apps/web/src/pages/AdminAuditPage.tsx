@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -29,6 +29,8 @@ import { Skeleton } from '../components/ui/Skeleton.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
+import { Pagination } from '../components/ui/Pagination.js';
+import { formatAuditAction, formatAuditActionLabel, getAuditCategoryBadge } from '../utils/auditFormatters.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AdminAuditPage: React.FC = () => {
@@ -37,9 +39,11 @@ export const AdminAuditPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [inspectRecord, setInspectRecord] = useState<AuditLogRecord | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
+  const pageSize = 15;
   const categories = ['All', 'Login', 'Profile', 'Settings', 'Security', 'Admin'];
 
   const handleExportCsv = async () => {
@@ -100,6 +104,20 @@ export const AdminAuditPage: React.FC = () => {
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
   }, [data, search, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
+
+  // Reset to page 1 on filter/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterCategory, search, sortOrder]);
+
+  // Clamp current page to total pages if results shrink
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const getActionIcon = (action: string, category?: string) => {
     const act = action?.toLowerCase() || '';
@@ -281,16 +299,18 @@ export const AdminAuditPage: React.FC = () => {
           </h3>
 
           <div className="flex items-center gap-2 text-xs text-textMuted">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleExportCsv}
               disabled={isExporting}
-              className="flex items-center gap-1 px-2 py-1 text-xs font-semibold text-brand-primary bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200 whitespace-nowrap"
+              isLoading={isExporting}
+              icon={<Download className="w-3.5 h-3.5 shrink-0" />}
+              className="whitespace-nowrap shrink-0 min-h-[32px] px-2.5"
               title="Export all audit logs as CSV"
             >
-              <Download className="w-3 h-3" />
-              <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
-            </button>
+              Export CSV
+            </Button>
 
             <select
               value={sortOrder}
@@ -328,14 +348,15 @@ export const AdminAuditPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            {logs.map((log) => {
+            {logs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => {
               const client = parseClientDevice(log.details?.userAgent, log.ipAddress);
               const actorEmail = log.actorEmail || 'system';
+              const categoryBadge = getAuditCategoryBadge(log.category);
               return (
                 <Card
                   key={log.id}
                   padding="sm"
-                  className="bg-white border border-borderDefault shadow-xs hover:border-slate-300 transition-colors"
+                  className="bg-white border border-borderDefault shadow-card hover:border-blue-200 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     {getActionIcon(log.action, log.category)}
@@ -343,11 +364,20 @@ export const AdminAuditPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h4 className="text-xs font-bold text-textDefault leading-tight">
-                            {log.action}
-                          </h4>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4
+                              className="text-xs font-bold text-textDefault leading-tight"
+                              title={log.action}
+                              data-action={log.action}
+                            >
+                              {formatAuditAction(log.action).title}
+                            </h4>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${categoryBadge.className}`}>
+                              {categoryBadge.label}
+                            </span>
+                          </div>
                           <p className="text-[11px] text-textMuted mt-0.5 leading-tight">
-                            {`by ${actorEmail}`}
+                            {`${formatAuditAction(log.action).title} • by ${actorEmail}`}
                           </p>
                         </div>
 
@@ -393,6 +423,16 @@ export const AdminAuditPage: React.FC = () => {
                 </Card>
               );
             })}
+
+            {/* Centralized Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={logs.length}
+              pageSize={pageSize}
+              onPageChange={(p) => setCurrentPage(p)}
+              itemLabel="events"
+            />
           </div>
         )}
       </div>
@@ -415,7 +455,11 @@ export const AdminAuditPage: React.FC = () => {
             <div className="p-2.5 bg-slate-50 rounded-xl space-y-1 text-textDefault">
               <div className="flex justify-between">
                 <span className="text-textMuted">Action:</span>
-                <span className="font-mono font-bold">{inspectRecord.action}</span>
+                <span className="font-semibold text-textDefault">{formatAuditAction(inspectRecord.action).title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-textMuted">Technical ID:</span>
+                <span className="font-mono text-[11px] text-textMuted">{inspectRecord.action}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-textMuted">Actor:</span>

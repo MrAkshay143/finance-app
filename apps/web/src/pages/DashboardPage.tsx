@@ -264,10 +264,10 @@ export const DashboardPage: React.FC = () => {
                       Security Reminder
                     </span>
                     <h4 className="text-xs font-bold text-textDefault tracking-tight mt-1">
-                      Security Questions (KBA) Pending
+                      Set Up Security Questions
                     </h4>
                     <p className="text-[11px] text-textMuted leading-relaxed mt-0.5">
-                      Configure your 3 security questions to protect account recovery.
+                      Add 3 security questions to safeguard your account and enable recovery.
                     </p>
                     <div className="mt-2">
                       <Button
@@ -293,9 +293,14 @@ export const DashboardPage: React.FC = () => {
               className="bg-gradient-to-br from-[#2F74EE] via-[#3B82F6] to-[#60A5FA] rounded-3xl p-4 text-white shadow-md relative overflow-hidden border border-blue-400/30"
               data-testid="fam-score-card"
             >
+              {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
+              <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
+              <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
+
               <h2 className="sr-only">Financial Assessment Matrix</h2>
 
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-2 relative z-10">
                 {/* Left Column: Status Badge, Title, Subtitle, Description */}
                 <div className="flex-1 min-w-0 pr-1">
                   <div className="inline-flex items-center">
@@ -456,9 +461,10 @@ export const DashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/planning')}
-                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100/90 text-slate-700 hover:bg-blue-50 hover:text-blue-600 active:scale-95 transition-all border border-slate-200/80 shadow-2xs"
                 >
-                  Manage Planning &gt;
+                  <span>Manage Planning</span>
+                  <ChevronRight className="w-3 h-3 stroke-[2.5]" />
                 </button>
               </div>
 
@@ -706,7 +712,11 @@ export const DashboardPage: React.FC = () => {
                 <div className="flex items-center justify-between gap-4 pt-1 pb-2">
                   {/* Left: SVG Multi-segment Donut with 1.5px gaps and interactive highlights */}
                   <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <svg
+                      className="w-full h-full -rotate-90 outline-none focus:outline-none"
+                      viewBox="0 0 100 100"
+                      style={{ outline: 'none', WebkitTapHighlightColor: 'transparent' }}
+                    >
                       <circle
                         cx="50"
                         cy="50"
@@ -714,6 +724,7 @@ export const DashboardPage: React.FC = () => {
                         fill="none"
                         stroke="#F1F5F9"
                         strokeWidth="11"
+                        style={{ outline: 'none' }}
                       />
                       {(() => {
                         const circumference = 2 * Math.PI * 38;
@@ -740,13 +751,20 @@ export const DashboardPage: React.FC = () => {
                               strokeDasharray={`${dashLength} ${circumference - dashLength}`}
                               strokeDashoffset={-offset}
                               strokeLinecap="butt"
-                              className="cursor-pointer transition-all duration-200"
+                              className="cursor-pointer transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
                               style={{
                                 opacity: hoveredSliceIndex === null || isHovered ? 1 : 0.4,
+                                outline: 'none',
+                                WebkitTapHighlightColor: 'transparent',
                               }}
                               onMouseEnter={() => setHoveredSliceIndex(index)}
                               onMouseLeave={() => setHoveredSliceIndex(null)}
-                              onTouchStart={() => {
+                              onClick={(e) => {
+                                (e.currentTarget as SVGElement).blur();
+                                setHoveredSliceIndex(hoveredSliceIndex === index ? null : index);
+                              }}
+                              onTouchStart={(e) => {
+                                (e.currentTarget as SVGElement).blur();
                                 setHoveredSliceIndex(hoveredSliceIndex === index ? null : index);
                               }}
                               role="button"
@@ -865,9 +883,10 @@ export const DashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/accounts')}
-                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100/90 text-slate-700 hover:bg-blue-50 hover:text-blue-600 active:scale-95 transition-all border border-slate-200/80 shadow-2xs"
                 >
-                  Manage &gt;
+                  <span>Manage</span>
+                  <ChevronRight className="w-3 h-3 stroke-[2.5]" />
                 </button>
               </div>
 
@@ -973,9 +992,10 @@ export const DashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/transactions')}
-                  className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-0.5"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100/90 text-slate-700 hover:bg-blue-50 hover:text-blue-600 active:scale-95 transition-all border border-slate-200/80 shadow-2xs"
                 >
-                  View All &gt;
+                  <span>View All</span>
+                  <ChevronRight className="w-3 h-3 stroke-[2.5]" />
                 </button>
               </div>
 

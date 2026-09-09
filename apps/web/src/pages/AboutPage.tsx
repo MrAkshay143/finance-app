@@ -37,8 +37,8 @@ export const AboutPage: React.FC = () => {
     {
       num: 1,
       title: 'Set up your basic profile',
-      summary: 'Basic info, KBA security questions, and features',
-      desc: 'Fill in your personal details and set your 3 security questions (KBA) for account recovery.',
+      summary: 'Basic info, security questions, and preferences',
+      desc: 'Fill in your personal details and set your 3 security questions for account recovery.',
       icon: <User className="w-5 h-5 text-brand-primary" />,
       iconBg: 'bg-blue-50',
     },
@@ -144,8 +144,8 @@ export const AboutPage: React.FC = () => {
       iconBg: 'bg-rose-50',
     },
     {
-      title: 'Knowledge-Based Authentication (KBA)',
-      desc: 'Multi-question security challenge tier safeguarding sensitive financial actions and account recovery.',
+      title: 'Security Questions & Protection',
+      desc: 'Protect sensitive operations and recover your account safely with personal verification questions.',
       icon: <KeyRound className="w-4 h-4 text-indigo-600" />,
       iconBg: 'bg-indigo-50',
     },
@@ -297,14 +297,16 @@ export const AboutPage: React.FC = () => {
                           </h5>
                           <div className="bg-white rounded-xl border border-borderDefault divide-y divide-borderDefault text-xs overflow-hidden">
                             {s.famRules.map((r) => (
-                              <div key={r.label} className="p-2.5 flex items-start justify-between gap-2">
-                                <div>
-                                  <span className="font-bold text-textDefault">{r.label}: </span>
-                                  <span className="text-[11px] text-textMuted">{r.detail}</span>
+                              <div key={r.label} className="p-2.5 space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-xs text-textDefault">{r.label}</span>
+                                  <span className="font-mono font-bold text-[11px] text-brand-primary shrink-0 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100/60">
+                                    {r.condition}
+                                  </span>
                                 </div>
-                                <span className="font-mono font-bold text-xs text-brand-primary shrink-0 bg-blue-50 px-2 py-0.5 rounded-md">
-                                  {r.condition}
-                                </span>
+                                <p className="text-[11px] text-textMuted leading-relaxed">
+                                  {r.detail}
+                                </p>
                               </div>
                             ))}
                           </div>

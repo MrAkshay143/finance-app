@@ -77,6 +77,31 @@ function getAccountIcon(type: string) {
   }
 }
 
+function getAccountCardStyle(type: string, isActive: boolean): string {
+  if (!isActive) {
+    return 'bg-slate-50/80 border border-slate-200/60 opacity-70';
+  }
+  const t = (type || '').toUpperCase();
+  switch (t) {
+    case 'BANK':
+    case 'SAVINGS':
+    case 'CHECKING':
+    case 'CURRENT':
+      return 'bg-gradient-to-br from-white via-blue-50/20 to-slate-50 border border-blue-100/70 shadow-2xs hover:border-blue-200';
+    case 'CREDIT_CARD':
+      return 'bg-gradient-to-br from-white via-amber-50/20 to-slate-50 border border-amber-100/70 shadow-2xs hover:border-amber-200';
+    case 'INVESTMENT':
+      return 'bg-gradient-to-br from-white via-purple-50/20 to-slate-50 border border-purple-100/70 shadow-2xs hover:border-purple-200';
+    case 'WALLET':
+    case 'CASH':
+      return 'bg-gradient-to-br from-white via-emerald-50/20 to-slate-50 border border-emerald-100/70 shadow-2xs hover:border-emerald-200';
+    case 'LOAN':
+      return 'bg-gradient-to-br from-white via-rose-50/20 to-slate-50 border border-rose-100/70 shadow-2xs hover:border-rose-200';
+    default:
+      return 'bg-gradient-to-br from-white via-blue-50/20 to-slate-50 border border-blue-100/70 shadow-2xs hover:border-blue-200';
+  }
+}
+
 export const AccountsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useSafeQueryClient();
@@ -294,6 +319,10 @@ export const AccountsPage: React.FC = () => {
       <div className="p-4 space-y-4">
         {/* Total Balance Hero Card */}
         <Card className="bg-gradient-to-tr from-[#0B1B3A] via-[#0F224A] to-[#132A5C] text-white p-5 space-y-3 border-0 shadow-xl rounded-card relative overflow-hidden">
+          {/* Subtle animated ambient floating light gradients */}
+          <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-blue-500/20 blur-3xl pointer-events-none opacity-20 animate-ambient-glow" />
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
+
           {/* Subtle background glow & icons */}
           <div className="absolute -right-4 -bottom-4 opacity-10 text-white pointer-events-none">
             <Landmark className="w-28 h-28" />
@@ -374,9 +403,10 @@ export const AccountsPage: React.FC = () => {
               return (
                 <Card
                   key={acc.id}
-                  className={`p-4 space-y-3 transition-shadow hover:shadow-md ${
-                    !isActive ? 'opacity-70 bg-gray-50/80' : 'bg-surface'
-                  }`}
+                  className={`p-4 space-y-3 transition-all ${getAccountCardStyle(
+                    acc.type || (acc as any).accountType,
+                    isActive
+                  )}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">

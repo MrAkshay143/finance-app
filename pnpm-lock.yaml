@@ -81,6 +81,9 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       prisma:
         specifier: ^5.22.0
         version: 5.22.0

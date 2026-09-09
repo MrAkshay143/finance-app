@@ -77,6 +77,8 @@ export interface ApiClientConfig {
   baseURL?: string;
   getAccessToken?: () => string | null | Promise<string | null>;
   setAccessToken?: (token: string | null) => void | Promise<void>;
+  getRefreshToken?: () => string | null | Promise<string | null>;
+  setRefreshToken?: (token: string | null) => void | Promise<void>;
   onUnauthorized?: () => void;
 }
 
@@ -141,11 +143,17 @@ export class FinanceApiClient {
           this.isRefreshing = true;
 
           try {
-            const refreshResponse = await this.client.post<ApiResponse<AuthResponse>>('/auth/refresh');
+            const storedRefreshToken = this.config.getRefreshToken ? await this.config.getRefreshToken() : undefined;
+            const refreshResponse = await this.client.post<ApiResponse<AuthResponse>>('/auth/refresh', {
+              refreshToken: storedRefreshToken,
+            });
             if (refreshResponse.data.success) {
               const newAccessToken = refreshResponse.data.data.tokens.accessToken;
               if (this.config.setAccessToken) {
                 await this.config.setAccessToken(newAccessToken);
+              }
+              if (refreshResponse.data.data.tokens.refreshToken && this.config.setRefreshToken) {
+                await this.config.setRefreshToken(refreshResponse.data.data.tokens.refreshToken);
               }
 
               this.failedQueue.forEach((prom) => prom.resolve(newAccessToken));
@@ -161,6 +169,9 @@ export class FinanceApiClient {
             this.failedQueue = [];
             if (this.config.setAccessToken) {
               await this.config.setAccessToken(null);
+            }
+            if (this.config.setRefreshToken) {
+              await this.config.setRefreshToken(null);
             }
             if (this.config.onUnauthorized) {
               this.config.onUnauthorized();
@@ -185,8 +196,8 @@ export class FinanceApiClient {
         typeof data === 'object' && data !== null
           ? data.error?.message || data.message || 'API Error'
           : typeof data === 'string' && data.includes('<!DOCTYPE')
-          ? 'Backend API server unreachable or returned HTML.'
-          : 'API Error';
+          ? 'Unable to connect to service. Please check your connection and try again.'
+          : 'Request failed. Please try again.';
       throw new Error(errMsg);
     }
     return data.data;
@@ -200,8 +211,14 @@ export class FinanceApiClient {
       this.request<AuthResponse>({ method: 'POST', url: '/auth/login', data: input }),
     logout: () =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/logout' }),
-    refreshToken: () =>
-      this.request<AuthResponse>({ method: 'POST', url: '/auth/refresh' }),
+    refreshToken: async (token?: string) => {
+      const storedRefreshToken = token ?? (this.config.getRefreshToken ? await this.config.getRefreshToken() : undefined);
+      return this.request<AuthResponse>({
+        method: 'POST',
+        url: '/auth/refresh',
+        data: storedRefreshToken ? { refreshToken: storedRefreshToken } : undefined,
+      });
+    },
     getSecurityQuestions: () =>
       this.request<SecurityQuestion[]>({ method: 'GET', url: '/security-questions' }),
     getAvailableSecurityQuestions: () =>
@@ -211,6 +228,12 @@ export class FinanceApiClient {
       }),
     setupSecurityQuestions: (input: SecurityQuestionsSetup) =>
       this.request<{ success: boolean }>({ method: 'POST', url: '/security-questions', data: input }),
+    verifySecurityQuestions: (input: { answers: Array<{ questionKey?: string; questionId?: string; answer: string }> }) =>
+      this.request<{ verified: boolean; message: string }>({
+        method: 'POST',
+        url: '/security-questions/verify',
+        data: input,
+      }),
     changePassword: (input: { currentPassword: string; newPassword: string }) =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/change-password', data: input }),
     getSessions: () =>
@@ -222,6 +245,24 @@ export class FinanceApiClient {
       this.request<{ success: boolean; revokedCount: number; message: string }>({
         method: 'POST',
         url: '/auth/sessions/revoke-others',
+      }),
+    initiateForgotPassword: (email: string) =>
+      this.request<{ email: string; questions: Array<{ questionKey: string; questionText: string }> }>({
+        method: 'POST',
+        url: '/auth/forgot-password/initiate',
+        data: { email },
+      }),
+    verifyForgotPassword: (input: { email: string; answers: Array<{ questionKey?: string; questionId?: string; answer: string }> }) =>
+      this.request<{ success: boolean; resetToken: string }>({
+        method: 'POST',
+        url: '/auth/forgot-password/verify',
+        data: input,
+      }),
+    resetPassword: (input: { resetToken: string; newPassword: string }) =>
+      this.request<{ success: boolean; message: string }>({
+        method: 'POST',
+        url: '/auth/reset-password',
+        data: input,
       }),
   };
 
@@ -243,6 +284,8 @@ export class FinanceApiClient {
       this.request<UserSettings>({ method: 'PATCH', url: '/user-settings', data: input }),
     uploadAvatar: (avatar: string) =>
       this.request<{ avatarUrl: string }>({ method: 'POST', url: '/profile/avatar', data: { avatar } }),
+    deleteAvatar: () =>
+      this.request<{ avatarUrl: null }>({ method: 'DELETE', url: '/profile/avatar' }),
   };
 
   // Transactions endpoints
@@ -534,6 +577,14 @@ export class FinanceApiClient {
         url: '/admin/maintenance/purge-audit-logs',
         data: { retentionDays },
       }),
+    getSystemCategories: (): Promise<Category[]> =>
+      this.request<Category[]>({ method: 'GET', url: '/admin/categories' }),
+    createSystemCategory: (data: { name: string; type: string; sortOrder?: number }): Promise<Category> =>
+      this.request<Category>({ method: 'POST', url: '/admin/categories', data }),
+    updateSystemCategory: (id: string, data: Partial<{ name: string; type: string; sortOrder?: number }>): Promise<Category> =>
+      this.request<Category>({ method: 'PUT', url: `/admin/categories/${id}`, data }),
+    deleteSystemCategory: (id: string): Promise<{ success: boolean; message: string }> =>
+      this.request<{ success: boolean; message: string }>({ method: 'DELETE', url: `/admin/categories/${id}` }),
   };
 
   // Import & Export

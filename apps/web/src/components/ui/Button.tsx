@@ -26,8 +26,8 @@ export const Button: React.FC<ButtonProps> = ({
 
   const sizeClasses = {
     sm: 'text-xs px-3 py-1.5 gap-1.5 min-h-[32px]',
-    md: 'text-sm px-4 py-2.5 gap-2 min-h-[42px]',
-    lg: 'text-base px-6 py-3.5 gap-2.5 min-h-[48px]',
+    md: 'text-sm px-4 py-2 gap-2 min-h-[40px]',
+    lg: 'text-base px-5 py-2.5 gap-2.5 min-h-[46px]',
   }[size];
 
   const variantClasses = {
@@ -75,7 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
       ) : (
         icon && <span className="inline-flex shrink-0">{icon}</span>
       )}
-      <span>{children}</span>
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0">{children}</span>
       {!isLoading && iconRight && (
         <span className="inline-flex shrink-0">{iconRight}</span>
       )}

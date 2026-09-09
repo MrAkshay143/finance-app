@@ -7,18 +7,29 @@ import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 export class AccountActionsService {
   /**
    * Danger Zone: Reset Profile
+   * Requires current password confirmation before wiping data (SEC-09).
    * Atomically deletes transactions, transfers, accounts, budgets, goals,
    * recurring transactions, reminders, notifications, and financeProfile records.
    * Preserves User account and SecurityQuestions.
    * Emits dashboard refresh and logs unalterable AuditLog ('ACCOUNT_RESET_PROFILE').
    */
-  async resetProfile(userId: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+  async resetProfile(userId: string, currentPassword: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
       throw new NotFoundError(`User not found: ${userId}`);
+    }
+
+    // SEC-09: Require explicit password confirmation before irreversible data wipe
+    if (!currentPassword || typeof currentPassword !== 'string') {
+      throw new UnauthorizedError('Password confirmation is required to reset profile data');
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!passwordMatch) {
+      throw new UnauthorizedError('Incorrect password. Profile reset was not performed.');
     }
 
     await prisma.$transaction(async (tx) => {

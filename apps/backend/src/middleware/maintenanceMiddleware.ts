@@ -1,28 +1,54 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js';
 
-let maintenanceCached: boolean | null = null;
+interface MaintenanceState {
+  active: boolean;
+  message: string;
+}
+
+let maintenanceCached: MaintenanceState | null = null;
 let lastCheckTime = 0;
 const CACHE_TTL_MS = 3000; // 3 second cache
+export const DEFAULT_MAINTENANCE_MESSAGE =
+  'Platform is currently undergoing scheduled maintenance. Please try again shortly.';
 
-export async function isMaintenanceModeActive(): Promise<boolean> {
-  if (process.env.NODE_ENV === 'test') {
-    return false;
+export async function getMaintenanceInfo(): Promise<MaintenanceState> {
+  if (process.env.NODE_ENV === 'test' && !process.env.TEST_MAINTENANCE) {
+    return { active: false, message: DEFAULT_MAINTENANCE_MESSAGE };
   }
   const now = Date.now();
   if (maintenanceCached !== null && (now - lastCheckTime) < CACHE_TTL_MS) {
     return maintenanceCached;
   }
   try {
-    const setting = await prisma.appSetting.findUnique({
-      where: { key: 'maintenance_mode' },
+    const settings = await prisma.appSetting.findMany({
+      where: {
+        key: { in: ['maintenance_mode', 'maintenance_message'] },
+      },
     });
-    maintenanceCached = setting ? Boolean(setting.value) : false;
+    const modeSetting = settings.find((s) => s.key === 'maintenance_mode');
+    const msgSetting = settings.find((s) => s.key === 'maintenance_message');
+    const active = modeSetting ? Boolean(modeSetting.value) : false;
+    const rawMsg = msgSetting?.value;
+    const message =
+      typeof rawMsg === 'string' && rawMsg.trim().length > 0
+        ? rawMsg
+        : DEFAULT_MAINTENANCE_MESSAGE;
+
+    maintenanceCached = { active, message };
     lastCheckTime = now;
   } catch {
-    maintenanceCached = false;
+    maintenanceCached = {
+      active: false,
+      message: DEFAULT_MAINTENANCE_MESSAGE,
+    };
   }
   return maintenanceCached;
+}
+
+export async function isMaintenanceModeActive(): Promise<boolean> {
+  const info = await getMaintenanceInfo();
+  return info.active;
 }
 
 export function invalidateMaintenanceCache(): void {
@@ -47,8 +73,8 @@ export async function maintenanceMiddleware(
     return next();
   }
 
-  const isMaintenance = await isMaintenanceModeActive();
-  if (!isMaintenance) {
+  const { active, message } = await getMaintenanceInfo();
+  if (!active) {
     return next();
   }
 
@@ -61,7 +87,7 @@ export async function maintenanceMiddleware(
     success: false,
     error: {
       code: 'MAINTENANCE_MODE',
-      message: 'Platform is currently undergoing scheduled maintenance. Please try again shortly.',
+      message: message || DEFAULT_MAINTENANCE_MESSAGE,
     },
   });
 }

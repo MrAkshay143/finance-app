@@ -173,7 +173,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Footer */}
         {footer && (
-          <div className={`${compact ? 'px-4 py-3 gap-2' : 'px-5 py-4 gap-2.5'} border-t border-borderDefault bg-gray-50 flex items-center justify-end`}>
+          <div className={`${compact ? 'px-4 py-3 gap-2' : 'px-5 py-4 gap-2.5'} border-t border-borderDefault bg-gray-50 flex items-center justify-end w-full overflow-hidden`}>
             {footer}
           </div>
         )}

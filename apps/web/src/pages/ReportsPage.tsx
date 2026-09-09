@@ -1002,7 +1002,7 @@ export const ReportsPage: React.FC = () => {
                   Excel Spreadsheet (.csv)
                 </div>
                 <div className="text-[11px] text-textMuted">
-                  Compatible with Microsoft Excel, Numbers &amp; Google Sheets
+                  Excel, Numbers &amp; Sheets compatible
                 </div>
               </div>
             </div>
@@ -1025,7 +1025,7 @@ export const ReportsPage: React.FC = () => {
                   JSON Data (.json)
                 </div>
                 <div className="text-[11px] text-textMuted">
-                  Raw structured financial records &amp; category breakdown
+                  Structured raw data backup
                 </div>
               </div>
             </div>

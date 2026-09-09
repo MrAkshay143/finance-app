@@ -478,12 +478,12 @@ export const ProfileSettingsPage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-textDefault">
-                      Security Questions (KBA)
+                      Security Questions
                     </h4>
                     <p className="text-[11px] text-textMuted mt-0.5">
                       {kbaConfigured
-                        ? 'Configured - 3 secret questions active'
-                        : 'Not set - set them to enable password recovery'}
+                        ? 'Active - 3 security questions configured'
+                        : 'Not set - add questions to enable account recovery'}
                     </p>
                   </div>
                 </div>

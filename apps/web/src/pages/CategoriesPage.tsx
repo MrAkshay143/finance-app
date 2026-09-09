@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
@@ -22,6 +23,7 @@ import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Modal } from '../components/ui/Modal.js';
+import { Pagination } from '../components/ui/Pagination.js';
 import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
@@ -36,10 +38,29 @@ import { toast } from '../store/toastStore.js';
 
 export const CategoriesPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { currency: userCurrency } = useUserCurrency();
 
-  // Primary view: Categories or Merchants
-  const [mainView, setMainView] = useState<'categories' | 'merchants'>('categories');
+  const isMerchantsRoute = location.pathname.startsWith('/merchants');
+
+  // Primary view: Categories or Merchants (synced with route)
+  const [mainView, setMainView] = useState<'categories' | 'merchants'>(
+    isMerchantsRoute ? 'merchants' : 'categories'
+  );
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/merchants')) {
+      setMainView('merchants');
+    } else if (location.pathname.startsWith('/categories')) {
+      setMainView('categories');
+    }
+  }, [location.pathname]);
+
+  const handleMainViewChange = (val: 'categories' | 'merchants') => {
+    setMainView(val);
+    navigate(val === 'merchants' ? '/merchants' : '/categories', { replace: true });
+  };
 
   // Categories filter pill tabs: All, Expense, Income, Investment
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'EXPENSE' | 'INCOME' | 'INVESTMENT'>('all');
@@ -331,6 +352,45 @@ export const CategoriesPage: React.FC = () => {
     return c.type === categoryFilter;
   });
 
+  // Category Pagination
+  const [categoryPage, setCategoryPage] = useState<number>(1);
+  const CATEGORIES_PER_PAGE = 12;
+
+  useEffect(() => {
+    setCategoryPage(1);
+  }, [categoryFilter]);
+
+  const totalCategoryPages = Math.max(1, Math.ceil(filteredCategories.length / CATEGORIES_PER_PAGE));
+
+  useEffect(() => {
+    if (categoryPage > totalCategoryPages) {
+      setCategoryPage(totalCategoryPages);
+    }
+  }, [categoryPage, totalCategoryPages]);
+
+  const paginatedCategories = filteredCategories.slice(
+    (categoryPage - 1) * CATEGORIES_PER_PAGE,
+    categoryPage * CATEGORIES_PER_PAGE
+  );
+
+  // Merchant Pagination
+  const [merchantPage, setMerchantPage] = useState<number>(1);
+  const MERCHANTS_PER_PAGE = 12;
+  const filteredMerchants = merchants;
+
+  const totalMerchantPages = Math.max(1, Math.ceil(filteredMerchants.length / MERCHANTS_PER_PAGE));
+
+  useEffect(() => {
+    if (merchantPage > totalMerchantPages) {
+      setMerchantPage(totalMerchantPages);
+    }
+  }, [merchantPage, totalMerchantPages]);
+
+  const paginatedMerchants = filteredMerchants.slice(
+    (merchantPage - 1) * MERCHANTS_PER_PAGE,
+    merchantPage * MERCHANTS_PER_PAGE
+  );
+
   return (
     <div className="flex-1 flex flex-col">
       {/* 1. Branded Navy Header with title "Categories" */}
@@ -381,7 +441,7 @@ export const CategoriesPage: React.FC = () => {
             },
           ]}
           value={mainView}
-          onChange={(val) => setMainView(val as 'categories' | 'merchants')}
+          onChange={(val) => handleMainViewChange(val as 'categories' | 'merchants')}
         />
 
         {/* Categories View */}
@@ -441,7 +501,8 @@ export const CategoriesPage: React.FC = () => {
               />
             ) : (
               <div className="space-y-2" data-testid="categories-list">
-                {filteredCategories.map((cat, index) => {
+                {paginatedCategories.map((cat, pageIndex) => {
+                  const index = (categoryPage - 1) * CATEGORIES_PER_PAGE + pageIndex;
                   const isIncome = cat.type === 'INCOME';
                   const isExpense = cat.type === 'EXPENSE';
                   const isInvest = cat.type === 'INVESTMENT';
@@ -541,8 +602,8 @@ export const CategoriesPage: React.FC = () => {
                                 setDeleteConfirm({
                                   id: cat.id,
                                   name: cat.name,
-                                })
-                              }
+                                }
+                              )}
                               aria-label={`Delete ${cat.name}`}
                               className="w-7 h-7 rounded-lg text-textMuted hover:text-semantic-danger hover:bg-semantic-danger-bg/50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-danger focus-visible:ring-offset-1"
                             >
@@ -554,6 +615,16 @@ export const CategoriesPage: React.FC = () => {
                     </Card>
                   );
                 })}
+
+                {/* Categories Pagination */}
+                <Pagination
+                  currentPage={categoryPage}
+                  totalPages={totalCategoryPages}
+                  totalItems={filteredCategories.length}
+                  pageSize={CATEGORIES_PER_PAGE}
+                  onPageChange={setCategoryPage}
+                  itemLabel="categories"
+                />
               </div>
             )}
           </div>
@@ -596,7 +667,7 @@ export const CategoriesPage: React.FC = () => {
               />
             ) : (
               <div className="space-y-2" data-testid="merchants-list">
-                {merchants.map((m) => (
+                {paginatedMerchants.map((m) => (
                   <Card
                     key={m.id}
                     padding="sm"
@@ -651,6 +722,16 @@ export const CategoriesPage: React.FC = () => {
                     </div>
                   </Card>
                 ))}
+
+                {/* Merchants Pagination */}
+                <Pagination
+                  currentPage={merchantPage}
+                  totalPages={totalMerchantPages}
+                  totalItems={filteredMerchants.length}
+                  pageSize={MERCHANTS_PER_PAGE}
+                  onPageChange={setMerchantPage}
+                  itemLabel="merchants"
+                />
               </div>
             )}
           </div>

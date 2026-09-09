@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { adminService } from '../services/adminService.js';
+import { categoryService } from '../services/categoryService.js';
 
 export class AdminController {
   async getDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -259,6 +260,59 @@ export class AdminController {
       const adminId = req.user!.id;
       const { retentionDays } = req.body || {};
       const result = await adminService.purgeOldAuditLogs(adminId, Number(retentionDays) || 90, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async listSystemCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const categories = await categoryService.adminListSystemCategories();
+      res.status(200).json({
+        success: true,
+        data: categories,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async createSystemCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const category = await categoryService.adminCreateSystemCategory(adminId, req.body);
+      res.status(201).json({
+        success: true,
+        data: category,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateSystemCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const { id } = req.params;
+      const category = await categoryService.adminUpdateSystemCategory(adminId, id, req.body);
+      res.status(200).json({
+        success: true,
+        data: category,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async deleteSystemCategory(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const { id } = req.params;
+      const result = await categoryService.adminDeleteSystemCategory(adminId, id);
       res.status(200).json({
         success: true,
         data: result,

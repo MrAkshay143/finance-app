@@ -60,4 +60,11 @@ adminRouter.post('/maintenance/purge-audit-logs', (req, res, next) => adminContr
 adminRouter.get('/audit', (req, res, next) => adminController.listSystemAuditLogs(req, res, next));
 adminRouter.get('/audit-logs', (req, res, next) => adminController.listSystemAuditLogs(req, res, next));
 
+// System Category Management
+adminRouter.get('/categories', (req, res, next) => adminController.listSystemCategories(req, res, next));
+adminRouter.post('/categories', (req, res, next) => adminController.createSystemCategory(req, res, next));
+adminRouter.put('/categories/:id', (req, res, next) => adminController.updateSystemCategory(req, res, next));
+adminRouter.patch('/categories/:id', (req, res, next) => adminController.updateSystemCategory(req, res, next));
+adminRouter.delete('/categories/:id', (req, res, next) => adminController.deleteSystemCategory(req, res, next));
+
 export default adminRouter;
