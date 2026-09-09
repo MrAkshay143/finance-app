@@ -50,32 +50,14 @@ export function validateEmail(email: string): ValidationResult {
     return {
       isValid: true,
       status: 'valid',
-      message: 'Valid email address',
-    };
-  }
-
-  // Helpful intermediate feedback
-  if (!trimmed.includes('@')) {
-    return {
-      isValid: false,
-      status: 'invalid',
-      message: 'Email must contain "@" (e.g. name@domain.com)',
-    };
-  }
-
-  const parts = trimmed.split('@');
-  if (parts.length > 1 && !parts[1].includes('.')) {
-    return {
-      isValid: false,
-      status: 'invalid',
-      message: 'Missing domain extension (e.g. .com, .in)',
+      message: 'Valid email',
     };
   }
 
   return {
     isValid: false,
     status: 'invalid',
-    message: 'Please enter a valid email address',
+    message: 'Enter a valid email',
   };
 }
 
@@ -122,10 +104,10 @@ export function validatePassword(password: string): PasswordValidationResult {
     : 'invalid';
 
   const message = isValid
-    ? `Strong password (${strengthLabel})`
+    ? `${strengthLabel} password`
     : !criteria.minLength
-    ? 'Minimum 8 characters required'
-    : 'Include uppercase, lowercase, numbers, and symbols';
+    ? '8+ characters required'
+    : 'Include upper, lower, number & symbol';
 
   return {
     isValid,
@@ -179,7 +161,7 @@ export function validateAmount(
       isValid: false,
       status: 'invalid',
       numericValue: 0,
-      message: 'Please enter a valid numeric amount',
+      message: 'Enter valid amount',
     };
   }
 
@@ -188,7 +170,7 @@ export function validateAmount(
       isValid: false,
       status: 'invalid',
       numericValue: num,
-      message: 'Amount cannot be negative',
+      message: 'Cannot be negative',
     };
   }
 
@@ -197,12 +179,12 @@ export function validateAmount(
       isValid: false,
       status: 'invalid',
       numericValue: 0,
-      message: 'Amount must be greater than 0',
+      message: 'Must be greater than 0',
     };
   }
 
   // Formatted currency label
-  const formattedDisplay = `Formatted: ${formatCurrency(num, currency)}`;
+  const formattedDisplay = formatCurrency(num, currency);
 
   return {
     isValid: true,
@@ -223,12 +205,12 @@ export function validateAge(dobString: string, minAge = 16): ValidationResult {
 
   const dob = new Date(dobString);
   if (isNaN(dob.getTime())) {
-    return { isValid: false, status: 'invalid', message: 'Invalid date format' };
+    return { isValid: false, status: 'invalid', message: 'Invalid date' };
   }
 
   const today = new Date();
   if (dob > today) {
-    return { isValid: false, status: 'invalid', message: 'Date of birth cannot be in the future' };
+    return { isValid: false, status: 'invalid', message: 'Cannot be in future' };
   }
 
   let age = today.getFullYear() - dob.getFullYear();
@@ -241,14 +223,14 @@ export function validateAge(dobString: string, minAge = 16): ValidationResult {
     return {
       isValid: false,
       status: 'invalid',
-      message: `Must be at least ${minAge} years old (current: ${age})`,
+      message: `Must be ${minAge} or older`,
     };
   }
 
   return {
     isValid: true,
     status: 'valid',
-    message: `Age: ${age} years (Eligible)`,
+    message: `Eligible (${minAge}+)`,
   };
 }
 
@@ -270,7 +252,7 @@ export function validatePhoneRealtime(
       status: 'idle',
       digitsEntered: 0,
       digitsRequired: primaryLength,
-      formatGuide: `Format: ${country.formatDescription} (${country.name})`,
+      formatGuide: `${primaryLength} digits required`,
     };
   }
 
@@ -285,21 +267,42 @@ export function validatePhoneRealtime(
       digitsEntered: digitsOnly.length,
       digitsRequired: primaryLength,
       normalizedE164: formattedE164,
-      message: `Valid ${country.name} number (${formattedE164})`,
+      message: 'Valid number',
     };
   }
 
-  const remaining = primaryLength - digitsOnly.length;
-  const progressMsg =
-    remaining > 0
-      ? `${digitsOnly.length} / ${primaryLength} digits (${remaining} remaining)`
-      : `${digitsOnly.length} / ${primaryLength} digits`;
+  // If user entered too many digits
+  if (digitsOnly.length > primaryLength) {
+    return {
+      isValid: false,
+      status: 'invalid',
+      digitsEntered: digitsOnly.length,
+      digitsRequired: primaryLength,
+      message: `Max ${primaryLength} digits`,
+    };
+  }
 
+  // If user entered required number of digits but regex pattern failed
+  if (country.phoneLengths.includes(digitsOnly.length)) {
+    const errMsg =
+      country.code === 'IN'
+        ? 'Must start with 6, 7, 8, or 9'
+        : result.error || 'Invalid number';
+    return {
+      isValid: false,
+      status: 'invalid',
+      digitsEntered: digitsOnly.length,
+      digitsRequired: primaryLength,
+      message: errMsg,
+    };
+  }
+
+  // In-progress: clean counter
   return {
     isValid: false,
-    status: digitsOnly.length === primaryLength ? 'invalid' : 'idle',
+    status: 'idle',
     digitsEntered: digitsOnly.length,
     digitsRequired: primaryLength,
-    message: result.error || progressMsg,
+    message: `${digitsOnly.length}/${primaryLength} digits`,
   };
 }

@@ -348,7 +348,7 @@ export function validateAndNormalizePhone(
     const lengthsStr = country.phoneLengths.join(' or ');
     return {
       isValid: false,
-      error: `Mobile number for ${country.name} must be ${lengthsStr} digits`,
+      error: `Must be ${lengthsStr} digits`,
       countryCode: country.code,
       country,
       nationalNumber: cleanNational,
@@ -360,7 +360,7 @@ export function validateAndNormalizePhone(
   if (!regex.test(cleanNational)) {
     return {
       isValid: false,
-      error: `Please enter a valid ${country.name} mobile number (${country.formatDescription})`,
+      error: country.code === 'IN' ? 'Must start with 6, 7, 8, or 9' : 'Invalid number format',
       countryCode: country.code,
       country,
       nationalNumber: cleanNational,

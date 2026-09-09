@@ -216,7 +216,7 @@ export const SignupPage: React.FC = () => {
                 }}
                 error={validationErrors.email}
                 status={email.trim() ? (emailResult.isValid ? 'valid' : validationErrors.email ? 'invalid' : 'idle') : 'idle'}
-                validMessage="Valid email address"
+                validMessage="Valid email"
                 showStatusIcon
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
                 autoComplete="email"
