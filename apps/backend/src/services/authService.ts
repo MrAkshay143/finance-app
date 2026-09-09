@@ -43,6 +43,7 @@ export interface AuthResult {
     mobileNumber: string;
     role: string;
     status: string;
+    avatarUrl?: string | null;
     onboardingCompleted: boolean;
     lastLoginAt: Date | null;
   };
@@ -169,6 +170,7 @@ export class AuthService {
         role: user.role,
         status: user.status,
         onboardingCompleted: user.onboardingCompleted,
+        avatarUrl: user.avatarUrl ?? null,
         lastLoginAt: user.lastLoginAt,
       },
       tokens: {
@@ -323,6 +325,7 @@ export class AuthService {
         role: updatedUser.role,
         status: updatedUser.status,
         onboardingCompleted: updatedUser.onboardingCompleted,
+        avatarUrl: updatedUser.avatarUrl ?? null,
         lastLoginAt: updatedUser.lastLoginAt,
       },
       tokens: {

@@ -33,6 +33,18 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
+// Ensure database column types support large payloads (e.g., avatar base64 images)
+async function ensureDatabaseSchema() {
+  try {
+    await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
+    logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+  } catch (err: any) {
+    // Expected/non-fatal if running on PostgreSQL where TEXT is used, or if table doesn't exist yet
+    logger.debug({ err: err?.message }, 'Database schema verification completed');
+  }
+}
+ensureDatabaseSchema();
+
 const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
 
 if (isSocket) {

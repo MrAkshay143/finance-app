@@ -57,7 +57,7 @@ model User {
   failedLoginAttempts Int        @default(0)
   lockedUntil         DateTime?
   onboardingCompleted Boolean    @default(false)
-  avatarUrl           String?
+  avatarUrl           String?    @db.LongText
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
   lastLoginAt         DateTime?

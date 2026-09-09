@@ -29,7 +29,12 @@ export const ProfilePage: React.FC = () => {
   const [famScore, setFamScore] = useState<string>('—');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarImgError, setAvatarImgError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAvatarImgError(false);
+  }, [user?.avatarUrl]);
 
   useEffect(() => {
     fetchProfile();
@@ -113,7 +118,10 @@ export const ProfilePage: React.FC = () => {
     reader.onload = async () => {
       try {
         const base64Data = reader.result as string;
-        await apiClient.profile.uploadAvatar(base64Data);
+        const res = await apiClient.profile.uploadAvatar(base64Data);
+        if (res?.avatarUrl) {
+          useAuthStore.getState().updateUser({ avatarUrl: res.avatarUrl });
+        }
         await fetchProfile();
       } catch (err: any) {
         setAvatarError(err?.response?.data?.message || err?.message || 'Failed to upload profile picture.');
@@ -197,10 +205,11 @@ export const ProfilePage: React.FC = () => {
                 >
                   {isUploadingAvatar ? (
                     <span className="text-[10px] font-medium">Uploading...</span>
-                  ) : user?.avatarUrl ? (
+                  ) : user?.avatarUrl && !avatarImgError ? (
                     <img
                       src={user.avatarUrl}
                       alt={user.fullName || 'User Avatar'}
+                      onError={() => setAvatarImgError(true)}
                       className="w-full h-full object-cover"
                     />
                   ) : (

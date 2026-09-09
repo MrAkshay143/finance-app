@@ -47,3 +47,7 @@ tmp/
 *.sqlite
 *.db
 *.db-journal
+
+# Deployment artifacts
+finance_deploy/
+*.zip

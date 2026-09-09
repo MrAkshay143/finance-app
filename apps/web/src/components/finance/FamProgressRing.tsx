@@ -19,6 +19,12 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
   className = '',
   onClick,
 }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [avatarUrl]);
+
   const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -71,10 +77,11 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
         />
       </svg>
       {/* Inner Avatar Content */}
-      {avatarUrl ? (
+      {avatarUrl && !imgError ? (
         <img
           src={avatarUrl}
           alt="Profile Avatar"
+          onError={() => setImgError(true)}
           className="absolute rounded-full object-cover shadow-inner"
           style={{
             width: size - strokeWidth * 2 - 2,
