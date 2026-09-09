@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Building2, Search, Check, Store } from 'lucide-react';
+import { Building2, Search, Check, Store, X } from 'lucide-react';
 import { apiClient } from '../../services/apiClient.js';
 import { useSafeQueryClient } from '../../hooks/useSafeQueryClient.js';
 import type { Merchant } from '@finance/shared-types';
@@ -29,6 +29,7 @@ export const MerchantAutoSuggest: React.FC<MerchantAutoSuggestProps> = ({
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const justSelectedRef = useRef<boolean>(false);
 
   // Fetch real user merchants
   const { data: merchants = [] } = useQuery<Merchant[]>(
@@ -72,10 +73,10 @@ export const MerchantAutoSuggest: React.FC<MerchantAutoSuggestProps> = ({
   }, [isOpen]);
 
   const handleSelect = (merchantName: string) => {
+    justSelectedRef.current = true;
     onChange(merchantName);
     setIsOpen(false);
     setHighlightedIndex(-1);
-    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -127,6 +128,10 @@ export const MerchantAutoSuggest: React.FC<MerchantAutoSuggestProps> = ({
             setHighlightedIndex(-1);
           }}
           onFocus={() => {
+            if (justSelectedRef.current) {
+              justSelectedRef.current = false;
+              return;
+            }
             if (merchants.length > 0) {
               setIsOpen(true);
             }
@@ -135,8 +140,24 @@ export const MerchantAutoSuggest: React.FC<MerchantAutoSuggestProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           autoComplete="off"
-          className="w-full bg-white border border-borderDefault rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-textDefault placeholder:text-textMuted font-medium transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary disabled:bg-gray-50 disabled:text-textMuted"
+          className="w-full bg-white border border-borderDefault rounded-xl pl-10 pr-9 py-2.5 text-sm text-textDefault placeholder:text-textMuted font-medium transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary disabled:bg-gray-50 disabled:text-textMuted"
         />
+
+        {value && !disabled && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange('');
+              setIsOpen(true);
+              inputRef.current?.focus();
+            }}
+            className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            aria-label="Clear merchant"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Floating Auto-Suggest Popover */}

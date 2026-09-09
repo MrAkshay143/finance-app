@@ -418,7 +418,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
       expect(html).toContain(formatIndianRupees(85000));
       expect(html).toContain(formatIndianRupees(80000));
       expect(html).toContain('106%');
-      expect(html).toContain('earned');
+      expect(html).toContain('Target Exceeded!');
 
       // Expense target vs actual
       expect(html).toContain(formatIndianRupees(32000));
@@ -482,11 +482,11 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
       );
 
       expect(html).toContain('data-testid="recent-transactions-card"');
-      expect(html).toContain('Monthly Salary Credit');
+      expect(html).toContain('Tech Corp India');
       expect(html).toContain(`+${formatIndianRupees(85000)}`);
-      expect(html).toContain('Nature Basket Supermarket');
+      expect(html).toContain('Nature Basket');
       expect(html).toContain(`-${formatIndianRupees(4500)}`);
-      expect(html).toContain('Zerodha Index Fund SIP');
+      expect(html).toContain('Zerodha Broking');
       expect(html).toContain('View All');
     });
 

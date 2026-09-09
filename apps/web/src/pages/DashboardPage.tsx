@@ -289,23 +289,23 @@ export const DashboardPage: React.FC = () => {
 
                 {/* Center Column: FAM Donut Ring */}
                 <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <svg className="w-full h-full -rotate-90 filter drop-shadow-sm" viewBox="0 0 100 100">
                     <circle
                       cx="50"
                       cy="50"
                       r="39"
                       fill="none"
-                      stroke="rgba(255, 255, 255, 0.25)"
+                      stroke="rgba(255, 255, 255, 0.18)"
                       strokeWidth="9"
                     />
                     {famIsAvailable ? (
                       <>
                         <defs>
                           <linearGradient id="heroFamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#A855F7" />
-                            <stop offset="35%" stopColor="#22C55E" />
-                            <stop offset="70%" stopColor="#EAB308" />
-                            <stop offset="100%" stopColor="#EF4444" />
+                            <stop offset="0%" stopColor="#818CF8" />
+                            <stop offset="35%" stopColor="#34D399" />
+                            <stop offset="70%" stopColor="#FBBF24" />
+                            <stop offset="100%" stopColor="#F87171" />
                           </linearGradient>
                         </defs>
                         <circle
@@ -317,26 +317,27 @@ export const DashboardPage: React.FC = () => {
                           strokeWidth="9"
                           strokeDasharray={`${(Math.min(100, Math.max(0, famScore)) / 100) * (2 * Math.PI * 39)} ${2 * Math.PI * 39}`}
                           strokeLinecap="round"
+                          className="transition-all duration-700 ease-out"
                         />
                       </>
                     ) : null}
                   </svg>
 
                   {/* Inner White Center Card */}
-                  <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-md p-1">
+                  <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
                     {famGrade ? (
-                      <span className="px-2 py-0.2 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700 leading-tight">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs leading-none">
                         {famGrade}
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 leading-tight">
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 leading-none">
                         N/A
                       </span>
                     )}
-                    <span className="text-sm font-black text-slate-900 leading-tight mt-0.5">
+                    <span className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
                       {famIsAvailable ? `${famScore}%` : '0%'}
                     </span>
-                    <span className="text-[8px] font-semibold text-slate-400 leading-tight">
+                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
                       Overall Score
                     </span>
                   </div>
@@ -349,14 +350,8 @@ export const DashboardPage: React.FC = () => {
                   aria-label="View full score report"
                   className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all backdrop-blur-md rounded-2xl p-2.5 flex flex-col items-center justify-center border border-white/30 text-white shrink-0 w-20 text-center cursor-pointer shadow-xs"
                 >
-                  <div className="w-10 h-7 flex items-center justify-center mb-0.5">
-                    <svg className="w-9 h-7 text-white" viewBox="0 0 40 28" fill="none">
-                      <rect x="2" y="14" width="6" height="12" rx="2" fill="currentColor" fillOpacity="0.4" />
-                      <rect x="11" y="10" width="6" height="16" rx="2" fill="currentColor" fillOpacity="0.6" />
-                      <rect x="20" y="6" width="6" height="20" rx="2" fill="currentColor" fillOpacity="0.8" />
-                      <rect x="29" y="2" width="6" height="24" rx="2" fill="currentColor" fillOpacity="1.0" />
-                      <path d="M4 14 L13 10 L22 6 L31 2" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
+                  <div className="w-8 h-8 rounded-xl bg-white/25 flex items-center justify-center mb-1 shadow-inner">
+                    <TrendingUp className="w-4 h-4 text-white stroke-[2.5]" />
                   </div>
                   <span className="text-[11px] font-black flex items-center justify-center text-white">
                     Report &gt;
@@ -371,42 +366,43 @@ export const DashboardPage: React.FC = () => {
             {/* ==============================================================
              * SECTION 2: MONTHLY STATUS PILLS
              * 3 Compact Pills in a White Card (Expenses, Investments, Income)
+             * Adjusted for full text display without truncation
              * ============================================================== */}
-            <div className="bg-white rounded-2xl p-2.5 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
+            <div className="bg-white rounded-2xl p-2 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
               {/* Expenses Pill */}
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
-                  <ArrowDown className="w-4 h-4 stroke-[2.5]" />
+              <div className="flex items-center gap-1.5 px-1 py-0.5">
+                <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
+                  <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-800 truncate">Expenses</div>
-                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Expenses</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
                     {areaExpense?.statusLabel || areaExpense?.status || 'Excellent'}
                   </div>
                 </div>
               </div>
 
               {/* Investments Pill */}
-              <div className="flex items-center gap-2 px-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-4 h-4 stroke-[2.5]" />
+              <div className="flex items-center gap-1.5 px-1.5 py-0.5">
+                <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-800 truncate">Investments</div>
-                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Investments</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
                     {areaInvestment?.statusLabel || areaInvestment?.status || 'Excellent'}
                   </div>
                 </div>
               </div>
 
               {/* Income Pill */}
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                  <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+              <div className="flex items-center gap-1.5 px-1 py-0.5">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-800 truncate">Income</div>
-                  <div className="text-[11px] font-semibold text-slate-500 truncate">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Income</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
                     {areaIncome?.statusLabel || areaIncome?.status || 'Excellent'}
                   </div>
                 </div>
@@ -429,10 +425,10 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-3 gap-2">
                 {/* 1. Income Card */}
                 <div
-                  className="bg-gradient-to-b from-[#F0FDF4]/70 to-white border border-emerald-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  className="bg-gradient-to-b from-[#F0FDF4]/70 to-white border border-emerald-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="income-overview-card"
                 >
                   <div>
@@ -444,7 +440,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-2 gap-1">
-                      <div className="text-xs font-black text-slate-900 truncate">
+                      <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.income.actual, userCurrency)}
                       </div>
                       <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
@@ -452,7 +448,7 @@ export const DashboardPage: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                    <div className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
                       of {formatCurrency(targets.income.target, userCurrency)}
                     </div>
                   </div>
@@ -464,16 +460,15 @@ export const DashboardPage: React.FC = () => {
                         style={{ width: `${Math.min(100, Math.max(0, targets.income.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-emerald-600 mt-1 truncate flex items-center justify-between">
-                      <span>{targets.income.percent >= 100 ? 'Target Exceeded!' : 'On Track'}</span>
-                      <span className="text-[9px] text-emerald-500 font-normal">earned</span>
+                    <div className="text-[10px] font-semibold text-emerald-600 mt-1 whitespace-nowrap">
+                      {targets.income.percent >= 100 ? 'Target Exceeded!' : 'On Track'}
                     </div>
                   </div>
                 </div>
 
                 {/* 2. Expense Card */}
                 <div
-                  className="bg-gradient-to-b from-[#FEF2F2]/70 to-white border border-rose-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  className="bg-gradient-to-b from-[#FEF2F2]/70 to-white border border-rose-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="expense-overview-card"
                 >
                   <div>
@@ -485,7 +480,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-2 gap-1">
-                      <div className="text-xs font-black text-slate-900 truncate">
+                      <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.expense.actual, userCurrency)}
                       </div>
                       <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
@@ -493,7 +488,7 @@ export const DashboardPage: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                    <div className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
                       limit {formatCurrency(targets.expense.target, userCurrency)}
                     </div>
                   </div>
@@ -505,7 +500,7 @@ export const DashboardPage: React.FC = () => {
                         style={{ width: `${Math.min(100, Math.max(0, targets.expense.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-slate-500 mt-1 truncate flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-slate-500 mt-1 whitespace-nowrap">
                       <span>{formatCurrency(targets.expense.remaining, userCurrency)} remaining</span>
                       <span className="sr-only">spent</span>
                     </div>
@@ -514,7 +509,7 @@ export const DashboardPage: React.FC = () => {
 
                 {/* 3. Invest Card */}
                 <div
-                  className="bg-gradient-to-b from-[#FAF5FF]/70 to-white border border-purple-100/90 rounded-2xl p-2.5 shadow-xs flex flex-col justify-between"
+                  className="bg-gradient-to-b from-[#FAF5FF]/70 to-white border border-purple-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="investment-overview-card"
                 >
                   <div>
@@ -526,7 +521,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-2 gap-1">
-                      <div className="text-xs font-black text-slate-900 truncate">
+                      <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.investment.actual, userCurrency)}
                       </div>
                       <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
@@ -534,7 +529,7 @@ export const DashboardPage: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+                    <div className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
                       target {formatCurrency(targets.investment.target, userCurrency)}
                     </div>
                   </div>
@@ -546,7 +541,7 @@ export const DashboardPage: React.FC = () => {
                         style={{ width: `${Math.min(100, Math.max(0, targets.investment.percent))}%` }}
                       />
                     </div>
-                    <div className="text-[10px] font-semibold text-purple-600 mt-1 truncate flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-purple-600 mt-1 whitespace-nowrap">
                       <span>On Track!</span>
                       <span className="sr-only">invested</span>
                     </div>
@@ -629,24 +624,7 @@ export const DashboardPage: React.FC = () => {
                   onAction={openPicker}
                 />
               ) : (
-                <div className="relative flex items-center justify-between gap-4 pt-1">
-                  {/* Floating Compact Detail Badge on Mouseover or Touch */}
-                  {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 text-white shadow-xl backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 whitespace-nowrap animate-in fade-in zoom-in-95 pointer-events-none border border-white/10">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{
-                          backgroundColor: CATEGORY_COLORS[hoveredSliceIndex % CATEGORY_COLORS.length],
-                        }}
-                      />
-                      <span>{activeBreakdown[hoveredSliceIndex].categoryName}:</span>
-                      <span className="font-bold text-emerald-300">
-                        {formatCurrency(activeBreakdown[hoveredSliceIndex].amount, userCurrency)}
-                      </span>
-                      <span className="text-slate-300">({activeBreakdown[hoveredSliceIndex].percentage}%)</span>
-                    </div>
-                  )}
-
+                <div className="flex items-center justify-between gap-4 pt-1 pb-2">
                   {/* Left: SVG Multi-segment Donut with 1.5px gaps and interactive highlights */}
                   <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -723,6 +701,23 @@ export const DashboardPage: React.FC = () => {
                         </>
                       )}
                     </div>
+
+                    {/* Floating Compact Detail Badge directly below the pie chart as an overlay */}
+                    {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] && (
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 text-white shadow-xl backdrop-blur-md px-2.5 py-0.5 rounded-xl text-[10px] font-semibold flex items-center gap-1.5 whitespace-nowrap animate-in fade-in zoom-in-95 pointer-events-none border border-white/10">
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: CATEGORY_COLORS[hoveredSliceIndex % CATEGORY_COLORS.length],
+                          }}
+                        />
+                        <span className="max-w-[65px] truncate">{activeBreakdown[hoveredSliceIndex].categoryName}:</span>
+                        <span className="font-bold text-emerald-300">
+                          {formatCurrency(activeBreakdown[hoveredSliceIndex].amount, userCurrency)}
+                        </span>
+                        <span className="text-slate-300">({activeBreakdown[hoveredSliceIndex].percentage}%)</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Right: Category Legend List with two-way hover sync */}
@@ -949,8 +944,27 @@ export const DashboardPage: React.FC = () => {
                     const merchantName =
                       typeof txn.merchant === 'string' ? txn.merchant : txn.merchant?.name;
 
-                    const title = txn.description || merchantName || txn.category?.name || txn.type;
-                    const categoryName = txn.category?.name || merchantName || txn.type;
+                    const defaultRecordLabel = isIncome
+                      ? 'Income Record'
+                      : isExpense
+                      ? 'Expense Record'
+                      : isInvest
+                      ? 'Investment Record'
+                      : 'Transfer Record';
+
+                    const title = merchantName || txn.description || defaultRecordLabel;
+
+                    const defaultTypeLabel = isIncome
+                      ? 'Income'
+                      : isExpense
+                      ? 'Expense'
+                      : isInvest
+                      ? 'Investment'
+                      : 'Transfer';
+
+                    const categoryName =
+                      txn.category?.name ||
+                      (txn.description && merchantName ? txn.description : defaultTypeLabel);
 
                     return (
                       <div
