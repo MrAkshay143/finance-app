@@ -32,6 +32,29 @@ apiV1Router.use((_req, res, next) => {
   next();
 });
 
+// Root /api/v1 service status and endpoint discovery
+apiV1Router.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      name: 'Finance Tracker API',
+      version: '1.0.0',
+      status: 'operational',
+      environment: 'production',
+      endpoints: {
+        auth: '/api/v1/auth',
+        accounts: '/api/v1/accounts',
+        transactions: '/api/v1/transactions',
+        dashboard: '/api/v1/dashboard',
+        budgets: '/api/v1/budgets',
+        goals: '/api/v1/goals',
+        health: '/healthz',
+        ready: '/readyz'
+      }
+    }
+  });
+});
+
 // Mount all resource route groups per Plan/backend.md §4
 apiV1Router.use('/auth', authRouter);
 apiV1Router.use('/profile', profileRouter);
