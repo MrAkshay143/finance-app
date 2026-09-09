@@ -159,10 +159,10 @@ export const OnboardingWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0 sm:py-4">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-hidden">
+    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
+      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-clip">
         {/* Dark Navy Header */}
-        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-6 pb-6 px-5 rounded-b-[24px] shadow-header relative z-10 text-center">
+        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-6 pb-6 px-5 rounded-b-[24px] shadow-header sticky top-0 z-30 text-center">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-300">
               Welcome Onboard

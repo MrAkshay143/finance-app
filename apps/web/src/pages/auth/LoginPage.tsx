@@ -109,10 +109,10 @@ export const LoginPage: React.FC = () => {
       : 0;
 
   return (
-    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0 sm:py-4">
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-hidden">
+    <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
+      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-clip">
         {/* Navy Header Block */}
-        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-8 pb-7 px-6 rounded-b-[28px] shadow-header relative z-10 text-center">
+        <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-8 pb-7 px-6 rounded-b-[28px] shadow-header sticky top-0 z-30 text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white shadow-lg mb-3">
             <Wallet className="w-7 h-7" />
           </div>
