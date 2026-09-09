@@ -57,7 +57,7 @@ export function createApp(): Express {
   // 7. Rate limiter (Redis-backed with in-memory fallback)
   app.use(rateLimiter);
 
-  // Prometheus metrics endpoint per Plan/architecture.md §10
+  // Prometheus metrics endpoint per Plan/architecture.md Section 10
   app.get('/metrics', async (_req: Request, res: Response) => {
     try {
       res.set('Content-Type', register.contentType);
@@ -67,7 +67,19 @@ export function createApp(): Express {
     }
   });
 
-  // Health and readiness endpoints per Plan/architecture.md §10
+  // Root status endpoint for root health pings (e.g. Render, uptime monitors)
+  app.get('/', (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'Finance Tracker API',
+      version: '1.0.0',
+      health: '/healthz',
+      ready: '/readyz',
+      api: '/api/v1',
+    });
+  });
+
+  // Health and readiness endpoints per Plan/architecture.md Section 10
   app.get('/healthz', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok' });
   });

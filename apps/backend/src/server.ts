@@ -9,7 +9,7 @@ import { prisma } from './lib/prisma.js';
 import { hashPassword } from './lib/jwt.js';
 import { categoryService } from './services/categoryService.js';
 
-// Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md §11
+// Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md Section 11
 initSentry('backend-api');
 
 // Auto-provision system categories on server startup
@@ -25,7 +25,7 @@ const allowedOrigins = env.CORS_ALLOWED_ORIGINS.split(',').map((o) => o.trim());
 
 const io = new SocketIOServer(server, {
   cors: {
-    // Only allow explicitly whitelisted origins — no wildcard fallback (SEC-08)
+    // Only allow explicitly whitelisted origins - no wildcard fallback (SEC-08)
     origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     credentials: true,
   },
@@ -33,7 +33,7 @@ const io = new SocketIOServer(server, {
 
 import { initSocketGateway } from './sockets/socketGateway.js';
 
-// Realtime namespaces & authentication per Plan/architecture.md §6
+// Realtime namespaces & authentication per Plan/architecture.md Section 6
 initSocketGateway(io);
 
 // Initialize Redis in background (non-blocking)
@@ -41,24 +41,27 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-// Ensure database column types support large payloads (e.g., avatar base64 images)
+// Ensure database column types support large payloads (e.g., avatar base64 images) on MySQL
 async function ensureDatabaseSchema() {
   try {
-    await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
-    logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+    const isMysql = env.DATABASE_URL.startsWith('mysql');
+    if (isMysql) {
+      await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
+      logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+    }
   } catch (err: any) {
-    // Expected/non-fatal if running on PostgreSQL where TEXT is used, or if table doesn't exist yet
+    // Expected/non-fatal if table doesn't exist yet
     logger.debug({ err: err?.message }, 'Database schema verification completed');
   }
 }
 ensureDatabaseSchema();
 
 // Ensure at least one admin user exists. Only creates if NO admins exist at all.
-// Never overwrites an existing admin's password — credentials must be changed via the app UI.
+// Never overwrites an existing admin's password - credentials must be changed via the app UI.
 // Reads initial credentials from ADMIN_EMAIL / ADMIN_PASSWORD env vars with safe defaults.
 async function ensureAdminUser() {
   try {
-    // Check if ANY admin user already exists — if so, do nothing
+    // Check if ANY admin user already exists - if so, do nothing
     const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
     if (adminCount > 0) {
       logger.debug('Admin user already exists, skipping auto-provisioning');
@@ -71,13 +74,13 @@ async function ensureAdminUser() {
 
     if (!adminEmail || !adminPassword) {
       logger.warn(
-        'No admin users found and ADMIN_EMAIL / ADMIN_PASSWORD env vars are not set — skipping admin provisioning'
+        'No admin users found and ADMIN_EMAIL / ADMIN_PASSWORD env vars are not set - skipping admin provisioning'
       );
       return;
     }
 
     if (adminPassword.length < 12) {
-      logger.warn('ADMIN_PASSWORD is too short (min 12 chars) — skipping admin provisioning for security');
+      logger.warn('ADMIN_PASSWORD is too short (min 12 chars) - skipping admin provisioning for security');
       return;
     }
 

@@ -57,7 +57,7 @@ services:
       - key: SKIP_INSTALL_DEPS
         value: "true"
       - key: VITE_API_URL
-        value: https://finance-tracker-backend.onrender.com
+        value: https://finance-tracker-backend-eyz1.onrender.com
 
 # ==============================================================================
 # Managed PostgreSQL 16 Database
