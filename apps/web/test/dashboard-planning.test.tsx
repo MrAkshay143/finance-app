@@ -342,6 +342,38 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
       expect(html).toContain('Invest');
       expect(html).toContain('Income');
       expect(html).toContain('Excellent');
+      expect(html).toContain('View Report');
+      expect(html).not.toContain('max-w-[155px] truncate');
+    });
+
+    it('renders dedicated modern empty state card with Record Transaction button when FAM score is not available', () => {
+      const qc = createTestQueryClient({
+        dashboard: {
+          ...MOCK_DASHBOARD_DATA,
+          fam: {
+            isAvailable: false,
+            grade: null,
+            gradeDisplay: null,
+            statusLabel: null,
+            progress: 0,
+          },
+        },
+      });
+      const html = renderToString(
+        <QueryClientProvider client={qc}>
+          <MemoryRouter>
+            <DashboardPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+
+      expect(html).toContain('data-testid="fam-score-card"');
+      expect(html).toContain('Financial Health');
+      expect(html).toContain('Track Your Financial Health');
+      expect(html).toContain('Record Transaction');
+      expect(html).not.toContain('Build Your Score');
+      expect(html).not.toContain('NEW ACCOUNT');
+      expect(html).not.toContain('Pending');
     });
   });
 

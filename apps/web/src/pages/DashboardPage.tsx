@@ -270,7 +270,7 @@ export const DashboardPage: React.FC = () => {
                         Security Reminder
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-amber-950 truncate mt-0.5">Set Up Security Questions</div>
+                    <div className="text-xs font-bold text-amber-950 mt-0.5">Set Up Security Questions</div>
                   </div>
                 </div>
                 <button
@@ -284,143 +284,160 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Section 1: Financial Health Hero Card */}
-            <div
-              className="bg-gradient-to-br from-[#2F74EE] via-[#3B82F6] to-[#60A5FA] rounded-3xl p-4 text-white shadow-md relative overflow-hidden border border-blue-400/30"
-              data-testid="fam-score-card"
-            >
-              {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
-              <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" />
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
-              <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
+            {!famIsAvailable ? (
+              /* Dedicated Empty State Hero Card */
+              <div
+                className="bg-gradient-to-br from-[#1E40AF] via-[#2563EB] to-[#3B82F6] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
+                data-testid="fam-score-card"
+              >
+                {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
+                <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-25 animate-ambient-glow" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
+                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
 
-              <h2 className="sr-only">Financial Assessment Matrix</h2>
+                <h2 className="sr-only">Financial Assessment Matrix</h2>
 
-              <div className="flex items-center justify-between gap-2 relative z-10">
-                {/* Left Column: Status Badge, Title, Subtitle, Description */}
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="inline-flex items-center">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
-                        !famIsAvailable
-                          ? 'bg-white/20 text-white backdrop-blur-sm border border-white/25'
-                          : famGrade === 'C'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-[#DCFCE7] text-[#15803D]'
-                      }`}
-                    >
-                      {!famIsAvailable ? 'NEW ACCOUNT' : famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
-                    </span>
+                <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white backdrop-blur-sm border border-white/25 shadow-xs">
+                      <Activity className="w-3 h-3 stroke-[2.5]" />
+                      <span>Financial Health</span>
+                    </div>
+
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-2 leading-tight">
+                      Track Your Financial Health
+                    </h3>
+
+                    <p className="text-white/85 text-xs leading-relaxed mt-1">
+                      Record transactions to generate your real-time health score and spending insights.
+                    </p>
+
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={openPicker}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white text-blue-600 hover:bg-blue-50 active:scale-95 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Record Transaction</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="text-white/90 text-[11px] font-medium mt-2">
-                    {!famIsAvailable ? 'Financial Health' : 'Your Financial Health is'}
-                  </div>
-
-                  <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
-                    <span>
-                      {!famIsAvailable
-                        ? 'Build Your Score'
-                        : famStatusLabel && famStatusLabel !== 'Not Available'
-                        ? `${famStatusLabel}!`
-                        : 'Excellent!'}
-                    </span>
-                    <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 shrink-0 inline" />
-                  </div>
-
-                  <p className="text-white/80 text-[11px] leading-snug mt-1 max-w-[155px] truncate">
-                    {!famIsAvailable
-                      ? 'Track spending to see your score.'
-                      : famScore >= 75
-                      ? "You're on track to reach your goals."
-                      : 'Review expenses to optimize your score.'}
-                  </p>
-                </div>
-
-                {/* Center Column: FAM Donut Ring */}
-                <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
-                  <svg className="w-full h-full -rotate-90 filter drop-shadow-sm" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="39"
-                      fill="none"
-                      stroke="rgba(255, 255, 255, 0.18)"
-                      strokeWidth="9"
-                    />
-                    {famIsAvailable ? (
-                      <>
-                        <defs>
-                          <linearGradient id="heroFamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#818CF8" />
-                            <stop offset="35%" stopColor="#34D399" />
-                            <stop offset="70%" stopColor="#FBBF24" />
-                            <stop offset="100%" stopColor="#F87171" />
-                          </linearGradient>
-                        </defs>
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="39"
-                          fill="none"
-                          stroke="url(#heroFamGradient)"
-                          strokeWidth="9"
-                          strokeDasharray={`${(Math.min(100, Math.max(0, famScore)) / 100) * (2 * Math.PI * 39)} ${2 * Math.PI * 39}`}
-                          strokeLinecap="round"
-                          className="transition-all duration-700 ease-out"
-                        />
-                      </>
-                    ) : null}
-                  </svg>
-
-                  {/* Inner White Center Card */}
-                  <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
-                    {famIsAvailable && famGrade && famGrade !== 'NA' ? (
-                      <>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs leading-none">
-                          {famGrade}
-                        </span>
-                        <span className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-                          {famScore}%
-                        </span>
-                        <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-                          Overall Score
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-5 h-5 rounded-full bg-blue-50 text-brand-primary flex items-center justify-center mb-0.5">
-                          <Activity className="w-3 h-3 stroke-[2.5]" />
-                        </div>
-                        <span className="text-[11px] font-black text-slate-800 tracking-tight leading-tight">
-                          Pending
-                        </span>
-                        <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-                          Score
-                        </span>
-                      </>
-                    )}
+                  {/* Modern Glassmorphic Badge Accent */}
+                  <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-inner text-white/90">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center shadow-xs">
+                      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.2]" />
+                    </div>
                   </div>
                 </div>
-
-                {/* Right Column: Glassy Report Action Box */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/reports')}
-                  aria-label="View full score report"
-                  className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all backdrop-blur-md rounded-2xl p-2.5 flex flex-col items-center justify-center border border-white/30 text-white shrink-0 w-20 text-center cursor-pointer shadow-xs"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-white/25 flex items-center justify-center mb-1 shadow-inner">
-                    <TrendingUp className="w-4 h-4 text-white stroke-[2.5]" />
-                  </div>
-                  <span className="text-[11px] font-black flex items-center justify-center text-white">
-                    Report &gt;
-                  </span>
-                  <span className="text-[8px] text-white/80 leading-tight mt-0.5">
-                    View detailed analysis
-                  </span>
-                </button>
               </div>
-            </div>
+            ) : (
+              /* Non-empty State: Refined, modern, perfectly proportioned, no truncated text */
+              <div
+                className="bg-gradient-to-br from-[#1E40AF] via-[#2563EB] to-[#3B82F6] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
+                data-testid="fam-score-card"
+              >
+                {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
+                <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-25 animate-ambient-glow" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
+                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
+
+                <h2 className="sr-only">Financial Assessment Matrix</h2>
+
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                  {/* Left Column: Info & Action */}
+                  <div className="flex-1 min-w-0 pr-1">
+                    <div className="inline-flex items-center">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
+                          famGrade === 'C'
+                            ? 'bg-rose-100 text-rose-800'
+                            : famScore >= 85
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {famGrade === 'C' ? 'NEEDS ATTENTION' : famScore >= 85 ? 'EXCELLENT' : 'ON TRACK'}
+                      </span>
+                    </div>
+
+                    <div className="text-white/80 text-[11px] font-semibold mt-1.5">
+                      Financial Assessment
+                    </div>
+
+                    <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5 leading-tight">
+                      <span>{famStatusLabel && famStatusLabel !== 'Not Available' ? famStatusLabel : 'Healthy'}</span>
+                      <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0 inline" />
+                    </div>
+
+                    {/* Friendly context description: natural wrap, no truncate, no ellipsis '...' */}
+                    <p className="text-white/85 text-xs leading-relaxed mt-1">
+                      {famScore >= 75
+                        ? "You're on track to reach your monthly financial goals."
+                        : 'Review expenses to optimize your financial score.'}
+                    </p>
+
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/reports')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all border border-white/25 shadow-xs cursor-pointer"
+                      >
+                        <span>View Report</span>
+                        <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Score Donut */}
+                  <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center shrink-0">
+                    <svg className="w-full h-full -rotate-90 filter drop-shadow-sm" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="39"
+                        fill="none"
+                        stroke="rgba(255, 255, 255, 0.2)"
+                        strokeWidth="9"
+                      />
+                      <defs>
+                        <linearGradient id="heroFamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#818CF8" />
+                          <stop offset="35%" stopColor="#34D399" />
+                          <stop offset="70%" stopColor="#FBBF24" />
+                          <stop offset="100%" stopColor="#F87171" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="39"
+                        fill="none"
+                        stroke="url(#heroFamGradient)"
+                        strokeWidth="9"
+                        strokeDasharray={`${(Math.min(100, Math.max(0, famScore)) / 100) * (2 * Math.PI * 39)} ${2 * Math.PI * 39}`}
+                        strokeLinecap="round"
+                        className="transition-all duration-700 ease-out"
+                      />
+                    </svg>
+
+                    {/* Inner White Center Card */}
+                    <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500 text-white shadow-xs leading-none">
+                        {famGrade || 'A'}
+                      </span>
+                      <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                        {famScore}%
+                      </span>
+                      <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
+                        Score
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Section 2: Month Selector */}
             <div className="bg-white rounded-2xl p-2 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
