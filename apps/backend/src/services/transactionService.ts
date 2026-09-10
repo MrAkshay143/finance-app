@@ -469,10 +469,13 @@ export class TransactionService {
 
     if (filters.search) {
       const term = filters.search.trim();
-      where.OR = [
-        { description: { contains: term, mode: 'insensitive' } },
-        { merchant: { name: { contains: term, mode: 'insensitive' } } },
-      ];
+      if (term) {
+        where.OR = [
+          { description: { contains: term } },
+          { merchant: { name: { contains: term } } },
+          { category: { name: { contains: term } } },
+        ];
+      }
     }
 
     const [total, items] = await Promise.all([

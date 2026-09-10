@@ -7,6 +7,9 @@ export const MerchantSchema = z.object({
   transactionCount: z.number().int().nonnegative().optional(),
   totalSpent: z.number().nonnegative().optional(),
   totalSpentPaise: z.number().nonnegative().optional(),
+  totalIncome: z.number().nonnegative().optional(),
+  totalExpense: z.number().nonnegative().optional(),
+  totalInvest: z.number().nonnegative().optional(),
   createdAt: z.string().or(z.date()).optional(),
 });
 export type Merchant = z.infer<typeof MerchantSchema>;

@@ -683,15 +683,46 @@ export const CategoriesPage: React.FC = () => {
                         <h4 className="text-sm font-bold text-textDefault truncate">
                           {m.name}
                         </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-textMuted mt-0.5">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-textMuted mt-0.5">
                           <span>
                             {m.transactionCount ?? 0}{' '}
                             {(m.transactionCount ?? 0) === 1 ? 'transaction' : 'transactions'}
                           </span>
-                          <span>•</span>
-                          <span className="font-semibold text-textDefault">
-                            Total: {formatCurrency(m.totalSpent ?? 0, userCurrency)}
-                          </span>
+                          {(m.totalIncome ?? 0) > 0 && (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">
+                                <span>Income:</span>
+                                <span>+{formatCurrency(m.totalIncome!, userCurrency)}</span>
+                              </span>
+                            </>
+                          )}
+                          {(m.totalExpense ?? 0) > 0 && (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-0.5 text-rose-600 font-semibold">
+                                <span>Expenses:</span>
+                                <span>-{formatCurrency(m.totalExpense!, userCurrency)}</span>
+                              </span>
+                            </>
+                          )}
+                          {(m.totalInvest ?? 0) > 0 && (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-0.5 text-brand-primary font-semibold">
+                                <span>Invest:</span>
+                                <span>{formatCurrency(m.totalInvest!, userCurrency)}</span>
+                              </span>
+                            </>
+                          )}
+                          {(m.totalIncome ?? 0) === 0 && (m.totalExpense ?? 0) === 0 && (m.totalInvest ?? 0) === 0 && (m.totalSpent ?? 0) > 0 && (
+                            <>
+                              <span>•</span>
+                              <span className="font-semibold text-textDefault">
+                                Total: {formatCurrency(m.totalSpent ?? 0, userCurrency)}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

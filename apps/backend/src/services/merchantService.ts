@@ -28,19 +28,36 @@ export class MerchantService {
 
     const counts = new Map<string, number>();
     const spentPaise = new Map<string, bigint>();
+    const incomePaise = new Map<string, bigint>();
+    const expensePaise = new Map<string, bigint>();
+    const investPaise = new Map<string, bigint>();
 
     for (const txn of txns) {
       if (txn.merchantId) {
         counts.set(txn.merchantId, (counts.get(txn.merchantId) || 0) + 1);
+        const amount = BigInt(txn.amount);
+
+        if (txn.type === 'INCOME') {
+          incomePaise.set(txn.merchantId, (incomePaise.get(txn.merchantId) || BigInt(0)) + amount);
+        } else if (txn.type === 'INVESTMENT') {
+          investPaise.set(txn.merchantId, (investPaise.get(txn.merchantId) || BigInt(0)) + amount);
+        } else {
+          expensePaise.set(txn.merchantId, (expensePaise.get(txn.merchantId) || BigInt(0)) + amount);
+        }
+
         if (txn.type === 'EXPENSE' && txn.direction === 'DEBIT') {
           const prev = spentPaise.get(txn.merchantId) || BigInt(0);
-          spentPaise.set(txn.merchantId, prev + BigInt(txn.amount));
+          spentPaise.set(txn.merchantId, prev + amount);
         }
       }
     }
 
     return merchants.map((m) => {
       const totalPaise = spentPaise.get(m.id) || BigInt(0);
+      const inc = incomePaise.get(m.id) || BigInt(0);
+      const exp = expensePaise.get(m.id) || BigInt(0);
+      const inv = investPaise.get(m.id) || BigInt(0);
+
       return {
         id: m.id,
         userId: m.userId,
@@ -48,14 +65,15 @@ export class MerchantService {
         transactionCount: counts.get(m.id) || 0,
         totalSpent: Number(totalPaise) / 100,
         totalSpentPaise: Number(totalPaise),
+        totalIncome: Number(inc) / 100,
+        totalExpense: Number(exp) / 100,
+        totalInvest: Number(inv) / 100,
         createdAt: m.createdAt,
       };
     });
   }
 
-  /**
-   * Retrieves single merchant by ID.
-   */
+  // Retrieve single merchant by ID with breakdown
   async getMerchant(userId: string, id: string) {
     const merchant = await prisma.merchant.findUnique({
       where: { id },
@@ -77,9 +95,22 @@ export class MerchantService {
     });
 
     let totalPaise = BigInt(0);
+    let incPaise = BigInt(0);
+    let expPaise = BigInt(0);
+    let invPaise = BigInt(0);
+
     for (const txn of txns) {
+      const amount = BigInt(txn.amount);
+      if (txn.type === 'INCOME') {
+        incPaise += amount;
+      } else if (txn.type === 'INVESTMENT') {
+        invPaise += amount;
+      } else {
+        expPaise += amount;
+      }
+
       if (txn.type === 'EXPENSE' && txn.direction === 'DEBIT') {
-        totalPaise += BigInt(txn.amount);
+        totalPaise += amount;
       }
     }
 
@@ -90,6 +121,9 @@ export class MerchantService {
       transactionCount: txns.length,
       totalSpent: Number(totalPaise) / 100,
       totalSpentPaise: Number(totalPaise),
+      totalIncome: Number(incPaise) / 100,
+      totalExpense: Number(expPaise) / 100,
+      totalInvest: Number(invPaise) / 100,
       createdAt: merchant.createdAt,
     };
   }
@@ -120,6 +154,9 @@ export class MerchantService {
         transactionCount: 0,
         totalSpent: 0,
         totalSpentPaise: 0,
+        totalIncome: 0,
+        totalExpense: 0,
+        totalInvest: 0,
         createdAt: existing.createdAt,
       };
     }
@@ -147,6 +184,9 @@ export class MerchantService {
       transactionCount: 0,
       totalSpent: 0,
       totalSpentPaise: 0,
+      totalIncome: 0,
+      totalExpense: 0,
+      totalInvest: 0,
       createdAt: merchant.createdAt,
     };
   }
