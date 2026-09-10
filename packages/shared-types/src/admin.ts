@@ -82,6 +82,7 @@ export const AppSettingsSchema = z.object({
   passwordMinLength: z.number().int().min(6).max(32).default(8),
 
   // Financial Defaults
+  defaultCountry: z.string().default('IN'),
   defaultBaseCurrency: z.string().default('INR'),
   defaultBudgetPeriod: z.enum(['MONTHLY', 'WEEKLY', 'QUARTERLY', 'YEARLY']).default('MONTHLY'),
   famExpenseThresholdPercent: z.number().min(10).max(200).default(80),

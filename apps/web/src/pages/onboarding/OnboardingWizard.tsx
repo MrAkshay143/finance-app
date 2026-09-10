@@ -363,7 +363,7 @@ export const OnboardingWizard: React.FC = () => {
                 </div>
               </Card>
 
-              <div className="flex items-center gap-3">
+              <div className="grid grid-cols-[110px_1fr] gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
@@ -459,7 +459,7 @@ export const OnboardingWizard: React.FC = () => {
                 />
               </Card>
 
-              <div className="flex items-center gap-3">
+              <div className="grid grid-cols-[110px_1fr] gap-2.5">
                 <Button
                   type="button"
                   variant="outline"

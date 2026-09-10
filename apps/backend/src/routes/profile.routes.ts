@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { profileController } from '../controllers/profileController.js';
+import { userSettingsController } from '../controllers/userSettingsController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody } from '../middleware/validate.js';
 import {
   UpdateBasicProfileInputSchema,
   UpdateFinanceProfileInputSchema,
+  UpdateUserSettingsSchema,
 } from '@finance/shared-types';
 
 export const profileRouter: Router = Router();
@@ -52,6 +54,19 @@ profileRouter.post('/avatar', (req, res, next) => {
 // Delete user avatar image
 profileRouter.delete('/avatar', (req, res, next) => {
   profileController.deleteAvatar(req, res, next);
+});
+
+// User settings endpoints under profile
+profileRouter.get('/settings', (req, res, next) => {
+  userSettingsController.getSettings(req, res, next);
+});
+
+profileRouter.patch('/settings', validateBody(UpdateUserSettingsSchema), (req, res, next) => {
+  userSettingsController.updateSettings(req, res, next);
+});
+
+profileRouter.put('/settings', validateBody(UpdateUserSettingsSchema), (req, res, next) => {
+  userSettingsController.updateSettings(req, res, next);
 });
 
 export default profileRouter;

@@ -435,6 +435,7 @@ export class AdminService {
     const lockoutDuration = Number(settingsMap.get('lockout_duration_minutes') ?? 15);
     const requireKba = Boolean(settingsMap.get('require_kba_for_sensitive_actions') ?? true);
     const passwordMinLength = Number(settingsMap.get('password_min_length') ?? 8);
+    const defaultCountry = String(settingsMap.get('default_country') ?? 'IN');
     const defaultBaseCurrency = String(settingsMap.get('default_base_currency') ?? 'INR');
     const defaultBudgetPeriod = String(settingsMap.get('default_budget_period') ?? 'MONTHLY');
     const famExpenseThresholdPercent = Number(settingsMap.get('fam_expense_threshold_percent') ?? 80);
@@ -453,6 +454,7 @@ export class AdminService {
       lockoutDurationMinutes: lockoutDuration,
       requireKbaForSensitiveActions: requireKba,
       passwordMinLength,
+      defaultCountry,
       defaultBaseCurrency,
       defaultBudgetPeriod,
       famExpenseThresholdPercent,
@@ -482,6 +484,7 @@ export class AdminService {
       lockoutDurationMinutes: 'lockout_duration_minutes',
       requireKbaForSensitiveActions: 'require_kba_for_sensitive_actions',
       passwordMinLength: 'password_min_length',
+      defaultCountry: 'default_country',
       defaultBaseCurrency: 'default_base_currency',
       defaultBudgetPeriod: 'default_budget_period',
       famExpenseThresholdPercent: 'fam_expense_threshold_percent',

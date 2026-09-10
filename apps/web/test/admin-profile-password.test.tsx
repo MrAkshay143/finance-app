@@ -83,18 +83,9 @@ describe('Admin Profile Password Generator & UI Parity (Track 1)', () => {
       // Generate Password Button
       expect(html).toContain('Generate Secure Password');
 
-      // 4-segment grid
-      expect(html).toContain('grid grid-cols-4 gap-1.5 h-1.5');
-
-      // 2-column checklist
-      expect(html).toContain('grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]');
-
-      // Criteria items
-      expect(html).toContain('8+ characters');
-      expect(html).toContain('Uppercase (A-Z)');
-      expect(html).toContain('Lowercase (a-z)');
-      expect(html).toContain('One number (0-9)');
-      expect(html).toContain('Special symbol (!@#$)');
+      // 4-segment grid and 2-column checklist are conditionally hidden until characters are typed
+      expect(html).not.toContain('grid grid-cols-4 gap-1.5 h-1.5');
+      expect(html).not.toContain('grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]');
 
       // Labels
       expect(html).toContain('New Password');

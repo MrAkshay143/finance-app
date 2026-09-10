@@ -17,6 +17,10 @@ export type CountryCode = (typeof SUPPORTED_COUNTRY_CODES)[number];
 
 export const CountryCodeSchema = z.enum(SUPPORTED_COUNTRY_CODES);
 
+export function isSupportedCountry(code: string): code is CountryCode {
+  return (SUPPORTED_COUNTRY_CODES as readonly string[]).includes(code);
+}
+
 export interface CountryMetadata {
   code: CountryCode;
   iso3: string;

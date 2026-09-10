@@ -563,6 +563,13 @@ export function createMockPrisma() {
 
         return { ...updated };
       }),
+
+      delete: vi.fn(async ({ where }: any) => {
+        const acc = accounts.get(where.id);
+        if (!acc) throw new Error(`Account not found: ${where.id}`);
+        accounts.delete(where.id);
+        return { ...acc };
+      }),
     },
 
     transaction: {

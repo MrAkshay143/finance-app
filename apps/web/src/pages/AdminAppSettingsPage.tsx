@@ -36,6 +36,7 @@ import { Modal } from '../components/ui/Modal.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
+import { COUNTRIES } from '@finance/shared-types';
 import { SUPPORTED_CURRENCIES } from '@finance/shared-ui-tokens';
 import { toast } from '../store/toastStore.js';
 
@@ -61,6 +62,7 @@ export const AdminAppSettingsPage: React.FC = () => {
   const [requireKba, setRequireKba] = useState<boolean>(true);
 
   // Financial Defaults State
+  const [defaultCountry, setDefaultCountry] = useState<string>('IN');
   const [defaultCurrency, setDefaultCurrency] = useState<string>('INR');
   const [defaultBudgetPeriod, setDefaultBudgetPeriod] = useState<'MONTHLY' | 'WEEKLY' | 'QUARTERLY' | 'YEARLY'>('MONTHLY');
   const [famExpenseThreshold, setFamExpenseThreshold] = useState<number>(80);
@@ -98,6 +100,7 @@ export const AdminAppSettingsPage: React.FC = () => {
         setRequireKba(settingsData.requireKbaForSensitiveActions);
       }
 
+      if (settingsData.defaultCountry) setDefaultCountry(settingsData.defaultCountry);
       if (settingsData.defaultBaseCurrency) setDefaultCurrency(settingsData.defaultBaseCurrency);
       if (settingsData.defaultBudgetPeriod) setDefaultBudgetPeriod(settingsData.defaultBudgetPeriod);
       if (settingsData.famExpenseThresholdPercent) setFamExpenseThreshold(settingsData.famExpenseThresholdPercent);
@@ -193,6 +196,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       lockoutDurationMinutes: lockoutDuration,
       passwordMinLength,
       requireKbaForSensitiveActions: requireKba,
+      defaultCountry,
       defaultBaseCurrency: defaultCurrency,
       defaultBudgetPeriod,
       famExpenseThresholdPercent: famExpenseThreshold,
@@ -610,6 +614,25 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3.5">
+                {/* System Default Country */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-textDefault">System Default Country</label>
+                  <select
+                    value={defaultCountry}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDefaultCountry(val);
+                    }}
+                    className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.name} ({c.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Default Currency */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-textDefault">System Base Currency</label>

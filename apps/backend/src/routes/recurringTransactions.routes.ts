@@ -16,9 +16,10 @@ recurringTransactionsRouter.post('/', (req, res, next) => {
   recurringController.create(req, res, next);
 });
 
-// NOTE: POST /materialize is intentionally NOT exposed here.
-// Materialization of recurring transactions for ALL users is a privileged admin/worker
-// operation that must only be triggered by internal BullMQ workers or the admin router (SEC-06).
+// POST /api/v1/recurring-transactions/materialize - Materialize due transactions
+recurringTransactionsRouter.post('/materialize', (req, res, next) => {
+  recurringController.materialize(req, res, next);
+});
 
 // GET /api/v1/recurring-transactions/:id - Get recurring transaction
 recurringTransactionsRouter.get('/:id', (req, res, next) => {
@@ -27,6 +28,11 @@ recurringTransactionsRouter.get('/:id', (req, res, next) => {
 
 // PUT /api/v1/recurring-transactions/:id - Update recurring transaction
 recurringTransactionsRouter.put('/:id', (req, res, next) => {
+  recurringController.update(req, res, next);
+});
+
+// PATCH /api/v1/recurring-transactions/:id - Update recurring transaction (alias)
+recurringTransactionsRouter.patch('/:id', (req, res, next) => {
   recurringController.update(req, res, next);
 });
 

@@ -28,12 +28,14 @@ import { Button } from '../components/ui/Button.js';
 import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
+import { CountrySelector } from '../components/ui/CountrySelector.js';
+import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
-import { validateAndNormalizePhone } from '@finance/shared-types';
-import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
+import { validateAndNormalizePhone, COUNTRY_REGISTRY } from '@finance/shared-types';
+import type { RiskAppetite, InvestmentHorizon, CountryCode, CurrencyCode } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
 export const deriveAnnualIncomeRange = computeIncomeBracket;
@@ -55,6 +57,18 @@ export const ProfileSettingsPage: React.FC = () => {
   const [email, setEmail] = useState(user?.email || '');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [address, setAddress] = useState('');
+
+  // Country & Base Currency State
+  const [country, setCountry] = useState<CountryCode>((user?.country as CountryCode) || 'IN');
+  const [currency, setCurrency] = useState<CurrencyCode>((userCurrency as CurrencyCode) || 'INR');
+
+  const handleCountryChange = (newCountry: CountryCode) => {
+    setCountry(newCountry);
+    const suggestedCurrency = COUNTRY_REGISTRY[newCountry]?.defaultCurrency;
+    if (suggestedCurrency) {
+      setCurrency(suggestedCurrency as CurrencyCode);
+    }
+  };
 
   // Finance Profile State: initialised empty; populated by useEffect from API
   const [monthlyIncome, setMonthlyIncome] = useState<number | string>('');
@@ -98,6 +112,11 @@ export const ProfileSettingsPage: React.FC = () => {
           if (u.lastName) setLastName(u.lastName);
           if (u.mobileNumber) setMobileNumber(u.mobileNumber);
           if (u.email) setEmail(u.email);
+          if (u.country) setCountry(u.country as CountryCode);
+        }
+
+        if (data.userSettings?.currency) {
+          setCurrency(data.userSettings.currency as CurrencyCode);
         }
 
         const fp = data.financeProfile;
@@ -180,6 +199,8 @@ export const ProfileSettingsPage: React.FC = () => {
         fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
         mobileNumber: mobileNumber.trim() || undefined,
         phone: mobileNumber.trim() || undefined,
+        country,
+        currency,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : undefined,
         address: address.trim() || undefined,
       });
@@ -189,8 +210,12 @@ export const ProfileSettingsPage: React.FC = () => {
         lastName: lastName.trim(),
         fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
         mobileNumber: mobileNumber.trim() || null,
+        country,
+        currency,
       });
 
+      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       await syncOnProfileMutation(queryClient);
       toast.success('Basic profile updated successfully');
     } catch (err: any) {
@@ -350,9 +375,28 @@ export const ProfileSettingsPage: React.FC = () => {
               <PhoneInputWithCountry
                 label="Mobile Number"
                 required
+                defaultCountry={country}
                 value={mobileNumber}
                 onChange={(val) => setMobileNumber(val)}
               />
+
+              {/* Country & Base Currency */}
+              <div className="grid grid-cols-2 gap-3">
+                <CountrySelector
+                  label="Country"
+                  required
+                  value={country}
+                  onChange={(val) => handleCountryChange(val as CountryCode)}
+                  disabled={isLoading}
+                />
+                <CurrencySelector
+                  label="Base Currency"
+                  required
+                  value={currency}
+                  onChange={(val) => setCurrency(val as CurrencyCode)}
+                  disabled={isLoading}
+                />
+              </div>
 
               {/* Email Address (Read-only) */}
               <Input

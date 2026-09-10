@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
-import { validateAndNormalizePhone } from '@finance/shared-types';
+import { validateAndNormalizePhone, isSupportedCountry, isSupportedCurrency } from '@finance/shared-types';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
 import { emitDashboardRefresh } from '../sockets/socketGateway.js';
@@ -13,6 +13,8 @@ export interface UpdateBasicProfileData {
   fullName?: string;
   mobileNumber?: string;
   phone?: string;
+  country?: string;
+  currency?: string;
   dateOfBirth?: string | Date | null;
   address?: string | null;
   avatarUrl?: string | null;
@@ -113,6 +115,8 @@ export class ProfileService {
         firstName: user.firstName,
         lastName: user.lastName,
         mobileNumber: user.mobileNumber,
+        country: user.country || 'IN',
+        currency: user.userSettings?.currency || 'INR',
         avatarUrl: user.avatarUrl,
         role: user.role,
         status: user.status,
@@ -166,6 +170,22 @@ export class ProfileService {
       }
     }
 
+    let cleanCountry: string | undefined = undefined;
+    if (data.country !== undefined) {
+      const c = data.country.trim().toUpperCase();
+      if (isSupportedCountry(c)) {
+        cleanCountry = c;
+      }
+    }
+
+    let cleanCurrency: string | undefined = undefined;
+    if (data.currency !== undefined) {
+      const cur = data.currency.trim().toUpperCase();
+      if (isSupportedCurrency(cur)) {
+        cleanCurrency = cur;
+      }
+    }
+
     // Update User model fields
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -173,9 +193,30 @@ export class ProfileService {
         ...(firstName !== undefined ? { firstName } : {}),
         ...(lastName !== undefined ? { lastName } : {}),
         ...(normalizedMobile !== undefined ? { mobileNumber: normalizedMobile } : {}),
+        ...(cleanCountry !== undefined ? { country: cleanCountry } : {}),
         ...(data.avatarUrl !== undefined ? { avatarUrl: data.avatarUrl } : {}),
       },
     });
+
+    if (cleanCountry !== undefined) {
+      await prisma.financeProfile.updateMany({
+        where: { userId },
+        data: { country: cleanCountry },
+      });
+    }
+
+    if (cleanCurrency !== undefined) {
+      await prisma.userSettings.upsert({
+        where: { userId },
+        create: {
+          userId,
+          currency: cleanCurrency,
+        },
+        update: {
+          currency: cleanCurrency,
+        },
+      });
+    }
 
     // Update or create FinanceProfile basic fields (dateOfBirth, address)
     let parsedDob: Date | null | undefined = undefined;
@@ -204,7 +245,7 @@ export class ProfileService {
     await logAuditEvent({
       actorUserId: userId,
       action: 'PROFILE_BASIC_UPDATE',
-      details: { firstName, lastName, mobileNumber: normalizedMobile },
+      details: { firstName, lastName, mobileNumber: normalizedMobile, country: cleanCountry, currency: cleanCurrency },
     });
 
     await invalidateDashboardCache(userId);

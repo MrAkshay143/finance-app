@@ -268,6 +268,53 @@ export class AccountService {
     const userCurrency = await getUserCurrency(userId);
     return formatAccount(updated, userCurrency);
   }
+
+  // Delete account or mark INACTIVE if transactions exist
+  async deleteAccount(userId: string, id: string): Promise<{ message: string }> {
+    const existing = await prisma.account.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Account not found');
+    }
+    if (existing.userId !== userId) {
+      throw new ForbiddenError('Access forbidden to this account');
+    }
+
+    const txnCount = await prisma.transaction.count({
+      where: { accountId: id },
+    });
+
+    let message: string;
+    if (txnCount > 0) {
+      await prisma.account.update({
+        where: { id },
+        data: { status: 'INACTIVE' },
+      });
+      message = 'Account contains transaction history and was marked inactive';
+      await logAuditEvent({
+        actorUserId: userId,
+        action: 'ACCOUNT_DEACTIVATE',
+        details: { accountId: id, name: existing.name, reason: 'transactions_exist' },
+      });
+    } else {
+      await prisma.account.delete({
+        where: { id },
+      });
+      message = 'Account successfully deleted';
+      await logAuditEvent({
+        actorUserId: userId,
+        action: 'ACCOUNT_DELETE',
+        details: { accountId: id, name: existing.name },
+      });
+    }
+
+    await invalidateDashboardCache(userId);
+    emitDashboardRefresh(userId);
+
+    return { message };
+  }
 }
 
 export const accountService = new AccountService();

@@ -29,6 +29,11 @@ budgetsRouter.put('/:id', validateBody(UpdateBudgetInputSchema), (req, res, next
   budgetController.updateBudget(req, res, next);
 });
 
+// PATCH /api/v1/budgets/:id - Update budget (alias)
+budgetsRouter.patch('/:id', validateBody(UpdateBudgetInputSchema), (req, res, next) => {
+  budgetController.updateBudget(req, res, next);
+});
+
 // DELETE /api/v1/budgets/:id - Soft-delete budget
 budgetsRouter.delete('/:id', (req, res, next) => {
   budgetController.deleteBudget(req, res, next);

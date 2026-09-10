@@ -32,6 +32,7 @@ import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Category } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 import { syncOnBudgetMutation, syncOnGoalMutation } from '../services/dataSync.js';
+import { AddCategoryModal } from '../components/finance/AddCategoryModal.js';
 
 export interface Budget {
   id: string;
@@ -80,6 +81,7 @@ export const PlanningPage: React.FC = () => {
   const [budgetTargetAmount, setBudgetTargetAmount] = useState('');
   const [budgetName, setBudgetName] = useState('');
   const [budgetError, setBudgetError] = useState<string | null>(null);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   // Goal Modal State
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
@@ -826,8 +828,20 @@ export const PlanningPage: React.FC = () => {
           )}
 
           <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-textDefault">
+                Expense Category <span className="text-semantic-danger">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Category</span>
+              </button>
+            </div>
             <Select
-              label="Expense Category"
               value={budgetCategoryId}
               onChange={(e) => setBudgetCategoryId(e.target.value)}
               options={categoryOptions}
@@ -897,8 +911,20 @@ export const PlanningPage: React.FC = () => {
           )}
 
           <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-textDefault">
+                Expense Category <span className="text-semantic-danger">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Category</span>
+              </button>
+            </div>
             <Select
-              label="Expense Category"
               value={budgetCategoryId}
               onChange={(e) => setBudgetCategoryId(e.target.value)}
               options={categoryOptions}
@@ -1146,6 +1172,17 @@ export const PlanningPage: React.FC = () => {
           </Modal>
         );
       })()}
+
+      <AddCategoryModal
+        isOpen={isAddCategoryOpen}
+        onClose={() => setIsAddCategoryOpen(false)}
+        initialType="EXPENSE"
+        onCategoryCreated={(newCat) => {
+          if (newCat?.id) {
+            setBudgetCategoryId(newCat.id);
+          }
+        }}
+      />
     </div>
   );
 };

@@ -92,7 +92,7 @@ export function createApp(): Express {
   });
 
   // Health and readiness endpoints per Plan/architecture.md Section 10
-  app.get('/healthz', (_req: Request, res: Response) => {
+  app.get(['/health', '/healthz'], (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok' });
   });
 
@@ -125,6 +125,7 @@ export function createApp(): Express {
       if (
         req.path.startsWith('/api') ||
         req.path.startsWith('/metrics') ||
+        req.path.startsWith('/health') ||
         req.path.startsWith('/healthz') ||
         req.path.startsWith('/readyz')
       ) {

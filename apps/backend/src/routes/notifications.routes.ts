@@ -21,8 +21,18 @@ notificationsRouter.patch('/:id/read', (req, res, next) => {
   notificationsController.markAsRead(req, res, next);
 });
 
+// POST /api/v1/notifications/:id/read - Mark notification as read (alias)
+notificationsRouter.post('/:id/read', (req, res, next) => {
+  notificationsController.markAsRead(req, res, next);
+});
+
 // POST /api/v1/notifications/mark-all-read - Mark all notifications as read
 notificationsRouter.post('/mark-all-read', (req, res, next) => {
+  notificationsController.markAllAsRead(req, res, next);
+});
+
+// PATCH /api/v1/notifications/mark-all-read - Mark all notifications as read (alias)
+notificationsRouter.patch('/mark-all-read', (req, res, next) => {
   notificationsController.markAllAsRead(req, res, next);
 });
 

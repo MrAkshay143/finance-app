@@ -58,6 +58,7 @@ model User {
   lockedUntil         DateTime?
   onboardingCompleted Boolean    @default(false)
   avatarUrl           String?    @db.Text
+  country             String     @default("IN")
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
   lastLoginAt         DateTime?
@@ -118,6 +119,7 @@ model FinanceProfile {
   user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   dateOfBirth             DateTime?
   address                 String?
+  country                 String?   @default("IN")
   monthlyIncome           BigInt    @default(0)
   monthlyExpenseBudget    BigInt    @default(0)
   monthlyInvestmentTarget BigInt    @default(0)

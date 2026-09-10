@@ -533,11 +533,12 @@ export const SecurityQuestionsPage: React.FC = () => {
             {/* Stepper Navigation Buttons */}
             <div className="pt-1">
               {currentStep < 3 ? (
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <Button
                     type="button"
                     variant="outline"
                     size="md"
+                    fullWidth
                     onClick={handlePreviousStep}
                     icon={<ChevronLeft className="w-4 h-4" />}
                   >
@@ -555,11 +556,12 @@ export const SecurityQuestionsPage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <Button
                     type="button"
                     variant="outline"
                     size="md"
+                    fullWidth
                     onClick={handlePreviousStep}
                     icon={<ChevronLeft className="w-4 h-4" />}
                   >

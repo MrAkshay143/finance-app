@@ -33,6 +33,11 @@ transactionsRouter.put('/:id', validateBody(UpdateTransactionInputSchema), (req,
   transactionController.updateTransaction(req, res, next);
 });
 
+// PATCH /api/v1/transactions/:id - Update transaction (alias)
+transactionsRouter.patch('/:id', validateBody(UpdateTransactionInputSchema), (req, res, next) => {
+  transactionController.updateTransaction(req, res, next);
+});
+
 // DELETE /api/v1/transactions/:id - Soft-delete transaction
 transactionsRouter.delete('/:id', (req, res, next) => {
   transactionController.deleteTransaction(req, res, next);

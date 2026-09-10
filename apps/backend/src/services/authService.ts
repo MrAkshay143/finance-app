@@ -23,7 +23,14 @@ import {
   ValidationError,
   ForbiddenError,
 } from '../utils/errors.js';
-import { validateAndNormalizePhone } from '@finance/shared-types';
+import {
+  validateAndNormalizePhone,
+  isSupportedCountry,
+  isSupportedCurrency,
+  COUNTRY_REGISTRY,
+  type CountryCode,
+  type CurrencyCode,
+} from '@finance/shared-types';
 import jwt from 'jsonwebtoken';
 
 export interface SignupData {
@@ -33,6 +40,8 @@ export interface SignupData {
   lastName?: string;
   fullName?: string;
   mobileNumber?: string;
+  country?: string;
+  currency?: string;
 }
 
 export interface ClientMetadata {
@@ -48,6 +57,7 @@ export interface AuthResult {
     firstName: string;
     lastName: string;
     mobileNumber: string;
+    country?: string;
     role: string;
     status: string;
     avatarUrl?: string | null;
@@ -128,11 +138,40 @@ export class AuthService {
       throw new ValidationError(`Password must be at least ${minLen} characters long`);
     }
 
-    // Read AppSettings: default_base_currency
+    // Read AppSettings: default_country and default_base_currency
+    const countrySetting = await prisma.appSetting.findUnique({
+      where: { key: 'default_country' },
+    });
+    const defaultCountry =
+      typeof countrySetting?.value === 'string' && isSupportedCountry(countrySetting.value)
+        ? countrySetting.value
+        : 'IN';
+
     const currSetting = await prisma.appSetting.findUnique({
       where: { key: 'default_base_currency' },
     });
-    const defaultCurrency = typeof currSetting?.value === 'string' ? currSetting.value : 'INR';
+    const defaultBaseCurrency =
+      typeof currSetting?.value === 'string' && isSupportedCurrency(currSetting.value)
+        ? currSetting.value
+        : 'INR';
+
+    // Validate/resolve country using isSupportedCountry (defaulting to default_country or 'IN')
+    let resolvedCountry: string = defaultCountry;
+    if (data.country && isSupportedCountry(data.country)) {
+      resolvedCountry = data.country;
+    }
+
+    // Validate/resolve currency using isSupportedCurrency (defaulting to user selection, or country default currency from COUNTRY_REGISTRY, or default_base_currency or 'INR')
+    let resolvedCurrency: string = defaultBaseCurrency;
+    if (data.currency && isSupportedCurrency(data.currency)) {
+      resolvedCurrency = data.currency;
+    } else if (
+      isSupportedCountry(resolvedCountry) &&
+      COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultCurrency &&
+      isSupportedCurrency(COUNTRY_REGISTRY[resolvedCountry as CountryCode].defaultCurrency)
+    ) {
+      resolvedCurrency = COUNTRY_REGISTRY[resolvedCountry as CountryCode].defaultCurrency;
+    }
 
     const passwordHash = await hashPassword(data.password);
 
@@ -144,13 +183,14 @@ export class AuthService {
         firstName,
         lastName,
         mobileNumber,
+        country: resolvedCountry,
         role: 'USER',
         status: 'ACTIVE',
         failedLoginAttempts: 0,
         onboardingCompleted: false,
         userSettings: {
           create: {
-            currency: defaultCurrency,
+            currency: resolvedCurrency,
             timezone: 'Asia/Kolkata',
             financialMonthStartDay: 1,
             quickAddEnabled: true,
@@ -160,6 +200,7 @@ export class AuthService {
         },
         financeProfile: {
           create: {
+            country: resolvedCountry,
             monthlyIncome: BigInt(0),
             monthlyExpenseBudget: BigInt(0),
             monthlyInvestmentTarget: BigInt(0),
@@ -219,6 +260,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         mobileNumber: user.mobileNumber,
+        country: user.country,
         role: user.role,
         status: user.status,
         onboardingCompleted: user.onboardingCompleted,
@@ -379,6 +421,7 @@ export class AuthService {
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
         mobileNumber: updatedUser.mobileNumber,
+        country: updatedUser.country,
         role: updatedUser.role,
         status: updatedUser.status,
         onboardingCompleted: updatedUser.onboardingCompleted,

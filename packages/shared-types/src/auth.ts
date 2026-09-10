@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { UserRoleSchema, UserStatusSchema } from './enums.js';
+import { CountryCodeSchema, type CountryCode } from './countries.js';
+import { CurrencyCodeSchema, type CurrencyCode } from './currencies.js';
 
 export const PASSWORD_REQUIREMENTS_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
@@ -31,6 +33,8 @@ export const SignupInputSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().optional(),
   mobileNumber: z.string().optional(),
+  country: CountryCodeSchema.default('IN').optional(),
+  currency: CurrencyCodeSchema.default('INR').optional(),
 }).refine(data => data.fullName || data.firstName, {
   message: 'Full name or first name is required',
   path: ['fullName'],
@@ -55,6 +59,8 @@ export const AuthUserSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   mobileNumber: z.string().nullable().optional(),
+  country: z.string().optional(),
+  currency: z.string().optional(),
   role: UserRoleSchema,
   status: UserStatusSchema,
   avatarUrl: z.string().nullable().optional(),

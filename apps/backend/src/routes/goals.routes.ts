@@ -29,6 +29,11 @@ goalsRouter.put('/:id', validateBody(UpdateGoalInputSchema), (req, res, next) =>
   goalController.updateGoal(req, res, next);
 });
 
+// PATCH /api/v1/goals/:id - Update goal (alias)
+goalsRouter.patch('/:id', validateBody(UpdateGoalInputSchema), (req, res, next) => {
+  goalController.updateGoal(req, res, next);
+});
+
 // DELETE /api/v1/goals/:id - Soft-delete goal
 goalsRouter.delete('/:id', (req, res, next) => {
   goalController.deleteGoal(req, res, next);

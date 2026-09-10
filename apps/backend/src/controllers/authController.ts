@@ -182,7 +182,7 @@ export class AuthController {
 
   async initiateForgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email } = req.body;
+      const email = req.body?.email || (req.query?.email as string | undefined);
       const result = await authService.initiateForgotPassword(email);
       res.status(200).json({
         success: true,

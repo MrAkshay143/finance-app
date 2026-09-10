@@ -37,13 +37,31 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-// Ensure database column types support large payloads (e.g., avatar base64 images) on MySQL
+// Ensure database column types support large payloads and newly added schema fields on MySQL
 async function ensureDatabaseSchema() {
   try {
     const isMysql = env.DATABASE_URL.startsWith('mysql');
     if (isMysql) {
-      await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
-      logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+      try {
+        await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
+        logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'users.avatarUrl check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN country VARCHAR(255) NOT NULL DEFAULT 'IN'");
+        logger.info('Database schema verified: added country column to users table');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'users.country check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE finance_profiles ADD COLUMN country VARCHAR(255) DEFAULT 'IN'");
+        logger.info('Database schema verified: added country column to finance_profiles table');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'finance_profiles.country check completed');
+      }
     }
   } catch (err: any) {
     // Expected/non-fatal if table doesn't exist yet
@@ -188,20 +206,28 @@ async function bootstrapInitialData() {
     logger.warn({ err: err?.message }, 'Initial startup bootstrap encountered an error');
   }
 }
-bootstrapInitialData();
 
-const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
+async function startServer() {
+  await bootstrapInitialData();
 
-if (isSocket) {
-  server.listen(port, () => {
-    logger.info(`Finance Tracker backend running on socket ${port} in ${env.NODE_ENV} mode`);
-  });
-} else {
-  const numericPort = Number(port) || 4000;
-  server.listen(numericPort, '0.0.0.0', () => {
-    logger.info(`Finance Tracker backend running on port ${numericPort} (0.0.0.0) in ${env.NODE_ENV} mode`);
-  });
+  const isSocket = typeof port === 'string' && (port.startsWith('/') || port.startsWith('\\\\.\\pipe\\') || isNaN(Number(port)));
+
+  if (isSocket) {
+    server.listen(port, () => {
+      logger.info(`Finance Tracker backend running on socket ${port} in ${env.NODE_ENV} mode`);
+    });
+  } else {
+    const numericPort = Number(port) || 4000;
+    server.listen(numericPort, '0.0.0.0', () => {
+      logger.info(`Finance Tracker backend running on port ${numericPort} (0.0.0.0) in ${env.NODE_ENV} mode`);
+    });
+  }
 }
+
+startServer().catch((err) => {
+  logger.error({ err: err?.message }, 'Failed to start server');
+  process.exit(1);
+});
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {

@@ -30,6 +30,8 @@ import { apiClient } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import { syncOnTransactionMutation } from '../services/dataSync.js';
+import { AddAccountModal } from '../components/finance/AddAccountModal.js';
+import { AddCategoryModal } from '../components/finance/AddCategoryModal.js';
 import type { RecurringTransaction, Category, Account } from '@finance/shared-types';
 
 export const RecurringTransactionsPage: React.FC = () => {
@@ -43,6 +45,8 @@ export const RecurringTransactionsPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<RecurringTransaction | null>(null);
+  const [isAddAccountOpen, setIsAddAccountOpen] = useState<boolean>(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
 
   // Form states for Add / Edit
   const [formType, setFormType] = useState<'EXPENSE' | 'INCOME' | 'INVESTMENT'>('EXPENSE');
@@ -513,22 +517,57 @@ export const RecurringTransactionsPage: React.FC = () => {
 
           {/* Account */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1">
-              Account
-            </label>
-            <Select
-              options={accounts.map((a) => ({ value: a.id, label: `${a.name} (${a.type})` }))}
-              value={formAccountId}
-              onChange={(e) => setFormAccountId(e.target.value)}
-              required
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700">
+                Account <span className="text-rose-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddAccountOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Account</span>
+              </button>
+            </div>
+            {accounts.length === 0 ? (
+              <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3">
+                <span>No accounts found.</span>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsAddAccountOpen(true)}
+                  iconLeft={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Add Account
+                </Button>
+              </div>
+            ) : (
+              <Select
+                options={accounts.map((a) => ({ value: a.id, label: `${a.name} (${a.type})` }))}
+                value={formAccountId}
+                onChange={(e) => setFormAccountId(e.target.value)}
+                required
+              />
+            )}
           </div>
 
           {/* Category */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1">
-              Category
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700">
+                Category
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Category</span>
+              </button>
+            </div>
             <Select
               options={[
                 { value: '', label: 'Select Category (Optional)' },
@@ -654,22 +693,57 @@ export const RecurringTransactionsPage: React.FC = () => {
 
           {/* Account */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1">
-              Account
-            </label>
-            <Select
-              options={accounts.map((a) => ({ value: a.id, label: `${a.name} (${a.type})` }))}
-              value={formAccountId}
-              onChange={(e) => setFormAccountId(e.target.value)}
-              required
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700">
+                Account <span className="text-rose-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddAccountOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Account</span>
+              </button>
+            </div>
+            {accounts.length === 0 ? (
+              <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3">
+                <span>No accounts found.</span>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsAddAccountOpen(true)}
+                  iconLeft={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Add Account
+                </Button>
+              </div>
+            ) : (
+              <Select
+                options={accounts.map((a) => ({ value: a.id, label: `${a.name} (${a.type})` }))}
+                value={formAccountId}
+                onChange={(e) => setFormAccountId(e.target.value)}
+                required
+              />
+            )}
           </div>
 
           {/* Category */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 block mb-1">
-              Category
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700">
+                Category
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+                <span>Add Category</span>
+              </button>
+            </div>
             <Select
               options={[
                 { value: '', label: 'Select Category (Optional)' },
@@ -776,6 +850,27 @@ export const RecurringTransactionsPage: React.FC = () => {
           </Modal>
         );
       })()}
+
+      <AddAccountModal
+        isOpen={isAddAccountOpen}
+        onClose={() => setIsAddAccountOpen(false)}
+        onAccountCreated={(newAcc) => {
+          if (newAcc?.id) {
+            setFormAccountId(newAcc.id);
+          }
+        }}
+      />
+
+      <AddCategoryModal
+        isOpen={isAddCategoryOpen}
+        onClose={() => setIsAddCategoryOpen(false)}
+        initialType={formType}
+        onCategoryCreated={(newCat) => {
+          if (newCat?.id) {
+            setFormCategoryId(newCat.id);
+          }
+        }}
+      />
     </div>
   );
 };

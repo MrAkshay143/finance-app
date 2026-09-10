@@ -33,6 +33,16 @@ accountsRouter.put('/:id', validateBody(UpdateAccountInputSchema), (req, res, ne
   accountController.updateAccount(req, res, next);
 });
 
+// PATCH /api/v1/accounts/:id - Update account metadata (alias)
+accountsRouter.patch('/:id', validateBody(UpdateAccountInputSchema), (req, res, next) => {
+  accountController.updateAccount(req, res, next);
+});
+
+// DELETE /api/v1/accounts/:id - Delete account or mark inactive if transactions exist
+accountsRouter.delete('/:id', (req, res, next) => {
+  accountController.deleteAccount(req, res, next);
+});
+
 // PATCH /api/v1/accounts/:id/status - Toggle or set account status (ACTIVE/INACTIVE)
 accountsRouter.patch('/:id/status', validateBody(ToggleAccountStatusSchema), (req, res, next) => {
   accountController.toggleAccountStatus(req, res, next);

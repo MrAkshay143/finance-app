@@ -70,6 +70,20 @@ export class AccountController {
       next(err);
     }
   }
+
+  async deleteAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      const result = await accountService.deleteAccount(userId, id);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const accountController = new AccountController();

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authController } from '../controllers/authController.js';
+import { securityQuestionsRouter } from './securityQuestions.routes.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody } from '../middleware/validate.js';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
@@ -50,6 +51,22 @@ authRouter.post('/forgot-password/initiate', forgotPasswordRateLimiter, (req, re
   authController.initiateForgotPassword(req, res, next);
 });
 
+authRouter.post('/forgot-password', forgotPasswordRateLimiter, (req, res, next) => {
+  authController.initiateForgotPassword(req, res, next);
+});
+
+authRouter.post('/forgot-password/questions', forgotPasswordRateLimiter, (req, res, next) => {
+  authController.initiateForgotPassword(req, res, next);
+});
+
+authRouter.get('/forgot-password', (req, res, next) => {
+  authController.initiateForgotPassword(req, res, next);
+});
+
+authRouter.get('/forgot-password/questions', (req, res, next) => {
+  authController.initiateForgotPassword(req, res, next);
+});
+
 authRouter.post('/forgot-password/verify', forgotPasswordRateLimiter, (req, res, next) => {
   authController.verifyForgotPassword(req, res, next);
 });
@@ -57,6 +74,9 @@ authRouter.post('/forgot-password/verify', forgotPasswordRateLimiter, (req, res,
 authRouter.post('/reset-password', forgotPasswordRateLimiter, (req, res, next) => {
   authController.resetPassword(req, res, next);
 });
+
+// Client compatibility: mount security-questions under /auth as well
+authRouter.use('/security-questions', securityQuestionsRouter);
 
 // Authenticated auth endpoints
 authRouter.post('/logout', authenticate, (req, res, next) => {

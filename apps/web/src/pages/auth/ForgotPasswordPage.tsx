@@ -268,11 +268,11 @@ export const ForgotPasswordPage: React.FC = () => {
                 ))}
               </div>
 
-              <div className="pt-1 flex gap-2">
+              <div className="pt-1 grid grid-cols-[100px_1fr] gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
-                  size="md"
+                  size="lg"
                   onClick={() => {
                     setStep(1);
                     setErrorMessage(null);
@@ -285,7 +285,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <Button
                   type="submit"
                   variant="primary"
-                  size="md"
+                  size="lg"
                   fullWidth
                   disabled={isLoading}
                   iconRight={<ArrowRight className="w-4 h-4" />}
@@ -363,7 +363,7 @@ export const ForgotPasswordPage: React.FC = () => {
               <Button
                 type="button"
                 variant="primary"
-                size="md"
+                size="lg"
                 onClick={() => navigate('/login', { replace: true })}
               >
                 Sign In Now

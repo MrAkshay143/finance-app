@@ -24,10 +24,15 @@ import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { toast } from '../store/toastStore.js';
 import { compressImageToWebP } from '../utils/imageCompressor.js';
+import { useUserCurrency } from '../hooks/useUserCurrency.js';
+import { COUNTRY_REGISTRY, type CountryCode } from '@finance/shared-types';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, kbaConfigured, logout, fetchProfile } = useAuthStore();
+  const { currency: userCurrency, symbol: userCurrencySymbol } = useUserCurrency();
+  const userCountryCode = (user?.country || 'IN') as CountryCode;
+  const userCountryMeta = COUNTRY_REGISTRY[userCountryCode];
   const [financeProfile, setFinanceProfile] = useState<any>(null);
   const [famScore, setFamScore] = useState<string>('N/A');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -256,9 +261,18 @@ export const ProfilePage: React.FC = () => {
                   {user?.fullName || user?.firstName || 'User'}
                 </h3>
                 <p className="text-xs text-textMuted mt-0.5">{user?.email || 'Not Set'}</p>
-                <div className="mt-1.5">
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <span className="px-2 py-0.5 rounded-md bg-blue-50 text-brand-primary text-[10px] font-semibold uppercase tracking-wider">
                     {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                  </span>
+                  {userCountryMeta && (
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold flex items-center gap-1">
+                      <span>{userCountryMeta.flag}</span>
+                      <span>{userCountryMeta.code}</span>
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                    {userCurrency} ({userCurrencySymbol})
                   </span>
                 </div>
               </div>

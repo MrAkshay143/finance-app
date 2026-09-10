@@ -25,13 +25,13 @@ import { Select } from '../components/ui/Select.js';
 import { Modal } from '../components/ui/Modal.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { CardSkeleton } from '../components/ui/Skeleton.js';
-import { CurrencySelector } from '../components/ui/CurrencySelector.js';
-import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
+import { formatCurrency } from '../utils/currency.js';
 import { syncOnAccountMutation } from '../services/dataSync.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
-import type { Account, CreateAccountInput, UpdateAccountInput } from '@finance/shared-types';
+import { AddAccountModal } from '../components/finance/AddAccountModal.js';
+import type { Account, UpdateAccountInput } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
 const ACCOUNT_TYPE_OPTIONS = [
@@ -112,13 +112,6 @@ export const AccountsPage: React.FC = () => {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [statusConfirmAccount, setStatusConfirmAccount] = useState<Account | null>(null);
 
-  // Add Account form state
-  const [addName, setAddName] = useState<string>('');
-  const [addInstitution, setAddInstitution] = useState<string>('');
-  const [addType, setAddType] = useState<string>('BANK');
-  const [addOpeningBalance, setAddOpeningBalance] = useState<string>('');
-  const [addCurrency, setAddCurrency] = useState<string>('INR');
-  const [addError, setAddError] = useState<string>('');
 
   // Edit Account form state
   const [editName, setEditName] = useState<string>('');
@@ -157,26 +150,6 @@ export const AccountsPage: React.FC = () => {
   };
 
   // Mutations
-  const createAccountMutation = useMutation(
-    {
-      mutationFn: async (input: CreateAccountInput) => {
-        return await apiClient.accounts.create(input);
-      },
-      onSuccess: () => {
-        syncOnAccountMutation(queryClient);
-        setIsAddModalOpen(false);
-        resetAddForm();
-        toast.success('Account created successfully');
-      },
-      onError: (err: any) => {
-        const msg = getFriendlyErrorMessage(err, 'Failed to create account. Please try again.');
-        setAddError(msg);
-        toast.error(msg);
-      },
-    },
-    queryClient
-  );
-
   const updateAccountMutation = useMutation(
     {
       mutationFn: async ({ id, input }: { id: string; input: UpdateAccountInput }) => {
@@ -216,40 +189,8 @@ export const AccountsPage: React.FC = () => {
   );
 
   // Handlers for Add Form
-  const resetAddForm = () => {
-    setAddName('');
-    setAddInstitution('');
-    setAddType('BANK');
-    setAddOpeningBalance('');
-    setAddCurrency(userCurrency);
-    setAddError('');
-  };
-
   const handleOpenAdd = () => {
-    resetAddForm();
     setIsAddModalOpen(true);
-  };
-
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!addName.trim()) {
-      setAddError('Account name is required.');
-      return;
-    }
-    const balNum = addOpeningBalance ? parseFloat(addOpeningBalance) : 0;
-    if (isNaN(balNum) || balNum < 0) {
-      setAddError('Please enter a valid opening balance (0 or greater).');
-      return;
-    }
-
-    createAccountMutation.mutate({
-      name: addName.trim(),
-      institution: addInstitution.trim() || undefined,
-      institutionName: addInstitution.trim() || undefined,
-      accountType: addType,
-      openingBalance: balNum,
-      currency: addCurrency,
-    });
   };
 
   // Handlers for Edit Form
@@ -487,103 +428,10 @@ export const AccountsPage: React.FC = () => {
       </div>
 
       {/* Add Account Modal */}
-      <Modal
+      <AddAccountModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add Account"
-        subtitle="Connect a new bank account or investment portfolio"
-        icon={<Landmark className="w-5 h-5 stroke-[2.2]" />}
-        footer={
-          <div className="flex items-center gap-2.5 w-full justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => setIsAddModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="add-account-form"
-              variant="primary"
-              size="md"
-              isLoading={createAccountMutation.isPending}
-            >
-              Save Account
-            </Button>
-          </div>
-        }
-      >
-        <form id="add-account-form" onSubmit={handleAddSubmit} className="space-y-4">
-          {addError && (
-            <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{addError}</span>
-            </div>
-          )}
-
-          <div>
-            <Input
-              label="Account Name"
-              type="text"
-              required
-              placeholder="e.g. HDFC Salary Account, Zerodha Demat"
-              value={addName}
-              onChange={(e) => {
-                setAddName(e.target.value);
-                if (addError) setAddError('');
-              }}
-              icon={<Building2 className="w-4 h-4" />}
-            />
-          </div>
-
-          <div>
-            <Input
-              label="Institution / Bank"
-              type="text"
-              placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Zerodha"
-              value={addInstitution}
-              onChange={(e) => setAddInstitution(e.target.value)}
-              icon={<Landmark className="w-4 h-4" />}
-            />
-          </div>
-
-          <div>
-            <Select
-              label="Account Type"
-              value={addType}
-              onChange={(e) => setAddType(e.target.value)}
-              options={ACCOUNT_TYPE_OPTIONS}
-            />
-          </div>
-
-          <div>
-            <CurrencySelector
-              label="Currency"
-              value={addCurrency}
-              onChange={setAddCurrency}
-            />
-          </div>
-
-          <div>
-            <Input
-              label={`Opening Balance (${getCurrencySymbol(addCurrency)})`}
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-              value={addOpeningBalance}
-              onChange={(e) => {
-                setAddOpeningBalance(e.target.value);
-                if (addError) setAddError('');
-              }}
-              icon={<span className="text-xs font-bold text-textMuted">{getCurrencySymbol(addCurrency)}</span>}
-              helperText="Initial balance when connecting this account"
-            />
-          </div>
-        </form>
-      </Modal>
+      />
 
       {/* Edit Account Modal */}
       <Modal

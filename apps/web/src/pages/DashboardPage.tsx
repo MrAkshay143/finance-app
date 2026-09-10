@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -26,6 +26,7 @@ import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { MetricCardSkeleton, TransactionItemSkeleton } from '../components/ui/Skeleton.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
+import { AddAccountModal } from '../components/finance/AddAccountModal.js';
 import { useUiStore } from '../store/uiStore.js';
 import { apiClient } from '../services/apiClient.js';
 import { formatCurrency } from '../utils/currency.js';
@@ -120,6 +121,8 @@ interface DashboardSummaryData {
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const openPicker = useUiStore((state) => state.openPicker);
+  const openAddModal = useUiStore((state) => state.openAddModal);
+  const [isAddAccountOpen, setIsAddAccountOpen] = useState<boolean>(false);
   const { currency: userCurrency } = useUserCurrency();
 
   const {
@@ -689,7 +692,11 @@ export const DashboardPage: React.FC = () => {
                       : 'Add Investment'
                   }
                   actionIcon={<Plus className="w-4 h-4" />}
-                  onAction={openPicker}
+                  onAction={() => {
+                    if (breakdownView === 'EXPENSE') openAddModal('expense');
+                    else if (breakdownView === 'INCOME') openAddModal('income');
+                    else openAddModal('investment');
+                  }}
                 />
               ) : (
                 <div className="flex items-center justify-between gap-4 pt-1 pb-2">
@@ -876,7 +883,7 @@ export const DashboardPage: React.FC = () => {
                   description="Add your accounts to start tracking your net worth."
                   actionLabel="Add Account"
                   actionIcon={<Plus className="w-4 h-4" />}
-                  onAction={() => navigate('/accounts')}
+                  onAction={() => setIsAddAccountOpen(true)}
                 />
               ) : (
                 <div className="flex items-center justify-between mt-2 pt-1">
@@ -1090,6 +1097,12 @@ export const DashboardPage: React.FC = () => {
           <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>
       )}
+
+      {/* Add Account Modal */}
+      <AddAccountModal
+        isOpen={isAddAccountOpen}
+        onClose={() => setIsAddAccountOpen(false)}
+      />
     </div>
   );
 };

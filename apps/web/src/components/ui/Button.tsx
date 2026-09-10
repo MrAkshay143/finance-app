@@ -5,6 +5,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   icon?: React.ReactNode;
+  iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
   isLoading?: boolean;
 }
@@ -15,14 +16,16 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   fullWidth = false,
   icon,
+  iconLeft,
   iconRight,
   isLoading = false,
   className = '',
   disabled,
   ...props
 }) => {
+  const leftIcon = icon || iconLeft;
   const baseClasses =
-    'inline-flex items-center justify-center font-medium rounded-pill whitespace-nowrap shrink-0 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
+    'inline-flex items-center justify-center font-medium rounded-pill whitespace-nowrap transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
 
   const sizeClasses = {
     sm: 'text-xs px-3 py-1.5 gap-1.5 min-h-[32px]',
@@ -43,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
       'text-textMuted hover:text-textDefault hover:bg-gray-100 focus-visible:ring-brand-primary',
   }[variant];
 
-  const widthClass = fullWidth ? 'w-full' : '';
+  const widthClass = fullWidth ? 'w-full min-w-0' : 'shrink-0';
 
   return (
     <button
@@ -73,7 +76,7 @@ export const Button: React.FC<ButtonProps> = ({
           />
         </svg>
       ) : (
-        icon && <span className="inline-flex shrink-0">{icon}</span>
+        leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>
       )}
       <span className="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0">{children}</span>
       {!isLoading && iconRight && (

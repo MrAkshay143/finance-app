@@ -319,4 +319,101 @@ describe('TASK-2.2: Accounts CRUD Endpoints & Business Logic', () => {
       expect(res.body.error.code).toBe('FORBIDDEN');
     });
   });
+
+  describe('DELETE /api/v1/accounts/:id - Delete Account', () => {
+    it('permanently deletes account when no transactions are associated', async () => {
+      const created = await request(app)
+        .post('/api/v1/accounts')
+        .set('Authorization', `Bearer ${userTokenA}`)
+        .send({
+          name: 'Empty Savings Account',
+          type: 'BANK',
+          openingBalance: 0,
+        });
+
+      const accountId = created.body.data.id;
+
+      const deleteRes = await request(app)
+        .delete(`/api/v1/accounts/${accountId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+
+      expect(deleteRes.status).toBe(200);
+      expect(deleteRes.body.success).toBe(true);
+      expect(deleteRes.body.data.message).toMatch(/deleted/i);
+
+      // Verify account no longer exists
+      const getRes = await request(app)
+        .get(`/api/v1/accounts/${accountId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+      expect(getRes.status).toBe(404);
+    });
+
+    it('marks account as INACTIVE instead of deleting when transactions exist', async () => {
+      const created = await request(app)
+        .post('/api/v1/accounts')
+        .set('Authorization', `Bearer ${userTokenA}`)
+        .send({
+          name: 'Salary Account With History',
+          type: 'BANK',
+          openingBalance: 5000,
+        });
+
+      const accountId = created.body.data.id;
+
+      // Add a transaction to this account
+      await request(app)
+        .post('/api/v1/transactions')
+        .set('Authorization', `Bearer ${userTokenA}`)
+        .send({
+          accountId,
+          amount: 250,
+          type: 'EXPENSE',
+          direction: 'DEBIT',
+          txnDate: new Date().toISOString(),
+          description: 'Coffee',
+        });
+
+      const deleteRes = await request(app)
+        .delete(`/api/v1/accounts/${accountId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+
+      expect(deleteRes.status).toBe(200);
+      expect(deleteRes.body.success).toBe(true);
+      expect(deleteRes.body.data.message).toMatch(/inactive/i);
+
+      // Verify account still exists but is now INACTIVE
+      const getRes = await request(app)
+        .get(`/api/v1/accounts/${accountId}`)
+        .set('Authorization', `Bearer ${userTokenA}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.data.status).toBe('INACTIVE');
+    });
+
+    it('rejects deletion by non-owner with 403 FORBIDDEN', async () => {
+      const created = await request(app)
+        .post('/api/v1/accounts')
+        .set('Authorization', `Bearer ${userTokenA}`)
+        .send({
+          name: 'Alice Private Account',
+          type: 'BANK',
+          openingBalance: 100,
+        });
+
+      const res = await request(app)
+        .delete(`/api/v1/accounts/${created.body.data.id}`)
+        .set('Authorization', `Bearer ${userTokenB}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 404 NOT_FOUND for nonexistent account', async () => {
+      const res = await request(app)
+        .delete('/api/v1/accounts/non-existent-account-id')
+        .set('Authorization', `Bearer ${userTokenA}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+  });
 });

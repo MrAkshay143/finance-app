@@ -26,6 +26,11 @@ remindersRouter.put('/:id', (req, res, next) => {
   remindersController.update(req, res, next);
 });
 
+// PATCH /api/v1/reminders/:id - Update reminder (alias)
+remindersRouter.patch('/:id', (req, res, next) => {
+  remindersController.update(req, res, next);
+});
+
 // DELETE /api/v1/reminders/:id - Delete reminder
 remindersRouter.delete('/:id', (req, res, next) => {
   remindersController.delete(req, res, next);

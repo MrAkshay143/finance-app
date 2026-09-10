@@ -38,6 +38,11 @@ categoriesRouter.put('/:id', validateBody(UpdateCategoryInputSchema), (req, res,
   categoryController.updateCategory(req, res, next);
 });
 
+// PATCH /api/v1/categories/:id - Update category alias
+categoriesRouter.patch('/:id', validateBody(UpdateCategoryInputSchema), (req, res, next) => {
+  categoryController.updateCategory(req, res, next);
+});
+
 // DELETE /api/v1/categories/:id - Delete category (403 if isSystem)
 categoriesRouter.delete('/:id', (req, res, next) => {
   categoryController.deleteCategory(req, res, next);

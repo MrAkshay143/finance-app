@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { prisma } from '../lib/prisma.js';
 import { authRouter } from './auth.routes.js';
 import { profileRouter } from './profile.routes.js';
 import { securityQuestionsRouter } from './securityQuestions.routes.js';
@@ -80,6 +81,20 @@ apiV1Router.use('/audit', auditRouter);
 apiV1Router.use('/import', importRouter);
 apiV1Router.use('/export', exportRouter);
 apiV1Router.use('/admin', adminRouter);
+
+apiV1Router.get(['/health', '/healthz'], (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+apiV1Router.get('/readyz', async (_req, res) => {
+  try {
+    if (process.env.NODE_ENV !== 'test') {
+      await prisma.$queryRaw`SELECT 1`;
+    }
+    res.status(200).json({ status: 'ready' });
+  } catch {
+    res.status(503).json({ status: 'unready', error: 'Database unreachable' });
+  }
+});
 
 // Catch-all for unhandled /api/v1 routes returns 501 NOT_IMPLEMENTED
 apiV1Router.all('*', (_req, res) => {

@@ -19,7 +19,14 @@ import { Card } from '../../components/ui/Card.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
-import { validateAndNormalizePhone } from '@finance/shared-types';
+import { CountrySelector } from '../../components/ui/CountrySelector.js';
+import { CurrencySelector } from '../../components/ui/CurrencySelector.js';
+import {
+  validateAndNormalizePhone,
+  CountryCode,
+  CurrencyCode,
+  COUNTRY_REGISTRY,
+} from '@finance/shared-types';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 
 export const SignupPage: React.FC = () => {
@@ -30,11 +37,21 @@ export const SignupPage: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [country, setCountry] = useState<CountryCode>('IN');
+  const [currency, setCurrency] = useState<CurrencyCode>('INR');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+
+  const handleCountryChange = (newCountry: CountryCode) => {
+    setCountry(newCountry);
+    const suggestedCurrency = COUNTRY_REGISTRY[newCountry]?.defaultCurrency;
+    if (suggestedCurrency) {
+      setCurrency(suggestedCurrency as CurrencyCode);
+    }
+  };
 
   const emailResult = validateEmail(email);
   const passwordResult = validatePassword(password);
@@ -118,6 +135,8 @@ export const SignupPage: React.FC = () => {
         fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
         email: email.trim().toLowerCase(),
         mobileNumber: mobileNumber.trim() || undefined,
+        country,
+        currency,
         password,
       });
 
@@ -220,6 +239,7 @@ export const SignupPage: React.FC = () => {
             {/* Mobile Number */}
             <PhoneInputWithCountry
               label="Mobile Number"
+              defaultCountry={country}
               value={mobileNumber}
               disabled={isLoading}
               onChange={(val) => {
@@ -230,6 +250,24 @@ export const SignupPage: React.FC = () => {
               }}
               error={validationErrors.mobileNumber}
             />
+
+            {/* Country and Base Currency Selectors */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <CountrySelector
+                label="Country"
+                required
+                value={country}
+                onChange={(val) => handleCountryChange(val as CountryCode)}
+                disabled={isLoading}
+              />
+              <CurrencySelector
+                label="Base Currency"
+                required
+                value={currency}
+                onChange={(val) => setCurrency(val as CurrencyCode)}
+                disabled={isLoading}
+              />
+            </div>
 
             {/* Row 1: Full-width Password Field with clean eye toggle */}
             <div className="space-y-2">
@@ -262,54 +300,56 @@ export const SignupPage: React.FC = () => {
               />
 
               {/* Below Row 1: Interactive 4-Segment Strength Meter & 2-Column Criteria Checklist */}
-              <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[11px] font-medium text-slate-600">Password Strength</span>
-                  <span
-                    className={`text-[11px] font-bold ${
-                      password ? strengthDetails.textColor : 'text-slate-400'
-                    }`}
-                  >
-                    {password ? passwordResult.strengthLabel : 'Not entered'}
-                  </span>
-                </div>
-
-                {/* 4-Segment Strength Bar */}
-                <div className="grid grid-cols-4 gap-1.5 h-1.5">
-                  {[1, 2, 3, 4].map((seg) => (
-                    <div
-                      key={seg}
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        password && seg <= strengthDetails.segmentCount
-                          ? strengthDetails.barColor
-                          : 'bg-slate-200'
+              {password.length > 0 && (
+                <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[11px] font-medium text-slate-600">Password Strength</span>
+                    <span
+                      className={`text-[11px] font-bold ${
+                        password ? strengthDetails.textColor : 'text-slate-400'
                       }`}
-                    />
-                  ))}
-                </div>
+                    >
+                      {password ? passwordResult.strengthLabel : 'Not entered'}
+                    </span>
+                  </div>
 
-                {/* 2-Column Criteria Checklist */}
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
-                  {passwordCriteriaList.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5 min-w-0">
-                      {item.met ? (
-                        <span className="w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </span>
-                      ) : (
-                        <span className="w-3.5 h-3.5 rounded-full border border-slate-300 bg-slate-100 shrink-0" />
-                      )}
-                      <span
-                        className={`truncate ${
-                          item.met ? 'text-slate-700 font-medium' : 'text-slate-400'
+                  {/* 4-Segment Strength Bar */}
+                  <div className="grid grid-cols-4 gap-1.5 h-1.5">
+                    {[1, 2, 3, 4].map((seg) => (
+                      <div
+                        key={seg}
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          password && seg <= strengthDetails.segmentCount
+                            ? strengthDetails.barColor
+                            : 'bg-slate-200'
                         }`}
-                      >
-                        {item.label}
-                      </span>
-                    </div>
-                  ))}
+                      />
+                    ))}
+                  </div>
+
+                  {/* 2-Column Criteria Checklist */}
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
+                    {passwordCriteriaList.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                        {item.met ? (
+                          <span className="w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                        ) : (
+                          <span className="w-3.5 h-3.5 rounded-full border border-slate-300 bg-slate-100 shrink-0" />
+                        )}
+                        <span
+                          className={`truncate ${
+                            item.met ? 'text-slate-700 font-medium' : 'text-slate-400'
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Row 2: Full-width Confirm Password Field with real-time matching feedback */}
@@ -363,7 +403,7 @@ export const SignupPage: React.FC = () => {
             <Button
               type="submit"
               variant="primary"
-              size="md"
+              size="lg"
               fullWidth
               disabled={isLoading}
               iconRight={<ArrowRight className="w-4 h-4" />}
