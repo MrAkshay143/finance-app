@@ -40,8 +40,7 @@ export function useRealtimeSync(): void {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const token = getStoredAccessToken();
-    if (!token) return;
+    
 
     const socketUrl = getSocketBaseUrl();
     const socketManager = new FinanceSocketManager({
@@ -101,4 +100,5 @@ export function useRealtimeSync(): void {
     };
   }, [isAuthenticated, queryClient]);
 }
+
 

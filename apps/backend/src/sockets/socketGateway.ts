@@ -29,6 +29,15 @@ export async function socketAuthMiddleware(
       }
     }
 
+    if (!token && socket.handshake.headers?.cookie) {
+      const cookies = socket.handshake.headers.cookie.split(';').reduce((acc, str) => {
+        const [key, ...v] = str.trim().split('=');
+        if (key) acc[key] = decodeURIComponent(v.join('='));
+        return acc;
+      }, {} as Record<string, string>);
+      token = cookies.accessToken || undefined;
+    }
+
     if (!token) {
       return next(new Error('UNAUTHENTICATED'));
     }
@@ -194,4 +203,6 @@ export function emitDashboardRefresh(userId: string, data: any = { refreshedAt: 
     logger.warn({ err: err?.message, userId }, 'Failed to emit dashboard refresh via Socket.IO');
   }
 }
+
+
 

@@ -23,6 +23,7 @@ export class FinanceSocketManager {
 
     this.notificationsSocket = io(`${this.baseUrl}/notifications`, {
       transports: ['websocket', 'polling'],
+      withCredentials: true,
       auth: async (cb: (data: any) => void) => {
         try {
           const token = getToken ? await getToken() : null;
@@ -59,6 +60,7 @@ export class FinanceSocketManager {
 
     this.dashboardSocket = io(`${this.baseUrl}/dashboard`, {
       transports: ['websocket', 'polling'],
+      withCredentials: true,
       auth: async (cb: (data: any) => void) => {
         try {
           const token = getToken ? await getToken() : null;

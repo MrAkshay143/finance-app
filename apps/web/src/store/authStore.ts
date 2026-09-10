@@ -53,7 +53,7 @@ const initialKba = getStoredKba();
 export const authStore = createStore<AuthState>((set, get) => ({
   user: initialUser,
   tokens: initialToken ? ({ accessToken: initialToken, refreshToken: '', expiresIn: 3600 } as AuthTokens) : null,
-  isAuthenticated: Boolean(initialToken && initialUser),
+  isAuthenticated: Boolean(initialUser),
   onboardingCompleted: initialUser?.onboardingCompleted ?? false,
   kbaConfigured: initialKba,
   isLoading: false,
@@ -199,11 +199,6 @@ export const authStore = createStore<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
-    const token = getStoredAccessToken();
-    if (!token) {
-      set({ isAuthenticated: false, user: null, tokens: null });
-      return;
-    }
     set({ isLoading: true });
     try {
       await get().fetchProfile();
@@ -293,3 +288,4 @@ export function useAuthStore<T = AuthState>(selector?: (state: AuthState) => T):
 useAuthStore.getState = authStore.getState;
 useAuthStore.setState = authStore.setState;
 useAuthStore.subscribe = authStore.subscribe;
+
