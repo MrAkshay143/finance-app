@@ -51,9 +51,9 @@ const initialUser = getStoredUser();
 const initialKba = getStoredKba();
 
 export const authStore = createStore<AuthState>((set, get) => ({
-  user: initialUser,
+  user: initialToken ? initialUser : null,
   tokens: initialToken ? ({ accessToken: initialToken, refreshToken: '', expiresIn: 3600 } as AuthTokens) : null,
-  isAuthenticated: Boolean(initialUser),
+  isAuthenticated: Boolean(initialToken && initialUser),
   onboardingCompleted: initialUser?.onboardingCompleted ?? false,
   kbaConfigured: initialKba,
   isLoading: false,
@@ -67,15 +67,19 @@ export const authStore = createStore<AuthState>((set, get) => ({
       const user = res.user;
       const tokens = res.tokens;
 
-      setStoredAccessToken(tokens.accessToken, rememberMe);
-      setStoredRefreshToken(tokens.refreshToken, rememberMe);
+      if (tokens?.accessToken) {
+        setStoredAccessToken(tokens.accessToken, rememberMe);
+      }
+      if (tokens?.refreshToken) {
+        setStoredRefreshToken(tokens.refreshToken, rememberMe);
+      }
       saveUserCache(user, rememberMe);
 
       const onboardingCompleted = Boolean(user.onboardingCompleted);
 
       set({
         user,
-        tokens,
+        tokens: tokens || null,
         isAuthenticated: true,
         onboardingCompleted,
         isLoading: false,
@@ -119,13 +123,17 @@ export const authStore = createStore<AuthState>((set, get) => ({
       const user = res.user;
       const tokens = res.tokens;
 
-      setStoredAccessToken(tokens.accessToken, true);
-      setStoredRefreshToken(tokens.refreshToken, true);
+      if (tokens?.accessToken) {
+        setStoredAccessToken(tokens.accessToken, true);
+      }
+      if (tokens?.refreshToken) {
+        setStoredRefreshToken(tokens.refreshToken, true);
+      }
       saveUserCache(user, true);
 
       set({
         user,
-        tokens,
+        tokens: tokens || null,
         isAuthenticated: true,
         onboardingCompleted: Boolean(user.onboardingCompleted),
         kbaConfigured: false,
@@ -199,12 +207,19 @@ export const authStore = createStore<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
+    const token = getStoredAccessToken();
+    if (!token) {
+      set({ isAuthenticated: false, user: null, tokens: null });
+      return;
+    }
     set({ isLoading: true });
     try {
       await get().fetchProfile();
       set({ isAuthenticated: true, isLoading: false });
     } catch {
-      set({ isAuthenticated: false, isLoading: false });
+      clearStoredTokens();
+      saveUserCache(null);
+      set({ isAuthenticated: false, user: null, tokens: null, isLoading: false });
     }
   },
 

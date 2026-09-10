@@ -62,9 +62,13 @@ export const apiClient = new FinanceApiClient({
   },
   onUnauthorized: () => {
     clearStoredTokens();
+    saveUserCache(null);
+    saveKbaCache(false);
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem('finance-auth-storage');
+        localStorage.removeItem('finance_user_cache');
+        sessionStorage.removeItem('finance_user_cache');
       } catch {
         // Ignore storage access errors
       }

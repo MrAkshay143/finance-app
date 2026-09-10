@@ -15,7 +15,7 @@ function setRefreshTokenCookie(res: Response, refreshToken: string): void {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
     path: '/api/v1/auth',
   });
@@ -25,7 +25,7 @@ function setAccessTokenCookie(res: Response, accessToken: string): void {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 15 * 60 * 1000, // 15m (approx, rely on JWT exp)
     path: '/',
   });
@@ -35,7 +35,7 @@ function clearAccessTokenCookie(res: Response): void {
   res.clearCookie('accessToken', {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
   });
 }
@@ -44,7 +44,7 @@ function clearRefreshTokenCookie(res: Response): void {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/api/v1/auth',
   });
 }
@@ -61,10 +61,9 @@ export class AuthController {
       setRefreshTokenCookie(res, result.tokens.refreshToken);
       setAccessTokenCookie(res, result.tokens.accessToken);
 
-      const { tokens, ...safeResult } = result;
       res.status(201).json({
         success: true,
-        data: env.NODE_ENV === 'test' ? result : safeResult,
+        data: result,
       });
     } catch (err) {
       next(err);
@@ -83,10 +82,9 @@ export class AuthController {
       setRefreshTokenCookie(res, result.tokens.refreshToken);
       setAccessTokenCookie(res, result.tokens.accessToken);
 
-      const { tokens, ...safeResult } = result;
       res.status(200).json({
         success: true,
-        data: env.NODE_ENV === 'test' ? result : safeResult,
+        data: result,
       });
     } catch (err) {
       next(err);
@@ -107,10 +105,9 @@ export class AuthController {
       setRefreshTokenCookie(res, result.tokens.refreshToken);
       setAccessTokenCookie(res, result.tokens.accessToken);
 
-      const { tokens, ...safeResult } = result;
       res.status(200).json({
         success: true,
-        data: env.NODE_ENV === 'test' ? result : safeResult,
+        data: result,
       });
     } catch (err) {
       next(err);

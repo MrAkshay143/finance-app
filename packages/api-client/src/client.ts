@@ -150,23 +150,27 @@ export class FinanceApiClient {
             const storedRefreshToken = this.config.getRefreshToken ? await this.config.getRefreshToken() : undefined;
             const refreshPayload = storedRefreshToken ? { refreshToken: storedRefreshToken } : {};
             const refreshResponse = await this.client.post<ApiResponse<any>>('/auth/refresh', refreshPayload);
+
             if (refreshResponse.data.success) {
               const newAccessToken = refreshResponse.data.data?.tokens?.accessToken;
-              if (newAccessToken && this.config.setAccessToken) {
-                await this.config.setAccessToken(newAccessToken);
-              }
-              if (refreshResponse.data.data?.tokens?.refreshToken && this.config.setRefreshToken) {
-                await this.config.setRefreshToken(refreshResponse.data.data.tokens.refreshToken);
-              }
+              if (newAccessToken) {
+                if (this.config.setAccessToken) {
+                  await this.config.setAccessToken(newAccessToken);
+                }
+                if (refreshResponse.data.data?.tokens?.refreshToken && this.config.setRefreshToken) {
+                  await this.config.setRefreshToken(refreshResponse.data.data.tokens.refreshToken);
+                }
 
-              this.failedQueue.forEach((prom) => prom.resolve(newAccessToken || ''));
-              this.failedQueue = [];
+                this.failedQueue.forEach((prom) => prom.resolve(newAccessToken));
+                this.failedQueue = [];
 
-              if (originalRequest.headers && newAccessToken) {
-                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                }
+                return this.client(originalRequest);
               }
-              return this.client(originalRequest);
             }
+            throw new Error('Session refresh did not return an access token');
           } catch (refreshErr) {
             this.failedQueue.forEach((prom) => prom.reject(refreshErr));
             this.failedQueue = [];

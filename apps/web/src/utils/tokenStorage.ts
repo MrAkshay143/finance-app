@@ -61,6 +61,10 @@ export function clearStoredTokens(): void {
     sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
+    sessionStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(KBA_STORAGE_KEY);
+    sessionStorage.removeItem(KBA_STORAGE_KEY);
   } catch {
     // Ignore storage errors
   }

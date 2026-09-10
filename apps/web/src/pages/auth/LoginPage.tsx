@@ -36,20 +36,27 @@ export const LoginPage: React.FC = () => {
     searchParams.get('expired') === 'true'
   );
 
+  // If arriving due to session expiration, immediately purge any stale in-memory auth state
+  useEffect(() => {
+    if (isSessionExpired) {
+      useAuthStore.getState().logout().catch(() => {});
+    }
+  }, [isSessionExpired]);
+
   // Clear previous errors on mount
   useEffect(() => {
     clearError();
   }, [clearError]);
 
-  // Guard: If already authenticated, redirect to appropriate home
+  // Guard: If legitimately authenticated and not expired, redirect to appropriate home
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (!isSessionExpired && isAuthenticated && user) {
       const defaultHome = user.role === 'ADMIN'
         ? '/admin'
         : (user.onboardingCompleted ? '/dashboard' : '/onboarding');
       navigate(defaultHome, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, isSessionExpired]);
 
   // Lockout countdown timer
   useEffect(() => {
