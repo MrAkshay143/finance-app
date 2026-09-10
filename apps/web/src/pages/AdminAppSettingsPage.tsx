@@ -271,7 +271,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                       {user?.role === 'ADMIN' ? 'System Admin' : 'User'}
                     </span>
                   </div>
-                  <p className="text-xs text-textMuted truncate mt-0.5">{user?.email || 'admin@imakshay.in'}</p>
+                  <p className="text-xs text-textMuted truncate mt-0.5">{user?.email || ''}</p>
                 </div>
               </div>
               <Button

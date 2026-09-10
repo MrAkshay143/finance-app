@@ -159,12 +159,11 @@ export const DashboardPage: React.FC = () => {
   const showDonutSection = showExpenseDonut || showIncomeDonut || showInvestmentDonut;
   const showQuickAdd = Boolean(userSettings?.quickAddEnabled === true || userSettings?.quickAdd === true);
 
-  // Extract real backend data with safe fallbacks
   const fam = dashboardData?.fam;
   const famGrade = fam?.gradeDisplay || fam?.grade || null;
-  const famStatusLabel = fam?.statusLabel || 'Excellent';
+  const famStatusLabel = fam?.statusLabel || null;
   const famScore = fam?.progress ?? fam?.overallProgressPercentage ?? 0;
-  const famIsAvailable = fam?.isAvailable !== false && famGrade !== null;
+  const famIsAvailable = Boolean(fam?.isAvailable !== false && famGrade !== null && famStatusLabel !== null);
 
   const areaExpense = fam?.areas?.expense || fam?.expense;
   const areaInvestment = fam?.areas?.investment || fam?.investment;
@@ -366,7 +365,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2 mt-0.5 leading-tight">
-                      <span>{famStatusLabel && famStatusLabel !== 'Not Available' ? famStatusLabel : 'Healthy'}</span>
+                      <span>{famStatusLabel}</span>
                       <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0 inline" />
                     </div>
 
@@ -380,7 +379,7 @@ export const DashboardPage: React.FC = () => {
                     {/* Refined Health Indicator Capsule */}
                     <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] text-white/95 font-medium shadow-2xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                      <span>Grade {famGrade || 'A'} • Core targets balanced</span>
+                      <span>Grade {famGrade} • Core targets balanced</span>
                     </div>
                   </div>
 
@@ -419,7 +418,7 @@ export const DashboardPage: React.FC = () => {
                     {/* Inner White Center Card */}
                     <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
                       <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500 text-white shadow-xs leading-none">
-                        {famGrade || 'A'}
+                        {famGrade}
                       </span>
                       <span className="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
                         {famScore}%
@@ -531,7 +530,11 @@ export const DashboardPage: React.FC = () => {
                       />
                     </div>
                     <div className="text-[10px] font-semibold text-emerald-600 mt-1 whitespace-nowrap">
-                      {targets.income.percent >= 100 ? 'Target Exceeded!' : 'On Track'}
+                      {targets.income.percent >= 100
+                        ? 'Target Exceeded!'
+                        : targets.income.percent > 0
+                        ? 'On Track'
+                        : 'No income yet'}
                     </div>
                   </div>
                 </div>
@@ -612,7 +615,7 @@ export const DashboardPage: React.FC = () => {
                       />
                     </div>
                     <div className="text-[10px] font-semibold text-purple-600 mt-1 whitespace-nowrap">
-                      <span>On Track!</span>
+                      <span>{targets.investment.percent >= 100 ? 'Target Reached!' : targets.investment.percent > 0 ? 'On Track!' : 'No investments yet'}</span>
                       <span className="sr-only">invested</span>
                     </div>
                   </div>
@@ -953,19 +956,7 @@ export const DashboardPage: React.FC = () => {
                           </div>
                         );
                       })
-                    ) : (
-                      <>
-                        <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                          <Landmark className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                          <Wallet className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                          <CreditCard className="w-3.5 h-3.5" />
-                        </div>
-                      </>
-                    )}
+                    ) : null}
                     {accountSummary.activeCount > 3 && (
                       <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center justify-center border-2 border-white shadow-xs">
                         +{accountSummary.activeCount - 3}

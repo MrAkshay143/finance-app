@@ -36,16 +36,6 @@ interface ExistingQuestion {
   createdAt?: string;
 }
 
-const DEFAULT_QUESTIONS: QuestionItem[] = [
-  { key: 'first_pet', text: 'What was the name of your first pet?' },
-  { key: 'mother_maiden_name', text: "What is your mother's maiden name?" },
-  { key: 'elementary_school', text: 'What elementary school did you attend?' },
-  { key: 'birth_city', text: 'In what city were you born?' },
-  { key: 'first_car', text: 'What was the make or model of your first car?' },
-  { key: 'favorite_book', text: 'What is the title of your favorite book?' },
-  { key: 'childhood_street', text: 'What street did you grow up on?' },
-];
-
 export const SecurityQuestionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { setKbaConfigured } = useAuthStore();
@@ -56,15 +46,15 @@ export const SecurityQuestionsPage: React.FC = () => {
   const [existingQuestions, setExistingQuestions] = useState<ExistingQuestion[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
 
-  // Available questions for dropdown selection
-  const [availableQuestions, setAvailableQuestions] = useState<QuestionItem[]>(DEFAULT_QUESTIONS);
+  // Available questions for dropdown selection (fetched from real backend API)
+  const [availableQuestions, setAvailableQuestions] = useState<QuestionItem[]>([]);
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [answers, setAnswers] = useState<Record<number, { key: string; answer: string }>>({
-    1: { key: 'first_pet', answer: '' },
-    2: { key: 'birth_city', answer: '' },
-    3: { key: 'elementary_school', answer: '' },
+    1: { key: '', answer: '' },
+    2: { key: '', answer: '' },
+    3: { key: '', answer: '' },
   });
   const [showAnswer, setShowAnswer] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -82,18 +72,23 @@ export const SecurityQuestionsPage: React.FC = () => {
 
     Promise.all([
       apiClient.auth.getSecurityQuestions().catch(() => []),
-      apiClient.auth.getAvailableSecurityQuestions().catch(() => DEFAULT_QUESTIONS),
+      apiClient.auth.getAvailableSecurityQuestions().catch(() => []),
     ])
       .then(([existingRes, availableRes]) => {
         if (!mounted) return;
 
-        // Process available questions
+        // Process available questions from backend
         if (Array.isArray(availableRes) && availableRes.length > 0) {
           const mapped = availableRes.map((q: any) => ({
             key: q.key || q.questionKey || '',
             text: q.text || q.questionText || '',
           }));
           setAvailableQuestions(mapped);
+          setAnswers({
+            1: { key: mapped[0]?.key || '', answer: '' },
+            2: { key: mapped[1]?.key || '', answer: '' },
+            3: { key: mapped[2]?.key || '', answer: '' },
+          });
         }
 
         // Process existing questions

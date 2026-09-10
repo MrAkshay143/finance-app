@@ -248,18 +248,6 @@ export class AiService {
       }
     }
 
-    // Baseline fallback suggestion if list is sparse
-    if (suggestions.length < 2) {
-      suggestions.push({
-        id: 'sug-emergency-fund',
-        category: 'FINANCIAL_SECURITY',
-        priority: 'LOW' as const,
-        title: 'Maintain 6-Month Emergency Liquidity',
-        description: 'Ensure an emergency reserve equal to 6 months of baseline living expenses is maintained in high-liquidity accounts before deploying capital into long-horizon instruments.',
-        actionType: 'EMERGENCY_RESERVE',
-      });
-    }
-
     const summaryNote = `Analysis for ${monthLabel}: Income realized at ${formatMoney(earnedPaise)} with ${formatMoney(spentPaise)} in expenses and ${formatMoney(investedPaise)} deployed into investments. Net monthly savings rate is ${savingsRate}%.`;
 
     return {

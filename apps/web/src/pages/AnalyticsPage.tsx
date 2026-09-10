@@ -477,7 +477,7 @@ export const AnalyticsPage: React.FC = () => {
                       <div key={trend.month} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                         <div
                           className="w-full max-w-[28px] bg-brand-primary rounded-t-md transition-all duration-300"
-                          style={{ height: `${Math.max(6, heightPercent)}%` }}
+                          style={{ height: `${trend.spent > 0 ? Math.max(3, heightPercent) : 0}%` }}
                         />
                         <span className="text-[10px] font-medium text-slate-600 mt-1">
                           {trend.monthLabel.split(' ')[0]}

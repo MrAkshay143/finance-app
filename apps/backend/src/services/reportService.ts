@@ -188,8 +188,8 @@ export class ReportService {
       });
     }
 
-    // Default encouragement card if no negative callouts exist
-    if (callouts.length === 0) {
+    // Encouragement card if activity exists and no negative callouts
+    if (callouts.length === 0 && (earnedPaise > 0n || spentPaise > 0n || investedPaise > 0n)) {
       callouts.push({
         id: 'callout-overall-healthy',
         area: 'SAVINGS',

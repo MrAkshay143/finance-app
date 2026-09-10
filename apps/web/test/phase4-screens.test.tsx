@@ -33,6 +33,9 @@ function createTestQueryClient(initialData?: Record<string, any>) {
       if (key === 'analytics') {
         queryClient.setQueryData(['analytics', currentMonth], value);
       }
+      if (key === 'ai-analysis') {
+        queryClient.setQueryData(['ai-analysis', currentMonth], value);
+      }
     });
   }
 
@@ -422,7 +425,21 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
     });
 
     it('renders Forward Projection card with 3-month, 6-month, and 12-month projections', () => {
-      const qc = createTestQueryClient();
+      const qc = createTestQueryClient({
+        'ai-analysis': {
+          month: '2026-09',
+          monthLabel: 'September 2026',
+          analysisDate: new Date().toISOString(),
+          monthlyAnalysis: { earned: 50000, spent: 25000, invested: 10000, netSavings: 15000, needsRatio: 50, investmentRatio: 20, savingsRate: 30 },
+          forwardProjections: [
+            { horizonMonths: 3, label: '3 Months', projectedSavings: 45000, projectedWealth: 46000, assumedAnnualReturnRate: 0.08 },
+            { horizonMonths: 6, label: '6 Months', projectedSavings: 90000, projectedWealth: 93000, assumedAnnualReturnRate: 0.08 },
+            { horizonMonths: 12, label: '12 Months', projectedSavings: 180000, projectedWealth: 190000, assumedAnnualReturnRate: 0.08 },
+          ],
+          suggestions: [],
+          summaryNote: 'Good monthly savings rate',
+        },
+      });
       const html = renderToString(
         <QueryClientProvider client={qc}>
           <MemoryRouter>

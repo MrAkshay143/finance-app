@@ -65,15 +65,7 @@ export const AiAnalysisPage: React.FC = () => {
   const savingsRate = analysis?.savingsRate ?? 0;
   const wantsRatio = analysis ? Math.max(0, 100 - needsRatio - investmentRatio) : 0;
 
-  const defaultHorizons = [
-    { horizonMonths: 3, label: '3 Months', projectedSavings: 0, projectedWealth: 0, assumedAnnualReturnRate: 0.08 },
-    { horizonMonths: 6, label: '6 Months', projectedSavings: 0, projectedWealth: 0, assumedAnnualReturnRate: 0.08 },
-    { horizonMonths: 12, label: '12 Months', projectedSavings: 0, projectedWealth: 0, assumedAnnualReturnRate: 0.08 },
-  ];
-  const forwardProjections =
-    aiData?.forwardProjections && aiData.forwardProjections.length > 0
-      ? aiData.forwardProjections
-      : defaultHorizons;
+  const forwardProjections = aiData?.forwardProjections || [];
 
   const suggestions = aiData?.suggestions || [];
 
@@ -212,17 +204,23 @@ export const AiAnalysisPage: React.FC = () => {
               {aiData?.summaryNote ||
                 `Analysis for ${monthLabel}: Income realized at ${formatCurrency(earned, userCurrency)} with ${formatCurrency(spent, userCurrency)} in expenses and ${formatCurrency(invested, userCurrency)} deployed into investments. Net monthly savings rate is ${savingsRate}%.`}
             </p>
-            <ul className="space-y-1.5 pl-4 list-disc text-[11px] text-slate-600">
-              <li>
-                <strong>Needs discipline:</strong> Spending sits at {needsRatio}% of earned income, {needsRatio <= 50 ? 'comfortably within' : 'above'} the 50% benchmark.
-              </li>
-              <li>
-                <strong>Wealth accumulation:</strong> Systematic investments accounted for {formatCurrency(invested, userCurrency)} ({investmentRatio}% of income).
-              </li>
-              <li>
-                <strong>Liquidity buffer:</strong> Unallocated monthly surplus of {formatCurrency(netSavings, userCurrency)} remains accessible in primary checking and savings accounts.
-              </li>
-            </ul>
+            {earned === 0 && spent === 0 && invested === 0 ? (
+              <p className="text-slate-500 italic text-[11px]">
+                No financial transactions recorded for {monthLabel}. Record income or expenses to generate detailed ratio evaluations.
+              </p>
+            ) : (
+              <ul className="space-y-1.5 pl-4 list-disc text-[11px] text-slate-600">
+                <li>
+                  <strong>Needs discipline:</strong> Spending sits at {needsRatio}% of earned income, {needsRatio <= 50 ? 'comfortably within' : 'above'} the 50% benchmark.
+                </li>
+                <li>
+                  <strong>Wealth accumulation:</strong> Systematic investments accounted for {formatCurrency(invested, userCurrency)} ({investmentRatio}% of income).
+                </li>
+                <li>
+                  <strong>Liquidity buffer:</strong> Unallocated monthly surplus of {formatCurrency(netSavings, userCurrency)} remains accessible in primary checking and savings accounts.
+                </li>
+              </ul>
+            )}
           </div>
         </Card>
 
