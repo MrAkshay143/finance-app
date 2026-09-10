@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-  "name": "Finance",
-  "short_name": "Finance",
-  "description": "Financial Assessment & Personal Wealth Hub",
+  "name": "Finance Tracker",
+  "short_name": "Finance Tracker",
+  "description": "Personal Wealth & Spending Hub",
   "id": "/",
   "start_url": "/",
   "scope": "/",

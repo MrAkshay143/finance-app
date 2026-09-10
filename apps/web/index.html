@@ -8,18 +8,39 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#0B1B3A" />
-    <meta name="application-name" content="Finance" />
+    <meta name="application-name" content="Finance Tracker" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Finance" />
-    <title>Finance</title>
+    <meta name="apple-mobile-web-app-title" content="Finance Tracker" />
+    <title>Finance Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="/config.js"></script>
   </head>
-  <body class="bg-[#F3F6FC] text-[#101828] font-sans antialiased">
-    <div id="root"></div>
+  <body class="bg-[#F8FAFC] text-[#101828] font-sans antialiased">
+    <div id="root">
+      <!-- Instant preloader splash screen before JS bundle initializes -->
+      <div id="splash-preloader" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F8FAFC;font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;">
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px;">
+          <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#0B1B3A,#132A5C);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 25px -5px rgba(19,42,92,0.25);margin-bottom:16px;border:3px solid #ffffff;overflow:hidden;">
+            <img src="/pwa-192x192.png" alt="Finance Tracker" style="width:46px;height:46px;border-radius:12px;object-fit:cover;" onerror="this.style.display='none'" />
+          </div>
+          <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.025em;color:#0F172A;margin:0 0 4px 0;">Finance Tracker</h1>
+          <p style="font-size:12px;font-weight:500;color:#64748B;margin:0 0 24px 0;">Personal Wealth &amp; Spending Hub</p>
+          <div style="width:120px;height:4px;background:#E2E8F0;border-radius:9999px;overflow:hidden;position:relative;">
+            <div style="width:50%;height:100%;background:#2563EB;border-radius:9999px;animation:splashPulse 1.2s ease-in-out infinite;"></div>
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes splashPulse {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(100%); }
+          100% { transform: translateX(200%); }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
