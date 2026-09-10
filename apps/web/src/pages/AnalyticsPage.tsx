@@ -20,6 +20,7 @@ import {
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { formatCurrency, formatCompactCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { formatDateRange } from '../utils/date.js';
@@ -172,16 +173,29 @@ export const AnalyticsPage: React.FC = () => {
           </div>
 
           {/* Right Period Dropdown */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={handlePeriodToggle}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm hover:border-brand-primary/60 transition-colors whitespace-nowrap"
-            >
-              <Calendar className="w-3.5 h-3.5 text-slate-500" />
-              <span>{selectedPeriod}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
+          <div className="relative shrink-0 w-32 sm:w-36">
+            <CustomDropdown
+              size="sm"
+              leftIcon={<Calendar className="w-3.5 h-3.5 text-slate-500" />}
+              value={selectedPeriod}
+              onChange={(val) => {
+                setSelectedPeriod(val);
+                if (val === 'Last Month') {
+                  const d = new Date();
+                  d.setDate(1);
+                  d.setMonth(d.getMonth() - 1);
+                  setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+                } else {
+                  const d = new Date();
+                  setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+                }
+              }}
+              options={[
+                { value: 'This Month', label: 'This Month' },
+                { value: 'Last Month', label: 'Last Month' },
+              ]}
+              searchable={false}
+            />
           </div>
         </div>
 
@@ -441,14 +455,18 @@ export const AnalyticsPage: React.FC = () => {
                 6-Month Spending Trend
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={() => setSelectedTrendHorizon((h) => (h === 'Last 6 Months' ? 'Last 3 Months' : 'Last 6 Months'))}
-              className="flex items-center gap-1 text-[11px] font-semibold text-brand-primary bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <span>{selectedTrendHorizon}</span>
-              <ChevronDown className="w-3 h-3 text-brand-primary" />
-            </button>
+            <div className="w-36">
+              <CustomDropdown
+                size="sm"
+                value={selectedTrendHorizon}
+                onChange={(val) => setSelectedTrendHorizon(val)}
+                options={[
+                  { value: 'Last 6 Months', label: 'Last 6 Months' },
+                  { value: 'Last 3 Months', label: 'Last 3 Months' },
+                ]}
+                searchable={false}
+              />
+            </div>
           </div>
 
           {/* Trend Chart with Dynamic Y-Axis lines based on real max ceiling */}
@@ -559,14 +577,18 @@ export const AnalyticsPage: React.FC = () => {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedCategoryPeriod((p) => (p === 'This Month' ? 'Last Month' : 'This Month'))}
-                className="flex items-center gap-1 text-[11px] font-semibold text-brand-primary bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <span>{selectedCategoryPeriod}</span>
-                <ChevronDown className="w-3 h-3 text-brand-primary" />
-              </button>
+              <div className="w-32 sm:w-36">
+                <CustomDropdown
+                  size="sm"
+                  value={selectedCategoryPeriod}
+                  onChange={(val) => setSelectedCategoryPeriod(val)}
+                  options={[
+                    { value: 'This Month', label: 'This Month' },
+                    { value: 'Last Month', label: 'Last Month' },
+                  ]}
+                  searchable={false}
+                />
+              </div>
             </div>
           </div>
 

@@ -18,6 +18,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { Pagination } from '../components/ui/Pagination.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { MetricCardSkeleton } from '../components/ui/Skeleton.js';
@@ -534,18 +535,17 @@ export const AdminCategoriesPage: React.FC = () => {
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-textDefault">Type</label>
-            <select
-              value={catType}
-              onChange={(e) => setCatType(e.target.value as TxnType)}
-              className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-            >
-              <option value="EXPENSE">EXPENSE</option>
-              <option value="INCOME">INCOME</option>
-              <option value="INVESTMENT">INVESTMENT</option>
-            </select>
-          </div>
+          <CustomDropdown
+            label="Type"
+            value={catType}
+            onChange={(val) => setCatType(val as TxnType)}
+            options={[
+              { value: 'EXPENSE', label: 'EXPENSE' },
+              { value: 'INCOME', label: 'INCOME' },
+              { value: 'INVESTMENT', label: 'INVESTMENT' },
+            ]}
+            searchable={false}
+          />
 
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-textDefault">Sort Order</label>

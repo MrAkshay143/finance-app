@@ -33,6 +33,9 @@ import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { Modal } from '../components/ui/Modal.js';
+import { CountrySelector } from '../components/ui/CountrySelector.js';
+import { CurrencySelector } from '../components/ui/CurrencySelector.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
@@ -619,54 +622,32 @@ export const AdminAppSettingsPage: React.FC = () => {
 
               <div className="space-y-3.5">
                 {/* System Default Country */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-textDefault">System Default Country</label>
-                  <select
-                    value={defaultCountry}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setDefaultCountry(val);
-                    }}
-                    className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-                  >
-                    {COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.name} ({c.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <CountrySelector
+                  label="System Default Country"
+                  value={defaultCountry}
+                  onChange={(val) => setDefaultCountry(val)}
+                />
 
                 {/* Default Currency */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-textDefault">System Base Currency</label>
-                  <select
-                    value={defaultCurrency}
-                    onChange={(e) => setDefaultCurrency(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-                  >
-                    {SUPPORTED_CURRENCIES.map((curr) => (
-                      <option key={curr.code} value={curr.code}>
-                        {curr.code} ({curr.symbol}) - {curr.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <CurrencySelector
+                  label="System Base Currency"
+                  value={defaultCurrency}
+                  onChange={(val) => setDefaultCurrency(val)}
+                />
 
                 {/* Default Budget Period */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-textDefault">Default Budgeting Period</label>
-                  <select
-                    value={defaultBudgetPeriod}
-                    onChange={(e) => setDefaultBudgetPeriod(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
-                  >
-                    <option value="MONTHLY">Monthly</option>
-                    <option value="WEEKLY">Weekly</option>
-                    <option value="QUARTERLY">Quarterly</option>
-                    <option value="YEARLY">Yearly</option>
-                  </select>
-                </div>
+                <CustomDropdown
+                  label="Default Budgeting Period"
+                  value={defaultBudgetPeriod}
+                  onChange={(val) => setDefaultBudgetPeriod(val as any)}
+                  options={[
+                    { value: 'MONTHLY', label: 'Monthly' },
+                    { value: 'WEEKLY', label: 'Weekly' },
+                    { value: 'QUARTERLY', label: 'Quarterly' },
+                    { value: 'YEARLY', label: 'Yearly' },
+                  ]}
+                  searchable={false}
+                />
 
                 {/* FAM Thresholds */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-3">
@@ -873,20 +854,19 @@ export const AdminAppSettingsPage: React.FC = () => {
             Select retention horizon. Audit records older than this period will be deleted.
           </p>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-textDefault">Retention Period</label>
-            <select
-              value={purgeRetentionDays}
-              onChange={(e) => setPurgeRetentionDays(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
-            >
-              <option value={30}>Older than 30 days</option>
-              <option value={60}>Older than 60 days</option>
-              <option value={90}>Older than 90 days</option>
-              <option value={180}>Older than 180 days</option>
-              <option value={365}>Older than 1 year</option>
-            </select>
-          </div>
+          <CustomDropdown
+            label="Retention Period"
+            value={String(purgeRetentionDays)}
+            onChange={(val) => setPurgeRetentionDays(Number(val))}
+            options={[
+              { value: '30', label: 'Older than 30 days' },
+              { value: '60', label: 'Older than 60 days' },
+              { value: '90', label: 'Older than 90 days' },
+              { value: '180', label: 'Older than 180 days' },
+              { value: '365', label: 'Older than 1 year' },
+            ]}
+            searchable={false}
+          />
         </div>
       </Modal>
     </div>

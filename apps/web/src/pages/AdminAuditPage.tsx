@@ -26,6 +26,7 @@ import { Card } from '../components/ui/Card.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
@@ -291,15 +292,19 @@ export const AdminAuditPage: React.FC = () => {
               Export CSV
             </Button>
 
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as any)}
-              className="bg-transparent font-semibold text-textDefault focus:outline-none cursor-pointer"
-              aria-label="Sort audit activity"
-            >
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-            </select>
+            <div className="w-32 shrink-0">
+              <CustomDropdown
+                size="sm"
+                value={sortOrder}
+                onChange={(val) => setSortOrder(val as any)}
+                options={[
+                  { value: 'newest', label: 'Newest first' },
+                  { value: 'oldest', label: 'Oldest first' },
+                ]}
+                searchable={false}
+                aria-label="Sort audit activity"
+              />
+            </div>
           </div>
         </div>
 

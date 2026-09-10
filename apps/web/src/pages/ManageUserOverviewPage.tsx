@@ -29,6 +29,7 @@ import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Input } from '../components/ui/Input.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
@@ -564,29 +565,27 @@ export const ManageUserOverviewPage: React.FC = () => {
             onChange={(e) => setEditFullName(e.target.value)}
           />
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-textDefault">System Role</label>
-            <select
-              value={editRole}
-              onChange={(e) => setEditRole(e.target.value as any)}
-              className="w-full p-2.5 bg-white border border-borderDefault rounded-xl text-xs font-semibold text-textDefault"
-            >
-              <option value="USER">USER</option>
-              <option value="ADMIN">ADMIN</option>
-            </select>
-          </div>
+          <CustomDropdown
+            label="System Role"
+            value={editRole}
+            onChange={(val) => setEditRole(val as any)}
+            options={[
+              { value: 'USER', label: 'USER' },
+              { value: 'ADMIN', label: 'ADMIN' },
+            ]}
+            searchable={false}
+          />
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-textDefault">Account Status</label>
-            <select
-              value={editStatus}
-              onChange={(e) => setEditStatus(e.target.value as any)}
-              className="w-full p-2.5 bg-white border border-borderDefault rounded-xl text-xs font-semibold text-textDefault"
-            >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="SUSPENDED">SUSPENDED</option>
-            </select>
-          </div>
+          <CustomDropdown
+            label="Account Status"
+            value={editStatus}
+            onChange={(val) => setEditStatus(val as any)}
+            options={[
+              { value: 'ACTIVE', label: 'ACTIVE' },
+              { value: 'SUSPENDED', label: 'SUSPENDED' },
+            ]}
+            searchable={false}
+          />
         </div>
       </Modal>
 

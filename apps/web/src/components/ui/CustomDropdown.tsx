@@ -9,6 +9,7 @@ export interface DropdownOption {
 
 export interface CustomDropdownProps {
   label?: string;
+  labelRight?: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
   options: DropdownOption[];
@@ -18,12 +19,16 @@ export interface CustomDropdownProps {
   disabled?: boolean;
   required?: boolean;
   searchable?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  leftIcon?: React.ReactNode;
   className?: string;
   id?: string;
+  'aria-label'?: string;
 }
 
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   label,
+  labelRight,
   value,
   onChange,
   options,
@@ -33,8 +38,11 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   disabled = false,
   required = false,
   searchable = false,
+  size = 'md',
+  leftIcon,
   className = '',
   id,
+  'aria-label': ariaLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,12 +87,35 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const buttonId = id || (label ? label.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'dropdown-btn');
 
+  const sizeButtonClasses = {
+    sm: 'px-2.5 py-1.5 text-xs rounded-lg',
+    md: 'px-3.5 py-2.5 text-xs rounded-xl',
+    lg: 'px-4 py-3 text-sm rounded-xl',
+  }[size];
+
+  const sizeOptionClasses = {
+    sm: 'px-2.5 py-1.5 text-xs',
+    md: 'px-3.5 py-2 text-xs',
+    lg: 'px-4 py-2.5 text-sm',
+  }[size];
+
+  const chevronSizeClasses = {
+    sm: 'w-3 h-3',
+    md: 'w-3.5 h-3.5',
+    lg: 'w-4 h-4',
+  }[size];
+
   return (
     <div className={`w-full ${className}`} ref={dropdownRef}>
-      {label && (
-        <label htmlFor={buttonId} className="block text-xs font-semibold text-textDefault mb-1.5">
-          {label} {required && <span className="text-semantic-danger">*</span>}
-        </label>
+      {(label || labelRight) && (
+        <div className="flex items-center justify-between mb-1.5">
+          {label && (
+            <label htmlFor={buttonId} className="block text-xs font-semibold text-textDefault">
+              {label} {required && <span className="text-semantic-danger">*</span>}
+            </label>
+          )}
+          {labelRight && <div className="text-xs">{labelRight}</div>}
+        </div>
       )}
 
       <div className="relative">
@@ -93,6 +124,9 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           type="button"
           id={buttonId}
           disabled={disabled}
+          aria-label={ariaLabel || label || placeholder}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${buttonId}-error` : undefined}
           onClick={() => {
             if (!disabled) {
               setIsOpen(!isOpen);
@@ -101,16 +135,20 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           }}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
-          className={`w-full px-3.5 py-2.5 bg-white hover:bg-slate-50 border rounded-xl text-xs text-textDefault font-medium flex items-center justify-between transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
-            error ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-borderDefault'
+          className={`w-full bg-white hover:bg-slate-50 border font-medium text-textDefault flex items-center justify-between transition-colors focus:outline-none focus:ring-2 focus-visible:outline-none focus-visible:ring-2 focus:ring-brand-primary focus-visible:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${sizeButtonClasses} ${
+            error ? 'border-semantic-danger focus:ring-semantic-danger focus-visible:ring-semantic-danger' : 'border-borderDefault'
           }`}
         >
           <span className="truncate flex items-center gap-2">
-            {selectedOption?.icon && <span className="shrink-0">{selectedOption.icon}</span>}
-            <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+            {leftIcon && <span className="shrink-0 flex items-center text-textMuted">{leftIcon}</span>}
+            {selectedOption?.icon && <span className="shrink-0 flex items-center">{selectedOption.icon}</span>}
+            <span className={`truncate ${!selectedOption ? 'text-textMuted' : ''}`}>
+              {selectedOption ? selectedOption.label : placeholder}
+            </span>
           </span>
           <ChevronDown
-            className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+            aria-hidden="true"
+            className={`${chevronSizeClasses} text-slate-400 shrink-0 transition-transform duration-200 ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -149,7 +187,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
                       setIsOpen(false);
                       setSearchQuery('');
                     }}
-                    className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between transition-colors hover:bg-slate-50 ${
+                    className={`w-full text-left flex items-center justify-between transition-colors hover:bg-slate-50 ${sizeOptionClasses} ${
                       isSelected ? 'bg-brand-primary/10 font-semibold text-brand-primary' : 'text-textDefault'
                     }`}
                   >
@@ -170,7 +208,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </div>
 
       {error ? (
-        <p role="alert" className="mt-1 text-xs text-semantic-danger font-medium flex items-center gap-1">
+        <p role="alert" id={`${buttonId}-error`} className="mt-1 text-xs text-semantic-danger font-medium flex items-center gap-1">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
         </p>

@@ -4,7 +4,6 @@ import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import {
   Search,
   Plus,
-  Receipt,
   Trash2,
   Edit2,
   X,
@@ -24,6 +23,7 @@ import { Modal } from '../components/ui/Modal.js';
 import { Pagination } from '../components/ui/Pagination.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
+import { CurrencyReceiptIcon } from '../components/ui/CurrencyReceiptIcon.js';
 import { TransactionItemSkeleton } from '../components/ui/Skeleton.js';
 import { useUiStore, TransactionType } from '../store/uiStore.js';
 import { formatCurrency } from '../utils/currency.js';
@@ -465,7 +465,7 @@ export const TransactionsPage: React.FC = () => {
             </div>
           ) : displayItems.length === 0 ? (
             <EmptyState
-              icon={<Receipt className="w-7 h-7 stroke-[1.8]" aria-hidden="true" />}
+              icon={<CurrencyReceiptIcon currency={userCurrency} className="w-7 h-7 stroke-[1.8]" aria-hidden="true" />}
               title="No transactions found"
               description={
                 searchQuery

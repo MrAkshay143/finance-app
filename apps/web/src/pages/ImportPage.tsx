@@ -48,6 +48,8 @@ export const ImportPage: React.FC = () => {
     return [];
   }, [accountsData]);
 
+  const effectiveAccountId = selectedAccountId || (accounts.length > 0 ? accounts[0].id : '');
+
   // Set default account once loaded
   React.useEffect(() => {
     if (accounts.length > 0 && !selectedAccountId) {
@@ -102,14 +104,15 @@ export const ImportPage: React.FC = () => {
   // Import mutation
   const importMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedAccountId) {
+      const targetAccountId = effectiveAccountId;
+      if (!targetAccountId) {
         throw new Error('Please select a target account');
       }
       if (!fileContent.trim()) {
         throw new Error('CSV file is empty');
       }
       return await apiClient.import.importCsv({
-        accountId: selectedAccountId,
+        accountId: targetAccountId,
         csvData: fileContent,
       });
     },
@@ -168,23 +171,21 @@ export const ImportPage: React.FC = () => {
             <label className="text-xs font-bold text-textDefault">Target Account</label>
           </div>
 
-          <select
-            value={selectedAccountId}
+          <Select
+            value={effectiveAccountId}
             onChange={(e) => setSelectedAccountId(e.target.value)}
             disabled={isAccountsLoading}
-            className="w-full p-2.5 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+            options={
+              accounts.length === 0
+                ? [{ value: '', label: 'Add an account first' }]
+                : accounts.map((acc) => ({
+                    value: acc.id,
+                    label: `${acc.name} (${acc.type}) · Balance: ${formatCurrency(acc.currentBalance, (acc as any).currency || userCurrency)}`,
+                  }))
+            }
+            placeholder="Select target account..."
             aria-label="Target Account"
-          >
-            {accounts.length === 0 ? (
-              <option value="">Add an account first</option>
-            ) : (
-              accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.type}) · Balance: {formatCurrency(acc.currentBalance, (acc as any).currency || userCurrency)}
-                </option>
-              ))
-            )}
-          </select>
+          />
         </Card>
 
         {/* CSV Dropzone */}
