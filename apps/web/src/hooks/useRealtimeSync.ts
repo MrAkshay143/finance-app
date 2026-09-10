@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FinanceSocketManager } from '@finance/api-client';
 import { getStoredAccessToken } from '../utils/tokenStorage.js';
-import { handleSilentSyncEvent } from '../services/dataSync.js';
+import { handleSilentSyncEvent, syncAllFinanceData } from '../services/dataSync.js';
 import { useAuthStore } from '../store/authStore.js';
 import { useSafeQueryClient } from './useSafeQueryClient.js';
 
@@ -27,6 +27,10 @@ export function getSocketBaseUrl(): string | undefined {
 /**
  * Custom hook that maintains a real-time connection to the backend /dashboard
  * Socket.IO namespace and synchronizes affected TanStack queries on mutation signals.
+ *
+ * F3 fix: On reconnect after a drop, we trigger a full sync so any mutations missed
+ * during the disconnect window are caught up. The first connect is skipped via the
+ * isInitialConnect flag to avoid duplicating the connect-time sync.
  */
 export function useRealtimeSync(): void {
   const queryClient = useSafeQueryClient();
@@ -46,6 +50,7 @@ export function useRealtimeSync(): void {
     });
 
     let activeSocket: any = null;
+    let isInitialConnect = true; // skip catch-up sync on first connect
 
     const onIncomingEvent = (eventData?: any) => {
       // Coalesce rapid successive events into a single surgical sync pass
@@ -58,11 +63,25 @@ export function useRealtimeSync(): void {
       }, 150);
     };
 
+    const onReconnect = () => {
+      if (isInitialConnect) {
+        // First connect is handled by the surrounding page load — skip catch-up
+        isInitialConnect = false;
+        return;
+      }
+      // Reconnect after a drop: pull everything fresh so missed mutations are caught up
+      syncAllFinanceData(queryClient).catch(() => {});
+    };
+
     socketManager
       .connectDashboard(onIncomingEvent)
       .then((socket) => {
         activeSocket = socket;
         socket.on('sync:event', onIncomingEvent);
+        // Register reconnect handler — fires on every subsequent connect event
+        socket.on('connect', onReconnect);
+        // Mark initial connect as done after we attach the listener
+        isInitialConnect = false;
       })
       .catch(() => {
         // Socket connection silent failover
@@ -76,8 +95,10 @@ export function useRealtimeSync(): void {
       if (activeSocket) {
         activeSocket.off('dashboard:refresh', onIncomingEvent);
         activeSocket.off('sync:event', onIncomingEvent);
+        activeSocket.off('connect', onReconnect);
       }
       socketManager.disconnectAll();
     };
   }, [isAuthenticated, queryClient]);
 }
+

@@ -7,6 +7,8 @@ import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { getRedisClient } from '../lib/redis.js';
 import { recurringService } from './recurringService.js';
 import { invalidateMaintenanceCache } from '../middleware/maintenanceMiddleware.js';
+import { emitSyncEvent } from '../sockets/socketGateway.js';
+
 
 export interface AdminDashboardMetrics {
   totalUsers: number;
@@ -167,10 +169,12 @@ export class AdminService {
 
     const allAccounts = user.accounts || [];
     const activeAccounts = allAccounts.filter((a) => a.status === 'ACTIVE');
-    const totalBalancePaise = activeAccounts.reduce(
-      (sum, acc) => sum + Number(acc.currentBalance || 0),
-      0
-    );
+    let _totalBalancePaise = BigInt(0);
+    for (const acc of activeAccounts) {
+      _totalBalancePaise += BigInt(acc.currentBalance || 0);
+    }
+    const totalBalancePaise = Number(_totalBalancePaise);
+
 
     // Fetch recent audit logs targeting or enacted by this user
     const auditLogsRes = await auditService.listUserAuditLogs(targetUserId, {
@@ -258,6 +262,7 @@ export class AdminService {
       details: data,
       ipAddress,
     });
+    emitSyncEvent(adminId, { entity: 'ADMIN_USER', action: 'UPDATE', entityId: targetUserId });
 
     return {
       id: updated.id,
@@ -408,6 +413,7 @@ export class AdminService {
       },
       ipAddress,
     });
+    emitSyncEvent(adminId, { entity: 'ADMIN_USER', action: 'DELETE', entityId: targetUserId });
 
     return {
       success: true,
@@ -492,7 +498,20 @@ export class AdminService {
       famIncomeThresholdPercent: 'fam_income_threshold_percent',
     };
 
-    for (const [key, value] of Object.entries(data)) {
+    // Sanitize boolean fields: coerce to real boolean so string "false" / "true"
+    // from non-UI clients doesn't reach the DB as truthy strings.
+    // This mirrors the strict === true check in maintenanceMiddleware.
+    const sanitized: Record<string, any> = { ...data };
+    if ('maintenanceMode' in sanitized) {
+      sanitized.maintenanceMode = sanitized.maintenanceMode === true || sanitized.maintenanceMode === 'true';
+    }
+    if ('allowUserRegistration' in sanitized) {
+      sanitized.allowUserRegistration =
+        sanitized.allowUserRegistration === true || sanitized.allowUserRegistration === 'true';
+    }
+
+    for (const [key, value] of Object.entries(sanitized)) {
+
       const dbKey = keyMap[key] || key;
       await prisma.appSetting.upsert({
         where: { key: dbKey },
@@ -891,9 +910,10 @@ export class AdminService {
 
     const rows = users.map((u) => {
       const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Not Set';
-      const totalBalanceINR = (
-        u.accounts.reduce((sum, a) => sum + Number(a.currentBalance || 0), 0) / 100
-      ).toFixed(2);
+      let _balPaise = BigInt(0);
+      for (const a of u.accounts) _balPaise += BigInt(a.currentBalance || 0);
+      const totalBalanceINR = (Number(_balPaise) / 100).toFixed(2);
+
 
       return [
         escapeCsv(u.id),

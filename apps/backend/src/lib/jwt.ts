@@ -9,6 +9,7 @@ export interface AccessTokenPayload extends JwtPayload {
   role: string;
   jti: string;
   type?: string;
+  sessionId?: string; // RefreshToken.id — used to identify the current session in getSessions
 }
 
 const BCRYPT_ROUNDS = 10;
@@ -25,7 +26,7 @@ export async function comparePassword(password: string, hash: string): Promise<b
 
 // Generate signed JWT access token with custom or default TTL
 export function signAccessToken(
-  payload: { userId: string; role: string },
+  payload: { userId: string; role: string; sessionId?: string },
   customTtlMinutes?: number
 ): {
   token: string;
@@ -53,10 +54,16 @@ export function signAccessToken(
     jwtid: jti,
   };
 
-  const token = jwt.sign({ role: payload.role }, env.JWT_ACCESS_SECRET, options);
+  const claims: Record<string, any> = { role: payload.role };
+  if (payload.sessionId) {
+    claims.sessionId = payload.sessionId;
+  }
+
+  const token = jwt.sign(claims, env.JWT_ACCESS_SECRET, options);
 
   return { token, expiresIn, jti };
 }
+
 
 // Verify and decode signed JWT access token
 export function verifyAccessToken(token: string): AccessTokenPayload {

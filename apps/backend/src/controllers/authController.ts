@@ -157,7 +157,8 @@ export class AuthController {
   async getSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.id;
-      const sessions = await authService.getSessions(userId);
+      const currentSessionId = req.user!.sessionId; // may be undefined for old tokens
+      const sessions = await authService.getSessions(userId, currentSessionId);
       res.status(200).json({
         success: true,
         data: sessions,
@@ -166,6 +167,7 @@ export class AuthController {
       next(err);
     }
   }
+
 
   async revokeOtherSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

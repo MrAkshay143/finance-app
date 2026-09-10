@@ -232,7 +232,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(refreshTokenString);
     const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
-    await prisma.refreshToken.create({
+    const refreshTokenRowSignup = await prisma.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash,
@@ -248,9 +248,11 @@ export class AuthService {
       {
         userId: user.id,
         role: user.role,
+        sessionId: refreshTokenRowSignup.id,
       },
       sessionTimeout
     );
+
 
     await logAuditEvent({
       actorUserId: user.id,
@@ -393,7 +395,7 @@ export class AuthService {
     const tokenHash = hashRefreshToken(refreshTokenString);
     const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
-    await prisma.refreshToken.create({
+    const refreshTokenRow = await prisma.refreshToken.create({
       data: {
         userId: updatedUser.id,
         tokenHash,
@@ -409,9 +411,11 @@ export class AuthService {
       {
         userId: updatedUser.id,
         role: updatedUser.role,
+        sessionId: refreshTokenRow.id, // embed session ID so getSessions can mark the correct session as current
       },
       sessionTimeout
     );
+
 
     await logAuditEvent({
       actorUserId: updatedUser.id,
@@ -518,7 +522,7 @@ export class AuthService {
     const newHash = hashRefreshToken(newRefreshTokenString);
     const newExpiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
-    await prisma.refreshToken.create({
+    const newRefreshTokenRow = await prisma.refreshToken.create({
       data: {
         userId: tokenRecord.userId,
         tokenHash: newHash,
@@ -535,9 +539,12 @@ export class AuthService {
       {
         userId: tokenRecord.user.id,
         role: tokenRecord.user.role,
+        sessionId: newRefreshTokenRow.id, // embed new session ID so getSessions marks it as current
       },
       sessionTimeout
     );
+
+
 
     await logAuditEvent({
       actorUserId: tokenRecord.userId,
@@ -694,8 +701,10 @@ export class AuthService {
 
   /**
    * Retrieves active refresh token sessions for user.
+   * @param currentSessionId - The RefreshToken.id embedded in the caller's access token.
+   *   If undefined (tokens issued before this fix), isCurrent falls back to false for all sessions.
    */
-  async getSessions(userId: string) {
+  async getSessions(userId: string, currentSessionId?: string) {
     const sessions = await prisma.refreshToken.findMany({
       where: {
         userId,
@@ -712,15 +721,17 @@ export class AuthService {
       },
     });
 
-    return sessions.map((s, idx) => ({
+    return sessions.map((s) => ({
       id: s.id,
       userAgent: s.userAgent || 'Current Device/Browser',
       ipAddress: s.ipAddress || '127.0.0.1',
       createdAt: s.createdAt.toISOString(),
       expiresAt: s.expiresAt.toISOString(),
-      isCurrent: idx === 0,
+      // If sessionId is present in the JWT, use exact match; otherwise fallback = false
+      isCurrent: currentSessionId ? s.id === currentSessionId : false,
     }));
   }
+
 
   /**
    * Revokes all other active sessions for user.

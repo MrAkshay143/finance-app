@@ -28,7 +28,8 @@ export async function getMaintenanceInfo(): Promise<MaintenanceState> {
     });
     const modeSetting = settings.find((s) => s.key === 'maintenance_mode');
     const msgSetting = settings.find((s) => s.key === 'maintenance_message');
-    const active = modeSetting ? Boolean(modeSetting.value) : false;
+    const active = modeSetting?.value === true; // strict check: only real boolean true activates maintenance mode
+
     const rawMsg = msgSetting?.value;
     const message =
       typeof rawMsg === 'string' && rawMsg.trim().length > 0

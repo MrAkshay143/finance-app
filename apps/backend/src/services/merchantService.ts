@@ -1,6 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
 import { logAuditEvent } from './auditService.js';
+import { emitSyncEvent } from '../sockets/socketGateway.js';
+
 
 export interface CreateMerchantData {
   name: string;
@@ -176,6 +178,7 @@ export class MerchantService {
         name: merchant.name,
       },
     });
+    emitSyncEvent(userId, { entity: 'MERCHANT', action: 'CREATE', entityId: merchant.id });
 
     return {
       id: merchant.id,
@@ -224,6 +227,7 @@ export class MerchantService {
         name: updated.name,
       },
     });
+    emitSyncEvent(userId, { entity: 'MERCHANT', action: 'UPDATE', entityId: id });
 
     return {
       id: updated.id,
@@ -268,6 +272,7 @@ export class MerchantService {
         name: existing.name,
       },
     });
+    emitSyncEvent(userId, { entity: 'MERCHANT', action: 'DELETE', entityId: id });
 
     return { message: 'Merchant deleted successfully' };
   }

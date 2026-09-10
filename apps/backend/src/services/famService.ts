@@ -402,6 +402,7 @@ export class FamService {
           direction: 'DEBIT',
           type: 'EXPENSE',
           txnDate: { gte: period.start, lt: period.end },
+          transferAsDebit: null, // exclude transfer legs from spent total
         },
       }),
       prisma.transaction.aggregate({
@@ -422,6 +423,7 @@ export class FamService {
           direction: 'CREDIT',
           type: 'INCOME',
           txnDate: { gte: period.start, lt: period.end },
+          transferAsCredit: null, // exclude transfer legs from earned total
         },
       }),
       prisma.transaction.count({
@@ -432,6 +434,7 @@ export class FamService {
         },
       }),
     ]);
+
 
     const spentPaise = spentAgg?._sum?.amount ?? BigInt(0);
     const investedPaise = investedAgg?._sum?.amount ?? BigInt(0);

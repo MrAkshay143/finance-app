@@ -498,9 +498,11 @@ export class CategoryService {
         sortOrder: category.sortOrder,
       },
     });
+    emitSyncEvent(adminId, { entity: 'ADMIN_CATEGORY', action: 'CREATE', entityId: category.id });
 
     return category;
   }
+
 
   /**
    * Admin: Updates an existing system category if isSystem is true.
@@ -572,9 +574,11 @@ export class CategoryService {
         sortOrder: updated.sortOrder,
       },
     });
+    emitSyncEvent(adminId, { entity: 'ADMIN_CATEGORY', action: 'UPDATE', entityId: id });
 
     return updated;
   }
+
 
   /**
    * Admin: Deletes a system category, safely unlinking transactions (categoryId: null)
@@ -620,9 +624,11 @@ export class CategoryService {
         type: existing.type,
       },
     });
+    emitSyncEvent(adminId, { entity: 'ADMIN_CATEGORY', action: 'DELETE', entityId: id });
 
     return { success: true, message: 'System category deleted successfully' };
   }
+
 }
 
 export const categoryService = new CategoryService();

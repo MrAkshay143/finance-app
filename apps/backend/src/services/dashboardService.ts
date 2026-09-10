@@ -141,11 +141,13 @@ export class DashboardService {
         direction: 'DEBIT',
         type: 'EXPENSE',
         txnDate: { gte: periodRange.start, lt: periodRange.end },
+        transferAsDebit: null, // exclude transfer legs from expense totals
       },
       include: {
         category: true,
       },
     });
+
 
     let totalExpensePaise = BigInt(0);
     const categoryTotals = new Map<
@@ -197,11 +199,13 @@ export class DashboardService {
         direction: 'CREDIT',
         type: 'INCOME',
         txnDate: { gte: periodRange.start, lt: periodRange.end },
+        transferAsCredit: null, // exclude transfer legs from income totals
       },
       include: {
         category: true,
       },
     });
+
 
     let totalIncomePaise = BigInt(0);
     const incomeCategoryTotals = new Map<

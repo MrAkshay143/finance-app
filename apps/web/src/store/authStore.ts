@@ -19,6 +19,8 @@ import {
   getStoredKba,
   saveKbaCache,
 } from '../utils/tokenStorage.js';
+import { queryClient } from '../queries/queryClient.js';
+
 
 export interface AuthState {
   user: AuthUser | null;
@@ -154,6 +156,7 @@ export const authStore = createStore<AuthState>((set, get) => ({
     } catch {
       // Ignore network errors on logout
     } finally {
+      queryClient.clear(); // evict all cached data to prevent cross-user data leakage
       clearStoredTokens();
       saveUserCache(null);
       saveKbaCache(false);
@@ -169,6 +172,7 @@ export const authStore = createStore<AuthState>((set, get) => ({
       });
     }
   },
+
 
   fetchProfile: async () => {
     try {
@@ -258,6 +262,7 @@ export const authStore = createStore<AuthState>((set, get) => ({
   },
 
   reset: () => {
+    queryClient.clear(); // evict cached data on forced reset / session expiry
     clearStoredTokens();
     saveUserCache(null);
     saveKbaCache(false);
@@ -272,6 +277,7 @@ export const authStore = createStore<AuthState>((set, get) => ({
       lockoutUntil: null,
     });
   },
+
 }));
 
 export function useAuthStore(): AuthState;

@@ -31,6 +31,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     req.user = {
       id: payload.sub,
       role: payload.role,
+      sessionId: payload.sessionId, // undefined for tokens issued before this deploy
     };
 
     next();
@@ -57,12 +58,13 @@ export async function optionalAuthenticate(
     const payload = verifyAccessToken(token);
     const denylisted = await isDenylisted(payload.jti || token);
     if (!denylisted) {
-      req.user = { id: payload.sub, role: payload.role };
+      req.user = { id: payload.sub, role: payload.role, sessionId: payload.sessionId };
     }
   } catch {
     // Ignore invalid/expired token in optional mode
   }
   next();
 }
+
 
 export default authenticate;

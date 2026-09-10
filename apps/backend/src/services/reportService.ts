@@ -205,9 +205,14 @@ export class ReportService {
         userId,
         status: 'ACTIVE',
         txnDate: { gte: period.start, lt: period.end },
+        // exclude transfer legs — they are INCOME/EXPENSE rows but represent
+        // an internal account-to-account movement, not real income or spending
+        transferAsDebit: null,
+        transferAsCredit: null,
       },
       include: { category: true },
     });
+
 
     const categorySummaryMap = new Map<
       string,
@@ -345,9 +350,12 @@ export class ReportService {
         userId,
         status: 'ACTIVE',
         txnDate: { gte: startOfYear, lt: endOfYear },
+        transferAsDebit: null,   // exclude transfer legs from income/expense totals
+        transferAsCredit: null,
       },
       include: { category: true },
     });
+
 
     let totalIncomePaise = 0;
     let totalExpensePaise = 0;
@@ -487,10 +495,13 @@ export class ReportService {
         userId,
         status: 'ACTIVE',
         txnDate: { gte: start, lte: end },
+        transferAsDebit: null,   // exclude transfer legs from income/expense totals
+        transferAsCredit: null,
       },
       include: { category: true },
       orderBy: { txnDate: 'asc' },
     });
+
 
     let totalIncomePaise = 0;
     let totalExpensePaise = 0;
