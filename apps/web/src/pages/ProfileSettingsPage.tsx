@@ -457,7 +457,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 );
               })()}
 
-              {/* Centralized Date and Time Format Configuration */}
+              {/* Date & Time Preferences */}
               <div className="grid grid-cols-2 gap-3">
                 <Select
                   label="Date Format"
@@ -475,7 +475,7 @@ export const ProfileSettingsPage: React.FC = () => {
                   onChange={(e) => setTimeFormat(e.target.value as TimeFormatType)}
                   options={TIME_FORMAT_OPTIONS.map((opt) => ({
                     value: opt.value,
-                    label: `${opt.label} — ${opt.description}`,
+                    label: opt.label,
                   }))}
                   disabled={isLoading}
                 />

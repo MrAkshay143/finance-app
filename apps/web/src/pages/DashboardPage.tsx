@@ -315,13 +315,13 @@ export const DashboardPage: React.FC = () => {
                   </div>
 
                   <div className="text-white/90 text-[11px] font-medium mt-2">
-                    {!famIsAvailable ? 'Welcome to your' : 'Your Financial Health is'}
+                    {!famIsAvailable ? 'Financial Health' : 'Your Financial Health is'}
                   </div>
 
                   <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
                     <span>
                       {!famIsAvailable
-                        ? 'Wealth Hub'
+                        ? 'Ready'
                         : famStatusLabel && famStatusLabel !== 'Not Available'
                         ? `${famStatusLabel}!`
                         : 'Excellent!'}
@@ -329,12 +329,12 @@ export const DashboardPage: React.FC = () => {
                     <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 shrink-0 inline" />
                   </div>
 
-                  <p className="text-white/80 text-[11px] leading-snug mt-1 max-w-[155px]">
+                  <p className="text-white/80 text-[11px] leading-snug mt-1 max-w-[155px] truncate">
                     {!famIsAvailable
-                      ? 'Record your transactions to unlock live health scoring and insights.'
+                      ? 'Track spending to see your score.'
                       : famScore >= 75
-                      ? "Keep going! You're on track to achieve your financial goals."
-                      : 'Review your targets and monthly expenses to optimize your score.'}
+                      ? "You're on track to reach your goals."
+                      : 'Review expenses to optimize your score.'}
                   </p>
                 </div>
 

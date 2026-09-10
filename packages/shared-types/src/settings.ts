@@ -23,15 +23,15 @@ export type TimeFormat = z.infer<typeof TimeFormatSchema>;
 export type TimeFormatType = TimeFormat;
 
 export const DATE_FORMAT_OPTIONS = [
-  { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY (e.g. 10-09-2026)', description: 'India & International Standard' },
-  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (e.g. 09/10/2026)', description: 'United States' },
-  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (e.g. 2026-09-10)', description: 'ISO 8601 / Canada / Japan' },
-  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (e.g. 10/09/2026)', description: 'UK, Europe, Australia' },
+  { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY', description: 'e.g. 10-09-2026' },
+  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY', description: 'e.g. 10/09/2026' },
+  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY', description: 'e.g. 09/10/2026' },
+  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD', description: 'e.g. 2026-09-10' },
 ] as const;
 
 export const TIME_FORMAT_OPTIONS = [
-  { value: '12h', label: '12-hour (09:30 PM)', description: 'hh:mm AM/PM' },
-  { value: '24h', label: '24-hour (21:30)', description: 'HH:mm (24-hour)' },
+  { value: '12h', label: '12-hour (AM/PM)', description: 'e.g. 09:30 PM' },
+  { value: '24h', label: '24-hour', description: 'e.g. 21:30' },
 ] as const;
 
 export const UserSettingsDataSchema = z.object({
