@@ -67,8 +67,16 @@ export function createApp(): Express {
     }
   });
 
-  // Root status endpoint for root health pings (e.g. Render, uptime monitors)
-  app.get('/', (_req: Request, res: Response) => {
+  // Serve static SPA files if public/ directory exists
+  const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');
+  const hasSpa = fs.existsSync(path.join(publicDir, 'index.html'));
+
+  // Root endpoint: Serves SPA index.html for browsers/web clients, or JSON API info for API monitors
+  app.get('/', (req: Request, res: Response) => {
+    const isExplicitJson = req.headers.accept?.includes('application/json') && !req.headers.accept?.includes('text/html');
+    if (hasSpa && !isExplicitJson) {
+      return res.sendFile(path.resolve(publicDir, 'index.html'));
+    }
     res.status(200).json({
       status: 'ok',
       service: 'Finance Tracker API',
@@ -107,8 +115,7 @@ export function createApp(): Express {
   app.use('/uploads', express.static(uploadsDir, { maxAge: '7d' }));
 
   // Serve static SPA files if public/ directory exists
-  const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');
-  if (fs.existsSync(publicDir)) {
+  if (hasSpa) {
     app.use(express.static(publicDir, { maxAge: '1h', index: false }));
     app.get('*', (req: Request, res: Response, next: NextFunction) => {
       if (
