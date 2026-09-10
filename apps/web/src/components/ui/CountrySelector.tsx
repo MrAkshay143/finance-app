@@ -45,7 +45,7 @@ export const CountrySelector: React.FC<CountrySelectorProps> = ({
         >
           {COUNTRIES.map((country: CountryMetadata) => (
             <option key={country.code} value={country.code}>
-              {country.flag} {country.name} ({country.callingCode})
+              {country.flag} {country.name}
             </option>
           ))}
         </select>

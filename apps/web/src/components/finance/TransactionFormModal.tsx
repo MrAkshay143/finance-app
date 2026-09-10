@@ -443,20 +443,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           </div>
 
           {accountOptions.length === 0 ? (
-            <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold">No accounts found</p>
-                <p className="text-[11px] text-amber-700 mt-0.5">Please add an account before recording transactions.</p>
-              </div>
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={() => setIsAddAccountOpen(true)}
-                iconLeft={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add Account
-              </Button>
+            <div className="p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900">
+              <p className="font-medium text-amber-800">Please add an account before recording.</p>
             </div>
           ) : (
             <Select

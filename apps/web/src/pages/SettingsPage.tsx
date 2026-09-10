@@ -35,7 +35,12 @@ import { Input } from '../components/ui/Input.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
-import type { UserSettings, UpdateUserSettingsInput } from '@finance/shared-types';
+import {
+  type UserSettings,
+  type UpdateUserSettingsInput,
+  DATE_FORMAT_OPTIONS,
+  TIME_FORMAT_OPTIONS,
+} from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { syncOnSettingsMutation } from '../services/dataSync.js';
@@ -47,7 +52,9 @@ export const SettingsPage: React.FC = () => {
   const { isInstallable, isInstalled, installApp } = usePwaInstall();
 
   // Modals state
-  const [prefModal, setPrefModal] = useState<'currency' | 'timezone' | 'startDay' | null>(null);
+  const [prefModal, setPrefModal] = useState<
+    'currency' | 'timezone' | 'startDay' | 'dateFormat' | 'timeFormat' | null
+  >(null);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -126,6 +133,8 @@ export const SettingsPage: React.FC = () => {
     reminderDaysBeforeDue: 3,
     notificationsEnabled: true,
     ...settingsData,
+    dateFormat: settingsData?.dateFormat || 'DD-MM-YYYY',
+    timeFormat: settingsData?.timeFormat || '12h',
   };
 
   // Mutation to update settings
@@ -364,6 +373,48 @@ export const SettingsPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-textDefault">
                 <span>Day {settings.financialMonthStartDay || 1}</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </div>
+            </button>
+
+            {/* Date Format */}
+            <button
+              type="button"
+              onClick={() => setPrefModal('dateFormat')}
+              className="w-full p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-textDefault">Date Format</div>
+                  <div className="text-[11px] text-textMuted">Choose how dates are displayed</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-textDefault">
+                <span>{settings.dateFormat || 'DD-MM-YYYY'}</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </div>
+            </button>
+
+            {/* Time Format */}
+            <button
+              type="button"
+              onClick={() => setPrefModal('timeFormat')}
+              className="w-full p-3.5 flex items-center justify-between hover:bg-slate-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-textDefault">Time Format</div>
+                  <div className="text-[11px] text-textMuted">Choose 12-hour or 24-hour display</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-textDefault">
+                <span>{settings.timeFormat === '24h' ? '24-hour' : '12-hour (AM/PM)'}</span>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
             </button>
@@ -926,6 +977,74 @@ export const SettingsPage: React.FC = () => {
             >
               <span className="text-xs font-medium">{d.label}</span>
               {(settings.financialMonthStartDay || 1) === d.day && <Check className="w-4 h-4 text-brand-primary" />}
+            </button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* 4. Date Format Modal */}
+      <Modal
+        isOpen={prefModal === 'dateFormat'}
+        onClose={() => setPrefModal(null)}
+        title="Select Date Format"
+        subtitle="Applies across all transactions, statements, and reports"
+      >
+        <div className="space-y-2">
+          {DATE_FORMAT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                updateSettingsMutation.mutate({ dateFormat: opt.value });
+                setPrefModal(null);
+              }}
+              className={`w-full p-3 rounded-xl border flex items-center justify-between transition-colors ${
+                (settings.dateFormat || 'DD-MM-YYYY') === opt.value
+                  ? 'border-brand-primary bg-blue-50/70 text-brand-primary font-bold'
+                  : 'border-borderDefault bg-white text-textDefault hover:bg-slate-50'
+              }`}
+            >
+              <div className="text-left">
+                <div className="text-xs font-bold">{opt.label}</div>
+                <div className="text-[11px] text-textMuted font-mono">{opt.description}</div>
+              </div>
+              {(settings.dateFormat || 'DD-MM-YYYY') === opt.value && (
+                <Check className="w-4 h-4 text-brand-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* 5. Time Format Modal */}
+      <Modal
+        isOpen={prefModal === 'timeFormat'}
+        onClose={() => setPrefModal(null)}
+        title="Select Time Format"
+        subtitle="Choose standard 12-hour AM/PM or 24-hour format"
+      >
+        <div className="space-y-2">
+          {TIME_FORMAT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                updateSettingsMutation.mutate({ timeFormat: opt.value });
+                setPrefModal(null);
+              }}
+              className={`w-full p-3 rounded-xl border flex items-center justify-between transition-colors ${
+                (settings.timeFormat || '12h') === opt.value
+                  ? 'border-brand-primary bg-blue-50/70 text-brand-primary font-bold'
+                  : 'border-borderDefault bg-white text-textDefault hover:bg-slate-50'
+              }`}
+            >
+              <div className="text-left">
+                <div className="text-xs font-bold">{opt.label}</div>
+                <div className="text-[11px] text-textMuted font-mono">{opt.description}</div>
+              </div>
+              {(settings.timeFormat || '12h') === opt.value && (
+                <Check className="w-4 h-4 text-brand-primary" />
+              )}
             </button>
           ))}
         </div>

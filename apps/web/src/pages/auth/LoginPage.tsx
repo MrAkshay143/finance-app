@@ -112,8 +112,11 @@ export const LoginPage: React.FC = () => {
       if (res.user.role === 'ADMIN') {
         destination = fromPath && fromPath.startsWith('/admin') ? fromPath : '/admin';
       } else {
-        const validUserPath = fromPath && !fromPath.startsWith('/admin') ? fromPath : null;
-        destination = validUserPath || (res.user.onboardingCompleted ? '/dashboard' : '/onboarding');
+        if (!res.user.onboardingCompleted) {
+          destination = '/onboarding';
+        } else {
+          destination = fromPath && !fromPath.startsWith('/admin') ? fromPath : '/dashboard';
+        }
       }
 
       navigate(destination, { replace: true });
@@ -134,15 +137,20 @@ export const LoginPage: React.FC = () => {
       : 0;
 
   return (
-    <div className="min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-[400px] flex flex-col justify-center">
+    <div className="min-h-[100dvh] relative overflow-hidden bg-slate-50 flex items-center justify-center p-3 sm:p-4">
+      {/* Modern ambient glow orbs & fine geometric dot grid */}
+      <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
+
+      <div className="relative z-10 w-full max-w-[400px] flex flex-col justify-center">
         {/* Brand Header */}
         <div className="text-center mb-2.5">
-          <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5">
+          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
             <img
               src="/pwa-192x192.png"
               alt="Finance"
-              className="w-9 h-9 rounded-xl object-cover"
+              className="w-10 h-10 rounded-xl object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLElement).style.display = 'none';
               }}

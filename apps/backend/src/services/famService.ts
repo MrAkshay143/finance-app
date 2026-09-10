@@ -3,7 +3,15 @@ import { NotFoundError } from '../utils/errors.js';
 
 export type GradeDisplay = 'A+' | 'B' | 'C' | 'NA';
 export type FamGrade = 'A_PLUS' | 'B' | 'C' | 'NOT_AVAILABLE';
-export type StatusLabel = 'Excellent' | 'Good' | 'Poor' | 'Not Available';
+export type StatusLabel =
+  | 'Excellent'
+  | 'Good'
+  | 'Poor'
+  | 'Not Available'
+  | 'Ready'
+  | 'No spend yet'
+  | 'Ready to invest'
+  | 'Awaiting entry';
 
 export interface FinancialMonthRange {
   start: Date;
@@ -48,13 +56,14 @@ export interface FamScoreResult {
 
 // Calculate financial month date range based on user billing cycle start day
 export function getFinancialMonthRange(
-  financialMonthStartDay = 1,
-  refDate: Date = new Date()
+  billingCycleStartDay: number = 1,
+  referenceDate: Date = new Date()
 ): FinancialMonthRange {
-  const S = Math.max(1, Math.min(31, financialMonthStartDay));
-  const year = refDate.getFullYear();
-  const month = refDate.getMonth(); // 0-indexed
-  const day = refDate.getDate();
+  const S = Math.min(Math.max(billingCycleStartDay, 1), 31);
+  const now = referenceDate;
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  const day = now.getDate();
 
   let startYear: number;
   let startMonth: number;
@@ -148,7 +157,11 @@ export function calculateFamScore({
     totalTxnCount > 0;
 
   if (!isAvailable) {
-    const naDim = (targetPaise: bigint, actualPaise: bigint): DimensionCalcResult => ({
+    const naDim = (
+      targetPaise: bigint,
+      actualPaise: bigint,
+      emptyStatus: StatusLabel = 'Not Available'
+    ): DimensionCalcResult => ({
       target: Number(targetPaise) / 100,
       targetPaise: Number(targetPaise),
       actual: Number(actualPaise) / 100,
@@ -156,14 +169,14 @@ export function calculateFamScore({
       percentage: 0,
       grade: 'NOT_AVAILABLE',
       gradeDisplay: 'NA',
-      status: 'Not Available',
-      statusLabel: 'Not Available',
+      status: emptyStatus,
+      statusLabel: emptyStatus,
     });
 
     const areas = {
-      expense: naDim(expenseTargetPaise, spentPaise),
-      investment: naDim(investmentTargetPaise, investedPaise),
-      income: naDim(incomeTargetPaise, earnedPaise),
+      expense: naDim(expenseTargetPaise, spentPaise, 'No spend yet'),
+      investment: naDim(investmentTargetPaise, investedPaise, 'Ready to invest'),
+      income: naDim(incomeTargetPaise, earnedPaise, 'Awaiting entry'),
     };
 
     return {
@@ -171,7 +184,7 @@ export function calculateFamScore({
       overallGrade: 'NOT_AVAILABLE',
       grade: 'NA',
       gradeDisplay: 'NA',
-      statusLabel: 'Not Available',
+      statusLabel: 'Ready',
       overallProgressPercentage: 0,
       progress: 0,
       month,

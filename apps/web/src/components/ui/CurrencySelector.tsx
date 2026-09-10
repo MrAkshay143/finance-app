@@ -14,7 +14,7 @@ export interface CurrencySelectorProps {
 }
 
 export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
-  label,
+  label = 'Currency',
   value,
   onChange,
   error,
@@ -45,7 +45,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         >
           {SUPPORTED_CURRENCIES.map((curr: CurrencyConfig) => (
             <option key={curr.code} value={curr.code}>
-              {curr.code} - {curr.name} ({curr.symbol})
+              {curr.symbol} {curr.code} — {curr.name}
             </option>
           ))}
         </select>

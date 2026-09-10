@@ -68,7 +68,7 @@ export const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   },
   AED: {
     code: 'AED',
-    symbol: 'AED',
+    symbol: 'د.إ',
     name: 'UAE Dirham',
     locale: 'ar-AE',
     decimalPlaces: 2,

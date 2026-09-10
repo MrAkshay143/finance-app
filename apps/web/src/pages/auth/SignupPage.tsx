@@ -148,15 +148,20 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-[420px] flex flex-col justify-center">
+    <div className="min-h-[100dvh] relative overflow-hidden bg-slate-50 flex items-center justify-center p-3 sm:p-4">
+      {/* Modern ambient glow orbs & fine geometric dot grid */}
+      <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
+
+      <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center">
         {/* Compact Brand Header */}
         <div className="text-center mb-2">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1">
+          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
             <img
               src="/pwa-192x192.png"
               alt="Finance"
-              className="w-8 h-8 rounded-xl object-cover"
+              className="w-10 h-10 rounded-xl object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLElement).style.display = 'none';
               }}
@@ -236,6 +241,24 @@ export const SignupPage: React.FC = () => {
               autoComplete="email"
             />
 
+            {/* Country and Currency Selectors (Placed ABOVE Mobile Number) */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <CountrySelector
+                label="Country"
+                required
+                value={country}
+                onChange={(val) => handleCountryChange(val as CountryCode)}
+                disabled={isLoading}
+              />
+              <CurrencySelector
+                label="Currency"
+                required
+                value={currency}
+                onChange={(val) => setCurrency(val as CurrencyCode)}
+                disabled={isLoading}
+              />
+            </div>
+
             {/* Mobile Number */}
             <PhoneInputWithCountry
               label="Mobile Number"
@@ -250,24 +273,6 @@ export const SignupPage: React.FC = () => {
               }}
               error={validationErrors.mobileNumber}
             />
-
-            {/* Country and Base Currency Selectors */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <CountrySelector
-                label="Country"
-                required
-                value={country}
-                onChange={(val) => handleCountryChange(val as CountryCode)}
-                disabled={isLoading}
-              />
-              <CurrencySelector
-                label="Base Currency"
-                required
-                value={currency}
-                onChange={(val) => setCurrency(val as CurrencyCode)}
-                disabled={isLoading}
-              />
-            </div>
 
             {/* Row 1: Full-width Password Field with clean eye toggle */}
             <div className="space-y-2">

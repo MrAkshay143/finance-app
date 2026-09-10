@@ -34,5 +34,7 @@ export const DEFAULT_USER_SETTINGS = {
   currency: 'INR',
   timezone: 'Asia/Kolkata',
   financialMonthStartDay: 1,
+  dateFormat: 'DD-MM-YYYY',
+  timeFormat: '12h',
   quickAddEnabled: true,
 };

@@ -30,12 +30,23 @@ import { Select } from '../components/ui/Select.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
 import { CountrySelector } from '../components/ui/CountrySelector.js';
 import { CurrencySelector } from '../components/ui/CurrencySelector.js';
+import { DatePicker } from '../components/ui/DatePicker.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
-import { validateAndNormalizePhone, COUNTRY_REGISTRY } from '@finance/shared-types';
-import type { RiskAppetite, InvestmentHorizon, CountryCode, CurrencyCode } from '@finance/shared-types';
+import {
+  validateAndNormalizePhone,
+  COUNTRY_REGISTRY,
+  DATE_FORMAT_OPTIONS,
+  TIME_FORMAT_OPTIONS,
+  type DateFormatType,
+  type TimeFormatType,
+  type RiskAppetite,
+  type InvestmentHorizon,
+  type CountryCode,
+  type CurrencyCode,
+} from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
 export const deriveAnnualIncomeRange = computeIncomeBracket;
@@ -58,15 +69,23 @@ export const ProfileSettingsPage: React.FC = () => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [address, setAddress] = useState('');
 
-  // Country & Base Currency State
+  // Country & Currency State
   const [country, setCountry] = useState<CountryCode>((user?.country as CountryCode) || 'IN');
   const [currency, setCurrency] = useState<CurrencyCode>((userCurrency as CurrencyCode) || 'INR');
+  const [dateFormat, setDateFormat] = useState<DateFormatType>('DD-MM-YYYY');
+  const [timeFormat, setTimeFormat] = useState<TimeFormatType>('12h');
 
   const handleCountryChange = (newCountry: CountryCode) => {
     setCountry(newCountry);
-    const suggestedCurrency = COUNTRY_REGISTRY[newCountry]?.defaultCurrency;
-    if (suggestedCurrency) {
-      setCurrency(suggestedCurrency as CurrencyCode);
+    const meta = COUNTRY_REGISTRY[newCountry];
+    if (meta?.defaultCurrency) {
+      setCurrency(meta.defaultCurrency as CurrencyCode);
+    }
+    if (meta?.defaultDateFormat) {
+      setDateFormat(meta.defaultDateFormat);
+    }
+    if (meta?.defaultTimeFormat) {
+      setTimeFormat(meta.defaultTimeFormat);
     }
   };
 
@@ -117,6 +136,12 @@ export const ProfileSettingsPage: React.FC = () => {
 
         if (data.userSettings?.currency) {
           setCurrency(data.userSettings.currency as CurrencyCode);
+        }
+        if (data.userSettings?.dateFormat) {
+          setDateFormat(data.userSettings.dateFormat as DateFormatType);
+        }
+        if (data.userSettings?.timeFormat) {
+          setTimeFormat(data.userSettings.timeFormat as TimeFormatType);
         }
 
         const fp = data.financeProfile;
@@ -203,6 +228,11 @@ export const ProfileSettingsPage: React.FC = () => {
         currency,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : undefined,
         address: address.trim() || undefined,
+      });
+
+      await apiClient.settings.update({
+        dateFormat,
+        timeFormat,
       });
 
       updateUser({
@@ -371,16 +401,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Mobile Number */}
-              <PhoneInputWithCountry
-                label="Mobile Number"
-                required
-                defaultCountry={country}
-                value={mobileNumber}
-                onChange={(val) => setMobileNumber(val)}
-              />
-
-              {/* Country & Base Currency */}
+              {/* Country & Currency (Placed ABOVE Mobile Number) */}
               <div className="grid grid-cols-2 gap-3">
                 <CountrySelector
                   label="Country"
@@ -390,13 +411,22 @@ export const ProfileSettingsPage: React.FC = () => {
                   disabled={isLoading}
                 />
                 <CurrencySelector
-                  label="Base Currency"
+                  label="Currency"
                   required
                   value={currency}
                   onChange={(val) => setCurrency(val as CurrencyCode)}
                   disabled={isLoading}
                 />
               </div>
+
+              {/* Mobile Number */}
+              <PhoneInputWithCountry
+                label="Mobile Number"
+                required
+                defaultCountry={country}
+                value={mobileNumber}
+                onChange={(val) => setMobileNumber(val)}
+              />
 
               {/* Email Address (Read-only) */}
               <Input
@@ -408,25 +438,48 @@ export const ProfileSettingsPage: React.FC = () => {
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
               />
 
-              {/* Date of Birth */}
+              {/* Date of Birth with Year 2000 jump and 120-year validation */}
               {(() => {
                 const maxDobDate = new Date();
                 maxDobDate.setFullYear(maxDobDate.getFullYear() - 16);
                 const maxDobStr = maxDobDate.toISOString().slice(0, 10);
                 return (
-                  <Input
+                  <DatePicker
                     label="Date of Birth"
-                    type="date"
                     required
+                    isDob
                     max={maxDobStr}
                     value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    icon={<Calendar className="w-4 h-4 text-slate-400" />}
+                    onChange={(val) => setDateOfBirth(val)}
                     helperText="Must be at least 16 years old."
                     disabled={isLoading}
                   />
                 );
               })()}
+
+              {/* Centralized Date and Time Format Configuration */}
+              <div className="grid grid-cols-2 gap-3">
+                <Select
+                  label="Date Format"
+                  value={dateFormat}
+                  onChange={(e) => setDateFormat(e.target.value as DateFormatType)}
+                  options={DATE_FORMAT_OPTIONS.map((opt) => ({
+                    value: opt.value,
+                    label: opt.label,
+                  }))}
+                  disabled={isLoading}
+                />
+                <Select
+                  label="Time Format"
+                  value={timeFormat}
+                  onChange={(e) => setTimeFormat(e.target.value as TimeFormatType)}
+                  options={TIME_FORMAT_OPTIONS.map((opt) => ({
+                    value: opt.value,
+                    label: `${opt.label} — ${opt.description}`,
+                  }))}
+                  disabled={isLoading}
+                />
+              </div>
 
 
               {/* Address */}

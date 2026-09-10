@@ -268,7 +268,7 @@ export const DashboardPage: React.FC = () => {
                       Set Up Security Questions
                     </h4>
                     <p className="text-[11px] text-textMuted leading-relaxed mt-0.5">
-                      Add 3 security questions to safeguard your account and enable recovery.
+                      Set up 3 security questions to protect your account and enable instant self-recovery.
                     </p>
                     <div className="mt-2">
                       <Button
@@ -303,24 +303,36 @@ export const DashboardPage: React.FC = () => {
                   <div className="inline-flex items-center">
                     <span
                       className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
-                        famGrade === 'C' ? 'bg-rose-100 text-rose-800' : 'bg-[#DCFCE7] text-[#15803D]'
+                        !famIsAvailable
+                          ? 'bg-blue-100/90 text-blue-900'
+                          : famGrade === 'C'
+                          ? 'bg-rose-100 text-rose-800'
+                          : 'bg-[#DCFCE7] text-[#15803D]'
                       }`}
                     >
-                      {famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
+                      {!famIsAvailable ? '✨ GETTING STARTED' : famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
                     </span>
                   </div>
 
                   <div className="text-white/90 text-[11px] font-medium mt-2">
-                    Your Financial Health is
+                    {!famIsAvailable ? 'Welcome to your' : 'Your Financial Health is'}
                   </div>
 
                   <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
-                    <span>{famStatusLabel ? `${famStatusLabel}!` : 'Excellent!'}</span>
+                    <span>
+                      {!famIsAvailable
+                        ? 'Wealth Hub'
+                        : famStatusLabel && famStatusLabel !== 'Not Available'
+                        ? `${famStatusLabel}!`
+                        : 'Excellent!'}
+                    </span>
                     <Sparkles className="w-5 h-5 text-amber-300 fill-amber-300 shrink-0 inline" />
                   </div>
 
                   <p className="text-white/80 text-[11px] leading-snug mt-1 max-w-[155px]">
-                    {famScore >= 75
+                    {!famIsAvailable
+                      ? 'Record your transactions to unlock live health scoring and insights.'
+                      : famScore >= 75
                       ? "Keep going! You're on track to achieve your financial goals."
                       : 'Review your targets and monthly expenses to optimize your score.'}
                   </p>
@@ -364,20 +376,20 @@ export const DashboardPage: React.FC = () => {
 
                   {/* Inner White Center Card */}
                   <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
-                    {famGrade ? (
+                    {famIsAvailable && famGrade && famGrade !== 'NA' ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs leading-none">
                         {famGrade}
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 leading-none">
-                        N/A
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-brand-primary leading-none">
+                        ✨ Ready
                       </span>
                     )}
                     <span className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
                       {famIsAvailable ? `${famScore}%` : '0%'}
                     </span>
                     <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-                      Overall Score
+                      {famIsAvailable ? 'Overall Score' : 'Get Started'}
                     </span>
                   </div>
                 </div>
@@ -412,7 +424,9 @@ export const DashboardPage: React.FC = () => {
                 <div className="min-w-0">
                   <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Expenses</div>
                   <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
-                    {areaExpense?.statusLabel || areaExpense?.status || 'Excellent'}
+                    {!areaExpense?.statusLabel || areaExpense?.statusLabel === 'Not Available'
+                      ? 'No spend yet'
+                      : areaExpense.statusLabel}
                   </div>
                 </div>
               </div>
@@ -425,20 +439,24 @@ export const DashboardPage: React.FC = () => {
                 <div className="min-w-0">
                   <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Investments</div>
                   <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
-                    {areaInvestment?.statusLabel || areaInvestment?.status || 'Excellent'}
+                    {!areaInvestment?.statusLabel || areaInvestment?.statusLabel === 'Not Available'
+                      ? 'Ready to invest'
+                      : areaInvestment.statusLabel}
                   </div>
                 </div>
               </div>
 
               {/* Income Pill */}
-              <div className="flex items-center gap-1.5 px-1 py-0.5">
+              <div className="flex items-center gap-1.5 px-1.5 py-0.5">
                 <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Income</div>
                   <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
-                    {areaIncome?.statusLabel || areaIncome?.status || 'Excellent'}
+                    {!areaIncome?.statusLabel || areaIncome?.statusLabel === 'Not Available'
+                      ? 'Awaiting entry'
+                      : areaIncome.statusLabel}
                   </div>
                 </div>
               </div>

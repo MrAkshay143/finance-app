@@ -84,7 +84,7 @@ export const CURRENCY_REGISTRY: Record<CurrencyCode, CurrencyMetadata> = {
   },
   AED: {
     code: 'AED',
-    symbol: 'AED',
+    symbol: 'د.إ',
     name: 'UAE Dirham',
     locale: 'ar-AE',
     decimalPlaces: 2,

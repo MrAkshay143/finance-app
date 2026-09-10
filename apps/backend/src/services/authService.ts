@@ -192,6 +192,14 @@ export class AuthService {
           create: {
             currency: resolvedCurrency,
             timezone: 'Asia/Kolkata',
+            dateFormat:
+              (isSupportedCountry(resolvedCountry) &&
+                COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultDateFormat) ||
+              'DD-MM-YYYY',
+            timeFormat:
+              (isSupportedCountry(resolvedCountry) &&
+                COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultTimeFormat) ||
+              '12h',
             financialMonthStartDay: 1,
             quickAddEnabled: true,
             dashboardDonutsConfig: { income: true, expense: true, investment: true },

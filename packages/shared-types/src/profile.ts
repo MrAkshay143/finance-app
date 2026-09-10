@@ -88,6 +88,8 @@ export const UserSettingsSchema = z.object({
   currency: z.string().length(3).default('INR'),
   timezone: z.string().default('Asia/Kolkata'),
   financialMonthStartDay: z.number().int().min(1).max(28).default(1),
+  dateFormat: z.string().default('DD-MM-YYYY'),
+  timeFormat: z.string().default('12h'),
   quickAddEnabled: z.boolean().default(true),
   quickAdd: z.boolean().optional(),
   donutVisualsEnabled: z.boolean().default(true),

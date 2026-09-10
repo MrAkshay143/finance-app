@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './app/AppRoutes.js';
 import { ToastContainer } from './components/ui/ToastContainer.js';
 import { MaintenanceScreen } from './components/common/MaintenanceScreen.js';
+import { SplashScreen } from './components/common/SplashScreen.js';
 import { ErrorBoundary } from './components/common/ErrorBoundary.js';
 import { useMaintenanceStore } from './store/maintenanceStore.js';
 import { useAuthStore } from './store/authStore.js';
@@ -17,6 +18,7 @@ export function App() {
 
   return (
     <ErrorBoundary>
+      <SplashScreen />
       <BrowserRouter>
         <AppRoutes />
         <ToastContainer />

@@ -173,12 +173,17 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-[420px] flex flex-col justify-center">
+    <div className="min-h-[100dvh] relative overflow-hidden bg-slate-50 flex items-center justify-center p-3 sm:p-4">
+      {/* Modern ambient glow orbs & fine geometric dot grid */}
+      <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
+
+      <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center">
         {/* Brand Header */}
         <div className="text-center mb-2.5">
-          <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5">
-            <KeyRound className="w-5 h-5 text-blue-300" />
+          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
+            <KeyRound className="w-6 h-6 text-blue-300" />
           </div>
           <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
             Account Recovery

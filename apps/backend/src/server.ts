@@ -62,6 +62,20 @@ async function ensureDatabaseSchema() {
       } catch (err: any) {
         logger.debug({ err: err?.message }, 'finance_profiles.country check completed');
       }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN dateFormat VARCHAR(255) NOT NULL DEFAULT 'DD-MM-YYYY'");
+        logger.info('Database schema verified: added dateFormat column to user_settings table');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'user_settings.dateFormat check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN timeFormat VARCHAR(255) NOT NULL DEFAULT '12h'");
+        logger.info('Database schema verified: added timeFormat column to user_settings table');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'user_settings.timeFormat check completed');
+      }
     }
   } catch (err: any) {
     // Expected/non-fatal if table doesn't exist yet

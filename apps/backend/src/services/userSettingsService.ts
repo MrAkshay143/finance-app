@@ -10,6 +10,8 @@ export interface UserSettingsResponse {
   currency: string;
   timezone: string;
   financialMonthStartDay: number;
+  dateFormat: string;
+  timeFormat: string;
   quickAdd: boolean;
   quickAddEnabled: boolean;
   dashboardDonuts: {
@@ -43,6 +45,8 @@ export interface UpdateUserSettingsDto {
   currency?: string;
   timezone?: string;
   financialMonthStartDay?: number;
+  dateFormat?: string;
+  timeFormat?: string;
   quickAdd?: boolean;
   quickAddEnabled?: boolean;
   dashboardDonuts?: {
@@ -95,6 +99,8 @@ function formatSettingsResponse(settings: any, userId: string): UserSettingsResp
     currency: settings?.currency || 'INR',
     timezone: settings?.timezone || 'Asia/Kolkata',
     financialMonthStartDay: settings?.financialMonthStartDay ?? 1,
+    dateFormat: settings?.dateFormat || 'DD-MM-YYYY',
+    timeFormat: settings?.timeFormat || '12h',
     quickAdd: quickAddValue,
     quickAddEnabled: quickAddValue,
     dashboardDonuts: {
@@ -146,6 +152,8 @@ export class UserSettingsService {
           currency: 'INR',
           timezone: 'Asia/Kolkata',
           financialMonthStartDay: 1,
+          dateFormat: 'DD-MM-YYYY',
+          timeFormat: '12h',
           quickAddEnabled: true,
           dashboardDonutsConfig: { income: true, expense: true, investment: true },
           featuresConfig: { investments: true, recurring: true },
@@ -219,6 +227,8 @@ export class UserSettingsService {
         currency: data.currency || 'INR',
         timezone: data.timezone || 'Asia/Kolkata',
         financialMonthStartDay: data.financialMonthStartDay ?? 1,
+        dateFormat: data.dateFormat || 'DD-MM-YYYY',
+        timeFormat: data.timeFormat || '12h',
         quickAddEnabled: quickAddVal,
         dashboardDonutsConfig: mergedDonuts,
         featuresConfig: mergedFeatures,
@@ -228,6 +238,8 @@ export class UserSettingsService {
         timezone: data.timezone !== undefined ? data.timezone : undefined,
         financialMonthStartDay:
           data.financialMonthStartDay !== undefined ? data.financialMonthStartDay : undefined,
+        dateFormat: data.dateFormat !== undefined ? data.dateFormat : undefined,
+        timeFormat: data.timeFormat !== undefined ? data.timeFormat : undefined,
         quickAddEnabled: quickAddVal,
         dashboardDonutsConfig: mergedDonuts,
         featuresConfig: mergedFeatures,
@@ -242,6 +254,8 @@ export class UserSettingsService {
         currency: data.currency,
         timezone: data.timezone,
         financialMonthStartDay: data.financialMonthStartDay,
+        dateFormat: data.dateFormat,
+        timeFormat: data.timeFormat,
         quickAdd: quickAddVal,
         dashboardDonuts: mergedDonuts,
         features: mergedFeatures,

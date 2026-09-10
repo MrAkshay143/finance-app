@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -22,12 +22,15 @@ import { Card } from '../../components/ui/Card.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
+import { DatePicker } from '../../components/ui/DatePicker.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
-import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions } from '../../utils/currency.js';
+import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../../utils/currency.js';
 import { useUserCurrency } from '../../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
 import { validateAge, validateAmount } from '../../utils/validation.js';
+
+const DRAFT_STORAGE_KEY = 'finance_onboarding_draft';
 
 export const OnboardingWizard: React.FC = () => {
   const navigate = useNavigate();
@@ -60,6 +63,79 @@ export const OnboardingWizard: React.FC = () => {
   const [riskAppetite, setRiskAppetite] = useState<RiskAppetite>('MEDIUM');
   const [investmentHorizon, setInvestmentHorizon] = useState<InvestmentHorizon>('MEDIUM');
 
+  // Restore draft state on mount so refresh or re-login resumes right here
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.step && (draft.step === 1 || draft.step === 2 || draft.step === 3)) {
+          setCurrentStep(draft.step);
+        }
+        if (draft.dateOfBirth) setDateOfBirth(draft.dateOfBirth);
+        if (draft.address) setAddress(draft.address);
+        if (draft.phone) setPhone(draft.phone);
+        if (draft.monthlyIncome) setMonthlyIncome(draft.monthlyIncome);
+        if (draft.monthlyExpenseBudget) setMonthlyExpenseBudget(draft.monthlyExpenseBudget);
+        if (draft.monthlyInvestmentTarget) setMonthlyInvestmentTarget(draft.monthlyInvestmentTarget);
+        if (draft.incomeRange) setIncomeRange(draft.incomeRange);
+        if (draft.savingsTarget) setSavingsTarget(draft.savingsTarget);
+        if (draft.investmentExperience) setInvestmentExperience(draft.investmentExperience);
+        if (draft.riskAppetite) setRiskAppetite(draft.riskAppetite);
+        if (draft.investmentHorizon) setInvestmentHorizon(draft.investmentHorizon);
+      }
+    } catch {
+      // Ignore parse error
+    }
+  }, []);
+
+  // Save draft state across steps
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        DRAFT_STORAGE_KEY,
+        JSON.stringify({
+          step: currentStep,
+          dateOfBirth,
+          address,
+          phone,
+          monthlyIncome,
+          monthlyExpenseBudget,
+          monthlyInvestmentTarget,
+          incomeRange,
+          savingsTarget,
+          investmentExperience,
+          riskAppetite,
+          investmentHorizon,
+        })
+      );
+    } catch {
+      // Ignore quota/storage error
+    }
+  }, [
+    currentStep,
+    dateOfBirth,
+    address,
+    phone,
+    monthlyIncome,
+    monthlyExpenseBudget,
+    monthlyInvestmentTarget,
+    incomeRange,
+    savingsTarget,
+    investmentExperience,
+    riskAppetite,
+    investmentHorizon,
+  ]);
+
+  // Expected Monthly Income change handler: auto-populates Annual Income Range bracket
+  const handleMonthlyIncomeChange = (val: string) => {
+    setMonthlyIncome(val);
+    const derived = computeIncomeBracket(val, userCurrency);
+    if (derived) {
+      setIncomeRange(derived);
+    }
+  };
+
   // Real-time validation checks
   const dobResult = dateOfBirth ? validateAge(dateOfBirth, 16) : null;
   const incomeResult = monthlyIncome ? validateAmount(monthlyIncome, userCurrency, false) : null;
@@ -71,31 +147,45 @@ export const OnboardingWizard: React.FC = () => {
     e.preventDefault();
     setErrorMessage(null);
 
-    // Client-side age validation: must be at least 16 years old
-    if (dateOfBirth) {
-      const selectedDob = new Date(dateOfBirth);
-      if (selectedDob > maxDobDate) {
-        setErrorMessage('You must be at least 16 years old to register.');
-        return;
-      }
+    // Date of Birth is strictly mandatory
+    if (!dateOfBirth) {
+      setErrorMessage('Date of birth is required to proceed.');
+      return;
+    }
+    const selectedDob = new Date(dateOfBirth);
+    if (isNaN(selectedDob.getTime())) {
+      setErrorMessage('Invalid date of birth.');
+      return;
+    }
+    const today = new Date();
+    if (today.getFullYear() - selectedDob.getFullYear() > 120 || selectedDob > today) {
+      setErrorMessage('Invalid date of birth.');
+      return;
+    }
+    if (selectedDob > maxDobDate) {
+      setErrorMessage('You must be at least 16 years old to register.');
+      return;
     }
 
-    if (phone.trim()) {
-      const phoneVal = validateAndNormalizePhone(phone.trim());
-      if (!phoneVal.isValid) {
-        setErrorMessage(phoneVal.error || 'Please enter a valid mobile number.');
-        return;
-      }
+    // Phone / Mobile Number is strictly mandatory
+    if (!phone.trim()) {
+      setErrorMessage('Mobile number is required to proceed.');
+      return;
+    }
+    const phoneVal = validateAndNormalizePhone(phone.trim());
+    if (!phoneVal.isValid) {
+      setErrorMessage(phoneVal.error || 'Please enter a valid mobile number.');
+      return;
     }
 
     setIsLoading(true);
 
     try {
       await apiClient.profile.updateBasic({
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : undefined,
+        dateOfBirth: new Date(dateOfBirth).toISOString(),
         address: address.trim() || undefined,
-        phone: phone.trim() || undefined,
-        mobileNumber: phone.trim() || undefined,
+        phone: phone.trim(),
+        mobileNumber: phone.trim(),
       });
 
       setCurrentStep(2);
@@ -113,12 +203,12 @@ export const OnboardingWizard: React.FC = () => {
     const inc = Number(monthlyIncome);
     const exp = Number(monthlyExpenseBudget);
 
-    if (!monthlyIncome || isNaN(inc) || inc <= 0) {
-      setErrorMessage('Please enter a valid monthly income target greater than 0.');
+    if (isNaN(inc) || inc <= 0) {
+      setErrorMessage('Please enter a valid monthly income greater than 0.');
       return;
     }
 
-    if (!monthlyExpenseBudget || isNaN(exp) || exp < 0) {
+    if (isNaN(exp) || exp < 0) {
       setErrorMessage('Please enter a valid monthly expense budget.');
       return;
     }
@@ -148,6 +238,12 @@ export const OnboardingWizard: React.FC = () => {
         riskAppetite,
         investmentHorizon,
       });
+
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        // Ignore
+      }
 
       setOnboardingCompleted(true);
       navigate('/security/questions', { replace: true });
@@ -223,21 +319,20 @@ export const OnboardingWizard: React.FC = () => {
                   </div>
                 </div>
 
-                <Input
+                <DatePicker
                   label="Date of Birth"
-                  type="date"
+                  required
+                  isDob
                   max={maxDobString}
                   value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  icon={<Calendar className="w-4 h-4 text-slate-400" />}
-                  status={dobResult ? (dobResult.isValid ? 'valid' : 'invalid') : 'idle'}
-                  validMessage={dobResult?.isValid ? dobResult.message : undefined}
+                  onChange={(val) => setDateOfBirth(val)}
                   error={dobResult && !dobResult.isValid ? dobResult.message : undefined}
                   helperText="Must be at least 16 years old to register."
                 />
 
                 <PhoneInputWithCountry
                   label="Phone / Mobile"
+                  required
                   value={phone}
                   onChange={(val) => setPhone(val)}
                   helperText="Used for transaction alerts and recovery."
@@ -299,7 +394,7 @@ export const OnboardingWizard: React.FC = () => {
                     step={500}
                     placeholder="e.g. 50000"
                     value={monthlyIncome}
-                    onChange={(e) => setMonthlyIncome(e.target.value)}
+                    onChange={(e) => handleMonthlyIncomeChange(e.target.value)}
                     icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
                     status={incomeResult ? (incomeResult.isValid ? 'valid' : 'invalid') : 'idle'}
                     validMessage={incomeResult?.formattedDisplay}

@@ -359,6 +359,8 @@ model UserSettings {
   currency               String   @default("INR")
   timezone               String   @default("Asia/Kolkata")
   financialMonthStartDay Int      @default(1)
+  dateFormat             String   @default("DD-MM-YYYY")
+  timeFormat             String   @default("12h")
   quickAddEnabled        Boolean  @default(true)
   dashboardDonutsConfig  Json     @default("{\"income\":true,\"expense\":true,\"investment\":true}")
   featuresConfig         Json     @default("{\"investments\":true,\"recurring\":true}")

@@ -27,6 +27,8 @@ export interface CountryMetadata {
   name: string;
   callingCode: string;
   defaultCurrency: string;
+  defaultDateFormat: 'DD-MM-YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD' | 'DD/MM/YYYY';
+  defaultTimeFormat: '12h' | '24h';
   flag: string;
   phoneLengths: number[];
   phonePattern: string; // Regex pattern for national number without dial code
@@ -43,6 +45,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'India',
     callingCode: '+91',
     defaultCurrency: 'INR',
+    defaultDateFormat: 'DD-MM-YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇮🇳',
     phoneLengths: [10],
     phonePattern: '^[6-9]\\d{9}$',
@@ -55,6 +59,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'United States',
     callingCode: '+1',
     defaultCurrency: 'USD',
+    defaultDateFormat: 'MM/DD/YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇺🇸',
     phoneLengths: [10],
     phonePattern: '^[2-9]\\d{9}$',
@@ -67,6 +73,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'United Kingdom',
     callingCode: '+44',
     defaultCurrency: 'GBP',
+    defaultDateFormat: 'DD/MM/YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇬🇧',
     phoneLengths: [10],
     phonePattern: '^7\\d{9}$',
@@ -79,6 +87,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'Canada',
     callingCode: '+1',
     defaultCurrency: 'CAD',
+    defaultDateFormat: 'YYYY-MM-DD',
+    defaultTimeFormat: '12h',
     flag: '🇨🇦',
     phoneLengths: [10],
     phonePattern: '^[2-9]\\d{9}$',
@@ -91,6 +101,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'Australia',
     callingCode: '+61',
     defaultCurrency: 'AUD',
+    defaultDateFormat: 'DD/MM/YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇦🇺',
     phoneLengths: [9],
     phonePattern: '^4\\d{8}$',
@@ -103,6 +115,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'Singapore',
     callingCode: '+65',
     defaultCurrency: 'SGD',
+    defaultDateFormat: 'DD/MM/YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇸🇬',
     phoneLengths: [8],
     phonePattern: '^[89]\\d{7}$',
@@ -115,6 +129,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'United Arab Emirates',
     callingCode: '+971',
     defaultCurrency: 'AED',
+    defaultDateFormat: 'DD/MM/YYYY',
+    defaultTimeFormat: '12h',
     flag: '🇦🇪',
     phoneLengths: [9],
     phonePattern: '^5\\d{8}$',
@@ -127,6 +143,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'Germany',
     callingCode: '+49',
     defaultCurrency: 'EUR',
+    defaultDateFormat: 'DD-MM-YYYY',
+    defaultTimeFormat: '24h',
     flag: '🇩🇪',
     phoneLengths: [10, 11],
     phonePattern: '^(?:1[567]\\d{8,9}|[1-9]\\d{9,10})$',
@@ -139,6 +157,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'France',
     callingCode: '+33',
     defaultCurrency: 'EUR',
+    defaultDateFormat: 'DD/MM/YYYY',
+    defaultTimeFormat: '24h',
     flag: '🇫🇷',
     phoneLengths: [9],
     phonePattern: '^[67]\\d{8}$',
@@ -151,6 +171,8 @@ export const COUNTRY_REGISTRY: Record<CountryCode, CountryMetadata> = {
     name: 'Japan',
     callingCode: '+81',
     defaultCurrency: 'JPY',
+    defaultDateFormat: 'YYYY-MM-DD',
+    defaultTimeFormat: '24h',
     flag: '🇯🇵',
     phoneLengths: [10],
     phonePattern: '^[789]0\\d{8}$',
