@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -18,7 +18,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
   const app = createApp();
 
   beforeEach(() => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
     clearMemoryDenylist();
   });
 
@@ -56,12 +56,12 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(cookies[0]).toContain('HttpOnly');
 
       // Verify DB state
-      const createdUser = Array.from(mockPrisma._state.users.values())[0];
+      const createdUser = Array.from(prismaTestAdapter._state.users.values())[0];
       expect(createdUser.passwordHash).not.toBe('Password123!');
       expect(createdUser.failedLoginAttempts).toBe(0);
 
       // Verify default userSettings were created
-      const settings = mockPrisma._state.userSettings.get(createdUser.id);
+      const settings = prismaTestAdapter._state.userSettings.get(createdUser.id);
       expect(settings).toBeDefined();
       expect(settings.currency).toBe('INR');
       expect(settings.timezone).toBe('Asia/Kolkata');
@@ -119,7 +119,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(res.body.data.tokens.accessToken).toBeDefined();
       expect(res.body.data.tokens.refreshToken).toBeDefined();
 
-      const user = Array.from(mockPrisma._state.users.values()).find(
+      const user = Array.from(prismaTestAdapter._state.users.values()).find(
         (u) => u.email === 'login.test@example.com'
       );
       expect(user.failedLoginAttempts).toBe(0);
@@ -136,7 +136,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(res.body.success).toBe(false);
       expect(res.body.error.code).toBe('UNAUTHENTICATED');
 
-      const user = Array.from(mockPrisma._state.users.values()).find(
+      const user = Array.from(prismaTestAdapter._state.users.values()).find(
         (u) => u.email === 'login.test@example.com'
       );
       expect(user.failedLoginAttempts).toBe(1);
@@ -194,7 +194,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(newRefreshToken).not.toBe(initialRefreshToken);
 
       // Verify the old token record is marked revoked in DB
-      const tokensInDb = Array.from(mockPrisma._state.refreshTokens.values());
+      const tokensInDb = Array.from(prismaTestAdapter._state.refreshTokens.values());
       const oldRecord = tokensInDb.find((t) => t.revokedAt !== null);
       expect(oldRecord).toBeDefined();
 
@@ -225,7 +225,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
 
       expect(theftAttemptRes.status).toBe(401);
       expect(theftAttemptRes.body.error.code).toBe('UNAUTHENTICATED');
-      expect(theftAttemptRes.body.error.message).toContain('Session security violation');
+      expect(theftAttemptRes.body.error.message).toMatch(/(Session security violation|Session expired for security reasons)/i);
 
       // Now the legitimate second token must ALSO be revoked because the entire family was compromised!
       const subsequentLegitimateRes = await request(app).post('/api/v1/auth/refresh').send({
@@ -234,7 +234,7 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(subsequentLegitimateRes.status).toBe(401);
 
       // Verify in DB that all tokens with this familyId are revoked
-      const tokensInDb = Array.from(mockPrisma._state.refreshTokens.values());
+      const tokensInDb = Array.from(prismaTestAdapter._state.refreshTokens.values());
       for (const t of tokensInDb) {
         expect(t.revokedAt).not.toBeNull();
       }

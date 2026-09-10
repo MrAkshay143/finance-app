@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
+import { syncOnProfileMutation } from '../services/dataSync.js';
 import {
   User,
   Shield,
@@ -27,8 +29,8 @@ import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
 import { useAuthStore } from '../store/authStore.js';
-import { apiClient } from '../services/apiClient.js';
-import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
@@ -59,6 +61,7 @@ export const deriveAnnualIncomeRange = (
 };
 
 export const ProfileSettingsPage: React.FC = () => {
+  const queryClient = useSafeQueryClient();
   const navigate = useNavigate();
   const { currency: userCurrency } = useUserCurrency();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -131,24 +134,9 @@ export const ProfileSettingsPage: React.FC = () => {
           if (fp.monthlyInvestmentTarget !== undefined) setMonthlyInvestmentTarget(fp.monthlyInvestmentTarget);
 
           // Normalize Annual Income Range: if empty or legacy invalid string, auto-derive from monthlyIncome
-          const inrOptions = [
-            'Below ₹3,00,000',
-            '₹3,00,000 - ₹5,00,000',
-            '₹5,00,000 - ₹10,00,000',
-            '₹10,00,000 - ₹25,00,000',
-            'Above ₹25,00,000',
-          ];
+          const validOptions = getIncomeBracketOptions(userCurrency).map((opt) => opt.value);
           const currIncomeRange = fp.incomeRange;
           const derived = deriveAnnualIncomeRange(fp.monthlyIncome, userCurrency);
-          const validOptions = userCurrency === 'INR'
-            ? inrOptions
-            : [
-                `Below ${getCurrencySymbol(userCurrency)}30,000`,
-                `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000`,
-                `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000`,
-                `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000`,
-                `Above ${getCurrencySymbol(userCurrency)}250,000`,
-              ];
 
           if (currIncomeRange && validOptions.includes(currIncomeRange)) {
             setIncomeRange(currIncomeRange);
@@ -225,13 +213,10 @@ export const ProfileSettingsPage: React.FC = () => {
         mobileNumber: mobileNumber.trim() || null,
       });
 
+      await syncOnProfileMutation(queryClient);
       toast.success('Basic profile updated successfully');
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.error?.message ||
-          err?.message ||
-          'Failed to update profile. Please try again.'
-      );
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update profile. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -277,13 +262,10 @@ export const ProfileSettingsPage: React.FC = () => {
         investmentHorizon: cleanHorizon,
       });
 
+      await syncOnProfileMutation(queryClient);
       toast.success('Finance profile targets updated successfully');
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.error?.message ||
-          err?.message ||
-          'Failed to save financial profile. Please try again.'
-      );
+      toast.error(getFriendlyErrorMessage(err, 'Failed to save financial profile. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -594,23 +576,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 label="Annual Income Range"
                 value={incomeRange}
                 onChange={(e) => setIncomeRange(e.target.value)}
-                options={
-                  userCurrency === 'INR'
-                    ? [
-                        { value: 'Below ₹3,00,000', label: 'Below ₹3,00,000' },
-                        { value: '₹3,00,000 - ₹5,00,000', label: '₹3,00,000 - ₹5,00,000' },
-                        { value: '₹5,00,000 - ₹10,00,000', label: '₹5,00,000 - ₹10,00,000' },
-                        { value: '₹10,00,000 - ₹25,00,000', label: '₹10,00,000 - ₹25,00,000' },
-                        { value: 'Above ₹25,00,000', label: 'Above ₹25,00,000' },
-                      ]
-                    : [
-                        { value: `Below ${getCurrencySymbol(userCurrency)}30,000`, label: `Below ${getCurrencySymbol(userCurrency)}30,000` },
-                        { value: `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000`, label: `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000` },
-                        { value: `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000`, label: `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000` },
-                        { value: `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000`, label: `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000` },
-                        { value: `Above ${getCurrencySymbol(userCurrency)}250,000`, label: `Above ${getCurrencySymbol(userCurrency)}250,000` },
-                      ]
-                }
+                options={getIncomeBracketOptions(userCurrency)}
               />
 
               <Input

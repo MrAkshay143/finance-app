@@ -15,8 +15,8 @@ export const CONFIRM_DIALOGS = {
     delete: (description?: string): ConfirmDialogDefinition => ({
       title: 'Delete Transaction',
       message: description
-        ? `Delete "${description}"? Account balance will revert.`
-        : 'Delete this transaction? Account balance will revert.',
+        ? `Delete "${description}"? Your account balance will update.`
+        : 'Delete this transaction? Your account balance will update.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -24,7 +24,7 @@ export const CONFIRM_DIALOGS = {
     }),
     deleteTransfer: (): ConfirmDialogDefinition => ({
       title: 'Delete Transfer',
-      message: 'Delete this transfer? Both account balances will revert.',
+      message: 'Delete this transfer? Both account balances will update.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -35,7 +35,7 @@ export const CONFIRM_DIALOGS = {
     toggleStatus: (name: string, isCurrentlyActive: boolean): ConfirmDialogDefinition => ({
       title: isCurrentlyActive ? 'Deactivate Account' : 'Activate Account',
       message: isCurrentlyActive
-        ? `Deactivate "${name}"? Past records remain, but new entries will be disabled.`
+        ? `Deactivate "${name}"? Past records remain, but new entries will pause.`
         : `Reactivate "${name}" for new transactions?`,
       confirmLabel: isCurrentlyActive ? 'Deactivate' : 'Activate',
       cancelLabel: 'Cancel',
@@ -47,8 +47,8 @@ export const CONFIRM_DIALOGS = {
     deleteBudget: (categoryName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Budget',
       message: categoryName
-        ? `Delete budget for "${categoryName}"? Past records remain intact.`
-        : 'Delete this budget? Past records remain intact.',
+        ? `Delete the "${categoryName}" budget? Your transactions won't be affected.`
+        : 'Delete this budget? Your transactions won\'t be affected.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -93,8 +93,8 @@ export const CONFIRM_DIALOGS = {
     delete: (description?: string): ConfirmDialogDefinition => ({
       title: 'Delete Schedule',
       message: description
-        ? `Delete schedule "${description}"? Past transactions remain intact.`
-        : 'Delete this recurring schedule? Past transactions remain intact.',
+        ? `Cancel recurring payment "${description}"? Past transactions won't be deleted.`
+        : 'Cancel this recurring payment? Past transactions won\'t be deleted.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -120,7 +120,7 @@ export const CONFIRM_DIALOGS = {
     }),
     signOut: (): ConfirmDialogDefinition => ({
       title: 'Sign Out',
-      message: 'Sign out of your account now?',
+      message: 'Are you sure you want to sign out?',
       confirmLabel: 'Sign Out',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -179,11 +179,11 @@ export const CONFIRM_DIALOGS = {
       icon: 'lock',
     }),
     forceLogout: (emailOrName?: string): ConfirmDialogDefinition => ({
-      title: 'Force Logout',
+      title: 'Sign out all devices',
       message: emailOrName
-        ? `Revoke active sessions for "${emailOrName}" across all devices?`
-        : 'Revoke all active sessions across all devices?',
-      confirmLabel: 'Force Logout',
+        ? `Sign out all devices for "${emailOrName}"?`
+        : 'Sign out all devices?',
+      confirmLabel: 'Sign out all devices',
       cancelLabel: 'Cancel',
       severity: 'warning',
       icon: 'power',

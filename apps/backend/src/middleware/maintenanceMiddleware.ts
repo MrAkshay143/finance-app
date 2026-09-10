@@ -10,7 +10,7 @@ let maintenanceCached: MaintenanceState | null = null;
 let lastCheckTime = 0;
 const CACHE_TTL_MS = 3000; // 3 second cache
 export const DEFAULT_MAINTENANCE_MESSAGE =
-  'Platform is currently undergoing scheduled maintenance. Please try again shortly.';
+  'System update in progress. Back shortly.';
 
 export async function getMaintenanceInfo(): Promise<MaintenanceState> {
   if (process.env.NODE_ENV === 'test' && !process.env.TEST_MAINTENANCE) {

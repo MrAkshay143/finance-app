@@ -5,8 +5,6 @@ import {
   CloudDownload,
   FileSpreadsheet,
   FileCode,
-  CheckCircle2,
-  AlertCircle,
   Receipt,
   Wallet,
   PieChart,
@@ -16,14 +14,13 @@ import {
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { toast } from '../store/toastStore.js';
 import type { ExportUserDataResponse } from '@finance/shared-types';
 
 export const ExportPage: React.FC = () => {
   const navigate = useNavigate();
   const [format, setFormat] = useState<'csv' | 'json'>('csv');
-  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Mutation to trigger export download
   const exportMutation = useMutation({
@@ -65,16 +62,13 @@ export const ExportPage: React.FC = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        setDownloadSuccess(`Export downloaded as ${format.toUpperCase()}`);
-        setTimeout(() => setDownloadSuccess(null), 4000);
+        toast.success(`Export downloaded as ${format.toUpperCase()}`);
       } catch (err: any) {
-        setErrorMessage('Failed to trigger browser download');
+        toast.error(getFriendlyErrorMessage(err, 'Failed to trigger browser download'));
       }
     },
     onError: (err: any) => {
-      setErrorMessage(
-        err?.response?.data?.message || err?.message || 'Failed to generate financial export'
-      );
+      toast.error(getFriendlyErrorMessage(err, 'Failed to generate financial export'));
     },
   });
 
@@ -132,10 +126,7 @@ export const ExportPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => {
-                setFormat('csv');
-                setErrorMessage(null);
-              }}
+              onClick={() => setFormat('csv')}
               className={`p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
                 format === 'csv'
                   ? 'border-brand-primary bg-blue-50/80 shadow-xs ring-1 ring-brand-primary/20'
@@ -157,10 +148,7 @@ export const ExportPage: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => {
-                setFormat('json');
-                setErrorMessage(null);
-              }}
+              onClick={() => setFormat('json')}
               className={`p-2.5 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
                 format === 'json'
                   ? 'border-brand-primary bg-blue-50/80 shadow-xs ring-1 ring-brand-primary/20'
@@ -207,22 +195,6 @@ export const ExportPage: React.FC = () => {
             ))}
           </Card>
         </div>
-
-        {/* Error Notification */}
-        {errorMessage && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700 font-semibold">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
-        {/* Success Banner */}
-        {downloadSuccess && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs font-semibold text-emerald-700">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{downloadSuccess}</span>
-          </div>
-        )}
 
         {/* Download Button */}
         <Button

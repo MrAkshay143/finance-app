@@ -9,7 +9,7 @@ apps/backend/
 |   +-- server.ts               HTTP server, Socket.IO gateway, system category and admin bootstrapping
 |   +-- worker.ts               BullMQ background workers entrypoint (recurringWorker, reminderWorker)
 |   +-- app.ts                  Express app assembly, middleware chain, Prometheus metrics, SPA static server
-|   +-- seed-realworld.ts       Authoritative real-world database seed script
+|   +-- seedData.ts             Authoritative real-world database seed script
 |   +-- config/
 |   |   +-- env.ts              Zod-validated environment configuration loader
 |   +-- routes/

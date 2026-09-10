@@ -76,7 +76,7 @@ export const CurrencyPickerModal: React.FC<CurrencyPickerModalProps> = ({
                   </View>
                   {isSelected && (
                     <View style={styles.checkIconWrapper}>
-                      <CheckIcon size={18} color={colors.brandPrimary} />
+                      <CheckIcon size={18} color={colors.primary} />
                     </View>
                   )}
                 </Pressable>

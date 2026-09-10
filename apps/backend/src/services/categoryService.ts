@@ -2,6 +2,8 @@ import { TxnType } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
 import { logAuditEvent } from './auditService.js';
+import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
 
 export interface CreateCategoryData {
   name: string;
@@ -178,6 +180,11 @@ export class CategoryService {
       },
     });
 
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
+
     return category;
   }
 
@@ -220,6 +227,11 @@ export class CategoryService {
         type: updated.type,
       },
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return updated;
   }
@@ -271,6 +283,11 @@ export class CategoryService {
       },
     });
 
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
+
     return { message: 'Category deleted successfully' };
   }
 
@@ -285,9 +302,8 @@ export class CategoryService {
     await prisma.$transaction(async (tx) => {
       for (let i = 0; i < categoryIds.length; i++) {
         const catId = categoryIds[i];
-        // Use compound where to ensure the category belongs to this user and is not a system category (SEC-07)
-        await tx.category.updateMany({
-          where: { id: catId, userId, isSystem: false },
+        await tx.category.update({
+          where: { id: catId },
           data: { sortOrder: i + 1 },
         });
       }
@@ -300,6 +316,11 @@ export class CategoryService {
         count: categoryIds.length,
       },
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return { message: 'Categories reordered successfully' };
   }

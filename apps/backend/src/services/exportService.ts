@@ -42,7 +42,7 @@ export class ExportService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`);
+      throw new NotFoundError('User not found');
     }
 
     const [transactions, accounts, budgets, goals, recurringTxns, categories, userSettings] = await Promise.all([

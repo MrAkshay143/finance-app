@@ -306,3 +306,55 @@ export function validatePhoneRealtime(
     message: `${digitsOnly.length}/${primaryLength} digits`,
   };
 }
+
+/**
+ * Cryptographically Secure Password Generator
+ */
+export function generateSecurePassword(length = 16): string {
+  const targetLength = Math.max(14, length);
+
+  const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const LOWER = 'abcdefghjkmnpqrstuvwxyz';
+  const NUMBERS = '23456789';
+  const SPECIAL = '!@#$%^&*()_+-=[]{};:';
+  const ALL = UPPER + LOWER + NUMBERS + SPECIAL;
+
+  const getRandomInt = (max: number): number => {
+    const array = new Uint32Array(1);
+    if (typeof window !== 'undefined' && window.crypto) {
+      window.crypto.getRandomValues(array);
+    } else {
+      globalThis.crypto.getRandomValues(array);
+    }
+    return array[0] % max;
+  };
+
+  const getRandomChar = (pool: string): string => {
+    return pool[getRandomInt(pool.length)];
+  };
+
+  const passwordChars: string[] = [];
+
+  // Guarantees at least 2 characters from each pool
+  for (let i = 0; i < 2; i++) {
+    passwordChars.push(getRandomChar(UPPER));
+    passwordChars.push(getRandomChar(LOWER));
+    passwordChars.push(getRandomChar(NUMBERS));
+    passwordChars.push(getRandomChar(SPECIAL));
+  }
+
+  // Fills remainder to reach length (minimum 14)
+  while (passwordChars.length < targetLength) {
+    passwordChars.push(getRandomChar(ALL));
+  }
+
+  // Shuffles array using Fisher-Yates with crypto random indices
+  for (let i = passwordChars.length - 1; i > 0; i--) {
+    const j = getRandomInt(i + 1);
+    const temp = passwordChars[i];
+    passwordChars[i] = passwordChars[j];
+    passwordChars[j] = temp;
+  }
+
+  return passwordChars.join('');
+}

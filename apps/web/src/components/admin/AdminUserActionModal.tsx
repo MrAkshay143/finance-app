@@ -18,7 +18,7 @@ import {
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
-import { apiClient } from '../../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../../services/apiClient.js';
 import { toast } from '../../store/toastStore.js';
 import { validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 import type { AdminUserItem } from '@finance/shared-types';
@@ -82,7 +82,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       onSuccess?.();
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to update password');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update password'));
     },
   });
 
@@ -109,7 +109,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       onSuccess?.();
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to change account status');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to change account status'));
     },
   });
 
@@ -128,7 +128,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       onSuccess?.();
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to revoke user sessions');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to revoke user sessions'));
     },
   });
 

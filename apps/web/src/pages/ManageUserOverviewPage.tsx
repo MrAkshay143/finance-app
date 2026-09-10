@@ -29,8 +29,9 @@ import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Input } from '../components/ui/Input.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 import { formatDateTime } from '../utils/date.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { AdminUserDetails, AdminUserItem } from '@finance/shared-types';
@@ -41,7 +42,6 @@ export const ManageUserOverviewPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tempPasswordModal, setTempPasswordModal] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -63,11 +63,6 @@ export const ManageUserOverviewPage: React.FC = () => {
 
   const user: AdminUserItem | undefined = userDetails?.user;
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
   const handleCopy = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldName);
@@ -83,10 +78,10 @@ export const ManageUserOverviewPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setIsEditModalOpen(false);
-      showToast('User record updated successfully');
+      toast.success('User record updated successfully');
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to update user');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update user'));
     },
   });
 
@@ -98,10 +93,10 @@ export const ManageUserOverviewPage: React.FC = () => {
     onSuccess: (res: any) => {
       const tempPass = res?.data?.temporaryPassword || res?.temporaryPassword || '';
       setTempPasswordModal(tempPass);
-      showToast('Temporary password generated');
+      toast.success('Temporary password generated');
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to reset password');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reset password'));
     },
   });
 
@@ -112,10 +107,10 @@ export const ManageUserOverviewPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
-      showToast('KBA security questions reset');
+      toast.success('Security questions reset successfully');
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to reset KBA');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reset security questions'));
     },
   });
 
@@ -129,7 +124,7 @@ export const ManageUserOverviewPage: React.FC = () => {
       navigate('/admin/users');
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to delete user');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete user'));
     },
   });
 
@@ -239,14 +234,6 @@ export const ManageUserOverviewPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Toast */}
-        {toastMessage && (
-          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
-
         {/* User Profile Card */}
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-5 shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-4 min-w-0">
@@ -486,7 +473,7 @@ export const ManageUserOverviewPage: React.FC = () => {
                   <HelpCircle className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-bold text-textDefault leading-tight">
-                  Reset KBA
+                  Reset Security Questions
                 </div>
                 <div className="text-[10px] text-textMuted leading-tight mt-0.5">
                   Reset security questions.
@@ -625,7 +612,7 @@ export const ManageUserOverviewPage: React.FC = () => {
               onClick={() => {
                 if (tempPasswordModal) {
                   navigator.clipboard.writeText(tempPasswordModal);
-                  showToast('Password copied to clipboard');
+                  toast.success('Password copied to clipboard');
                 }
               }}
               className="px-2.5 py-1 bg-brand-primary rounded-lg text-white font-sans text-[11px] font-bold hover:bg-blue-600"

@@ -1,6 +1,7 @@
 import { TxnType, RecurringStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
@@ -177,14 +178,7 @@ export class RecurringService {
     }
 
     // 3. Amount parsing
-    const amountPaise =
-      typeof data.amount === 'bigint'
-        ? data.amount
-        : BigInt(Math.round(Number(data.amount) * 100));
-
-    if (amountPaise <= BigInt(0)) {
-      throw new ValidationError('Amount must be positive');
-    }
+    const amountPaise = toPaise(data.amount);
 
     // 4. Initial nextOccurrence
     let nextOccurrence: Date;
@@ -261,9 +255,7 @@ export class RecurringService {
 
     const amountPaise =
       data.amount !== undefined
-        ? typeof data.amount === 'bigint'
-          ? data.amount
-          : BigInt(Math.round(Number(data.amount) * 100))
+        ? toPaise(data.amount)
         : existing.amount;
 
     const nextOccurrence =

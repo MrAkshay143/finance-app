@@ -23,7 +23,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
-import { formatCurrency, getCurrencySymbol } from '../../utils/currency.js';
+import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions } from '../../utils/currency.js';
 import { useUserCurrency } from '../../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
@@ -404,25 +404,10 @@ export const OnboardingWizard: React.FC = () => {
                   label="Annual Income Range"
                   value={incomeRange}
                   onChange={(e) => setIncomeRange(e.target.value)}
-                  options={
-                    userCurrency === 'INR'
-                      ? [
-                          { value: '', label: 'Select your income range...' },
-                          { value: 'Below ₹3,00,000', label: 'Below ₹3,00,000' },
-                          { value: '₹3,00,000 - ₹5,00,000', label: '₹3,00,000 - ₹5,00,000' },
-                          { value: '₹5,00,000 - ₹10,00,000', label: '₹5,00,000 - ₹10,00,000' },
-                          { value: '₹10,00,000 - ₹25,00,000', label: '₹10,00,000 - ₹25,00,000' },
-                          { value: 'Above ₹25,00,000', label: 'Above ₹25,00,000' },
-                        ]
-                      : [
-                          { value: '', label: 'Select your income range...' },
-                          { value: `Below ${getCurrencySymbol(userCurrency)}30,000`, label: `Below ${getCurrencySymbol(userCurrency)}30,000` },
-                          { value: `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000`, label: `${getCurrencySymbol(userCurrency)}30,000 - ${getCurrencySymbol(userCurrency)}60,000` },
-                          { value: `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000`, label: `${getCurrencySymbol(userCurrency)}60,000 - ${getCurrencySymbol(userCurrency)}100,000` },
-                          { value: `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000`, label: `${getCurrencySymbol(userCurrency)}100,000 - ${getCurrencySymbol(userCurrency)}250,000` },
-                          { value: `Above ${getCurrencySymbol(userCurrency)}250,000`, label: `Above ${getCurrencySymbol(userCurrency)}250,000` },
-                        ]
-                  }
+                  options={[
+                    { value: '', label: 'Select your income range...' },
+                    ...getIncomeBracketOptions(userCurrency),
+                  ]}
                 />
 
                 <Input

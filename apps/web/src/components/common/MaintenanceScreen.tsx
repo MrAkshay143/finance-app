@@ -54,7 +54,7 @@ export const MaintenanceScreen: React.FC = () => {
         {/* Status Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-xs font-semibold mb-6">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span>System Upgrades in Progress</span>
+          <span>System Update in Progress</span>
         </div>
 
         {/* Branded Icon Container */}
@@ -69,11 +69,11 @@ export const MaintenanceScreen: React.FC = () => {
 
         {/* Title & Message */}
         <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-          Scheduled Maintenance
+          System Update in Progress
         </h1>
 
         <p className="text-sm text-slate-300/90 mt-3 leading-relaxed max-w-sm">
-          {message || 'The platform is currently undergoing scheduled maintenance. All financial records and settings remain safe and secure.'}
+          {message || "We're performing a quick system update. Your accounts and data are completely safe."}
         </p>
 
         {/* Status check response feedback */}
@@ -91,7 +91,7 @@ export const MaintenanceScreen: React.FC = () => {
           className="mt-6 w-full py-3 px-4 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-100 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-60 cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin' : ''}`} />
-          <span>{isChecking ? 'Checking status...' : 'Check Status / Refresh'}</span>
+          <span>{isChecking ? 'Checking status...' : 'Check Again'}</span>
         </button>
 
         {/* Support & Details */}

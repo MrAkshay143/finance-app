@@ -510,15 +510,57 @@ export function createMockPrisma() {
         return { ...acc };
       }),
 
-      update: vi.fn(async ({ where, data }: any) => {
+      update: vi.fn(async ({ where, data, select }: any) => {
         const acc = accounts.get(where.id);
         if (!acc) throw new Error(`Account not found: ${where.id}`);
+
+        let currentBalance = acc.currentBalance ?? BigInt(0);
+        if (data.currentBalance !== undefined) {
+          if (typeof data.currentBalance === 'object' && data.currentBalance !== null) {
+            if ('increment' in data.currentBalance) {
+              currentBalance = BigInt(currentBalance) + BigInt(data.currentBalance.increment);
+            } else if ('decrement' in data.currentBalance) {
+              currentBalance = BigInt(currentBalance) - BigInt(data.currentBalance.decrement);
+            } else {
+              currentBalance = data.currentBalance;
+            }
+          } else {
+            currentBalance = BigInt(data.currentBalance);
+          }
+        }
+
+        let openingBalance = acc.openingBalance ?? BigInt(0);
+        if (data.openingBalance !== undefined) {
+          if (typeof data.openingBalance === 'object' && data.openingBalance !== null) {
+            if ('increment' in data.openingBalance) {
+              openingBalance = BigInt(openingBalance) + BigInt(data.openingBalance.increment);
+            } else if ('decrement' in data.openingBalance) {
+              openingBalance = BigInt(openingBalance) - BigInt(data.openingBalance.decrement);
+            } else {
+              openingBalance = data.openingBalance;
+            }
+          } else {
+            openingBalance = BigInt(data.openingBalance);
+          }
+        }
+
         const updated = {
           ...acc,
           ...data,
+          currentBalance,
+          openingBalance,
           updatedAt: new Date(),
         };
         accounts.set(where.id, updated);
+
+        if (select) {
+          const selected: any = {};
+          for (const key of Object.keys(select)) {
+            if (select[key]) selected[key] = updated[key];
+          }
+          return selected;
+        }
+
         return { ...updated };
       }),
     },
@@ -928,6 +970,21 @@ export function createMockPrisma() {
         const updated = { ...cat, ...data };
         categories.set(where.id, updated);
         return { ...updated };
+      }),
+
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        let count = 0;
+        for (const [id, c] of categories.entries()) {
+          let match = true;
+          if (where?.id && c.id !== where.id) match = false;
+          if (where?.userId !== undefined && c.userId !== where.userId) match = false;
+          if (where?.isSystem !== undefined && c.isSystem !== where.isSystem) match = false;
+          if (match) {
+            categories.set(id, { ...c, ...data });
+            count++;
+          }
+        }
+        return { count };
       }),
 
       delete: vi.fn(async ({ where }: any) => {
@@ -1692,5 +1749,6 @@ export function createMockPrisma() {
   return mockPrisma;
 }
 
-export const mockPrisma = createMockPrisma();
-export default mockPrisma;
+export const prismaTestAdapter = createMockPrisma();
+export const mockPrisma = prismaTestAdapter;
+export default prismaTestAdapter;

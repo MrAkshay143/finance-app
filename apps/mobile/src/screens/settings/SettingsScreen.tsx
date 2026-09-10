@@ -404,7 +404,7 @@ export const SettingsScreen: React.FC = () => {
                   <ShieldIcon size={18} color={colors.warning} />
                 </View>
                 <View style={styles.rowTextColumn}>
-                  <Text style={styles.rowLabel}>Security Questions (KBA)</Text>
+                  <Text style={styles.rowLabel}>Security Questions</Text>
                   <Text style={styles.rowSub}>
                     Setup or verify 3 recovery questions
                   </Text>

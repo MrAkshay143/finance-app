@@ -32,12 +32,13 @@ import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '@finance/shared-ui-tokens';
 import { Input } from '../components/ui/Input.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { UserSettings, UpdateUserSettingsInput } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
+import { syncOnSettingsMutation } from '../services/dataSync.js';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export const SettingsPage: React.FC = () => {
       toast.success(res?.message || 'Signed out of other sessions');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to sign out other sessions');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to sign out other sessions'));
     },
   });
 
@@ -134,14 +135,12 @@ export const SettingsPage: React.FC = () => {
       return (res as any)?.data || res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      syncOnSettingsMutation(queryClient);
       queryClient.invalidateQueries({ queryKey: ['fam'] });
       toast.success('Preferences updated successfully');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to update preferences');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update preferences'));
     },
   });
 
@@ -205,7 +204,7 @@ export const SettingsPage: React.FC = () => {
       toast.success('Profile and transactions reset cleanly');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to reset profile');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reset profile'));
     },
   });
 
@@ -220,7 +219,7 @@ export const SettingsPage: React.FC = () => {
       navigate('/login');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || 'Incorrect password';
+      const msg = getFriendlyErrorMessage(err, 'Incorrect password');
       setDeleteError(msg);
       toast.error(msg);
     },
@@ -244,7 +243,7 @@ export const SettingsPage: React.FC = () => {
       toast.success('Password updated successfully');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to update password';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update password');
       setPasswordError(msg);
       toast.error(msg);
     },

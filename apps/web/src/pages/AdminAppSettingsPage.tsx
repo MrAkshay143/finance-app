@@ -33,7 +33,7 @@ import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { Modal } from '../components/ui/Modal.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
@@ -115,7 +115,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       toast.success('Platform settings updated successfully');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to update settings');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update settings'));
     },
   });
 
@@ -128,7 +128,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       toast.success(res?.message || 'System cache cleared successfully');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to clear cache');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to clear cache'));
     },
   });
 
@@ -140,7 +140,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       toast.success(res?.message || 'Recurring transactions materialized successfully');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to run recurring transactions');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to run recurring transactions'));
     },
   });
 
@@ -161,7 +161,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       toast.success('Audit logs exported successfully');
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to export audit logs');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to export audit logs'));
     },
   });
 
@@ -175,7 +175,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       toast.success(`Purged ${res?.purgedCount ?? 0} audit logs older than ${res?.retentionDays ?? purgeRetentionDays} days`);
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to purge audit logs');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to purge audit logs'));
     },
   });
 

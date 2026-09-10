@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -23,7 +23,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
   let accountIdA2: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // Create User A
     const signupA = await request(app).post('/api/v1/auth/signup').send({
@@ -71,7 +71,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
   describe('Balance Invariant across Income, Expense, and Investment', () => {
     it('enforces balance invariant across CREATE, UPDATE, and SOFT-DELETE', async () => {
       // Step 1: Baseline check
-      const baseAcc = mockPrisma._state.accounts.get(accountIdA1);
+      const baseAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(baseAcc.currentBalance).toBe(BigInt(1000000)); // ₹10,000
 
       // Step 2: Add INCOME (+₹5,000) -> mapped to CREDIT
@@ -91,7 +91,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(incomeRes.body.data.amountPaise).toBe(500000);
 
       // Verify balance: 10,000 + 5,000 = 15,000 (1500000 paise)
-      let currentAcc = mockPrisma._state.accounts.get(accountIdA1);
+      let currentAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(currentAcc.currentBalance).toBe(BigInt(1500000));
 
       // Step 3: Add EXPENSE (-₹2,000) -> mapped to DEBIT
@@ -111,7 +111,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(expenseRes.body.data.merchant).toBe('SuperMart');
 
       // Verify balance: 15,000 - 2,000 = 13,000 (1300000 paise)
-      currentAcc = mockPrisma._state.accounts.get(accountIdA1);
+      currentAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(currentAcc.currentBalance).toBe(BigInt(1300000));
 
       // Step 4: Add INVESTMENT (-₹3,000) -> mapped to DEBIT
@@ -129,7 +129,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(investRes.body.data.direction).toBe('DEBIT');
 
       // Verify balance: 13,000 - 3,000 = 10,000 (1000000 paise)
-      currentAcc = mockPrisma._state.accounts.get(accountIdA1);
+      currentAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(currentAcc.currentBalance).toBe(BigInt(1000000));
 
       // Step 5: UPDATE the EXPENSE from ₹2,000 down to ₹1,000
@@ -146,7 +146,7 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(updateRes.body.data.amount).toBe(1000);
 
       // Verify balance recalculated: 10000 + 5000 - 1000 - 3000 = 11,000 (1100000 paise)
-      currentAcc = mockPrisma._state.accounts.get(accountIdA1);
+      currentAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(currentAcc.currentBalance).toBe(BigInt(1100000));
 
       // Step 6: SOFT-DELETE the INVESTMENT (-₹3,000)
@@ -159,20 +159,20 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(deleteRes.body.success).toBe(true);
 
       // Verify investment is marked DELETED in DB
-      const dbInvestTxn = mockPrisma._state.transactions.get(investId);
+      const dbInvestTxn = prismaTestAdapter._state.transactions.get(investId);
       expect(dbInvestTxn.status).toBe('DELETED');
 
       // Verify balance invariant: 10000 + 5000 - 1000 = 14,000 (1400000 paise)
-      currentAcc = mockPrisma._state.accounts.get(accountIdA1);
+      currentAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(currentAcc.currentBalance).toBe(BigInt(1400000));
 
       // Step 7: Direct invariant test via balanceService.recalculateAccountBalance
       const recalculated = await balanceService.recalculateAccountBalance(
-        mockPrisma as any,
+        prismaTestAdapter as any,
         accountIdA1
       );
       expect(recalculated).toBe(BigInt(1400000));
-      expect(mockPrisma._state.accounts.get(accountIdA1).currentBalance).toBe(BigInt(1400000));
+      expect(prismaTestAdapter._state.accounts.get(accountIdA1).currentBalance).toBe(BigInt(1400000));
     });
   });
 
@@ -204,16 +204,16 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       const creditTxnId = transferRes.body.data.creditTransactionId;
 
       // Verify source account balance decreased: 10,000 - 3,000 = 7,000 (700000 paise)
-      const srcAcc = mockPrisma._state.accounts.get(accountIdA1);
+      const srcAcc = prismaTestAdapter._state.accounts.get(accountIdA1);
       expect(srcAcc.currentBalance).toBe(BigInt(700000));
 
       // Verify destination account balance increased: 5,000 + 3,000 = 8,000 (800000 paise)
-      const dstAcc = mockPrisma._state.accounts.get(accountIdA2);
+      const dstAcc = prismaTestAdapter._state.accounts.get(accountIdA2);
       expect(dstAcc.currentBalance).toBe(BigInt(800000));
 
       // Verify debit and credit transactions exist and are linked
-      const debitTxn = mockPrisma._state.transactions.get(debitTxnId);
-      const creditTxn = mockPrisma._state.transactions.get(creditTxnId);
+      const debitTxn = prismaTestAdapter._state.transactions.get(debitTxnId);
+      const creditTxn = prismaTestAdapter._state.transactions.get(creditTxnId);
       expect(debitTxn.direction).toBe('DEBIT');
       expect(debitTxn.amount).toBe(BigInt(300000));
       expect(creditTxn.direction).toBe('CREDIT');
@@ -228,12 +228,12 @@ describe('TASK-2.1 & TASK-2.2: Transactions & Transfers Integration Tests', () =
       expect(deleteTransferRes.body.success).toBe(true);
 
       // Verify both transactions are marked DELETED
-      expect(mockPrisma._state.transactions.get(debitTxnId).status).toBe('DELETED');
-      expect(mockPrisma._state.transactions.get(creditTxnId).status).toBe('DELETED');
+      expect(prismaTestAdapter._state.transactions.get(debitTxnId).status).toBe('DELETED');
+      expect(prismaTestAdapter._state.transactions.get(creditTxnId).status).toBe('DELETED');
 
       // Verify both balances reverted back to opening balances
-      expect(mockPrisma._state.accounts.get(accountIdA1).currentBalance).toBe(BigInt(1000000));
-      expect(mockPrisma._state.accounts.get(accountIdA2).currentBalance).toBe(BigInt(500000));
+      expect(prismaTestAdapter._state.accounts.get(accountIdA1).currentBalance).toBe(BigInt(1000000));
+      expect(prismaTestAdapter._state.accounts.get(accountIdA2).currentBalance).toBe(BigInt(500000));
     });
 
     it('rejects transfer between identical source and destination accounts (422 VALIDATION_ERROR)', async () => {

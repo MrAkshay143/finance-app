@@ -21,7 +21,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
 import { useAuthStore } from '../store/authStore.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { toast } from '../store/toastStore.js';
 import { compressImageToWebP } from '../utils/imageCompressor.js';
 
@@ -122,7 +122,7 @@ export const ProfilePage: React.FC = () => {
       await fetchProfile();
       toast.success('Profile photo updated successfully');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to upload profile picture.';
+      const msg = getFriendlyErrorMessage(err, 'Failed to upload profile picture.');
       setAvatarError(msg);
       toast.error(msg);
     } finally {
@@ -142,7 +142,7 @@ export const ProfilePage: React.FC = () => {
       await fetchProfile();
       toast.success('Profile photo removed');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to remove profile photo');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to remove profile photo'));
     } finally {
       setIsUploadingAvatar(false);
     }

@@ -75,6 +75,7 @@ import type {
 
 export interface ApiClientConfig {
   baseURL?: string;
+  timeout?: number;
   getAccessToken?: () => string | null | Promise<string | null>;
   setAccessToken?: (token: string | null) => void | Promise<void>;
   getRefreshToken?: () => string | null | Promise<string | null>;
@@ -95,6 +96,7 @@ export class FinanceApiClient {
 
     this.client = axios.create({
       baseURL,
+      timeout: config.timeout ?? 15000,
       headers: {
         'Content-Type': 'application/json',
         'X-API-Version': '1',

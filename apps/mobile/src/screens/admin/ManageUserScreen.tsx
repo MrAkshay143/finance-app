@@ -141,7 +141,7 @@ export const ManageUserScreen: React.FC = () => {
         await apiClient.admin.resetUserKba(userId);
         triggerFeedback('Security questions reset. User must reconfigure on next login.');
       } catch (err: any) {
-        Alert.alert('Error', err?.response?.data?.error?.message || 'Failed to reset KBA questions.');
+        Alert.alert('Error', err?.response?.data?.error?.message || 'Failed to reset security questions.');
       } finally {
         setIsProcessing(false);
       }
@@ -411,14 +411,14 @@ export const ManageUserScreen: React.FC = () => {
                   pressed && styles.rowPressed,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Force Reset KBA Questions"
+                accessibilityLabel="Reset Security Questions"
               >
                 <View style={styles.actionRowLeft}>
                   <View style={styles.actionIconCircle}>
                     <KeyRoundIcon size={18} color={colors.warning} />
                   </View>
                   <View>
-                    <Text style={styles.actionRowTitle}>Force Reset KBA Questions</Text>
+                    <Text style={styles.actionRowTitle}>Reset Security Questions</Text>
                     <Text style={styles.actionRowSub}>
                       Requires reconfiguration on next user sign-in
                     </Text>

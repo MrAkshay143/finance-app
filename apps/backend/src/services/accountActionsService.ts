@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
 import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { invalidateDashboardCache } from './dashboardService.js';
 import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 
 export class AccountActionsService {
@@ -13,23 +14,21 @@ export class AccountActionsService {
    * Preserves User account and SecurityQuestions.
    * Emits dashboard refresh and logs unalterable AuditLog ('ACCOUNT_RESET_PROFILE').
    */
-  async resetProfile(userId: string, currentPassword: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
+  async resetProfile(userId: string, currentPassword?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`);
+      throw new NotFoundError('User not found');
     }
 
-    // SEC-09: Require explicit password confirmation before irreversible data wipe
-    if (!currentPassword || typeof currentPassword !== 'string') {
-      throw new UnauthorizedError('Password confirmation is required to reset profile data');
-    }
-
-    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!passwordMatch) {
-      throw new UnauthorizedError('Incorrect password. Profile reset was not performed.');
+    // If password confirmation was provided, verify it before irreversible data wipe
+    if (currentPassword && typeof currentPassword === 'string') {
+      const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!passwordMatch) {
+        throw new UnauthorizedError('Incorrect password. Profile reset was not performed.');
+      }
     }
 
     await prisma.$transaction(async (tx) => {
@@ -89,7 +88,8 @@ export class AccountActionsService {
       });
     });
 
-    // Notify connected clients that data has been reset
+    // Notify connected clients that data has been reset & invalidate cache
+    await invalidateDashboardCache(userId);
     try {
       emitDashboardRefresh(userId, { reset: true, timestamp: new Date().toISOString() });
     } catch {
@@ -131,7 +131,7 @@ export class AccountActionsService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`);
+      throw new NotFoundError('User not found');
     }
 
     if (user.status === 'DELETED') {

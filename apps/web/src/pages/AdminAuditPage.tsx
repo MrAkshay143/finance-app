@@ -26,11 +26,12 @@ import { Card } from '../components/ui/Card.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
 import { Pagination } from '../components/ui/Pagination.js';
 import { formatAuditAction, formatAuditActionLabel, getAuditCategoryBadge } from '../utils/auditFormatters.js';
+import { formatRelativeTime } from '../utils/date.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AdminAuditPage: React.FC = () => {
@@ -61,7 +62,7 @@ export const AdminAuditPage: React.FC = () => {
       URL.revokeObjectURL(url);
       toast.success('Audit logs exported successfully');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to export audit logs');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to export audit logs'));
     } finally {
       setIsExporting(false);
     }
@@ -156,20 +157,6 @@ export const AdminAuditPage: React.FC = () => {
         <ShieldCheck className="w-5 h-5" />
       </div>
     );
-  };
-
-  const formatRelativeTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const diffMs = Date.now() - d.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 0) return `${diffDays}d ago`;
-    if (diffHours > 0) return `${diffHours}h ago`;
-    if (diffMins > 0) return `${diffMins}m ago`;
-    return 'Just now';
   };
 
   const parseClientDevice = (userAgent?: string | null, ipAddress?: string | null) => {

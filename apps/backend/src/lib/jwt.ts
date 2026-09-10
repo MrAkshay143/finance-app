@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { env } from '../config/env.js';
+import { UnauthorizedError } from '../utils/errors.js';
 
 export interface AccessTokenPayload extends JwtPayload {
   sub: string;
@@ -106,7 +107,7 @@ export function signResetToken(payload: { userId: string; email: string }): stri
 export function verifyResetToken(token: string): { userId: string; email: string } {
   const decoded = jwt.verify(token, env.JWT_RESET_SECRET) as any;
   if (!decoded || decoded.type !== 'PASSWORD_RESET' || !decoded.sub) {
-    throw new Error('Invalid or expired password reset token');
+    throw new UnauthorizedError('Invalid or expired password reset token');
   }
   return { userId: decoded.sub, email: decoded.email };
 }

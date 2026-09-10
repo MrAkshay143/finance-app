@@ -48,7 +48,7 @@ function updateMemoryStore(key: string, windowMs: number): number {
 export function createRateLimiter(options: RateLimiterOptions = {}) {
   const windowMs = options.windowMs || 60 * 1000;
   const max = options.max || 100;
-  const message = options.message || 'Too many requests, please try again later';
+  const message = options.message || 'Too many attempts. Please try again shortly.';
   const defaultKeyGen = (req: Request) => {
     const ip =
       req.ip ||

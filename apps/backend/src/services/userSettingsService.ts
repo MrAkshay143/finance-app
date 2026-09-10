@@ -1,6 +1,8 @@
 import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
 import { NotFoundError } from '../utils/errors.js';
+import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
 
 export interface UserSettingsResponse {
   id?: string;
@@ -135,7 +137,7 @@ export class UserSettingsService {
         where: { id: userId },
       });
       if (!user) {
-        throw new NotFoundError(`User not found: ${userId}`);
+        throw new NotFoundError('User not found');
       }
 
       settings = await prisma.userSettings.create({
@@ -246,6 +248,11 @@ export class UserSettingsService {
       },
       ipAddress,
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return formatSettingsResponse(updated, userId);
   }

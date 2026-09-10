@@ -84,8 +84,8 @@ export const MenuScreen: React.FC = () => {
         },
         {
           id: 'security',
-          label: 'Security & KBA',
-          subtitle: 'Knowledge-based security questions and password',
+          label: 'Security Questions',
+          subtitle: 'Security questions and account recovery',
           icon: <ShieldIcon size={20} color={colors.warning} />,
           onPress: () => navigation.navigate('SecurityQuestions'),
         },

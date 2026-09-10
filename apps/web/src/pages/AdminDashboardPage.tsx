@@ -23,6 +23,7 @@ import { Pagination } from '../components/ui/Pagination.js';
 import { apiClient } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { AdminUserActionModal } from '../components/admin/AdminUserActionModal.js';
+import { formatRelativeTime } from '../utils/date.js';
 import type { AdminDashboardMetrics, AdminUserItem } from '@finance/shared-types';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -112,12 +113,8 @@ export const AdminDashboardPage: React.FC = () => {
 
   const formatLastActive = (user: AdminUserItem) => {
     if (!user.lastLoginAt) return 'Never logged in';
-    const diffMs = Date.now() - new Date(user.lastLoginAt).getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays > 0) return `Last active ${diffDays}d ago`;
-    if (diffHours > 0) return `Last active ${diffHours}h ago`;
-    return 'Last active recently';
+    const rel = formatRelativeTime(user.lastLoginAt);
+    return rel === 'just now' ? 'Last active recently' : `Last active ${rel}`;
   };
 
   const handleLogout = async () => {

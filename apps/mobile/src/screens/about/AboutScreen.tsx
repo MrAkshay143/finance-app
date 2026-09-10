@@ -41,7 +41,7 @@ export const AboutScreen: React.FC = () => {
   const guideSteps: StepGuide[] = [
     {
       num: '1',
-      title: 'Set up your basic profile & KBA',
+      title: 'Set up your profile & security questions',
       shortDesc: 'Configure personal details and security recovery questions',
       fullDesc:
         'Complete your profile details and set up 3 security questions for account recovery.',
@@ -93,7 +93,7 @@ export const AboutScreen: React.FC = () => {
     {
       id: 'badge-1',
       title: 'Zero-Trust Security',
-      desc: 'Multi-factor verification and KBA recovery with encrypted session handling.',
+      desc: 'Multi-factor verification and security question recovery with encrypted session handling.',
       icon: <ShieldIcon size={18} color={colors.primary} />,
     },
     {

@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
@@ -35,22 +36,6 @@ export function formatTransfer(transfer: any) {
 }
 
 export class TransferService {
-  /**
-   * Converts rupee amount to BigInt paise
-   */
-  toPaise(val: number | bigint): bigint {
-    if (typeof val === 'bigint') {
-      if (val <= BigInt(0)) {
-        throw new ValidationError('Amount must be positive');
-      }
-      return val;
-    }
-    const num = Number(val);
-    if (isNaN(num) || num <= 0) {
-      throw new ValidationError('Amount must be a positive number');
-    }
-    return BigInt(Math.round(num * 100));
-  }
 
   /**
    * Creates a dual-leg transfer between two distinct accounts owned by the user.
@@ -61,7 +46,7 @@ export class TransferService {
    */
   async createTransfer(userId: string, data: CreateTransferData) {
     if (data.sourceAccountId === data.destinationAccountId) {
-      throw new ValidationError('Source and destination accounts must be distinct');
+      throw new ValidationError('Please choose two different accounts.');
     }
 
     // Validate account ownership
@@ -90,7 +75,7 @@ export class TransferService {
       throw new ValidationError('Destination account is inactive');
     }
 
-    const amountPaise = this.toPaise(data.amount);
+    const amountPaise = toPaise(data.amount);
     const txnDate = data.txnDate
       ? new Date(data.txnDate)
       : data.date

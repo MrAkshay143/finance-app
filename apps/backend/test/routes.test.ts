@@ -66,7 +66,7 @@ describe('API Routes & Middleware Stack Verification', () => {
         success: false,
         error: {
           code: 'RATE_LIMITED',
-          message: 'Too many requests, please try again later',
+          message: expect.stringMatching(/Too many (requests|attempts)/i),
         },
       });
       expect(limitedRes.headers['retry-after']).toBeDefined();
@@ -128,7 +128,7 @@ describe('API Routes & Middleware Stack Verification', () => {
         success: false,
         error: {
           code: 'NOT_FOUND',
-          message: 'Route GET /nonexistent-route not found',
+          message: 'Resource not found.',
         },
       });
     });
@@ -147,7 +147,7 @@ describe('API Routes & Middleware Stack Verification', () => {
         success: false,
         error: {
           code: 'SERVER_ERROR',
-          message: 'Internal Server Error',
+          message: 'Something went wrong. Please try again.',
         },
       });
       // Ensure stack trace and internal error message are NOT present in the response

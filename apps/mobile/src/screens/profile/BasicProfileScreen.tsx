@@ -373,13 +373,13 @@ export const BasicProfileScreen: React.FC = () => {
             style={({ pressed }) => [styles.kbaRow, pressed && styles.itemPressed]}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel="Security Questions KBA Setup"
+            accessibilityLabel="Security Questions Setup"
           >
             <View style={styles.kbaIconSquare}>
               <HelpCircleIcon size={20} color={kbaConfigured ? '#1F9D55' : '#E23D3D'} />
             </View>
             <View style={styles.kbaTextContainer}>
-              <Text style={styles.kbaTitle}>Security Questions (KBA)</Text>
+              <Text style={styles.kbaTitle}>Security Questions</Text>
               <Text style={styles.kbaSubtitle}>
                 {kbaConfigured
                   ? 'Configured: answers enable secure recovery'

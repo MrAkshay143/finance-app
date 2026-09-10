@@ -373,16 +373,16 @@ Once started via Docker, the web application is accessible at http://localhost:3
 
 ---
 
-## Default Test Credentials
+## Default Local Credentials
+ 
+Initial test accounts can be configured via environment variables in your local `.env` file (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `STANDARD_USER_EMAIL`, `STANDARD_USER_PASSWORD`):
 
-The database seeder provisions both Administrator and standard Consumer accounts for local testing:
-
-| User Type | Email | Password | Default Redirect |
+| User Type | Configured Via (.env) | Default Local Testing Value | Default Redirect |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `contact@imakshay.in` | `Pass@12345` | `/admin` (Admin Panel) |
-| **Standard Consumer** | `akshay@gmail.com` | `Akshay@12345` | `/dashboard` (User Dashboard) |
+| **System Administrator** | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Configured in local `.env` | `/admin` (Admin Panel) |
+| **Standard User** | `STANDARD_USER_EMAIL` / `STANDARD_USER_PASSWORD` | Configured in local `.env` | `/dashboard` (User Dashboard) |
 
-The login page (/login) automatically routes authenticated users to either the Admin Panel or Consumer Dashboard based on their assigned role.
+The login page (/login) automatically routes authenticated users to either the Admin Panel or User Dashboard based on their assigned role.
 
 ---
 

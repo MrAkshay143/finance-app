@@ -53,7 +53,7 @@ PUBLIC_DIR=public
 On the Hostinger console or terminal:
 ```bash
 npx prisma db push --schema=prisma/schema.mysql.prisma
-node dist/seed-realworld.js
+node dist/seedData.js
 ```
 
 ### Step 6: Restart and Verify

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -22,7 +22,7 @@ describe('TASK-3.2: Planning (Budgets & Goals), Categories & Merchants APIs', ()
   let systemExpenseCategoryId: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // Create User A
     const signupA = await request(app).post('/api/v1/auth/signup').send({
@@ -346,9 +346,9 @@ describe('TASK-3.2: Planning (Budgets & Goals), Categories & Merchants APIs', ()
       expect(reorderRes.body.success).toBe(true);
 
       // Verify new sortOrder
-      const cat0 = mockPrisma._state.categories.get(reversedIds[0]);
-      const cat1 = mockPrisma._state.categories.get(reversedIds[1]);
-      const cat2 = mockPrisma._state.categories.get(reversedIds[2]);
+      const cat0 = prismaTestAdapter._state.categories.get(reversedIds[0]);
+      const cat1 = prismaTestAdapter._state.categories.get(reversedIds[1]);
+      const cat2 = prismaTestAdapter._state.categories.get(reversedIds[2]);
 
       expect(cat0.sortOrder).toBe(1);
       expect(cat1.sortOrder).toBe(2);

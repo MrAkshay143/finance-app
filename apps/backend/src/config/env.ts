@@ -55,6 +55,13 @@ export function createEnvSchema(sourceEnv: Record<string, string | undefined> = 
       LOG_LEVEL: z
         .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
         .default('info'),
+      ADMIN_EMAIL: z.string().email().optional(),
+      ADMIN_PASSWORD: z.string().min(12, 'ADMIN_PASSWORD must be at least 12 characters').optional(),
+      ADMIN_MOBILE: z.string().optional(),
+      STANDARD_USER_EMAIL: z.string().email().optional(),
+      STANDARD_USER_PASSWORD: z.string().min(8, 'STANDARD_USER_PASSWORD must be at least 8 characters').optional(),
+      USER_EMAIL: z.string().email().optional(),
+      USER_PASSWORD: z.string().min(8, 'USER_PASSWORD must be at least 8 characters').optional(),
     })
     .refine(
       (data) => {

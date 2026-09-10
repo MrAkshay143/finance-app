@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -20,7 +20,7 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
   let adminId: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // 1. Create a regular user
     const userRes = await request(app).post('/api/v1/auth/signup').send({
@@ -42,11 +42,11 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
     adminToken = adminRes.body.data.tokens.accessToken;
     adminId = adminRes.body.data.user.id;
 
-    // Elevate admin user in mockPrisma
-    const adminUser = mockPrisma._state.users.get(adminId);
+    // Elevate admin user in prismaTestAdapter
+    const adminUser = prismaTestAdapter._state.users.get(adminId);
     if (adminUser) {
       adminUser.role = 'ADMIN';
-      mockPrisma._state.users.set(adminId, adminUser);
+      prismaTestAdapter._state.users.set(adminId, adminUser);
     }
 
     // Re-issue admin token with ADMIN role
@@ -162,7 +162,7 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
       expect(res.body.data.status).toBe('SUSPENDED');
 
       // Verify audit log entry was created
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ADMIN_USER_UPDATE' && l.targetUserId === userId
       );
       expect(auditEntry).toBeDefined();
@@ -179,7 +179,7 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
       expect(res.body.data.temporaryPassword).toBeDefined();
       expect(typeof res.body.data.temporaryPassword).toBe('string');
 
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ADMIN_RESET_PASSWORD' && l.targetUserId === userId
       );
       expect(auditEntry).toBeDefined();
@@ -212,7 +212,7 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
         .set('Authorization', `Bearer ${userToken}`);
       expect(qRes.body.data.length).toBe(0);
 
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ADMIN_RESET_KBA' && l.targetUserId === userId
       );
       expect(auditEntry).toBeDefined();
@@ -226,10 +226,10 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
 
-      const target = mockPrisma._state.users.get(userId);
+      const target = prismaTestAdapter._state.users.get(userId);
       expect(target.status).toBe('DELETED');
 
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ADMIN_DELETE_USER' && l.targetUserId === userId
       );
       expect(auditEntry).toBeDefined();
@@ -259,7 +259,7 @@ describe('TASK-5.2 & TASK-5.1: Admin Suite & Audit Logs Integration Tests', () =
       expect(patchRes.body.data.sessionTimeoutMinutes).toBe(30);
       expect(patchRes.body.data.maxFailedAttempts).toBe(3);
 
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ADMIN_APP_SETTINGS_UPDATE'
       );
       expect(auditEntry).toBeDefined();

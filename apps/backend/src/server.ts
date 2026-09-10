@@ -8,7 +8,7 @@ import { initRedis, closeRedis } from './lib/redis.js';
 import { prisma } from './lib/prisma.js';
 import { hashPassword } from './lib/jwt.js';
 import { categoryService } from './services/categoryService.js';
-import { seedRealWorldData } from './seed-realworld.js';
+import { seedInstitutionalData } from './seedData.js';
 
 // Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md Section 11
 initSentry('backend-api');
@@ -51,12 +51,16 @@ async function ensureDatabaseSchema() {
   }
 }
 
-// Ensure at least one admin user exists. Creates initial admin or unlocks/syncs if required.
-// Reads initial credentials from ADMIN_EMAIL / ADMIN_PASSWORD env vars with safe defaults.
+// Ensure at least one admin user exists if ADMIN_EMAIL & ADMIN_PASSWORD are provided in environment.
 async function ensureAdminUser() {
   try {
-    const adminEmail = (process.env.ADMIN_EMAIL || 'contact@imakshay.in').toLowerCase().trim();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Password123';
+    const adminEmail = (env.ADMIN_EMAIL || process.env.ADMIN_EMAIL)?.toLowerCase().trim();
+    const adminPassword = env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      logger.debug('ADMIN_EMAIL or ADMIN_PASSWORD not configured, skipping admin provisioning');
+      return;
+    }
 
     if (adminPassword.length < 12) {
       logger.warn('ADMIN_PASSWORD is too short (min 12 chars) - skipping admin provisioning for security');
@@ -93,7 +97,7 @@ async function ensureAdminUser() {
         email: adminEmail,
         firstName: 'Admin',
         lastName: 'User',
-        mobileNumber: process.env.ADMIN_MOBILE || '',
+        mobileNumber: env.ADMIN_MOBILE || process.env.ADMIN_MOBILE || '',
         passwordHash,
         role: 'ADMIN',
         status: 'ACTIVE',
@@ -125,13 +129,29 @@ async function ensureAdminUser() {
   }
 }
 
-// Ensure initial standard user exists with populated institutional financial dataset.
-// Only creates if user akshay@gmail.com does not already exist in the database.
-async function ensureDemoUser() {
+// Ensure initial standard user exists if configured in environment variables.
+async function ensureStandardUser() {
   try {
-    const demoEmail = (process.env.DEMO_USER_EMAIL || 'akshay@gmail.com').toLowerCase().trim();
+    const standardUserEmail = (
+      env.STANDARD_USER_EMAIL ||
+      env.USER_EMAIL ||
+      process.env.STANDARD_USER_EMAIL ||
+      process.env.USER_EMAIL
+    )?.toLowerCase().trim();
+
+    const standardUserPassword =
+      env.STANDARD_USER_PASSWORD ||
+      env.USER_PASSWORD ||
+      process.env.STANDARD_USER_PASSWORD ||
+      process.env.USER_PASSWORD;
+
+    if (!standardUserEmail || !standardUserPassword) {
+      logger.debug('STANDARD_USER_EMAIL or STANDARD_USER_PASSWORD not configured, skipping initial user provisioning');
+      return;
+    }
+
     const existing = await prisma.user.findUnique({
-      where: { email: demoEmail },
+      where: { email: standardUserEmail },
     });
     if (existing) {
       if (existing.lockedUntil || existing.failedLoginAttempts > 0) {
@@ -143,13 +163,13 @@ async function ensureDemoUser() {
           },
         });
       }
-      logger.debug('Standard user already exists, skipping auto-provisioning');
+      logger.debug('Standard user already exists, preserving existing data and skipping auto-provisioning');
       return;
     }
 
-    logger.info(`Provisioning initial standard user (${demoEmail}) with institutional dataset...`);
-    await seedRealWorldData(prisma);
-    logger.info(`Standard user (${demoEmail}) successfully provisioned.`);
+    logger.info(`Provisioning initial standard user (${standardUserEmail}) with initial dataset...`);
+    await seedInstitutionalData(prisma, standardUserEmail);
+    logger.info(`Standard user (${standardUserEmail}) successfully provisioned.`);
   } catch (err: any) {
     logger.warn({ err: err?.message }, 'Failed to provision initial standard user on startup');
   }
@@ -163,7 +183,7 @@ async function bootstrapInitialData() {
       logger.warn({ err: err?.message }, 'Failed to auto-provision system categories on startup');
     });
     await ensureAdminUser();
-    await ensureDemoUser();
+    await ensureStandardUser();
   } catch (err: any) {
     logger.warn({ err: err?.message }, 'Initial startup bootstrap encountered an error');
   }

@@ -6,12 +6,12 @@ import { isDenylisted } from '../lib/tokenDenylist.js';
 export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new UnauthorizedError('Missing or invalid Authorization header'));
+    return next(new UnauthorizedError('Session expired. Please sign in.'));
   }
 
   const token = authHeader.substring(7).trim();
   if (!token) {
-    return next(new UnauthorizedError('Token is empty'));
+    return next(new UnauthorizedError('Session expired. Please sign in.'));
   }
 
   try {
@@ -19,7 +19,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 
     // Reject password reset tokens or any token not explicitly typed as ACCESS (SEC-04)
     if (payload.type && payload.type !== 'ACCESS') {
-      return next(new UnauthorizedError('Invalid token type'));
+      return next(new UnauthorizedError('Invalid session. Please sign in.'));
     }
 
     // Check if token jti or token itself is denylisted
@@ -36,9 +36,9 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     next();
   } catch (err: any) {
     if (err.name === 'TokenExpiredError') {
-      return next(new UnauthorizedError('Access token expired'));
+      return next(new UnauthorizedError('Session expired. Please sign in.'));
     }
-    return next(new UnauthorizedError('Invalid or malformed access token'));
+    return next(new UnauthorizedError('Session expired. Please sign in.'));
   }
 }
 

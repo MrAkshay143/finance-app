@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
-import { apiClient } from '../../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../../services/apiClient.js';
 import { toast } from '../../store/toastStore.js';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 
@@ -82,10 +82,7 @@ export const ForgotPasswordPage: React.FC = () => {
       }
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        err?.message ||
-        'No account found with this email or security questions not configured.'
+        getFriendlyErrorMessage(err, 'No account found with this email or security questions not configured.')
       );
     } finally {
       setIsLoading(false);
@@ -125,10 +122,7 @@ export const ForgotPasswordPage: React.FC = () => {
       }
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        err?.message ||
-        'Incorrect answers. Please check your answers and try again.'
+        getFriendlyErrorMessage(err, 'Incorrect answers. Please check your answers and try again.')
       );
     } finally {
       setIsLoading(false);
@@ -171,10 +165,7 @@ export const ForgotPasswordPage: React.FC = () => {
       }, 2500);
     } catch (err: any) {
       setErrorMessage(
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        err?.message ||
-        'Failed to reset password. Please try again.'
+        getFriendlyErrorMessage(err, 'Failed to reset password. Please try again.')
       );
     } finally {
       setIsLoading(false);
@@ -383,7 +374,7 @@ export const ForgotPasswordPage: React.FC = () => {
           {/* Security Notice */}
           <div className="py-2 px-3 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
-            <span>KBA verification backed by bcrypt hashed credentials.</span>
+            <span>Protected by end-to-end encrypted security verification.</span>
           </div>
 
           {/* Back to Login Link */}

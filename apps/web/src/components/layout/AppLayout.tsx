@@ -4,6 +4,7 @@ import { BottomNav } from './BottomNav.js';
 import { AddTransactionPickerModal } from '../finance/AddTransactionPickerModal.js';
 import { TransactionFormModal } from '../finance/TransactionFormModal.js';
 import { InstallAppBanner } from './InstallAppBanner.js';
+import { useRealtimeSync } from '../../hooks/useRealtimeSync.js';
 
 export interface AppLayoutProps {
   children?: React.ReactNode;
@@ -12,6 +13,9 @@ export interface AppLayoutProps {
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Real-time synchronization active across all layout pages
+  useRealtimeSync();
 
   useEffect(() => {
     window.scrollTo(0, 0);

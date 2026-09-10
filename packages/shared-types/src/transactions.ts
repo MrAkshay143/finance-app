@@ -8,7 +8,7 @@ export const TransactionSchema = z.object({
   categoryId: z.string().uuid().nullable().optional(),
   type: TxnTypeSchema,
   direction: TxnDirectionSchema,
-  amount: z.number().int().positive('Amount in paise must be positive'),
+  amount: z.number().int().positive('Amount must be greater than zero.'),
   date: z.string().datetime(),
   description: z.string().max(255),
   merchant: z.string().max(100).nullable().optional(),

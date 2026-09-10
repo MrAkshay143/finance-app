@@ -4,24 +4,40 @@ import { createClient } from 'redis';
 import { categoryService } from './services/categoryService.js';
 import { prisma as sharedPrisma } from './lib/prisma.js';
 
-export async function seedRealWorldData(prismaClient?: PrismaClient) {
+export async function seedInstitutionalData(
+  prismaClient?: PrismaClient,
+  targetEmail?: string,
+  options?: { force?: boolean }
+) {
   const prisma = prismaClient || sharedPrisma;
-  console.log('Starting real-world institutional data seeding for akshay@gmail.com...');
+  const email = (
+    targetEmail ||
+    process.env.STANDARD_USER_EMAIL ||
+    process.env.USER_EMAIL ||
+    'akshay@gmail.com'
+  ).toLowerCase().trim();
+  console.log(`Starting real-world institutional data initialization for ${email}...`);
 
   // 1. Locate User or create if missing
   let user = await prisma.user.findUnique({
-    where: { email: 'akshay@gmail.com' },
+    where: { email },
   });
 
   if (!user) {
-    console.log('User akshay@gmail.com does not exist. Creating demo user...');
-    const passwordHash = await bcrypt.hash('Akshay@12345', 10);
+    console.log(`User ${email} does not exist. Creating user...`);
+    const standardPassword =
+      process.env.STANDARD_USER_PASSWORD ||
+      process.env.USER_PASSWORD;
+    if (!standardPassword) {
+      throw new Error('STANDARD_USER_PASSWORD or USER_PASSWORD environment variable is required to provision user.');
+    }
+    const passwordHash = await bcrypt.hash(standardPassword, 10);
     user = await prisma.user.create({
       data: {
-        email: 'akshay@gmail.com',
+        email,
         firstName: 'Akshay',
         lastName: 'Mondal',
-        mobileNumber: '+919876543210',
+        mobileNumber: process.env.ADMIN_MOBILE || '+919876543210',
         passwordHash,
         role: UserRole.USER,
         status: UserStatus.ACTIVE,
@@ -32,6 +48,34 @@ export async function seedRealWorldData(prismaClient?: PrismaClient) {
 
   const userId = user.id;
   console.log(`Found user: ${user.firstName} ${user.lastName} (${user.email}) [${userId}]`);
+
+  // Safeguard check: if akshay@gmail.com (or target user) already has accounts or transactions in the database, abort wiping data unless --force or OVERWRITE_EXISTING_DATA=true is set
+  const isForce =
+    Boolean(options?.force) ||
+    process.argv.includes('--force') ||
+    process.env.OVERWRITE_EXISTING_DATA === 'true' ||
+    process.env.OVERWRITE_EXISTING_DATA === '1';
+
+  if (!isForce) {
+    const existingAccounts = await prisma.account.count({ where: { userId } });
+    const existingTransactions = await prisma.transaction.count({ where: { userId } });
+
+    let akshayExistingCount = 0;
+    if (email !== 'akshay@gmail.com') {
+      const akshayUser = await prisma.user.findUnique({ where: { email: 'akshay@gmail.com' } });
+      if (akshayUser) {
+        const aAccts = await prisma.account.count({ where: { userId: akshayUser.id } });
+        const aTxns = await prisma.transaction.count({ where: { userId: akshayUser.id } });
+        akshayExistingCount = aAccts + aTxns;
+      }
+    }
+
+    if (existingAccounts > 0 || existingTransactions > 0 || akshayExistingCount > 0) {
+      console.warn(`[SAFEGUARD] User ${email} or akshay@gmail.com already has existing accounts/transactions in database.`);
+      console.warn('[SAFEGUARD] Aborting data wipe and seed to protect real data. Use --force or OVERWRITE_EXISTING_DATA=true to overwrite.');
+      return;
+    }
+  }
 
   // 2. Update User basic info & mark onboarding completed
   user = await prisma.user.update({
@@ -790,20 +834,26 @@ export async function seedRealWorldData(prismaClient?: PrismaClient) {
   console.log('Security Status: 100% (3 KBA questions set)');
 }
 
+export const seedRealWorldData = seedInstitutionalData;
+
 const isDirectExecution =
   typeof process !== 'undefined' &&
   process.argv[1] &&
-  (process.argv[1].endsWith('seed-realworld.ts') ||
+  (process.argv[1].endsWith('seedData.ts') ||
+    process.argv[1].endsWith('seedData.js') ||
+    process.argv[1].includes('seedData') ||
+    process.argv[1].endsWith('seed-realworld.ts') ||
     process.argv[1].endsWith('seed-realworld.js') ||
     process.argv[1].includes('seed-realworld'));
 
 if (isDirectExecution) {
-  seedRealWorldData()
+  seedInstitutionalData()
     .catch((e) => {
-      console.error('Real-world seeding error:', e);
+      console.error('Data seeding error:', e);
       process.exit(1);
     })
     .finally(async () => {
       await sharedPrisma.$disconnect();
     });
 }
+

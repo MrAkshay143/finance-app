@@ -4,6 +4,8 @@ import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import { logAuditEvent } from './auditService.js';
+import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
 
 export interface UpdateBasicProfileData {
   firstName?: string;
@@ -209,6 +211,11 @@ export class ProfileService {
       details: { firstName, lastName, mobileNumber: normalizedMobile },
     });
 
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
+
     return this.getProfile(userId);
   }
 
@@ -339,6 +346,11 @@ export class ProfileService {
         investmentTargetProvided: data.monthlyInvestmentTarget !== undefined,
       },
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return this.getProfile(userId);
   }

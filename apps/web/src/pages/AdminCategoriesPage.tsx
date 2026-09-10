@@ -21,7 +21,7 @@ import { Modal } from '../components/ui/Modal.js';
 import { Pagination } from '../components/ui/Pagination.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { MetricCardSkeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { toast } from '../store/toastStore.js';
 import type { Category, TxnType } from '@finance/shared-types';
 
@@ -69,7 +69,7 @@ export const AdminCategoriesPage: React.FC = () => {
       toast.success('System category created successfully');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to create category';
+      const msg = getFriendlyErrorMessage(err, 'Failed to create category');
       toast.error(msg);
     },
   });
@@ -91,7 +91,7 @@ export const AdminCategoriesPage: React.FC = () => {
       toast.success('System category updated successfully');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to update category';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update category');
       toast.error(msg);
     },
   });
@@ -106,7 +106,7 @@ export const AdminCategoriesPage: React.FC = () => {
       toast.success('System category deleted successfully');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to delete category';
+      const msg = getFriendlyErrorMessage(err, 'Failed to delete category');
       toast.error(msg);
     },
   });

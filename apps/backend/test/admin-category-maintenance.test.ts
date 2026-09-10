@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -31,7 +31,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
   });
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
     invalidateMaintenanceCache();
 
     // 1. Create a regular user
@@ -53,11 +53,11 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
     });
     adminId = adminRes.body.data.user.id;
 
-    // Elevate admin user in mockPrisma
-    const adminUser = mockPrisma._state.users.get(adminId);
+    // Elevate admin user in prismaTestAdapter
+    const adminUser = prismaTestAdapter._state.users.get(adminId);
     if (adminUser) {
       adminUser.role = 'ADMIN';
-      mockPrisma._state.users.set(adminId, adminUser);
+      prismaTestAdapter._state.users.set(adminId, adminUser);
     }
 
     // Re-issue admin token with ADMIN role
@@ -102,7 +102,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
       expect(res.body.data.userId).toBeNull();
 
       // Verify audit log
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l: any) => l.action === 'ADMIN_CATEGORY_CREATE'
       );
       expect(auditEntry).toBeDefined();
@@ -145,7 +145,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
       expect(res.body.data.sortOrder).toBe(99);
 
       // Verify audit log
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l: any) => l.action === 'ADMIN_CATEGORY_UPDATE'
       );
       expect(auditEntry).toBeDefined();
@@ -165,7 +165,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
       const catId = createRes.body.data.id;
 
       // Create an account & transaction linked to this category
-      const acc = await mockPrisma.account.create({
+      const acc = await prismaTestAdapter.account.create({
         data: {
           userId,
           name: 'Checking',
@@ -174,7 +174,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
           currentBalance: BigInt(100000),
         },
       });
-      const txn = await mockPrisma.transaction.create({
+      const txn = await prismaTestAdapter.transaction.create({
         data: {
           userId,
           accountId: acc.id,
@@ -196,15 +196,15 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
       expect(delRes.body.success).toBe(true);
 
       // Verify category is deleted
-      const catCheck = await mockPrisma.category.findUnique({ where: { id: catId } });
+      const catCheck = await prismaTestAdapter.category.findUnique({ where: { id: catId } });
       expect(catCheck).toBeNull();
 
       // Verify transaction categoryId was safely set to null
-      const updatedTxn = await mockPrisma.transaction.findUnique({ where: { id: txn.id } });
+      const updatedTxn = await prismaTestAdapter.transaction.findUnique({ where: { id: txn.id } });
       expect(updatedTxn.categoryId).toBeNull();
 
       // Verify audit log
-      const auditEntry = mockPrisma._state.auditLogs.find(
+      const auditEntry = prismaTestAdapter._state.auditLogs.find(
         (l: any) => l.action === 'ADMIN_CATEGORY_DELETE'
       );
       expect(auditEntry).toBeDefined();
@@ -248,7 +248,7 @@ describe('Admin System Category & Maintenance Mode APIs', () => {
       await categoryService.ensureSystemCategories();
 
       // Verify sortOrder remained 888
-      const catCheck = await mockPrisma.category.findUnique({ where: { id: firstCat.id } });
+      const catCheck = await prismaTestAdapter.category.findUnique({ where: { id: firstCat.id } });
       expect(catCheck.sortOrder).toBe(888);
     });
   });

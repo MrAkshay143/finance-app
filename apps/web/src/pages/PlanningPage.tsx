@@ -25,12 +25,13 @@ import { Select } from '../components/ui/Select.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { MetricCardSkeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
 import { formatDate } from '../utils/date.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Category } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
+import { syncOnBudgetMutation, syncOnGoalMutation } from '../services/dataSync.js';
 
 export interface Budget {
   id: string;
@@ -146,14 +147,13 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      syncOnBudgetMutation(queryClient);
       setIsAddBudgetOpen(false);
       resetBudgetForm();
       toast.success('Budget created successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to create budget';
+      const msg = getFriendlyErrorMessage(err, 'Failed to create budget');
       setBudgetError(msg);
       toast.error(msg);
     },
@@ -165,14 +165,13 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      syncOnBudgetMutation(queryClient);
       setIsEditBudgetOpen(false);
       resetBudgetForm();
       toast.success('Budget updated successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to update budget';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update budget');
       setBudgetError(msg);
       toast.error(msg);
     },
@@ -184,13 +183,12 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      syncOnBudgetMutation(queryClient);
       setDeleteConfirm(null);
       toast.success('Budget deleted successfully');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete budget');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete budget'));
     },
   });
 
@@ -201,13 +199,13 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      syncOnGoalMutation(queryClient);
       setIsAddGoalOpen(false);
       resetGoalForm();
       toast.success('Goal created successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to create goal';
+      const msg = getFriendlyErrorMessage(err, 'Failed to create goal');
       setGoalError(msg);
       toast.error(msg);
     },
@@ -219,13 +217,13 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      syncOnGoalMutation(queryClient);
       setIsEditGoalOpen(false);
       resetGoalForm();
       toast.success('Goal updated successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to update goal';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update goal');
       setGoalError(msg);
       toast.error(msg);
     },
@@ -237,12 +235,12 @@ export const PlanningPage: React.FC = () => {
       return res.data?.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      syncOnGoalMutation(queryClient);
       setDeleteConfirm(null);
       toast.success('Goal deleted successfully');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete goal');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete goal'));
     },
   });
 
@@ -482,9 +480,9 @@ export const PlanningPage: React.FC = () => {
             ) : budgets.length === 0 ? (
               <EmptyState
                 icon={<PieChartIcon className="w-7 h-7 stroke-[1.8]" />}
-                title="No active budgets configured"
-                description="Set category spending limits to optimize your FAM score."
-                actionLabel="Add Monthly Budget"
+                title="No budgets set"
+                description="Set category limits to track monthly spending."
+                actionLabel="Add Budget"
                 actionIcon={<Plus className="w-4 h-4" />}
                 onAction={openAddBudgetModal}
               />
@@ -667,9 +665,9 @@ export const PlanningPage: React.FC = () => {
             ) : goals.length === 0 ? (
               <EmptyState
                 icon={<Target className="w-7 h-7 stroke-[1.8]" />}
-                title="No financial goals set"
-                description="Set milestone targets and target dates to track your savings."
-                actionLabel="Create Financial Goal"
+                title="No goals yet"
+                description="Set savings targets and dates to track milestones."
+                actionLabel="Add Goal"
                 actionIcon={<Plus className="w-4 h-4" />}
                 onAction={openAddGoalModal}
               />

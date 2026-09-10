@@ -29,9 +29,10 @@ import { Select } from '../components/ui/Select.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { MetricCardSkeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
+import { syncOnCategoryMutation, syncOnMerchantMutation } from '../services/dataSync.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Category, Merchant, TxnType } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
@@ -123,13 +124,13 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.categories.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      syncOnCategoryMutation(queryClient);
       setIsAddCategoryOpen(false);
       resetCategoryForm();
       toast.success('Category created successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to create category';
+      const msg = getFriendlyErrorMessage(err, 'Failed to create category');
       setCategoryError(msg);
       toast.error(msg);
     },
@@ -140,13 +141,13 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.categories.update(id, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      syncOnCategoryMutation(queryClient);
       setIsEditCategoryOpen(false);
       resetCategoryForm();
       toast.success('Category updated successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to update category';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update category');
       setCategoryError(msg);
       toast.error(msg);
     },
@@ -157,12 +158,12 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.categories.delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      syncOnCategoryMutation(queryClient);
       setDeleteConfirm(null);
       toast.success('Category deleted successfully');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete category');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete category'));
     },
   });
 
@@ -171,11 +172,11 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.categories.reorder(categoryIds);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      syncOnCategoryMutation(queryClient);
       toast.success('Categories reordered');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || err.message || 'Failed to reorder categories');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reorder categories'));
     },
   });
 
@@ -185,13 +186,13 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.merchants.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merchants'] });
+      syncOnMerchantMutation(queryClient);
       setIsAddMerchantOpen(false);
       resetMerchantForm();
       toast.success('Merchant created successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to create merchant';
+      const msg = getFriendlyErrorMessage(err, 'Failed to create merchant');
       setMerchantError(msg);
       toast.error(msg);
     },
@@ -202,13 +203,13 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.merchants.update(id, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merchants'] });
+      syncOnMerchantMutation(queryClient);
       setIsEditMerchantOpen(false);
       resetMerchantForm();
       toast.success('Merchant updated successfully');
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.message || 'Failed to update merchant';
+      const msg = getFriendlyErrorMessage(err, 'Failed to update merchant');
       setMerchantError(msg);
       toast.error(msg);
     },
@@ -219,12 +220,12 @@ export const CategoriesPage: React.FC = () => {
       return await apiClient.merchants.delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['merchants'] });
+      syncOnMerchantMutation(queryClient);
       setDeleteMerchantConfirm(null);
       toast.success('Merchant deleted successfully');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || err.message || 'Failed to delete merchant');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete merchant'));
     },
   });
 
@@ -493,7 +494,7 @@ export const CategoriesPage: React.FC = () => {
             ) : filteredCategories.length === 0 ? (
               <EmptyState
                 icon={<Tag className="w-7 h-7 stroke-[1.8]" />}
-                title="No categories found"
+                title="No categories yet"
                 description="Create custom categories to organize your financial records."
                 actionLabel="Add Category"
                 actionIcon={<Plus className="w-4 h-4" />}
@@ -659,7 +660,7 @@ export const CategoriesPage: React.FC = () => {
             ) : merchants.length === 0 ? (
               <EmptyState
                 icon={<Store className="w-7 h-7 stroke-[1.8]" />}
-                title="No merchants recorded"
+                title="No merchants yet"
                 description="Merchants appear as you add transactions, or add one manually."
                 actionLabel="Add Merchant"
                 actionIcon={<Plus className="w-4 h-4" />}

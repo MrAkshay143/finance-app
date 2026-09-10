@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
-import { validateEmail, validateConfirmPassword } from '../../utils/validation.js';
+import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,39 +37,39 @@ export const SignupPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   const emailResult = validateEmail(email);
+  const passwordResult = validatePassword(password);
   const confirmResult = validateConfirmPassword(password, confirmPassword);
 
   useEffect(() => {
     clearError();
   }, [clearError]);
 
-  // Password strength calculations
-  const passwordCriteria = useMemo(() => {
-    return {
-      minLength: password.length >= 8,
-      hasUpper: /[A-Z]/.test(password),
-      hasLower: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecial: /[^A-Za-z0-9]/.test(password),
-    };
-  }, [password]);
+  const strengthDetails = useMemo(() => {
+    if (!password) {
+      return { segmentCount: 0, barColor: 'bg-slate-200', textColor: 'text-slate-400' };
+    }
+    switch (passwordResult.strengthLabel) {
+      case 'Strong':
+        return { segmentCount: 4, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' };
+      case 'Good':
+        return { segmentCount: 3, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' };
+      case 'Fair':
+        return { segmentCount: 2, barColor: 'bg-amber-500', textColor: 'text-amber-600' };
+      case 'Weak':
+      default:
+        return { segmentCount: 1, barColor: 'bg-rose-500', textColor: 'text-rose-600' };
+    }
+  }, [password, passwordResult.strengthLabel]);
 
-  const strengthScore = useMemo(() => {
-    let score = 0;
-    if (passwordCriteria.minLength) score += 1;
-    if (passwordCriteria.hasUpper) score += 1;
-    if (passwordCriteria.hasLower) score += 1;
-    if (passwordCriteria.hasNumber) score += 1;
-    if (passwordCriteria.hasSpecial) score += 1;
-    return score;
-  }, [passwordCriteria]);
-
-  const strengthLabel = useMemo(() => {
-    if (!password) return { label: 'Not Entered', color: 'bg-slate-200', text: 'text-slate-400', width: '0%' };
-    if (strengthScore <= 2) return { label: 'Weak', color: 'bg-red-500', text: 'text-red-500', width: '33%' };
-    if (strengthScore <= 4) return { label: 'Medium', color: 'bg-amber-500', text: 'text-amber-500', width: '66%' };
-    return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-500', width: '100%' };
-  }, [password, strengthScore]);
+  const passwordCriteriaList = useMemo(() => {
+    return [
+      { label: '8+ characters', met: passwordResult.criteria.minLength },
+      { label: 'Uppercase (A-Z)', met: passwordResult.criteria.hasUpper },
+      { label: 'Lowercase (a-z)', met: passwordResult.criteria.hasLower },
+      { label: 'One number (0-9)', met: passwordResult.criteria.hasNumber },
+      { label: 'Special symbol (!@#$) (optional)', met: passwordResult.criteria.hasSpecial },
+    ];
+  }, [passwordResult.criteria]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -93,10 +93,8 @@ export const SignupPage: React.FC = () => {
 
     if (!password) {
       errs.password = 'Password is required';
-    } else if (password.length < 8) {
-      errs.password = 'Password must be at least 8 characters';
-    } else if (!passwordCriteria.hasUpper || !passwordCriteria.hasLower || !passwordCriteria.hasNumber) {
-      errs.password = 'Password must include uppercase, lowercase, and a number';
+    } else if (!passwordResult.isValid) {
+      errs.password = passwordResult.message || 'Password does not meet requirements';
     }
 
     if (!confirmPassword) {
@@ -233,81 +231,133 @@ export const SignupPage: React.FC = () => {
               error={validationErrors.mobileNumber}
             />
 
-            {/* Password and Confirm Password Row (2 columns) */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="relative">
-                <Input
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="At least 8 chars"
-                  value={password}
-                  disabled={isLoading}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (validationErrors.password) {
-                      setValidationErrors((prev) => ({ ...prev, password: undefined }));
-                    }
-                  }}
-                  error={validationErrors.password}
-                  icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-2.5 top-8 text-slate-400 hover:text-slate-600 rounded-md p-1"
-                >
-                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-              </div>
+            {/* Row 1: Full-width Password Field with clean eye toggle */}
+            <div className="space-y-2">
+              <Input
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="At least 8 characters"
+                value={password}
+                disabled={isLoading}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (validationErrors.password) {
+                    setValidationErrors((prev) => ({ ...prev, password: undefined }));
+                  }
+                }}
+                error={validationErrors.password}
+                icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 focus:outline-none transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
+                autoComplete="new-password"
+              />
 
-              <div className="relative">
-                <Input
-                  label="Confirm Password"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  required
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  disabled={isLoading}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    if (validationErrors.confirmPassword) {
-                      setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-                    }
-                  }}
-                  error={validationErrors.confirmPassword || (confirmPassword && !confirmResult.isValid ? 'Passwords do not match' : undefined)}
-                  icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
-                  className="absolute right-2.5 top-8 text-slate-400 hover:text-slate-600 rounded-md p-1"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
+              {/* Below Row 1: Interactive 4-Segment Strength Meter & 2-Column Criteria Checklist */}
+              <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-medium text-slate-600">Password Strength</span>
+                  <span
+                    className={`text-[11px] font-bold ${
+                      password ? strengthDetails.textColor : 'text-slate-400'
+                    }`}
+                  >
+                    {password ? passwordResult.strengthLabel : 'Not entered'}
+                  </span>
+                </div>
+
+                {/* 4-Segment Strength Bar */}
+                <div className="grid grid-cols-4 gap-1.5 h-1.5">
+                  {[1, 2, 3, 4].map((seg) => (
+                    <div
+                      key={seg}
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        password && seg <= strengthDetails.segmentCount
+                          ? strengthDetails.barColor
+                          : 'bg-slate-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* 2-Column Criteria Checklist */}
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
+                  {passwordCriteriaList.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                      {item.met ? (
+                        <span className="w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        </span>
+                      ) : (
+                        <span className="w-3.5 h-3.5 rounded-full border border-slate-300 bg-slate-100 shrink-0" />
+                      )}
+                      <span
+                        className={`truncate ${
+                          item.met ? 'text-slate-700 font-medium' : 'text-slate-400'
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Compact Password Strength Indicator */}
-            {password.length > 0 && (
-              <div className="flex items-center justify-between text-[11px] px-1 py-0.5">
-                <div className="flex items-center gap-1.5 flex-1 mr-3">
-                  <div className="flex-1 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${strengthLabel.color}`}
-                      style={{ width: strengthLabel.width }}
-                    />
-                  </div>
-                </div>
-                <span className={`font-semibold shrink-0 ${strengthLabel.text}`}>
-                  {strengthLabel.label}
-                </span>
-              </div>
-            )}
+            {/* Row 2: Full-width Confirm Password Field with real-time matching feedback */}
+            <div>
+              <Input
+                label="Confirm Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                disabled={isLoading}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (validationErrors.confirmPassword) {
+                    setValidationErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                  }
+                }}
+                error={
+                  confirmPassword
+                    ? !confirmResult.isValid
+                      ? 'Passwords do not match'
+                      : undefined
+                    : validationErrors.confirmPassword
+                }
+                status={
+                  confirmPassword
+                    ? confirmResult.isValid
+                      ? 'valid'
+                      : 'invalid'
+                    : validationErrors.confirmPassword
+                    ? 'invalid'
+                    : 'idle'
+                }
+                validMessage={confirmPassword && confirmResult.isValid ? 'Passwords match' : undefined}
+                icon={<Lock className="w-3.5 h-3.5 text-slate-400" />}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 focus:outline-none transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
+                autoComplete="new-password"
+              />
+            </div>
 
             {/* Submit Button */}
             <Button

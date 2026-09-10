@@ -32,9 +32,13 @@ services:
       - key: JWT_RESET_SECRET
         generateValue: true
       - key: ADMIN_EMAIL
-        value: contact@imakshay.in
+        sync: false
       - key: ADMIN_PASSWORD
-        value: Admin@Password123
+        sync: false
+      - key: STANDARD_USER_EMAIL
+        sync: false
+      - key: STANDARD_USER_PASSWORD
+        sync: false
       - key: CORS_ALLOWED_ORIGINS
         value: "*"
 

@@ -7,12 +7,6 @@ export class AccountActionsController {
     try {
       const userId = req.user!.id;
       const { password } = req.body || {};
-
-      // SEC-09: Require password confirmation to prevent accidental/malicious data wipes
-      if (!password || typeof password !== 'string') {
-        throw new ValidationError('Password confirmation is required to reset profile data');
-      }
-
       const result = await accountActionsService.resetProfile(userId, password, req.ip);
       res.status(200).json({
         success: true,

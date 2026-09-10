@@ -32,6 +32,8 @@ export {
   saveKbaCache,
 };
 
+export { getFriendlyErrorMessage } from '@finance/api-client';
+
 function getApiBase(): string {
   if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
     return `${(window as any).__FINANCE_API_URL__.replace(/\/$/, '')}/api/v1`;

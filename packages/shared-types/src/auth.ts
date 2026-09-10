@@ -1,14 +1,32 @@
 import { z } from 'zod';
 import { UserRoleSchema, UserStatusSchema } from './enums.js';
 
+export const PASSWORD_REQUIREMENTS_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+
+export const PasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number');
+
+export const AVAILABLE_SECURITY_QUESTIONS = [
+  { key: 'first_pet', question: 'What was the name of your first pet?', text: 'What was the name of your first pet?' },
+  { key: 'mother_maiden_name', question: "What is your mother's maiden name?", text: "What is your mother's maiden name?" },
+  { key: 'elementary_school', question: 'What elementary school did you attend?', text: 'What elementary school did you attend?' },
+  { key: 'first_school', question: 'What was the name of your first school?', text: 'What was the name of your first school?' },
+  { key: 'birth_city', question: 'In what city were you born?', text: 'In what city were you born?' },
+  { key: 'favorite_book', question: 'What is your favorite book?', text: 'What is the title of your favorite book?' },
+  { key: 'first_car', question: 'What was the make of your first car?', text: 'What was the make or model of your first car?' },
+  { key: 'childhood_street', question: 'What street did you grow up on?', text: 'What street did you grow up on?' },
+  { key: 'childhood_hero', question: 'Who was your childhood hero?', text: 'Who was your childhood hero?' },
+] as const;
+
+export type SecurityQuestionKey = typeof AVAILABLE_SECURITY_QUESTIONS[number]['key'];
+
 export const SignupInputSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+  password: PasswordSchema,
   fullName: z.string().min(2, 'Full name must be at least 2 characters').optional(),
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().optional(),
@@ -69,7 +87,7 @@ export const SecurityQuestionAnswerSchema = z.object({
   questionKey: z.string().optional(),
   answer: z.string().min(1, 'Answer is required').transform(a => a.trim().toLowerCase()),
 }).refine(data => !!(data.questionId || data.questionKey), {
-  message: 'questionKey or questionId is required',
+  message: 'Please select a security question.',
   path: ['questionKey'],
 });
 export type SecurityQuestionAnswer = z.infer<typeof SecurityQuestionAnswerSchema>;
@@ -93,21 +111,16 @@ export const SecurityQuestionsVerifySchema = z.object({
   questions: z.array(SecurityQuestionAnswerSchema).optional(),
 }).refine(data => {
   const list = data.answers || data.questions;
-  return Array.isArray(list) && list.length === 3;
+  return Array.isArray(list) && list.length >= 1 && list.length <= 3;
 }, {
-  message: 'Exactly 3 security question answers must be provided',
+  message: 'At least one answer must be provided (up to 3)',
   path: ['answers'],
 });
 export type SecurityQuestionsVerify = z.infer<typeof SecurityQuestionsVerifySchema>;
 
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z
-    .string()
-    .min(8, 'New password must be at least 8 characters')
-    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'New password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'New password must contain at least one number'),
+  newPassword: PasswordSchema,
 });
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 
@@ -130,11 +143,6 @@ export type ForgotPasswordVerifyInput = z.infer<typeof ForgotPasswordVerifyInput
 
 export const ResetPasswordInputSchema = z.object({
   resetToken: z.string().min(1, 'Reset token is required'),
-  newPassword: z
-    .string()
-    .min(8, 'New password must be at least 8 characters')
-    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'New password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'New password must contain at least one number'),
+  newPassword: PasswordSchema,
 });
 export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;

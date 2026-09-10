@@ -371,8 +371,8 @@ describe('Accounts Dashboard & Centralized Transaction System Test Suite (TASK-2
 
     it('renders empty state when accounts list has zero accounts', () => {
       const html = renderWithProviders(<AccountsPage />, '/', 'empty');
-      expect(html).toContain('No accounts connected');
-      expect(html).toContain('You have not added any bank accounts');
+      expect(html).toContain('No accounts yet');
+      expect(html).toContain('Add your first bank, card, or cash wallet to get started.');
     });
 
     it('renders loading skeletons when query is loading', () => {

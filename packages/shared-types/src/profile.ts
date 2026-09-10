@@ -29,7 +29,7 @@ export const DateOfBirthSchema = z.string().or(z.date()).refine(
     return d <= minAgeDate;
   },
   {
-    message: 'Date of birth must indicate an age of at least 16 years and cannot be in the future',
+    message: 'You must be at least 16 years old.',
   }
 );
 

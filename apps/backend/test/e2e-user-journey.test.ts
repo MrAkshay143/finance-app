@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -35,7 +35,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
   // Step 1: Signup & Account Creation
   describe('1. Signup & Account Creation', () => {
     it('creates user account, issues JWT access and refresh tokens with httpOnly cookie', async () => {
-      mockPrisma.clearAll();
+      prismaTestAdapter.clearAll();
 
       const signupRes = await request(app)
         .post('/api/v1/auth/signup')
@@ -75,7 +75,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       userId = user.id;
 
       // Verify default userSettings in DB
-      const settings = mockPrisma._state.userSettings.get(userId);
+      const settings = prismaTestAdapter._state.userSettings.get(userId);
       expect(settings).toBeDefined();
       expect(settings.currency).toBe('INR');
       expect(settings.timezone).toBe('Asia/Kolkata');
@@ -141,7 +141,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(financeRes.body.data.financeProfile.savingsTarget).toBe(1000000);
 
       // Verify BigInt paise in database state
-      const dbProfile = mockPrisma._state.financeProfiles.get(userId);
+      const dbProfile = prismaTestAdapter._state.financeProfiles.get(userId);
       expect(typeof dbProfile.monthlyIncome).toBe('bigint');
       expect(dbProfile.monthlyIncome).toBe(BigInt(12000000)); // ₹1,20,000 * 100
       expect(dbProfile.monthlyExpenseBudget).toBe(BigInt(5000000)); // ₹50,000 * 100
@@ -149,7 +149,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(dbProfile.savingsTarget).toBe(BigInt(100000000)); // ₹10,00,000 * 100
 
       // Verify onboarding completion status
-      const dbUser = mockPrisma._state.users.get(userId);
+      const dbUser = prismaTestAdapter._state.users.get(userId);
       expect(dbUser.onboardingCompleted).toBe(true);
     });
 
@@ -193,7 +193,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(setupRes.body.data.configured).toBe(true);
 
       // Verify DB storage uses bcrypt hashes and never plaintext
-      const storedQuestions = Array.from(mockPrisma._state.securityQuestions.values()).filter(
+      const storedQuestions = Array.from(prismaTestAdapter._state.securityQuestions.values()).filter(
         (q: any) => q.userId === userId
       );
       expect(storedQuestions.length).toBe(3);
@@ -280,7 +280,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       accountId1 = acc1Res.body.data.id;
 
       // Verify DB stores opening and current balance as BigInt 10,000,000 paise
-      const dbAcc1 = mockPrisma._state.accounts.get(accountId1);
+      const dbAcc1 = prismaTestAdapter._state.accounts.get(accountId1);
       expect(dbAcc1.openingBalance).toBe(BigInt(10000000));
       expect(dbAcc1.currentBalance).toBe(BigInt(10000000));
     });
@@ -306,7 +306,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       accountId2 = acc2Res.body.data.id;
 
       // Verify DB stores opening and current balance as BigInt 5,000,000 paise
-      const dbAcc2 = mockPrisma._state.accounts.get(accountId2);
+      const dbAcc2 = prismaTestAdapter._state.accounts.get(accountId2);
       expect(dbAcc2.openingBalance).toBe(BigInt(5000000));
       expect(dbAcc2.currentBalance).toBe(BigInt(5000000));
     });
@@ -386,7 +386,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(incomeRes.body.data.amountPaise).toBe(12000000);
 
       // Verify Account 1 Balance: ₹1,00,000 + ₹1,20,000 = ₹2,20,000 (22,000,000 paise)
-      const dbAcc1 = mockPrisma._state.accounts.get(accountId1);
+      const dbAcc1 = prismaTestAdapter._state.accounts.get(accountId1);
       expect(dbAcc1.currentBalance).toBe(BigInt(22000000));
     });
 
@@ -409,7 +409,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(expenseRes.body.data.amountPaise).toBe(1500000);
 
       // Verify Account 1 Balance: ₹2,20,000 - ₹15,000 = ₹2,05,000 (20,500,000 paise)
-      const dbAcc1 = mockPrisma._state.accounts.get(accountId1);
+      const dbAcc1 = prismaTestAdapter._state.accounts.get(accountId1);
       expect(dbAcc1.currentBalance).toBe(BigInt(20500000));
     });
 
@@ -432,7 +432,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(investRes.body.data.amountPaise).toBe(4000000);
 
       // Verify Account 1 Balance: ₹2,05,000 - ₹40,000 = ₹1,65,000 (16,500,000 paise)
-      const dbAcc1 = mockPrisma._state.accounts.get(accountId1);
+      const dbAcc1 = prismaTestAdapter._state.accounts.get(accountId1);
       expect(dbAcc1.currentBalance).toBe(BigInt(16500000));
     });
 
@@ -455,11 +455,11 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(transferRes.body.data.destinationAccountId).toBe(accountId2);
 
       // Account 1: ₹1,65,000 - ₹30,000 = ₹1,35,000 (13,500,000 paise)
-      const dbAcc1 = mockPrisma._state.accounts.get(accountId1);
+      const dbAcc1 = prismaTestAdapter._state.accounts.get(accountId1);
       expect(dbAcc1.currentBalance).toBe(BigInt(13500000));
 
       // Account 2: ₹50,000 + ₹30,000 = ₹80,000 (8,000,000 paise)
-      const dbAcc2 = mockPrisma._state.accounts.get(accountId2);
+      const dbAcc2 = prismaTestAdapter._state.accounts.get(accountId2);
       expect(dbAcc2.currentBalance).toBe(BigInt(8000000));
 
       // Single-paise balance invariant check:
@@ -686,7 +686,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
 
     it('materializes due recurring transactions via BullMQ worker, debits balance, and advances schedule', async () => {
       // Baseline balance before materialization: Account 1 is ₹1,35,000 (13,500,000 paise)
-      const baseAcc = mockPrisma._state.accounts.get(accountId1);
+      const baseAcc = prismaTestAdapter._state.accounts.get(accountId1);
       expect(baseAcc.currentBalance).toBe(BigInt(13500000));
 
       // Trigger materialization as of 2026-09-05 (due was 2026-09-01)
@@ -694,11 +694,11 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(matResult.materializedCount).toBeGreaterThanOrEqual(1);
 
       // Verify Account 1 balance debited by ₹5,000 -> ₹1,30,000 (13,000,000 paise)
-      const updatedAcc = mockPrisma._state.accounts.get(accountId1);
+      const updatedAcc = prismaTestAdapter._state.accounts.get(accountId1);
       expect(updatedAcc.currentBalance).toBe(BigInt(13000000));
 
       // Verify recurring transaction nextOccurrence advanced
-      const recItem = mockPrisma._state.recurringTransactions.get(recurringId);
+      const recItem = prismaTestAdapter._state.recurringTransactions.get(recurringId);
       expect(new Date(recItem.nextOccurrence).getMonth()).toBe(9); // Advanced to October (month 9, 0-indexed)
 
       // Test processRecurringJob runner
@@ -828,23 +828,23 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(resetRes.body.data.message).toMatch(/reset/i);
 
       // Verify User record still exists and active
-      const user = mockPrisma._state.users.get(userId);
+      const user = prismaTestAdapter._state.users.get(userId);
       expect(user).toBeDefined();
       expect(user.status).toBe('ACTIVE');
 
       // Verify KBA questions preserved
-      const kbaQuestions = Array.from(mockPrisma._state.securityQuestions.values()).filter(
+      const kbaQuestions = Array.from(prismaTestAdapter._state.securityQuestions.values()).filter(
         (q: any) => q.userId === userId
       );
       expect(kbaQuestions.length).toBe(3);
 
       // Verify transactional data wiped
-      const userAccounts = Array.from(mockPrisma._state.accounts.values()).filter(
+      const userAccounts = Array.from(prismaTestAdapter._state.accounts.values()).filter(
         (a: any) => a.userId === userId
       );
       expect(userAccounts.length).toBe(0);
 
-      const userBudgets = Array.from(mockPrisma._state.budgets.values()).filter(
+      const userBudgets = Array.from(prismaTestAdapter._state.budgets.values()).filter(
         (b: any) => b.userId === userId
       );
       expect(userBudgets.length).toBe(0);
@@ -870,7 +870,7 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       expect(correctPassRes.body.success).toBe(true);
 
       // Verify user status is DELETED in DB
-      const user = mockPrisma._state.users.get(userId);
+      const user = prismaTestAdapter._state.users.get(userId);
       expect(user.status).toBe('DELETED');
 
       // Subsequent login must be rejected
@@ -912,11 +912,11 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
       });
       adminId = adminRes.body.data.user.id;
 
-      // Elevate admin role in mockPrisma
-      const adminUser = mockPrisma._state.users.get(adminId);
+      // Elevate admin role in prismaTestAdapter
+      const adminUser = prismaTestAdapter._state.users.get(adminId);
       if (adminUser) {
         adminUser.role = 'ADMIN';
-        mockPrisma._state.users.set(adminId, adminUser);
+        prismaTestAdapter._state.users.set(adminId, adminUser);
       }
 
       // Login as admin to get token with ADMIN role

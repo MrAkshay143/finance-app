@@ -19,6 +19,7 @@ import {
   Sliders,
   HelpCircle,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -27,8 +28,9 @@ import { Input } from '../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient } from '../services/apiClient.js';
+import { getFriendlyErrorMessage } from '@finance/api-client';
 import { toast } from '../store/toastStore.js';
-import { validatePassword, validateConfirmPassword } from '../utils/validation.js';
+import { validatePassword, validateConfirmPassword, generateSecurePassword } from '../utils/validation.js';
 import { formatDateTime } from '../utils/date.js';
 
 export const AdminProfilePage: React.FC = () => {
@@ -54,26 +56,45 @@ export const AdminProfilePage: React.FC = () => {
   const passwordCheck = validatePassword(newPassword);
   const confirmCheck = validateConfirmPassword(newPassword, confirmPassword);
 
-  // Password strength calculation matching consumer standards
-  const strengthLabel = useMemo(() => {
-    if (!newPassword) return { label: 'Not Entered', color: 'bg-slate-200', text: 'text-slate-400', width: '0%' };
-    const score = passwordCheck.score;
-    if (score <= 2) return { label: 'Weak', color: 'bg-rose-500', text: 'text-rose-600', width: '25%' };
-    if (score === 3) return { label: 'Fair', color: 'bg-amber-500', text: 'text-amber-600', width: '50%' };
-    if (score === 4) return { label: 'Good', color: 'bg-blue-500', text: 'text-blue-600', width: '75%' };
-    return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600', width: '100%' };
-  }, [newPassword, passwordCheck.score]);
+  // Password strength calculation matching SignupPage standards
+  const strengthDetails = useMemo(() => {
+    if (!newPassword) {
+      return { segmentCount: 0, barColor: 'bg-slate-200', textColor: 'text-slate-400' };
+    }
+    switch (passwordCheck.strengthLabel) {
+      case 'Strong':
+        return { segmentCount: 4, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' };
+      case 'Good':
+        return { segmentCount: 3, barColor: 'bg-emerald-500', textColor: 'text-emerald-600' };
+      case 'Fair':
+        return { segmentCount: 2, barColor: 'bg-amber-500', textColor: 'text-amber-600' };
+      case 'Weak':
+      default:
+        return { segmentCount: 1, barColor: 'bg-rose-500', textColor: 'text-rose-600' };
+    }
+  }, [newPassword, passwordCheck.strengthLabel]);
 
-  // Real-time password criteria checklist
+  // Real-time password criteria checklist matching SignupPage
   const passwordCriteriaList = useMemo(() => {
     return [
       { label: '8+ characters', met: passwordCheck.criteria.minLength },
-      { label: 'Uppercase letter (A-Z)', met: passwordCheck.criteria.hasUpper },
-      { label: 'Lowercase letter (a-z)', met: passwordCheck.criteria.hasLower },
-      { label: 'Number (0-9)', met: passwordCheck.criteria.hasNumber },
-      { label: 'Special symbol (!@#$%...)', met: passwordCheck.criteria.hasSpecial },
+      { label: 'Uppercase (A-Z)', met: passwordCheck.criteria.hasUpper },
+      { label: 'Lowercase (a-z)', met: passwordCheck.criteria.hasLower },
+      { label: 'One number (0-9)', met: passwordCheck.criteria.hasNumber },
+      { label: 'Special symbol (!@#$)', met: passwordCheck.criteria.hasSpecial },
     ];
   }, [passwordCheck.criteria]);
+
+  // Password generator handler
+  const handleGeneratePassword = () => {
+    const generated = generateSecurePassword(16);
+    setNewPassword(generated);
+    setConfirmPassword(generated);
+    setShowNewPassword(true);
+    setShowConfirmPassword(true);
+    navigator.clipboard.writeText(generated).catch(() => {});
+    toast.success('Secure password generated and copied to clipboard');
+  };
 
   // Mutation: Update Profile Details
   const updateProfileMutation = useMutation({
@@ -113,7 +134,7 @@ export const AdminProfilePage: React.FC = () => {
       setConfirmPassword('');
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to change password');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to change password'));
     },
   });
 
@@ -290,21 +311,36 @@ export const AdminProfilePage: React.FC = () => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 icon={<Lock className="w-4 h-4 text-slate-400" />}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 focus:outline-none transition-colors"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-3 top-8 text-slate-400 hover:text-slate-600 p-1"
-              >
-                {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
             </div>
 
             {/* New Password */}
-            <div className="relative">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="admin-new-password" className="block text-xs font-semibold text-textDefault">
+                  New Password
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGeneratePassword}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-primary hover:text-blue-700 transition-colors focus:outline-none"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Generate Secure Password</span>
+                </button>
+              </div>
               <Input
-                label="New Password"
+                id="admin-new-password"
                 type={showNewPassword ? 'text' : 'password'}
                 required
                 placeholder="At least 8 characters"
@@ -314,63 +350,68 @@ export const AdminProfilePage: React.FC = () => {
                 validMessage={passwordCheck.message}
                 error={newPassword && !passwordCheck.isValid ? passwordCheck.message : undefined}
                 icon={<Lock className="w-4 h-4 text-slate-400" />}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 focus:outline-none transition-colors"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                aria-label={showNewPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-3 top-8 text-slate-400 hover:text-slate-600 p-1"
-              >
-                {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
             </div>
 
-            {/* Compact Password Strength Indicator */}
-            {newPassword.length > 0 && (
-              <div className="space-y-1.5 pt-0.5">
-                <div className="flex items-center justify-between text-[11px] px-0.5">
-                  <span className="text-slate-500 font-medium">Password Strength</span>
-                  <span className={`font-semibold shrink-0 ${strengthLabel.text}`}>
-                    {strengthLabel.label}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${strengthLabel.color}`}
-                    style={{ width: strengthLabel.width }}
-                  />
-                </div>
+            {/* Interactive 4-Segment Strength Meter & 2-Column Criteria Checklist matching SignupPage */}
+            <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[11px] font-medium text-slate-600">Password Strength</span>
+                <span
+                  className={`text-[11px] font-bold ${
+                    newPassword ? strengthDetails.textColor : 'text-slate-400'
+                  }`}
+                >
+                  {newPassword ? passwordCheck.strengthLabel : 'Not entered'}
+                </span>
               </div>
-            )}
 
-            {/* Criteria Checklist (5 requirements matching user app) */}
-            {newPassword.length > 0 && (
-              <div className="p-3 bg-slate-50/80 rounded-xl border border-borderDefault/80 space-y-1.5">
-                <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">
-                  Requirements
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {passwordCriteriaList.map((item) => (
-                    <div key={item.label} className="flex items-center gap-1.5 text-[11px]">
-                      <div
-                        className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                          item.met ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-400'
-                        }`}
-                      >
-                        {item.met ? (
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        ) : (
-                          <span className="w-1 h-1 rounded-full bg-slate-400" />
-                        )}
-                      </div>
-                      <span className={item.met ? 'text-slate-700 font-medium' : 'text-slate-400'}>
-                        {item.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              {/* 4-Segment Strength Bar */}
+              <div className="grid grid-cols-4 gap-1.5 h-1.5">
+                {[1, 2, 3, 4].map((seg) => (
+                  <div
+                    key={seg}
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      newPassword && seg <= strengthDetails.segmentCount
+                        ? strengthDetails.barColor
+                        : 'bg-slate-200'
+                    }`}
+                  />
+                ))}
               </div>
-            )}
+
+              {/* 2-Column Criteria Checklist */}
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
+                {passwordCriteriaList.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                    {item.met ? (
+                      <span className="w-3.5 h-3.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </span>
+                    ) : (
+                      <span className="w-3.5 h-3.5 rounded-full border border-slate-300 bg-slate-100 shrink-0" />
+                    )}
+                    <span
+                      className={`truncate ${
+                        item.met ? 'text-slate-700 font-medium' : 'text-slate-400'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Confirm Password */}
             <div className="relative">
@@ -382,18 +423,20 @@ export const AdminProfilePage: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 status={confirmPassword ? (confirmCheck.isValid ? 'valid' : 'invalid') : 'idle'}
-                validMessage="Passwords match"
+                validMessage={confirmPassword && confirmCheck.isValid ? 'Passwords match' : undefined}
                 error={confirmPassword && !confirmCheck.isValid ? confirmCheck.message : undefined}
                 icon={<Lock className="w-4 h-4 text-slate-400" />}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 focus:outline-none transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                aria-label={showConfirmPassword ? 'Hide confirmation password' : 'Show confirmation password'}
-                className="absolute right-3 top-8 text-slate-400 hover:text-slate-600 p-1"
-              >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
             </div>
 
             <div className="pt-1">

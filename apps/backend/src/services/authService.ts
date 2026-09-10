@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { env } from '../config/env.js';
 import { prisma } from '../lib/prisma.js';
 import {
   hashPassword,
@@ -133,7 +134,6 @@ export class AuthService {
     });
     const defaultCurrency = typeof currSetting?.value === 'string' ? currSetting.value : 'INR';
 
-    // Hash password
     const passwordHash = await hashPassword(data.password);
 
     // Create user along with default UserSettings and FinanceProfile in a transaction
@@ -181,7 +181,7 @@ export class AuthService {
     const familyId = crypto.randomUUID();
     const refreshTokenString = generateRefreshTokenString();
     const tokenHash = hashRefreshToken(refreshTokenString);
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
     await prisma.refreshToken.create({
       data: {
@@ -263,11 +263,10 @@ export class AuthService {
     if (user.lockedUntil && user.lockedUntil > now) {
       const remainingMinutes = Math.ceil((user.lockedUntil.getTime() - now.getTime()) / 60000);
       throw new AccountLockedError(
-        `Account is temporarily locked due to multiple failed login attempts. Please try again in ${remainingMinutes} minute(s).`
+        `Account locked for security. Try again in ${remainingMinutes} min.`
       );
     }
 
-    // Verify password
     const isPasswordValid = await comparePassword(password, user.passwordHash);
 
     if (!isPasswordValid) {
@@ -312,7 +311,7 @@ export class AuthService {
         });
 
         throw new AccountLockedError(
-          `Account locked due to ${nextAttempts} failed login attempts. Please try again after ${lockoutMinutes} minutes.`
+          `Account locked for security. Try again in ${lockoutMinutes} min.`
         );
       } else {
         await prisma.user.update({
@@ -340,7 +339,7 @@ export class AuthService {
     const familyId = crypto.randomUUID();
     const refreshTokenString = generateRefreshTokenString();
     const tokenHash = hashRefreshToken(refreshTokenString);
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
     await prisma.refreshToken.create({
       data: {
@@ -433,7 +432,7 @@ export class AuthService {
       });
 
       throw new UnauthorizedError(
-        'Session security violation detected. All active sessions in this family have been terminated. Please log in again.'
+        'Session expired for security reasons. Please sign in.'
       );
     }
 
@@ -462,7 +461,7 @@ export class AuthService {
     // Create the new refresh token preserving the SAME familyId
     const newRefreshTokenString = generateRefreshTokenString();
     const newHash = hashRefreshToken(newRefreshTokenString);
-    const newExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const newExpiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
 
     await prisma.refreshToken.create({
       data: {
@@ -564,11 +563,11 @@ export class AuthService {
 
     const matches = await comparePassword(currentPassword, user.passwordHash);
     if (!matches) {
-      throw new ValidationError('Current password does not match');
+      throw new ValidationError('Current password is incorrect.');
     }
 
     if (currentPassword === newPassword) {
-      throw new ValidationError('New password must be different from current password');
+      throw new ValidationError('New password must be different.');
     }
 
     const newPasswordHash = await hashPassword(newPassword);

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -20,7 +20,7 @@ describe('TASK-2.2: Accounts CRUD Endpoints & Business Logic', () => {
   let userIdB: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // Create User A
     const signupA = await request(app).post('/api/v1/auth/signup').send({
@@ -71,7 +71,7 @@ describe('TASK-2.2: Accounts CRUD Endpoints & Business Logic', () => {
       });
 
       // Verify Prisma database stored value is BigInt paise
-      const dbAccount = mockPrisma._state.accounts.get(res.body.data.id);
+      const dbAccount = prismaTestAdapter._state.accounts.get(res.body.data.id);
       expect(typeof dbAccount.openingBalance).toBe('bigint');
       expect(dbAccount.openingBalance).toBe(BigInt(2500000));
       expect(dbAccount.currentBalance).toBe(BigInt(2500000));

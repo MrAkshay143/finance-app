@@ -1,7 +1,10 @@
 import { RecordStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { toPaise } from '../utils/currency.js';
 import { logAuditEvent } from './auditService.js';
+import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
 
 export interface CreateGoalData {
   name: string;
@@ -51,23 +54,6 @@ export function formatGoal(g: any) {
 }
 
 export class GoalService {
-  toPaise(val: number | bigint | undefined, allowZero = false): bigint {
-    if (val === undefined || val === null) {
-      if (allowZero) return BigInt(0);
-      throw new ValidationError('Amount is required');
-    }
-    if (typeof val === 'bigint') {
-      if (allowZero ? val < BigInt(0) : val <= BigInt(0)) {
-        throw new ValidationError('Amount must be positive');
-      }
-      return val;
-    }
-    const num = Number(val);
-    if (isNaN(num) || (allowZero ? num < 0 : num <= 0)) {
-      throw new ValidationError('Amount must be a valid positive number');
-    }
-    return BigInt(Math.round(num * 100));
-  }
 
   /**
    * Returns all active goals for a user with progress percent.
@@ -110,8 +96,8 @@ export class GoalService {
       throw new ValidationError('Goal name is required');
     }
 
-    const targetAmountPaise = this.toPaise(data.targetAmount, false);
-    const currentAmountPaise = this.toPaise(data.currentAmount, true);
+    const targetAmountPaise = toPaise(data.targetAmount, false);
+    const currentAmountPaise = toPaise(data.currentAmount, true);
     const targetDate = data.targetDate ? new Date(data.targetDate) : null;
 
     const goal = await prisma.goal.create({
@@ -136,6 +122,11 @@ export class GoalService {
       },
     });
 
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
+
     return formatGoal(goal);
   }
 
@@ -159,12 +150,12 @@ export class GoalService {
 
     const targetAmountPaise =
       data.targetAmount !== undefined
-        ? this.toPaise(data.targetAmount, false)
+        ? toPaise(data.targetAmount, false)
         : existing.targetAmount;
 
     const currentAmountPaise =
       data.currentAmount !== undefined
-        ? this.toPaise(data.currentAmount, true)
+        ? toPaise(data.currentAmount, true)
         : existing.currentAmount;
 
     const targetDate =
@@ -191,6 +182,11 @@ export class GoalService {
         newCurrentAmountPaise: currentAmountPaise.toString(),
       },
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return formatGoal(updated);
   }
@@ -225,6 +221,11 @@ export class GoalService {
         goalId: id,
       },
     });
+
+    await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return { message: 'Goal deleted successfully' };
   }

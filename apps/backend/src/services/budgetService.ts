@@ -1,8 +1,10 @@
 import { RecordStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { toPaise } from '../utils/currency.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
+import { emitDashboardRefresh } from '../sockets/socketGateway.js';
 import { getFinancialMonthRange } from './famService.js';
 
 export interface CreateBudgetData {
@@ -64,22 +66,6 @@ export function formatBudget(budget: any, spentPaise: bigint = BigInt(0)) {
 }
 
 export class BudgetService {
-  toPaise(val: number | bigint | undefined): bigint {
-    if (val === undefined || val === null) {
-      throw new ValidationError('Budget target amount is required');
-    }
-    if (typeof val === 'bigint') {
-      if (val <= BigInt(0)) {
-        throw new ValidationError('Target amount must be positive');
-      }
-      return val;
-    }
-    const num = Number(val);
-    if (isNaN(num) || num <= 0) {
-      throw new ValidationError('Target amount must be a positive number');
-    }
-    return BigInt(Math.round(num * 100));
-  }
 
   /**
    * Returns all active budgets for a user with category, targetAmount,
@@ -180,7 +166,7 @@ export class BudgetService {
       throw new NotFoundError('Category not found');
     }
 
-    const targetAmountPaise = this.toPaise(data.targetAmount ?? data.limitAmount);
+    const targetAmountPaise = toPaise(data.targetAmount ?? data.limitAmount);
     const period = data.period || 'MONTHLY';
     const periodStart = data.periodStart ? new Date(data.periodStart) : new Date();
     const name = data.name?.trim() || `${category.name} Budget`;
@@ -211,6 +197,9 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return formatBudget(budget, BigInt(0));
   }
@@ -245,7 +234,7 @@ export class BudgetService {
 
     const targetAmountPaise =
       data.targetAmount !== undefined || data.limitAmount !== undefined
-        ? this.toPaise(data.targetAmount ?? data.limitAmount)
+        ? toPaise(data.targetAmount ?? data.limitAmount)
         : existing.targetAmount;
 
     const updated = await prisma.budget.update({
@@ -272,6 +261,9 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return this.getBudget(userId, id);
   }
@@ -308,6 +300,9 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
+    try {
+      emitDashboardRefresh(userId);
+    } catch {}
 
     return { message: 'Budget deleted successfully' };
   }

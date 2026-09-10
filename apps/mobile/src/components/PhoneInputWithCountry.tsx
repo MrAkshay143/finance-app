@@ -83,7 +83,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
     }
   };
 
-  const activePlaceholder = placeholder || selectedCountry.placeholder || '9876543210';
+  const activePlaceholder = placeholder || (selectedCountry as any).placeholder || '9876543210';
 
   return (
     <View style={styles.phoneInputRow}>

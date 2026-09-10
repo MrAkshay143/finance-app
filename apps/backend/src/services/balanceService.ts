@@ -20,7 +20,7 @@ export class BalanceService {
     });
 
     if (!account) {
-      throw new NotFoundError(`Account not found: ${accountId}`);
+      throw new NotFoundError('Account not found');
     }
 
     const creditsAgg = await tx.transaction.aggregate({
@@ -79,7 +79,7 @@ export class BalanceService {
     });
 
     if (!exists) {
-      throw new NotFoundError(`Account not found: ${accountId}`);
+      throw new NotFoundError('Account not found');
     }
 
     // Determine direction of the atomic delta

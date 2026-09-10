@@ -505,7 +505,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
         </QueryClientProvider>
       );
 
-      expect(html).toContain('No transactions recorded');
+      expect(html).toContain('No transactions yet');
       expect(html).toContain('Add Transaction');
     });
   });

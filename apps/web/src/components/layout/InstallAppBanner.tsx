@@ -51,7 +51,7 @@ export const InstallAppBanner: React.FC = () => {
               Install Finance App
             </h4>
             <p className="text-[11px] text-slate-300 truncate">
-              Fast, standalone access on Chrome
+              Add to home screen for quick access.
             </p>
           </div>
         </div>

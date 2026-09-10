@@ -22,7 +22,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
@@ -88,7 +88,7 @@ export const AdminReportsPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
       toast.success('User directory CSV exported successfully');
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to export CSV report');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to export CSV report'));
     } finally {
       setIsExporting(false);
     }

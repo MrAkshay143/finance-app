@@ -11,7 +11,7 @@
     "build": "pnpm -r --filter=\"./packages/*\" run build && pnpm -r --filter=\"./apps/*\" run build",
     "start": "pnpm --filter @finance/backend start",
     "db:migrate": "pnpm --filter @finance/backend db:migrate",
-    "db:seed": "pnpm --filter @finance/backend seed:realworld",
+    "db:seed": "pnpm --filter @finance/backend seed:data",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck",

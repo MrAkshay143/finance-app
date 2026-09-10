@@ -169,7 +169,7 @@ export const LoginPage: React.FC = () => {
               className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-800 text-xs font-medium"
             >
               <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-              <p className="leading-tight">Your session has expired. Please sign in again to continue.</p>
+              <p className="leading-tight">Session expired. Please sign in again.</p>
             </div>
           )}
 

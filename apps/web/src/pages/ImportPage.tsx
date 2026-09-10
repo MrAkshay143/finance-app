@@ -5,7 +5,6 @@ import {
   CloudUpload,
   FileSpreadsheet,
   CheckCircle2,
-  AlertCircle,
   FileText,
   CreditCard,
   Download,
@@ -16,7 +15,8 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Select } from '../components/ui/Select.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { toast } from '../store/toastStore.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
@@ -32,7 +32,6 @@ export const ImportPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState<string>('');
   const [importResult, setImportResult] = useState<ImportCsvResponse | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch accounts to populate dropdown
   const { data: accountsData, isLoading: isAccountsLoading } = useQuery({
@@ -57,13 +56,12 @@ export const ImportPage: React.FC = () => {
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMessage(null);
     setImportResult(null);
     const selected = e.target.files?.[0];
     if (!selected) return;
 
     if (!selected.name.toLowerCase().endsWith('.csv') && selected.type !== 'text/csv') {
-      setErrorMessage('Please select a valid .csv file');
+      toast.error('Please select a valid .csv file');
       return;
     }
 
@@ -74,7 +72,7 @@ export const ImportPage: React.FC = () => {
       setFileContent(text);
     };
     reader.onerror = () => {
-      setErrorMessage('Failed to read CSV file contents');
+      toast.error('Failed to read CSV file contents');
     };
     reader.readAsText(selected);
   };
@@ -82,13 +80,12 @@ export const ImportPage: React.FC = () => {
   // Drag and drop handlers
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setErrorMessage(null);
     setImportResult(null);
     const dropped = e.dataTransfer.files?.[0];
     if (!dropped) return;
 
     if (!dropped.name.toLowerCase().endsWith('.csv') && dropped.type !== 'text/csv') {
-      setErrorMessage('Please drop a valid .csv file');
+      toast.error('Please drop a valid .csv file');
       return;
     }
 
@@ -118,14 +115,13 @@ export const ImportPage: React.FC = () => {
     onSuccess: (res: any) => {
       const result = res?.data || res;
       setImportResult(result);
+      toast.success(`Imported ${result.importedCount || 0} transactions successfully`);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (err: any) => {
-      setErrorMessage(
-        err?.response?.data?.message || err?.message || 'Failed to import CSV transactions'
-      );
+      toast.error(getFriendlyErrorMessage(err, 'Failed to import CSV transactions'));
     },
   });
 
@@ -248,14 +244,6 @@ export const ImportPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Error Notification */}
-        {errorMessage && (
-          <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700 font-semibold">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" aria-hidden="true" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
 
         {/* Success Banner */}
         {importResult && (

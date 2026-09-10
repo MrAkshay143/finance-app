@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -19,7 +19,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
   let accountId: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // 1. Create a user
     const userRes = await request(app).post('/api/v1/auth/signup').send({
@@ -80,7 +80,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       expect(res.body.data.quickAdd).toBe(false);
       expect(res.body.data.dashboardDonuts.expense).toBe(false);
 
-      const auditLog = mockPrisma._state.auditLogs.find(
+      const auditLog = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'USER_SETTINGS_UPDATE' && l.actorUserId === userId
       );
       expect(auditLog).toBeDefined();
@@ -147,7 +147,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       expect(kbaRes.body.data.length).toBe(3);
 
       // Verify audit log
-      const auditLog = mockPrisma._state.auditLogs.find(
+      const auditLog = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ACCOUNT_RESET_PROFILE' && l.actorUserId === userId
       );
       expect(auditLog).toBeDefined();
@@ -172,10 +172,10 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       expect(goodRes.status).toBe(200);
       expect(goodRes.body.success).toBe(true);
 
-      const userInDb = mockPrisma._state.users.get(userId);
+      const userInDb = prismaTestAdapter._state.users.get(userId);
       expect(userInDb.status).toBe('DELETED');
 
-      const auditLog = mockPrisma._state.auditLogs.find(
+      const auditLog = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'ACCOUNT_DELETED' && l.actorUserId === userId
       );
       expect(auditLog).toBeDefined();
@@ -216,7 +216,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       expect(accRes.body.data.currentBalance).toBe(2500);
 
       // Verify audit log
-      const auditLog = mockPrisma._state.auditLogs.find(
+      const auditLog = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'DATA_IMPORT_CSV' && l.actorUserId === userId
       );
       expect(auditLog).toBeDefined();
@@ -247,7 +247,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       expect(csvRes.body.data.data).toContain('Date,Account,Type,Direction,Category');
 
       // Verify audit log
-      const auditLog = mockPrisma._state.auditLogs.find(
+      const auditLog = prismaTestAdapter._state.auditLogs.find(
         (l) => l.action === 'DATA_EXPORT' && l.actorUserId === userId
       );
       expect(auditLog).toBeDefined();

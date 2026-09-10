@@ -133,7 +133,6 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.rawAxios.get('/dashboard');
       return res.data?.data || res.data;
     },
-    staleTime: 60 * 1000,
   });
 
   // Query user preferences
@@ -143,7 +142,6 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.settings.get();
       return (res as any)?.data || res;
     },
-    staleTime: 5 * 60 * 1000,
   });
 
   const donutConfig = userSettings?.dashboardDonutsConfig || userSettings?.dashboardDonuts;
@@ -893,7 +891,7 @@ export const DashboardPage: React.FC = () => {
               {accountSummary.activeCount === 0 ? (
                 <EmptyState
                   icon={<CreditCard className="w-7 h-7 stroke-[1.8]" />}
-                  title="No connected accounts"
+                  title="No accounts linked"
                   description="Add your accounts to start tracking your net worth."
                   actionLabel="Add Account"
                   actionIcon={<Plus className="w-4 h-4" />}
@@ -1002,7 +1000,7 @@ export const DashboardPage: React.FC = () => {
               {recentTransactions.length === 0 ? (
                 <EmptyState
                   icon={<Receipt className="w-7 h-7 stroke-[1.8]" />}
-                  title="No transactions recorded"
+                  title="No transactions yet"
                   description="Record income, expenses, and investments to track FAM score."
                   actionLabel="Add Transaction"
                   actionIcon={<Plus className="w-4 h-4" />}

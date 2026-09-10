@@ -20,7 +20,7 @@ import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Input } from '../components/ui/Input.js';
 import { Modal } from '../components/ui/Modal.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
 
@@ -224,10 +224,10 @@ export const SecurityQuestionsPage: React.FC = () => {
       toast.success('Security questions saved successfully');
       setMode('VIEW');
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.error?.message ||
-        err?.message ||
-        'Failed to save security questions. Please check your inputs.';
+      const msg = getFriendlyErrorMessage(
+        err,
+        'Failed to save security questions. Please check your inputs.'
+      );
       setWizardError(msg);
       toast.error(msg);
     } finally {
@@ -268,9 +268,7 @@ export const SecurityQuestionsPage: React.FC = () => {
       setIsVerifyModalOpen(false);
     } catch (err: any) {
       setVerifyError(
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        'Verification failed. One or more answers are incorrect.'
+        getFriendlyErrorMessage(err, 'Verification failed. One or more answers are incorrect.')
       );
     } finally {
       setIsVerifying(false);

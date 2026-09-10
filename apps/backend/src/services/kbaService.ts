@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { ValidationError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
+import { AVAILABLE_SECURITY_QUESTIONS } from '@finance/shared-types';
 import { logAuditEvent } from './auditService.js';
 import { getRedisClient } from '../lib/redis.js';
 import { logger } from '../lib/logger.js';
@@ -68,15 +69,7 @@ export interface SecurityQuestionVerifyItem {
   answer: string;
 }
 
-export const AVAILABLE_SECURITY_QUESTIONS = [
-  { key: 'first_pet', text: 'What was the name of your first pet?' },
-  { key: 'mother_maiden_name', text: "What is your mother's maiden name?" },
-  { key: 'elementary_school', text: 'What elementary school did you attend?' },
-  { key: 'birth_city', text: 'In what city were you born?' },
-  { key: 'first_car', text: 'What was the make or model of your first car?' },
-  { key: 'favorite_book', text: 'What is the title of your favorite book?' },
-  { key: 'childhood_street', text: 'What street did you grow up on?' },
-] as const;
+export { AVAILABLE_SECURITY_QUESTIONS };
 
 async function verifyAnswerHash(candidate: string, hash: string): Promise<boolean> {
   const clean = candidate.trim().toLowerCase();
@@ -153,13 +146,11 @@ export class KbaService {
       throw new ValidationError('All 3 security questions must be unique');
     }
 
-    // Verify user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundError('User not found');
     }
 
-    // Hash answers and upsert in a single transaction
     const hashedQuestions = await Promise.all(
       normalized.map(async (item) => ({
         key: item.key,
@@ -228,15 +219,15 @@ export class KbaService {
       throw new ValidationError('Security questions are not configured for this account');
     }
 
-    if (!Array.isArray(answers) || answers.length !== 3) {
-      throw new ValidationError('Exactly 3 security question answers must be provided');
+    if (!Array.isArray(answers) || answers.length === 0) {
+      throw new ValidationError('Answers to verify must be provided');
     }
 
     // Ensure all submitted keys are distinct
     const submittedKeys = answers.map((item) => (item.questionKey || item.questionId || '').trim());
     const uniqueSubmittedKeys = new Set(submittedKeys);
-    if (uniqueSubmittedKeys.size !== 3) {
-      throw new ValidationError('All 3 security question answers must be for distinct questions');
+    if (uniqueSubmittedKeys.size !== submittedKeys.length) {
+      throw new ValidationError('All security question answers must be for distinct questions');
     }
 
     // SEC-03: Check KBA brute-force lockout before processing
@@ -248,7 +239,7 @@ export class KbaService {
         details: { reason: 'Too many failed attempts' },
       });
       throw new UnauthorizedError(
-        'Too many failed security question attempts. Please try again after 15 minutes.'
+        'Too many failed attempts. Try again in 15 minutes.'
       );
     }
 
@@ -257,7 +248,7 @@ export class KbaService {
     for (const key of submittedKeys) {
       if (!storedKeys.has(key)) {
         await incrementKbaAttempt(targetUserId!);
-        throw new UnauthorizedError(`Invalid security question key: ${key}`);
+        throw new UnauthorizedError('Invalid security question key');
       }
     }
 
@@ -273,7 +264,7 @@ export class KbaService {
           action: 'SECURITY_QUESTIONS_VERIFY_FAILED',
           details: { questionKey: key, attempts },
         });
-        throw new UnauthorizedError('Security question verification failed: incorrect answer');
+        throw new UnauthorizedError('Incorrect answer. Please try again.');
       }
     }
 

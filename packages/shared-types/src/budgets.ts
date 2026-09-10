@@ -18,7 +18,7 @@ export const CreateMonthlyBudgetInputSchema = z.object({
   categoryId: z.string().uuid(),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2020),
-  limitAmount: z.number().int().positive('Budget limit in paise must be positive'),
+  limitAmount: z.number().int().positive('Enter a budget amount greater than zero.'),
 });
 export type CreateMonthlyBudgetInput = z.infer<typeof CreateMonthlyBudgetInputSchema>;
 

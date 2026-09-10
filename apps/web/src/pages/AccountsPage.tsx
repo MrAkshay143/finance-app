@@ -27,7 +27,8 @@ import { EmptyState } from '../components/ui/EmptyState.js';
 import { CardSkeleton } from '../components/ui/Skeleton.js';
 import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
-import { apiClient } from '../services/apiClient.js';
+import { syncOnAccountMutation } from '../services/dataSync.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Account, CreateAccountInput, UpdateAccountInput } from '@finance/shared-types';
@@ -162,13 +163,13 @@ export const AccountsPage: React.FC = () => {
         return await apiClient.accounts.create(input);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnAccountMutation(queryClient);
         setIsAddModalOpen(false);
         resetAddForm();
         toast.success('Account created successfully');
       },
       onError: (err: any) => {
-        const msg = err?.message || 'Failed to create account. Please try again.';
+        const msg = getFriendlyErrorMessage(err, 'Failed to create account. Please try again.');
         setAddError(msg);
         toast.error(msg);
       },
@@ -182,13 +183,13 @@ export const AccountsPage: React.FC = () => {
         return await apiClient.accounts.update(id, input);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnAccountMutation(queryClient);
         setEditingAccount(null);
         resetEditForm();
         toast.success('Account updated successfully');
       },
       onError: (err: any) => {
-        const msg = err?.message || 'Failed to update account. Please try again.';
+        const msg = getFriendlyErrorMessage(err, 'Failed to update account. Please try again.');
         setEditError(msg);
         toast.error(msg);
       },
@@ -202,13 +203,13 @@ export const AccountsPage: React.FC = () => {
         return await apiClient.accounts.toggleStatus(id, status);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnAccountMutation(queryClient);
         setStatusConfirmAccount(null);
         setEditingAccount(null);
         toast.success('Account status updated');
       },
       onError: (err: any) => {
-        toast.error(err?.message || 'Failed to update account status');
+        toast.error(getFriendlyErrorMessage(err, 'Failed to update account status'));
       },
     },
     queryClient
@@ -385,8 +386,8 @@ export const AccountsPage: React.FC = () => {
           /* Empty State when 0 accounts exist */
           <EmptyState
             icon={<Landmark className="w-7 h-7 stroke-[1.8]" />}
-            title="No accounts connected"
-            description="You have not added any bank accounts. Add one to track balances."
+            title="No accounts yet"
+            description="Add your first bank, card, or cash wallet to get started."
             actionLabel="Add Account"
             actionIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
             onAction={handleOpenAdd}

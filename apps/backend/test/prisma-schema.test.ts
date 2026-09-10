@@ -196,7 +196,7 @@ describe('Prisma Schema & Model Verification', () => {
     const mockCategoryUpdate = vi.fn().mockResolvedValue({ id: 'cat-id' });
     const mockAppSettingUpsert = vi.fn().mockResolvedValue({ key: 'test', value: {} });
 
-    const mockPrisma = {
+    const prismaTestAdapter = {
       category: {
         findFirst: mockCategoryFindFirst,
         create: mockCategoryCreate,
@@ -207,7 +207,7 @@ describe('Prisma Schema & Model Verification', () => {
       },
     } as unknown as PrismaClient;
 
-    await seed(mockPrisma);
+    await seed(prismaTestAdapter);
 
     expect(mockCategoryFindFirst).toHaveBeenCalledTimes(SYSTEM_CATEGORIES.length);
     expect(mockCategoryCreate).toHaveBeenCalledTimes(SYSTEM_CATEGORIES.length);

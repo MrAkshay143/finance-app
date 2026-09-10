@@ -46,7 +46,7 @@ function parseAmountToPaise(raw: string): { amountPaise: bigint; isNegative: boo
 
   const floatVal = parseFloat(absString);
   if (isNaN(floatVal) || floatVal <= 0) {
-    throw new Error(`Invalid transaction amount: "${raw}"`);
+    throw new ValidationError('Invalid transaction amount format');
   }
 
   const paise = BigInt(Math.round(floatVal * 100));
@@ -74,7 +74,7 @@ export class ImportService {
     });
 
     if (!account) {
-      throw new NotFoundError(`Account not found or does not belong to user: ${accountId}`);
+      throw new NotFoundError('Account not found');
     }
 
     // Load user categories & system categories for mapping

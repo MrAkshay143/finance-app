@@ -360,7 +360,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
       expect(html).toContain('Disable User');
       expect(html).toContain('Make Admin');
       expect(html).toContain('Reset Password');
-      expect(html).toContain('Reset KBA');
+      expect(html).toContain('Reset Security Questions');
       expect(html).toContain('Danger Zone');
       expect(html).toContain('Delete Account');
       expect(html).toContain('Soft delete');

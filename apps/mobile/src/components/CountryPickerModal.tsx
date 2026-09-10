@@ -103,7 +103,7 @@ export const CountryPickerModal: React.FC<CountryPickerModalProps> = ({
                     <Text style={styles.callingCode}>{item.callingCode}</Text>
                     {isSelected && (
                       <View style={styles.checkIconWrapper}>
-                        <CheckIcon size={16} color={colors.brandPrimary} />
+                        <CheckIcon size={16} color={colors.primary} />
                       </View>
                     )}
                   </View>

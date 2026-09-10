@@ -3,9 +3,9 @@ import { ApiErrorResponse, ApiErrorCode } from '@finance/shared-types';
 import { logger } from '../lib/logger.js';
 import { AppError } from '../utils/errors.js';
 
-export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
+export function notFoundHandler(_req: Request, _res: Response, next: NextFunction): void {
   const notFoundError = new AppError(
-    `Route ${req.method} ${req.originalUrl} not found`,
+    'Resource not found.',
     404,
     'NOT_FOUND'
   );
@@ -18,6 +18,38 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
+  // Prisma error interception
+  if (err?.code === 'P2002') {
+    res.status(409).json({
+      success: false,
+      error: {
+        code: 'CONFLICT',
+        message: 'Record already exists.',
+      },
+    });
+    return;
+  }
+  if (err?.code === 'P2025') {
+    res.status(404).json({
+      success: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Record not found.',
+      },
+    });
+    return;
+  }
+  if (err?.code === 'P2003') {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Record in use and cannot be removed.',
+      },
+    });
+    return;
+  }
+
   const statusCode =
     typeof err.statusCode === 'number'
       ? err.statusCode
@@ -59,7 +91,7 @@ export function errorHandler(
       },
       `Unhandled server error: ${err?.message || 'Unknown error'}`
     );
-    message = 'Internal Server Error';
+    message = 'Something went wrong. Please try again.';
   } else {
     logger.warn(
       {

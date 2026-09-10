@@ -27,6 +27,6 @@ export const UpdateCategoryInputSchema = z.object({
 export type UpdateCategoryInput = z.infer<typeof UpdateCategoryInputSchema>;
 
 export const ReorderCategoriesInputSchema = z.object({
-  categoryIds: z.array(z.string().min(1)).min(1, 'categoryIds must contain at least one category ID'),
+  categoryIds: z.array(z.string().min(1)).min(1, 'Please select at least one category.'),
 });
 export type ReorderCategoriesInput = z.infer<typeof ReorderCategoriesInputSchema>;

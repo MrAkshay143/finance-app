@@ -289,7 +289,7 @@ describe('Phase 5 Mobile Screens Suite (TASK-5.8)', () => {
         maxFailedAttempts: 5,
         lockoutDurationMinutes: 15,
         requireKbaForSensitiveActions: true,
-      };
+      } as any;
 
       const getSettingsSpy = vi.spyOn(apiClient.admin, 'getAppSettings').mockResolvedValue(mockAppSettings);
       const updateSettingsSpy = vi.spyOn(apiClient.admin, 'updateAppSettings').mockResolvedValue({

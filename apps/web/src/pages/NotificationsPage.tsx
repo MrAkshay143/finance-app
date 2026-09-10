@@ -17,11 +17,14 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
+import { Pagination } from '../components/ui/Pagination.js';
 import { toast } from '../store/toastStore.js';
-import { apiClient, getStoredAccessToken } from '../services/apiClient.js';
+import { apiClient, getStoredAccessToken, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { FinanceSocketManager } from '@finance/api-client';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { useUiStore } from '../store/uiStore.js';
+import { getSocketBaseUrl } from '../hooks/useRealtimeSync.js';
+import { formatRelativeTime } from '../utils/date.js';
 import type { NotificationItem, Reminder } from '@finance/shared-types';
 
 export const NotificationsPage: React.FC = () => {
@@ -36,6 +39,12 @@ export const NotificationsPage: React.FC = () => {
   const [tempEnabled, setTempEnabled] = useState<boolean>(true);
   const [tempDays, setTempDays] = useState<number>(2);
   const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
 
   // Fetch Reminders
   const { data: remindersData } = useQuery<Reminder[]>({
@@ -126,7 +135,7 @@ export const NotificationsPage: React.FC = () => {
 
   // Realtime Socket.IO Connection for Notifications
   useEffect(() => {
-    const socketUrl = (import.meta as any).env?.VITE_SOCKET_URL || (import.meta as any).env?.VITE_API_URL || undefined;
+    const socketUrl = getSocketBaseUrl();
     const socketManager = new FinanceSocketManager({
       url: socketUrl,
       getAccessToken: () => getStoredAccessToken(),
@@ -154,19 +163,15 @@ export const NotificationsPage: React.FC = () => {
   const items = notificationsResponse?.items || [];
   const unreadCount = notificationsResponse?.unreadCount ?? items.filter((i) => !i.read).length;
 
-  const getRelativeTime = (dateStr: string) => {
-    try {
-      const diffMs = Date.now() - new Date(dateStr).getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`;
-      const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
-      const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays}d ago`;
-    } catch {
-      return 'Recently';
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
     }
-  };
+  }, [currentPage, totalPages]);
+
+  const paginatedItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -313,7 +318,7 @@ export const NotificationsPage: React.FC = () => {
           </Card>
         ) : (
           <div className="space-y-2.5">
-            {items.map((item) => (
+            {paginatedItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => handleItemClick(item)}
@@ -340,7 +345,7 @@ export const NotificationsPage: React.FC = () => {
                       {item.title}
                     </h4>
                     <span className="text-[10px] text-slate-400 font-medium shrink-0">
-                      {getRelativeTime(item.createdAt)}
+                      {formatRelativeTime(item.createdAt)}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 mt-1 leading-relaxed line-clamp-2">
@@ -352,6 +357,18 @@ export const NotificationsPage: React.FC = () => {
                 <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 self-center" />
               </div>
             ))}
+
+            {/* Centralized Pagination */}
+            {items.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={items.length}
+                pageSize={pageSize}
+                onPageChange={(p) => setCurrentPage(p)}
+                itemLabel="notifications"
+              />
+            )}
           </div>
         )}
       </div>
@@ -467,7 +484,7 @@ export const NotificationsPage: React.FC = () => {
                   {selectedNotification.type.replace(/_/g, ' ')}
                 </span>
                 <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                  {getRelativeTime(selectedNotification.createdAt)}
+                  {formatRelativeTime(selectedNotification.createdAt)}
                 </p>
               </div>
             </div>

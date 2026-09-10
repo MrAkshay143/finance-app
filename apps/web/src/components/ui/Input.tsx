@@ -102,7 +102,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <span>{error}</span>
           </p>
         ) : isValid && validMessage ? (
-          <p id={validId} className="mt-1 text-xs text-semantic-success font-medium flex items-center gap-1">
+          <p id={validId} className="mt-1 text-xs text-semantic-success text-emerald-600 font-medium flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span>{validMessage}</span>
           </p>

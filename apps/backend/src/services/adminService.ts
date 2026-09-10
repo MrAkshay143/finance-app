@@ -169,7 +169,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${targetUserId}`);
+      throw new NotFoundError('User not found');
     }
 
     const allAccounts = user.accounts || [];
@@ -235,7 +235,7 @@ export class AdminService {
     });
 
     if (!existing) {
-      throw new NotFoundError(`User not found: ${targetUserId}`);
+      throw new NotFoundError('User not found');
     }
 
     const updateData: any = {};
@@ -301,7 +301,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${targetUserId}`);
+      throw new NotFoundError('User not found');
     }
 
     if (newPassword && newPassword.length < 8) {
@@ -361,7 +361,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${targetUserId}`);
+      throw new NotFoundError('User not found');
     }
 
     await prisma.securityQuestion.deleteMany({
@@ -398,7 +398,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundError(`User not found: ${targetUserId}`);
+      throw new NotFoundError('User not found');
     }
 
     await prisma.$transaction(async (tx) => {
@@ -879,7 +879,7 @@ export class AdminService {
       'Role',
       'Status',
       'Onboarding Completed',
-      'KBA Configured',
+      'Security Questions Configured',
       'Failed Logins',
       'Created At',
       'Last Login At',

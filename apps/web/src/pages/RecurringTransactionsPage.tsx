@@ -23,11 +23,13 @@ import { Badge } from '../components/ui/Badge.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
+import { EmptyState } from '../components/ui/EmptyState.js';
 import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
 import { formatDate } from '../utils/date.js';
 import { apiClient } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
+import { syncOnTransactionMutation } from '../services/dataSync.js';
 import type { RecurringTransaction, Category, Account } from '@finance/shared-types';
 
 export const RecurringTransactionsPage: React.FC = () => {
@@ -117,8 +119,8 @@ export const RecurringTransactionsPage: React.FC = () => {
       return await apiClient.recurring.materialize();
     },
     onSuccess: (data) => {
+      syncOnTransactionMutation(queryClient);
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       setMaterializeResult(`Processed ${data.materializedCount} due transactions.`);
       setTimeout(() => setMaterializeResult(null), 4000);
     },
@@ -438,23 +440,14 @@ export const RecurringTransactionsPage: React.FC = () => {
             })}
           </div>
         ) : (
-          <Card padding="lg" className="text-center bg-white border-slate-200">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-brand-primary mx-auto mb-2">
-              <Repeat className="w-6 h-6" />
-            </div>
-            <h4 className="text-xs font-bold text-slate-900">No recurring transactions</h4>
-            <p className="text-[11px] text-slate-500 mt-1 mb-3">
-              Automate your bills, salaries, and investments.
-            </p>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleOpenAddModal}
-              icon={<Plus className="w-4 h-4" />}
-            >
-              Add Recurring Transaction
-            </Button>
-          </Card>
+          <EmptyState
+            icon={<Repeat className="w-7 h-7 stroke-[1.8]" />}
+            title="No recurring payments"
+            description="Schedule recurring bills, salaries, and subscriptions."
+            actionLabel="Add Schedule"
+            actionIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
+            onAction={handleOpenAddModal}
+          />
         )}
       </div>
 

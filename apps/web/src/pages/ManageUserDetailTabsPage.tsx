@@ -32,8 +32,9 @@ import { Modal } from '../components/ui/Modal.js';
 import { Input } from '../components/ui/Input.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { AdminUserDetails, AdminUserItem } from '@finance/shared-types';
 
@@ -44,7 +45,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'overview' | 'permissions' | 'security'>('overview');
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tempPasswordModal, setTempPasswordModal] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
@@ -61,11 +61,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
 
   const user: AdminUserItem | undefined = userDetails?.user;
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
   const handleCopy = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(fieldName);
@@ -80,10 +75,10 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      showToast('User settings updated successfully');
+      toast.success('User settings updated successfully');
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to update user');
+      toast.error(err?.message || 'Failed to update user');
     },
   });
 
@@ -95,7 +90,10 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: (res: any) => {
       const tempPass = res?.data?.temporaryPassword || res?.temporaryPassword || '';
       setTempPasswordModal(tempPass);
-      showToast('Temporary password generated');
+      toast.success('Temporary password generated');
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to reset password');
     },
   });
 
@@ -108,10 +106,10 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       const count = res?.revokedCount ?? res?.data?.revokedCount ?? 0;
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
       setIsRevokeModalOpen(false);
-      showToast(`Revoked ${count} active session${count === 1 ? '' : 's'}`);
+      toast.success(`Revoked ${count} active session${count === 1 ? '' : 's'}`);
     },
     onError: (err: any) => {
-      showToast(err?.message || 'Failed to revoke sessions');
+      toast.error(err?.message || 'Failed to revoke sessions');
     },
   });
 
@@ -122,7 +120,10 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
-      showToast('KBA security questions reset');
+      toast.success('Security questions reset successfully');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reset security questions'));
     },
   });
 
@@ -134,6 +135,9 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       navigate('/admin/users');
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to delete user');
     },
   });
 
@@ -290,14 +294,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           aria-label="User management tabs"
         />
 
-        {/* Toast */}
-        {toastMessage && (
-          <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
-
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
@@ -434,7 +430,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                       <HelpCircle className="w-5 h-5" />
                     </div>
                     <div className="text-xs font-bold text-textDefault leading-tight">
-                      Reset KBA
+                      Reset Security Questions
                     </div>
                     <div className="text-[10px] text-textMuted leading-tight mt-0.5">
                       Reset security questions
@@ -515,7 +511,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Execute account suspensions and KBA resets</span>
+                    <span>Execute account suspensions and security question resets</span>
                   </div>
                 </div>
               </div>
@@ -562,7 +558,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
 
               <div className="p-3.5 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-textDefault">Knowledge-Based Authentication</div>
+                  <div className="font-bold text-textDefault">Security Questions</div>
                   <div className="text-[11px] text-textMuted">Configured security questions</div>
                 </div>
                 <Button
@@ -570,7 +566,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                   size="sm"
                   onClick={() => resetKbaMutation.mutate()}
                 >
-                  Reset KBA
+                  Reset Security Questions
                 </Button>
               </div>
 
@@ -631,7 +627,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
               onClick={() => {
                 if (tempPasswordModal) {
                   navigator.clipboard.writeText(tempPasswordModal);
-                  showToast('Password copied to clipboard');
+                  toast.success('Password copied to clipboard');
                 }
               }}
               className="px-2.5 py-1 bg-brand-primary rounded-lg text-white font-sans text-[11px] font-bold hover:bg-blue-600"

@@ -28,8 +28,9 @@ import { TransactionItemSkeleton } from '../components/ui/Skeleton.js';
 import { useUiStore, TransactionType } from '../store/uiStore.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
+import { syncOnTransactionMutation } from '../services/dataSync.js';
 import { formatDate } from '../utils/date.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { Transaction, TxnType } from '@finance/shared-types';
@@ -163,13 +164,12 @@ export const TransactionsPage: React.FC = () => {
         return await apiClient.transactions.delete(id);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnTransactionMutation(queryClient);
         setDeletingItem(null);
         toast.success('Transaction deleted successfully');
       },
       onError: (err: any) => {
-        toast.error(err?.response?.data?.message || err?.message || 'Failed to delete transaction');
+        toast.error(getFriendlyErrorMessage(err, 'Failed to delete transaction'));
       },
     },
     queryClient
@@ -181,14 +181,12 @@ export const TransactionsPage: React.FC = () => {
         return await apiClient.transfers.delete(id);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['transfers'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnTransactionMutation(queryClient);
         setDeletingItem(null);
         toast.success('Transfer deleted successfully');
       },
       onError: (err: any) => {
-        toast.error(err?.response?.data?.message || err?.message || 'Failed to delete transfer');
+        toast.error(getFriendlyErrorMessage(err, 'Failed to delete transfer'));
       },
     },
     queryClient

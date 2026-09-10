@@ -1,6 +1,7 @@
 import { TxnType, TxnDirection, RecordStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
+import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
@@ -115,23 +116,6 @@ export class TransactionService {
   }
 
   /**
-   * Converts rupee number to BigInt paise (Math.round(val * 100))
-   */
-  toPaise(val: number | bigint): bigint {
-    if (typeof val === 'bigint') {
-      if (val <= BigInt(0)) {
-        throw new ValidationError('Amount must be positive');
-      }
-      return val;
-    }
-    const num = Number(val);
-    if (isNaN(num) || num <= 0) {
-      throw new ValidationError('Amount must be a positive number');
-    }
-    return BigInt(Math.round(num * 100));
-  }
-
-  /**
    * Creates a transaction, validating account ownership, converting amounts to BigInt paise,
    * inserting record and updating account balance via balanceService inside a single Prisma transaction.
    */
@@ -154,7 +138,7 @@ export class TransactionService {
     const direction = data.direction || this.mapTypeToDirection(data.type);
 
     // 3. Convert rupee amount to BigInt paise
-    const amountPaise = this.toPaise(data.amount);
+    const amountPaise = toPaise(data.amount);
 
     // 4. Validate category if provided
     let categoryId = data.categoryId || null;
@@ -302,7 +286,7 @@ export class TransactionService {
 
     const newType = data.type || existing.type;
     const newDirection = data.direction || (data.type ? this.mapTypeToDirection(data.type) : existing.direction);
-    const newAmountPaise = data.amount !== undefined ? this.toPaise(data.amount) : existing.amount;
+    const newAmountPaise = data.amount !== undefined ? toPaise(data.amount) : existing.amount;
 
     // Validate category if provided
     let categoryId = data.categoryId !== undefined ? data.categoryId : existing.categoryId;

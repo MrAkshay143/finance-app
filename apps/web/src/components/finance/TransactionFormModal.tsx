@@ -22,6 +22,7 @@ import type { TxnType } from '@finance/shared-types';
 import { validateAmount } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
 import { MerchantAutoSuggest } from './MerchantAutoSuggest.js';
+import { syncOnTransactionMutation } from '../../services/dataSync.js';
 
 // NO hardcoded category or account fallbacks: all values must come from the real API.
 
@@ -147,8 +148,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         return await apiClient.transactions.create(payload);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnTransactionMutation(queryClient);
         handleClose();
         toast.success('Transaction recorded successfully');
       },
@@ -173,9 +173,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         return await apiClient.transfers.create(payload);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['transfers'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnTransactionMutation(queryClient);
         handleClose();
         toast.success('Transfer recorded successfully');
       },
@@ -208,9 +206,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         return await apiClient.transactions.update(id, payload);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['transfers'] });
-        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        syncOnTransactionMutation(queryClient);
         handleClose();
         toast.success('Transaction updated successfully');
       },

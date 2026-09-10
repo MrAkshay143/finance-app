@@ -199,7 +199,7 @@ export const ProfileScreen: React.FC = () => {
               </Text>
               <View style={styles.planBadge}>
                 <Text style={styles.planBadgeText}>
-                  {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                  {authUser?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
                 </Text>
               </View>
             </View>
@@ -406,13 +406,13 @@ export const ProfileScreen: React.FC = () => {
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
               accessible={true}
               accessibilityRole="button"
-              accessibilityLabel="Security Questions KBA"
+              accessibilityLabel="Security Questions"
             >
               <View style={[styles.itemIconSquare, { backgroundColor: '#EFF4FF' }]}>
                 <ShieldIcon size={20} color="#2554EE" />
               </View>
               <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>Security Questions (KBA)</Text>
+                <Text style={styles.itemTitle}>Security Questions</Text>
                 <Text style={styles.itemSubtitle}>
                   {profile?.kbaConfigured
                     ? 'Questions configured for account recovery'

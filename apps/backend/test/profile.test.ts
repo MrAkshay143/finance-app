@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { mockPrisma } from './fixtures/mockPrisma.js';
+import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
 vi.mock('../src/lib/prisma.js', async () => {
-  const { mockPrisma } = await import('./fixtures/mockPrisma.js');
+  const { prismaTestAdapter } = await import('./fixtures/prismaTestAdapter.js');
   return {
-    prisma: mockPrisma,
-    default: mockPrisma,
+    prisma: prismaTestAdapter,
+    default: prismaTestAdapter,
   };
 });
 
@@ -18,7 +18,7 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
   let userId: string;
 
   beforeEach(async () => {
-    mockPrisma.clearAll();
+    prismaTestAdapter.clearAll();
 
     // Create a fresh test user
     const signupRes = await request(app).post('/api/v1/auth/signup').send({
@@ -77,11 +77,11 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
       expect(new Date(res.body.data.financeProfile.dateOfBirth).toISOString()).toContain('1985-03-11');
 
       // Verify DB state
-      const dbUser = mockPrisma._state.users.get(userId);
+      const dbUser = prismaTestAdapter._state.users.get(userId);
       expect(dbUser.lastName).toBe('Prefect');
       expect(dbUser.mobileNumber).toBe('+918888877777');
 
-      const dbProfile = mockPrisma._state.financeProfiles.get(userId);
+      const dbProfile = prismaTestAdapter._state.financeProfiles.get(userId);
       expect(dbProfile.address).toBe('42 Cottington Lane, Islington, London');
     });
   });
@@ -114,7 +114,7 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
       expect(res.body.data.financeProfile.investmentHorizon).toBe('LONG');
 
       // Verify database stored values are BigInt paise (Math.round(val * 100))
-      const dbProfile = mockPrisma._state.financeProfiles.get(userId);
+      const dbProfile = prismaTestAdapter._state.financeProfiles.get(userId);
       expect(typeof dbProfile.monthlyIncome).toBe('bigint');
       expect(dbProfile.monthlyIncome).toBe(BigInt(8500000)); // ₹85,000 in paise
       expect(dbProfile.monthlyExpenseBudget).toBe(BigInt(4500000)); // ₹45,000 in paise
@@ -122,7 +122,7 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
       expect(dbProfile.savingsTarget).toBe(BigInt(50000000)); // ₹5,00,000 in paise
 
       // Verify onboardingCompleted is now true on User
-      const dbUser = mockPrisma._state.users.get(userId);
+      const dbUser = prismaTestAdapter._state.users.get(userId);
       expect(dbUser.onboardingCompleted).toBe(true);
       expect(res.body.data.onboardingCompleted).toBe(true);
     });
@@ -162,7 +162,7 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
       });
 
       // Verify DB stored answer hashes are bcrypt-hashed (NOT plaintext)
-      const storedQuestions = Array.from(mockPrisma._state.securityQuestions.values()).filter(
+      const storedQuestions = Array.from(prismaTestAdapter._state.securityQuestions.values()).filter(
         (q) => q.userId === userId
       );
       expect(storedQuestions.length).toBe(3);

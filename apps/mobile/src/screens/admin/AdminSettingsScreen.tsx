@@ -248,7 +248,7 @@ export const AdminSettingsScreen: React.FC = () => {
                 <View style={styles.toggleTextColumn}>
                   <View style={styles.labelWithIcon}>
                     <ShieldIcon size={16} color={colors.primary} />
-                    <Text style={styles.settingLabel}>Mandatory KBA Questions</Text>
+                    <Text style={styles.settingLabel}>Required Security Questions</Text>
                   </View>
                   <Text style={styles.settingHelper}>
                     Require 3 security questions for sensitive operations.
