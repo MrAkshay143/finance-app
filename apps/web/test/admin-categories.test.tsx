@@ -4,8 +4,10 @@ import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AdminCategoriesPage } from '../src/pages/AdminCategoriesPage.js';
+import { CategoriesPage } from '../src/pages/CategoriesPage.js';
 import { Button } from '../src/components/ui/Button.js';
 import { BottomNav } from '../src/components/layout/BottomNav.js';
+import { CustomDropdown } from '../src/components/ui/CustomDropdown.js';
 
 // Helper to create a pre-populated QueryClient
 function createTestQueryClient(queries: [unknown[], unknown][]) {
@@ -90,5 +92,44 @@ describe('Admin Categories & Centralized UI Test Suite', () => {
     expect(html).toContain('Audit');
     expect(html).toContain('Settings');
     expect(html).toContain('href="/admin/categories"');
+  });
+
+  it('renders CustomDropdown with accessible trigger, labels and selected value', () => {
+    const html = renderToString(
+      <CustomDropdown
+        label="Transaction Type"
+        value="EXPENSE"
+        onChange={() => {}}
+        options={[
+          { value: 'EXPENSE', label: 'Expense' },
+          { value: 'INCOME', label: 'Income' },
+          { value: 'INVESTMENT', label: 'Investment' },
+        ]}
+      />
+    );
+
+    expect(html).toContain('Transaction Type');
+    expect(html).toContain('aria-haspopup="listbox"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('Expense');
+  });
+
+  it('renders CategoriesPage with compact Add Category modal affordances', () => {
+    const qc = createTestQueryClient([
+      [['categories'], []],
+      [['merchants'], []],
+    ]);
+
+    const html = renderToString(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/categories']}>
+          <CategoriesPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    expect(html).toContain('Categories');
+    expect(html).toContain('Add Category');
+    expect(html).toContain('Manage classification labels');
   });
 });

@@ -16,18 +16,12 @@ export function createEnvSchema(sourceEnv: Record<string, string | undefined> = 
         .string()
         .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters long')
         .default(() => {
-          if (sourceEnv.NODE_ENV === 'production') {
-            return crypto.randomBytes(32).toString('hex');
-          }
           return 'default_access_secret_for_dev_min_32_chars_12345';
         }),
       JWT_REFRESH_SECRET: z
         .string()
         .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters long')
         .default(() => {
-          if (sourceEnv.NODE_ENV === 'production') {
-            return crypto.randomBytes(32).toString('hex');
-          }
           return 'default_refresh_secret_for_dev_min_32_chars_12345';
         }),
       JWT_RESET_SECRET: z
@@ -36,9 +30,6 @@ export function createEnvSchema(sourceEnv: Record<string, string | undefined> = 
         .default(() => {
           if (sourceEnv.JWT_REFRESH_SECRET && !sourceEnv.JWT_REFRESH_SECRET.includes('default_refresh_secret')) {
             return crypto.createHmac('sha256', sourceEnv.JWT_REFRESH_SECRET).update('reset_secret_key_salt').digest('hex');
-          }
-          if (sourceEnv.NODE_ENV === 'production') {
-            return crypto.randomBytes(32).toString('hex');
           }
           return 'default_reset_secret_for_dev_min_32_chars_123456';
         }),

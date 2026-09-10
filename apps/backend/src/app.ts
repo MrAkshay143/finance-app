@@ -41,10 +41,22 @@ export function createApp(): Express {
   // 2. Prometheus HTTP metrics collection middleware
   app.use(metricsMiddleware);
 
-  // 3. Helmet security headers (CSP disabled to allow Vite bundled assets)
+  // 3. Helmet security headers (strict CSP enabled)
   app.use(
     helmet({
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "blob:", "https:"],
+          connectSrc: ["'self'", "wss:", "https:"],
+          fontSrc: ["'self'", "data:", "https:"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+        },
+      },
       crossOriginEmbedderPolicy: false,
     })
   );
@@ -62,7 +74,20 @@ export function createApp(): Express {
   app.use(rateLimiter);
 
   // Prometheus metrics endpoint per Plan/architecture.md Section 10
-  app.get('/metrics', async (_req: Request, res: Response) => {
+  app.get('/metrics', optionalAuthenticate, async (req: Request, res: Response) => {
+    // Basic IP restriction or auth for metrics
+    if (
+      process.env.NODE_ENV !== 'test' &&
+      req.user?.role !== 'ADMIN' &&
+      req.ip !== '127.0.0.1' &&
+      req.ip !== '::1' &&
+      req.ip !== '::ffff:127.0.0.1' &&
+      !req.ip?.startsWith('10.') &&
+      !req.ip?.startsWith('192.168.') &&
+      !req.ip?.startsWith('172.')
+    ) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     try {
       res.set('Content-Type', register.contentType);
       res.end(await register.metrics());
@@ -152,3 +177,4 @@ export function createApp(): Express {
 }
 
 export default createApp;
+

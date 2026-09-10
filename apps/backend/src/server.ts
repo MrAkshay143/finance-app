@@ -142,7 +142,6 @@ async function ensureAdminUser() {
           where: { id: existingUser.id },
           data: {
             role: 'ADMIN',
-            passwordHash,
             failedLoginAttempts: 0,
             lockedUntil: null,
             status: 'ACTIVE',

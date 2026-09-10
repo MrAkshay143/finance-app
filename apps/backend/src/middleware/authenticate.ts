@@ -5,11 +5,20 @@ import { isDenylisted } from '../lib/tokenDenylist.js';
 
 export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new UnauthorizedError('Session expired. Please sign in.'));
+  let token = '';
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7).trim();
+  } else if (req.headers.cookie) {
+    // Parse cookie manually
+    const cookies = req.headers.cookie.split(';').reduce((acc, str) => {
+      const [key, ...v] = str.trim().split('=');
+      if (key) acc[key] = decodeURIComponent(v.join('='));
+      return acc;
+    }, {} as Record<string, string>);
+    token = cookies.accessToken || '';
   }
 
-  const token = authHeader.substring(7).trim();
   if (!token) {
     return next(new UnauthorizedError('Session expired. Please sign in.'));
   }
@@ -49,11 +58,23 @@ export async function optionalAuthenticate(
   next: NextFunction
 ): Promise<void> {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  let token = '';
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7).trim();
+  } else if (req.headers.cookie) {
+    const cookies = req.headers.cookie.split(';').reduce((acc, str) => {
+      const [key, ...v] = str.trim().split('=');
+      if (key) acc[key] = decodeURIComponent(v.join('='));
+      return acc;
+    }, {} as Record<string, string>);
+    token = cookies.accessToken || '';
+  }
+
+  if (!token) {
     return next();
   }
 
-  const token = authHeader.substring(7).trim();
   try {
     const payload = verifyAccessToken(token);
     const denylisted = await isDenylisted(payload.jti || token);

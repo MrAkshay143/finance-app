@@ -74,9 +74,10 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      compact
       title="Add New Category"
       subtitle="Create a custom category for classifying transactions"
-      icon={<Tag className="w-5 h-5 stroke-[2.2] text-brand-primary" />}
+      icon={<Tag className="w-4 h-4 stroke-[2.2] text-brand-primary" />}
       footer={
         <div className="flex items-center gap-2 w-full justify-end">
           <Button
@@ -101,7 +102,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         </div>
       }
     >
-      <form id="add-category-form" onSubmit={handleSubmit} className="space-y-4">
+      <form id="add-category-form" onSubmit={handleSubmit} className="space-y-3">
         {error && (
           <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />

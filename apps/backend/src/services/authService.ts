@@ -789,24 +789,28 @@ export class AuthService {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    
+    // Fallback questions to prevent email enumeration
+    const fallbackQuestions = [
+      { questionKey: 'q_maiden_name', questionText: "What is your mother's maiden name?" },
+      { questionKey: 'q_pet_name', questionText: "What was the name of your first pet?" },
+      { questionKey: 'q_birth_city', questionText: "In what city were you born?" },
+    ];
+
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
       select: { id: true, email: true, status: true },
     });
 
-    if (!user) {
-      throw new NotFoundError('No account found with this email address');
-    }
-
-    if (user.status === 'SUSPENDED') {
-      throw new ForbiddenError('This account has been suspended. Please contact support.');
+    if (!user || user.status === 'SUSPENDED') {
+      // Simulate delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 100));
+      return { email: cleanEmail, questions: fallbackQuestions };
     }
 
     const questions = await kbaService.getSecurityQuestions(user.id);
     if (!questions || questions.length < 3) {
-      throw new ValidationError(
-        'Security questions have not been configured for this account. Please contact an administrator.'
-      );
+      return { email: cleanEmail, questions: fallbackQuestions };
     }
 
     return {
@@ -835,12 +839,9 @@ export class AuthService {
       select: { id: true, email: true, status: true },
     });
 
-    if (!user) {
-      throw new NotFoundError('No account found with this email address');
-    }
-
-    if (user.status === 'SUSPENDED') {
-      throw new ForbiddenError('This account has been suspended. Please contact support.');
+    if (!user || user.status === 'SUSPENDED') {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 100));
+      throw new UnauthorizedError('Incorrect answer. Please try again.');
     }
 
     // Verify answers with kbaService

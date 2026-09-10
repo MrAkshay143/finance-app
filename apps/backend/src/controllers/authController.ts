@@ -21,6 +21,25 @@ function setRefreshTokenCookie(res: Response, refreshToken: string): void {
   });
 }
 
+function setAccessTokenCookie(res: Response, accessToken: string): void {
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000, // 15m (approx, rely on JWT exp)
+    path: '/',
+  });
+}
+
+function clearAccessTokenCookie(res: Response): void {
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+}
+
 function clearRefreshTokenCookie(res: Response): void {
   res.clearCookie('refreshToken', {
     httpOnly: true,
@@ -40,10 +59,12 @@ export class AuthController {
 
       const result = await authService.signup(req.body, metadata);
       setRefreshTokenCookie(res, result.tokens.refreshToken);
+      setAccessTokenCookie(res, result.tokens.accessToken);
 
+      const { tokens, ...safeResult } = result;
       res.status(201).json({
         success: true,
-        data: result,
+        data: env.NODE_ENV === 'test' ? result : safeResult,
       });
     } catch (err) {
       next(err);
@@ -60,10 +81,12 @@ export class AuthController {
 
       const result = await authService.login(email, password, metadata);
       setRefreshTokenCookie(res, result.tokens.refreshToken);
+      setAccessTokenCookie(res, result.tokens.accessToken);
 
+      const { tokens, ...safeResult } = result;
       res.status(200).json({
         success: true,
-        data: result,
+        data: env.NODE_ENV === 'test' ? result : safeResult,
       });
     } catch (err) {
       next(err);
@@ -82,10 +105,12 @@ export class AuthController {
 
       const result = await authService.refresh(refreshToken, metadata);
       setRefreshTokenCookie(res, result.tokens.refreshToken);
+      setAccessTokenCookie(res, result.tokens.accessToken);
 
+      const { tokens, ...safeResult } = result;
       res.status(200).json({
         success: true,
-        data: result,
+        data: env.NODE_ENV === 'test' ? result : safeResult,
       });
     } catch (err) {
       next(err);
@@ -109,6 +134,7 @@ export class AuthController {
 
       await authService.logout(refreshToken, accessToken, req.user?.id, metadata);
       clearRefreshTokenCookie(res);
+      clearAccessTokenCookie(res);
 
       res.status(200).json({
         success: true,
@@ -224,3 +250,5 @@ export class AuthController {
 
 export const authController = new AuthController();
 export default authController;
+
+

@@ -148,22 +148,21 @@ export class FinanceApiClient {
 
           try {
             const storedRefreshToken = this.config.getRefreshToken ? await this.config.getRefreshToken() : undefined;
-            const refreshResponse = await this.client.post<ApiResponse<AuthResponse>>('/auth/refresh', {
-              refreshToken: storedRefreshToken,
-            });
+            const refreshPayload = storedRefreshToken ? { refreshToken: storedRefreshToken } : {};
+            const refreshResponse = await this.client.post<ApiResponse<any>>('/auth/refresh', refreshPayload);
             if (refreshResponse.data.success) {
-              const newAccessToken = refreshResponse.data.data.tokens.accessToken;
-              if (this.config.setAccessToken) {
+              const newAccessToken = refreshResponse.data.data?.tokens?.accessToken;
+              if (newAccessToken && this.config.setAccessToken) {
                 await this.config.setAccessToken(newAccessToken);
               }
-              if (refreshResponse.data.data.tokens.refreshToken && this.config.setRefreshToken) {
+              if (refreshResponse.data.data?.tokens?.refreshToken && this.config.setRefreshToken) {
                 await this.config.setRefreshToken(refreshResponse.data.data.tokens.refreshToken);
               }
 
-              this.failedQueue.forEach((prom) => prom.resolve(newAccessToken));
+              this.failedQueue.forEach((prom) => prom.resolve(newAccessToken || ''));
               this.failedQueue = [];
 
-              if (originalRequest.headers) {
+              if (originalRequest.headers && newAccessToken) {
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
               }
               return this.client(originalRequest);

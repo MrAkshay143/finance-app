@@ -35,7 +35,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 11.13.0
+          version: 9.15.0
           run_install: false
 
       - name: Get pnpm store directory
@@ -98,48 +98,3 @@ jobs:
             finance-tracker-web:${{ github.sha }}
             finance-tracker-web:latest
 
-  deploy-staging:
-    name: Deploy to Staging Environment
-    needs: build-docker-images
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: https://staging.finance.internal
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run Prisma Migrations on Staging DB
-        run: |
-          echo "Running database schema migrations against staging database..."
-
-      - name: Deploy Staging Stack
-        run: |
-          echo "Deploying staging stack using docker-compose.prod.yml..."
-
-      - name: Run Smoke Tests on Staging
-        run: |
-          echo "Verifying /healthz, /readyz, and /metrics on staging deployment..."
-
-  deploy-production:
-    name: Deploy to Production Environment
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://app.finance.internal
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Apply Database Migrations to Production
-        run: |
-          echo "Applying database schema migrations against production database..."
-
-      - name: Rolling Deployment of Production Services
-        run: |
-          echo "Executing rolling deployment of backend, worker, and nginx..."
-
-      - name: Production Health Check Gate
-        run: |
-          echo "Verifying production healthz and readyz status..."

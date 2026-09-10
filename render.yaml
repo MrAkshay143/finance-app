@@ -6,7 +6,7 @@ services:
     name: finance-tracker-backend
     runtime: node
     plan: free
-    buildCommand: corepack enable && corepack prepare pnpm@11.13.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
     startCommand: ./apps/backend/node_modules/.bin/prisma migrate deploy --schema apps/backend/prisma/schema.prisma && node apps/backend/dist/server.js
     healthCheckPath: /healthz
     autoDeploy: true
@@ -24,7 +24,10 @@ services:
           name: finance-tracker-db
           property: connectionString
       - key: REDIS_URL
-        value: redis://localhost:6379
+        fromService:
+          type: redis
+          name: finance-tracker-redis
+          envVarKey: REDIS_URL
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
@@ -40,7 +43,7 @@ services:
       - key: STANDARD_USER_PASSWORD
         sync: false
       - key: CORS_ALLOWED_ORIGINS
-        value: "*"
+        value: "https://finance-tracker-web.onrender.com"
 
   # ============================================================================
   # Frontend Static Web Site
@@ -48,7 +51,7 @@ services:
   - type: web
     name: finance-tracker-web
     runtime: static
-    buildCommand: corepack enable && corepack prepare pnpm@11.13.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/web build
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/web build
     staticPublishPath: apps/web/dist
     autoDeploy: true
     routes:
@@ -71,3 +74,39 @@ databases:
     plan: free
     databaseName: finance_tracker
     postgresMajorVersion: 16
+
+# ==============================================================================
+# Background Worker Service
+# ==============================================================================
+  - type: worker
+    name: finance-tracker-worker
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile && pnpm -r --filter="./packages/*" run build && pnpm --filter @finance/backend build
+    startCommand: node apps/backend/dist/worker.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: finance-tracker-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: finance-tracker-redis
+          envVarKey: REDIS_URL
+
+# ==============================================================================
+# Managed Redis Instance
+# ==============================================================================
+  - type: redis
+    name: finance-tracker-redis
+    plan: free
+    ipAllowList: [] # only allow internal services
+

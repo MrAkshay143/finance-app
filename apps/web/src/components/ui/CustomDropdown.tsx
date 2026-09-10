@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check, Search, AlertCircle } from 'lucide-react';
 
 export interface DropdownOption {
@@ -46,38 +47,81 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{
+    top?: number;
+    bottom?: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+  } | null>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Close on outside click or Escape key
+  const updateCoords = useCallback(() => {
+    if (!buttonRef.current || typeof window === 'undefined') return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const dropdownMaxHeight = 240;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const placeAbove = spaceBelow < 180 && spaceAbove > spaceBelow;
+
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
+    const width = Math.min(rect.width, window.innerWidth - 16);
+
+    if (placeAbove) {
+      setCoords({
+        bottom: window.innerHeight - rect.top + 6,
+        left,
+        width,
+        maxHeight: Math.max(120, Math.min(dropdownMaxHeight, spaceAbove - 16)),
+      });
+    } else {
+      setCoords({
+        top: rect.bottom + 6,
+        left,
+        width,
+        maxHeight: Math.max(120, Math.min(dropdownMaxHeight, spaceBelow - 16)),
+      });
+    }
+  }, []);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      updateCoords();
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  // Update coords on window resize/scroll and listen for Escape key
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-        setSearchQuery('');
-      }
-    };
+    if (!isOpen) return;
+
+    updateCoords();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         setIsOpen(false);
         setSearchQuery('');
+        buttonRef.current?.focus();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
-    }
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', updateCoords);
+    window.addEventListener('scroll', updateCoords, true);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', updateCoords);
+      window.removeEventListener('scroll', updateCoords, true);
     };
-  }, [isOpen]);
+  }, [isOpen, updateCoords]);
 
   const filteredOptions = searchable && searchQuery.trim()
     ? options.filter((opt) =>
@@ -105,8 +149,80 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
     lg: 'w-4 h-4',
   }[size];
 
+  const isClient = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+  const popoverContent = (
+    <div
+      ref={popoverRef}
+      style={
+        isClient && coords
+          ? {
+              position: 'fixed',
+              top: coords.top !== undefined ? `${coords.top}px` : undefined,
+              bottom: coords.bottom !== undefined ? `${coords.bottom}px` : undefined,
+              left: `${coords.left}px`,
+              width: `${coords.width}px`,
+              maxHeight: `${coords.maxHeight}px`,
+            }
+          : undefined
+      }
+      className={`${
+        isClient
+          ? 'z-[9999]'
+          : 'absolute top-full left-0 mt-1.5 w-full z-[9999]'
+      } bg-white border border-borderDefault rounded-xl shadow-modal overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100`}
+    >
+      {/* Search option only where needed */}
+      {searchable && (
+        <div className="p-2 border-b border-borderDefault bg-slate-50 flex items-center gap-1.5 shrink-0">
+          <Search className="w-3.5 h-3.5 text-textMuted shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="w-full bg-transparent text-xs text-textDefault placeholder-textMuted focus:outline-none"
+            autoFocus
+          />
+        </div>
+      )}
+
+      {/* Options List */}
+      <div className="overflow-y-auto flex-1 divide-y divide-slate-100 py-1" role="listbox">
+        {filteredOptions.map((opt) => {
+          const isSelected = opt.value === value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="option"
+              aria-selected={isSelected}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+                setSearchQuery('');
+              }}
+              className={`w-full text-left flex items-center justify-between transition-colors hover:bg-slate-50 ${sizeOptionClasses} ${
+                isSelected ? 'bg-brand-primary/10 font-semibold text-brand-primary' : 'text-textDefault'
+              }`}
+            >
+              <span className="flex items-center gap-2 truncate mr-2">
+                {opt.icon && <span className="shrink-0">{opt.icon}</span>}
+                <span className="truncate">{opt.label}</span>
+              </span>
+              {isSelected && <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />}
+            </button>
+          );
+        })}
+        {filteredOptions.length === 0 && (
+          <div className="px-3 py-4 text-center text-xs text-textMuted">No options found</div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className={`w-full ${className}`} ref={dropdownRef}>
+    <div className={`w-full ${className}`}>
       {(label || labelRight) && (
         <div className="flex items-center justify-between mb-1.5">
           {label && (
@@ -119,20 +235,16 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       )}
 
       <div className="relative">
-        {/* Trigger Button matching mobile number country code CSS */}
+        {/* Trigger Button */}
         <button
+          ref={buttonRef}
           type="button"
           id={buttonId}
           disabled={disabled}
           aria-label={ariaLabel || label || placeholder}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? `${buttonId}-error` : undefined}
-          onClick={() => {
-            if (!disabled) {
-              setIsOpen(!isOpen);
-              if (isOpen) setSearchQuery('');
-            }
-          }}
+          onClick={handleToggle}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           className={`w-full bg-white hover:bg-slate-50 border font-medium text-textDefault flex items-center justify-between transition-colors focus:outline-none focus:ring-2 focus-visible:outline-none focus-visible:ring-2 focus:ring-brand-primary focus-visible:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${sizeButtonClasses} ${
@@ -154,56 +266,29 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           />
         </button>
 
-        {/* Dropdown Popover matching mobile number country code CSS */}
+        {/* Dropdown Overlay Backdrop & Popover */}
         {isOpen && (
-          <div className="absolute top-full left-0 mt-1.5 w-full max-h-60 bg-white border border-borderDefault rounded-xl shadow-modal z-50 overflow-hidden flex flex-col">
-            {/* Search option only where needed */}
-            {searchable && (
-              <div className="p-2 border-b border-borderDefault bg-slate-50 flex items-center gap-1.5">
-                <Search className="w-3.5 h-3.5 text-textMuted shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full bg-transparent text-xs text-textDefault placeholder-textMuted focus:outline-none"
-                  autoFocus
+          isClient ? (
+            createPortal(
+              <>
+                {/* Backdrop overlay for dismissing dropdown on click outside */}
+                <div
+                  className="fixed inset-0 z-[9998] bg-black/[0.04] transition-opacity"
+                  aria-hidden="true"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                    setSearchQuery('');
+                  }}
                 />
-              </div>
-            )}
-
-            {/* Options List */}
-            <div className="overflow-y-auto flex-1 divide-y divide-slate-100 py-1" role="listbox">
-              {filteredOptions.map((opt) => {
-                const isSelected = opt.value === value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      onChange(opt.value);
-                      setIsOpen(false);
-                      setSearchQuery('');
-                    }}
-                    className={`w-full text-left flex items-center justify-between transition-colors hover:bg-slate-50 ${sizeOptionClasses} ${
-                      isSelected ? 'bg-brand-primary/10 font-semibold text-brand-primary' : 'text-textDefault'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 truncate mr-2">
-                      {opt.icon && <span className="shrink-0">{opt.icon}</span>}
-                      <span className="truncate">{opt.label}</span>
-                    </span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-brand-primary shrink-0" />}
-                  </button>
-                );
-              })}
-              {filteredOptions.length === 0 && (
-                <div className="px-3 py-4 text-center text-xs text-textMuted">No options found</div>
-              )}
-            </div>
-          </div>
+                {popoverContent}
+              </>
+              ,
+              document.body
+            )
+          ) : (
+            popoverContent
+          )
         )}
       </div>
 

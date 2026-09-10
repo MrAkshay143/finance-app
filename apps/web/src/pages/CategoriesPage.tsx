@@ -822,9 +822,10 @@ export const CategoriesPage: React.FC = () => {
       <Modal
         isOpen={isAddCategoryOpen}
         onClose={() => setIsAddCategoryOpen(false)}
+        compact
         title="Add Category"
         subtitle="Create a new classification category"
-        icon={<Tag className="w-5 h-5 text-brand-primary" />}
+        icon={<Tag className="w-4 h-4 text-brand-primary" />}
         footer={
           <>
             <Button
@@ -846,7 +847,7 @@ export const CategoriesPage: React.FC = () => {
           </>
         }
       >
-        <form onSubmit={handleSaveCategory} className="space-y-4">
+        <form onSubmit={handleSaveCategory} className="space-y-3">
           {categoryError && (
             <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -885,9 +886,10 @@ export const CategoriesPage: React.FC = () => {
       <Modal
         isOpen={isEditCategoryOpen}
         onClose={() => setIsEditCategoryOpen(false)}
+        compact
         title="Edit Category"
         subtitle="Update custom category classification"
-        icon={<Pencil className="w-5 h-5 text-brand-primary" />}
+        icon={<Pencil className="w-4 h-4 text-brand-primary" />}
         footer={
           <>
             <Button
@@ -909,7 +911,7 @@ export const CategoriesPage: React.FC = () => {
           </>
         }
       >
-        <form onSubmit={handleUpdateCategory} className="space-y-4">
+        <form onSubmit={handleUpdateCategory} className="space-y-3">
           {categoryError && (
             <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -1032,9 +1034,10 @@ export const CategoriesPage: React.FC = () => {
       <Modal
         isOpen={isAddMerchantOpen}
         onClose={() => setIsAddMerchantOpen(false)}
+        compact
         title="Add Merchant"
         subtitle="Register a new vendor or payee"
-        icon={<Store className="w-5 h-5 text-brand-primary" />}
+        icon={<Store className="w-4 h-4 text-brand-primary" />}
         footer={
           <>
             <Button
@@ -1056,7 +1059,7 @@ export const CategoriesPage: React.FC = () => {
           </>
         }
       >
-        <form onSubmit={handleSaveMerchant} className="space-y-4">
+        <form onSubmit={handleSaveMerchant} className="space-y-3">
           {merchantError && (
             <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -1081,9 +1084,10 @@ export const CategoriesPage: React.FC = () => {
       <Modal
         isOpen={isEditMerchantOpen}
         onClose={() => setIsEditMerchantOpen(false)}
+        compact
         title="Edit Merchant"
         subtitle="Update vendor or payee details"
-        icon={<Pencil className="w-5 h-5 text-brand-primary" />}
+        icon={<Pencil className="w-4 h-4 text-brand-primary" />}
         footer={
           <>
             <Button
@@ -1105,7 +1109,7 @@ export const CategoriesPage: React.FC = () => {
           </>
         }
       >
-        <form onSubmit={handleUpdateMerchant} className="space-y-4">
+        <form onSubmit={handleUpdateMerchant} className="space-y-3">
           {merchantError && (
             <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
