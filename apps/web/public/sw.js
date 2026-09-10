@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-pwa-v1';
+const CACHE_NAME = 'finance-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -13,10 +13,16 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('PWA: Static cache prefill warning:', err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Prefill static assets using cache: 'reload' to ensure fresh response from origin
+      for (const asset of STATIC_ASSETS) {
+        try {
+          const res = await fetch(asset, { cache: 'reload' });
+          if (res.ok) await cache.put(asset, res);
+        } catch (err) {
+          console.warn('PWA: Static cache prefill warning:', err);
+        }
+      }
     })
   );
 });
@@ -27,12 +33,30 @@ self.addEventListener('activate', (event) => {
       Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[PWA] Purging outdated cache:', key);
             return caches.delete(key);
           }
         })
       )
     ).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'CLEAR_OLD_CACHES') {
+    event.waitUntil(
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) return caches.delete(key);
+          })
+        )
+      )
+    );
+  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -45,10 +69,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests: Network-first, fallback to cached index.html
+  // Navigation requests: Network-first with no-cache, fallback to cached index.html
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => {
+      fetch(event.request, { cache: 'no-cache' }).catch(() => {
         return caches.match('/index.html') || caches.match('/');
       })
     );

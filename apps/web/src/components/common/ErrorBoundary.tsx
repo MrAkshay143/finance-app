@@ -80,7 +80,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </h2>
               <p className="text-xs text-textMuted leading-relaxed max-w-xs mx-auto">
                 {isChunkError
-                  ? 'A fresh update is ready. Tap refresh to continue.'
+                  ? 'App updated. Refresh to continue.'
                   : 'We could not load this screen. Please refresh to try again.'}
               </p>
             </div>

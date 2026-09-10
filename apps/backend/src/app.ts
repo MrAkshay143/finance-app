@@ -145,7 +145,27 @@ export function createApp(): Express {
 
   // Serve static SPA files if public/ directory exists
   if (hasSpa) {
-    app.use(express.static(publicDir, { maxAge: '1h', index: false }));
+    app.use(
+      express.static(publicDir, {
+        maxAge: '1y',
+        immutable: true,
+        index: false,
+        setHeaders: (res, filePath) => {
+          // sw.js, index.html, and manifest must NEVER be cached by browsers or proxies
+          if (
+            filePath.endsWith('sw.js') ||
+            filePath.endsWith('index.html') ||
+            filePath.endsWith('manifest.webmanifest') ||
+            filePath.endsWith('manifest.json') ||
+            filePath.endsWith('config.js')
+          ) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+          }
+        },
+      })
+    );
     app.get('*', (req: Request, res: Response, next: NextFunction) => {
       if (
         req.path.startsWith('/api') ||
@@ -163,6 +183,9 @@ export function createApp(): Express {
       ) {
         return res.status(404).type('text/plain').send('Asset not found');
       }
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.sendFile(path.resolve(publicDir, 'index.html'));
     });
   }
