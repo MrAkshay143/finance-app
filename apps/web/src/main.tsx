@@ -1,19 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './queries/queryClient.js';
+import { toast } from './store/toastStore.js';
 import App from './App.js';
 import './index.css';
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 0,
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-      retry: 1,
-    },
-  },
-});
+export { queryClient };
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
@@ -42,12 +35,9 @@ if (
   'serviceWorker' in navigator &&
   import.meta.env.PROD
 ) {
-  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
+    // Non-disruptive notification instead of forced reload
+    toast.info('App updated in background. Refresh whenever you are ready.', 6000);
   });
 
   window.addEventListener('load', () => {
@@ -56,13 +46,8 @@ if (
       .then((registration) => {
         console.log('Finance PWA ServiceWorker active with scope:', registration.scope);
 
-        // Immediate background update check
+        // Immediate background update check on app launch
         registration.update().catch(() => {});
-
-        // Check for updates periodically (every 3 minutes)
-        setInterval(() => {
-          registration.update().catch(() => {});
-        }, 3 * 60 * 1000);
 
         // Check for updates whenever the window/tab becomes visible again
         document.addEventListener('visibilitychange', () => {

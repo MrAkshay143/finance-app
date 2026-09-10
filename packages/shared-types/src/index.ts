@@ -36,5 +36,5 @@ export const DEFAULT_USER_SETTINGS = {
   financialMonthStartDay: 1,
   dateFormat: 'DD-MM-YYYY',
   timeFormat: '12h',
-  quickAddEnabled: true,
+  quickAddEnabled: false,
 };

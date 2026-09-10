@@ -139,7 +139,7 @@ async function ensureAdminUser() {
             currency: 'INR',
             timezone: 'Asia/Kolkata',
             financialMonthStartDay: 1,
-            quickAddEnabled: true,
+            quickAddEnabled: false,
             dashboardDonutsConfig: { income: true, expense: true, investment: true },
             featuresConfig: { investments: true, recurring: true },
           },

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Sparkles,
   TrendingUp,
@@ -137,6 +137,7 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.rawAxios.get('/dashboard');
       return res.data?.data || res.data;
     },
+    placeholderData: keepPreviousData,
   });
 
   // Query user preferences
@@ -146,6 +147,7 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.settings.get();
       return (res as any)?.data || res;
     },
+    placeholderData: keepPreviousData,
   });
 
   const donutConfig = userSettings?.dashboardDonutsConfig || userSettings?.dashboardDonuts;
@@ -154,7 +156,7 @@ export const DashboardPage: React.FC = () => {
   const showIncomeDonut = donutVisualsEnabled && donutConfig?.income !== false;
   const showInvestmentDonut = donutVisualsEnabled && donutConfig?.investment !== false;
   const showDonutSection = showExpenseDonut || showIncomeDonut || showInvestmentDonut;
-  const showQuickAdd = userSettings?.quickAddEnabled !== false && userSettings?.quickAdd !== false;
+  const showQuickAdd = Boolean(userSettings?.quickAddEnabled === true || userSettings?.quickAdd === true);
 
   // Extract real backend data with safe fallbacks
   const fam = dashboardData?.fam;
@@ -180,6 +182,11 @@ export const DashboardPage: React.FC = () => {
   const accountSummary = dashboardData?.accountSummary || { totalBalance: 0, activeCount: 0, accounts: [] };
   const recentTransactions = dashboardData?.recentTransactions || [];
 
+  const hasAnyBreakdownData =
+    (showExpenseDonut && expenseBreakdown.length > 0) ||
+    (showIncomeDonut && incomeBreakdown.length > 0) ||
+    (showInvestmentDonut && investmentBreakdown.length > 0);
+
   // Segmented toggle state for Breakdown card
   type BreakdownTab = 'EXPENSE' | 'INCOME' | 'INVESTMENT';
   const [breakdownView, setBreakdownView] = React.useState<BreakdownTab>('EXPENSE');
@@ -187,14 +194,14 @@ export const DashboardPage: React.FC = () => {
   // Compute available tabs according to user settings and sync active tab if needed
   React.useEffect(() => {
     const availableTabs: BreakdownTab[] = [];
-    if (showExpenseDonut) availableTabs.push('EXPENSE');
-    if (showIncomeDonut) availableTabs.push('INCOME');
-    if (showInvestmentDonut) availableTabs.push('INVESTMENT');
+    if (showExpenseDonut && expenseBreakdown.length > 0) availableTabs.push('EXPENSE');
+    if (showIncomeDonut && incomeBreakdown.length > 0) availableTabs.push('INCOME');
+    if (showInvestmentDonut && investmentBreakdown.length > 0) availableTabs.push('INVESTMENT');
 
     if (availableTabs.length > 0 && !availableTabs.includes(breakdownView)) {
       setBreakdownView(availableTabs[0]);
     }
-  }, [showExpenseDonut, showIncomeDonut, showInvestmentDonut]);
+  }, [showExpenseDonut, showIncomeDonut, showInvestmentDonut, expenseBreakdown.length, incomeBreakdown.length, investmentBreakdown.length]);
 
   const activeBreakdown: Array<{ categoryId?: string; categoryName: string; amount: number; percentage: number }> =
     breakdownView === 'EXPENSE'
@@ -627,7 +634,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Section 4: Expense Breakdown */}
-            {showDonutSection && (
+            {showDonutSection && hasAnyBreakdownData && activeBreakdown.length > 0 && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="expense-overview-donut-card"
@@ -897,7 +904,8 @@ export const DashboardPage: React.FC = () => {
             </div>
             )}
 
-            {/* Section 5: Recent Transactions */}
+            {/* Section 5: Connected Accounts */}
+            {(accountSummary.activeCount > 0 || (accountSummary.accounts && accountSummary.accounts.length > 0)) && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="account-summary-card"
@@ -919,90 +927,81 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
 
-              {accountSummary.activeCount === 0 ? (
-                <EmptyState
-                  icon={<CreditCard className="w-7 h-7 stroke-[1.8]" />}
-                  title="No accounts linked"
-                  description="Add your accounts to start tracking your net worth."
-                  actionLabel="Add Account"
-                  actionIcon={<Plus className="w-4 h-4" />}
-                  onAction={() => setIsAddAccountOpen(true)}
-                />
-              ) : (
-                <div className="flex items-center justify-between mt-2 pt-1">
-                  <div>
-                    <div className="text-xs font-medium text-slate-400">Total Liquid Balance</div>
-                    <div className="text-xl font-black text-slate-900 tracking-tight mt-0.5">
-                      {formatCurrency(accountSummary.totalBalance, userCurrency)}
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      {`Across ${accountSummary.activeCount} active ${accountSummary.activeCount === 1 ? 'account' : 'accounts'}`}
-                    </div>
+              <div className="flex items-center justify-between mt-2 pt-1">
+                <div>
+                  <div className="text-xs font-medium text-slate-400">Total Liquid Balance</div>
+                  <div className="text-xl font-black text-slate-900 tracking-tight mt-0.5">
+                    {formatCurrency(accountSummary.totalBalance, userCurrency)}
                   </div>
-
-                  <div className="flex flex-col items-end gap-2.5">
-                    {/* Visual Account Badge Circles */}
-                    <div className="flex items-center -space-x-1.5">
-                      {accountSummary.accounts && accountSummary.accounts.length > 0 ? (
-                        accountSummary.accounts.slice(0, 3).map((acc, idx) => {
-                          const isBank = acc.accountType === 'SAVINGS' || acc.accountType === 'CHECKING';
-                          const isWallet = acc.accountType === 'WALLET' || acc.accountType === 'CASH';
-                          const isCard = acc.accountType === 'CREDIT_CARD';
-                          const bgClass = isBank
-                            ? 'bg-blue-600 text-white'
-                            : isWallet
-                            ? 'bg-purple-600 text-white'
-                            : isCard
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-emerald-600 text-white';
-                          return (
-                            <div
-                              key={acc.id || idx}
-                              title={acc.name}
-                              className={`w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${bgClass}`}
-                            >
-                              {isBank && <Landmark className="w-3.5 h-3.5" />}
-                              {isWallet && <Wallet className="w-3.5 h-3.5" />}
-                              {isCard && <CreditCard className="w-3.5 h-3.5" />}
-                              {!isBank && !isWallet && !isCard && <Landmark className="w-3.5 h-3.5" />}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <>
-                          <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                            <Landmark className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                            <Wallet className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
-                            <CreditCard className="w-3.5 h-3.5" />
-                          </div>
-                        </>
-                      )}
-                      {accountSummary.activeCount > 3 && (
-                        <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center justify-center border-2 border-white shadow-xs">
-                          +{accountSummary.activeCount - 3}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* View Accounts Action Button */}
-                    <button
-                      type="button"
-                      onClick={() => navigate('/accounts')}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-800 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>View Accounts</span>
-                    </button>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    {`Across ${accountSummary.activeCount} active ${accountSummary.activeCount === 1 ? 'account' : 'accounts'}`}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Section 6: Linked Accounts Summary */}
+                <div className="flex flex-col items-end gap-2.5">
+                  {/* Visual Account Badge Circles */}
+                  <div className="flex items-center -space-x-1.5">
+                    {accountSummary.accounts && accountSummary.accounts.length > 0 ? (
+                      accountSummary.accounts.slice(0, 3).map((acc, idx) => {
+                        const isBank = acc.accountType === 'SAVINGS' || acc.accountType === 'CHECKING';
+                        const isWallet = acc.accountType === 'WALLET' || acc.accountType === 'CASH';
+                        const isCard = acc.accountType === 'CREDIT_CARD';
+                        const bgClass = isBank
+                          ? 'bg-blue-600 text-white'
+                          : isWallet
+                          ? 'bg-purple-600 text-white'
+                          : isCard
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-emerald-600 text-white';
+                        return (
+                          <div
+                            key={acc.id || idx}
+                            title={acc.name}
+                            className={`w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${bgClass}`}
+                          >
+                            {isBank && <Landmark className="w-3.5 h-3.5" />}
+                            {isWallet && <Wallet className="w-3.5 h-3.5" />}
+                            {isCard && <CreditCard className="w-3.5 h-3.5" />}
+                            {!isBank && !isWallet && !isCard && <Landmark className="w-3.5 h-3.5" />}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <>
+                        <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                          <Landmark className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                          <Wallet className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                          <CreditCard className="w-3.5 h-3.5" />
+                        </div>
+                      </>
+                    )}
+                    {accountSummary.activeCount > 3 && (
+                      <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center justify-center border-2 border-white shadow-xs">
+                        +{accountSummary.activeCount - 3}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* View Accounts Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/accounts')}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-800 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>View Accounts</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            )}
+
+            {/* Section 6: Recent Transactions */}
+            {recentTransactions.length > 0 && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="recent-transactions-card"
@@ -1024,107 +1023,97 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
 
-              {recentTransactions.length === 0 ? (
-                <EmptyState
-                  icon={<Receipt className="w-7 h-7 stroke-[1.8]" />}
-                  title="No transactions yet"
-                  description="Record income, expenses, and investments to track FAM score."
-                  actionLabel="Add Transaction"
-                  actionIcon={<Plus className="w-4 h-4" />}
-                  onAction={openPicker}
-                />
-              ) : (
-                <div className="divide-y divide-slate-100 mt-1">
-                  {recentTransactions.map((txn) => {
-                    const isIncome = txn.type === 'INCOME';
-                    const isExpense = txn.type === 'EXPENSE';
-                    const isInvest = txn.type === 'INVESTMENT';
-                    const isTransfer = txn.type === 'TRANSFER';
+              <div className="divide-y divide-slate-100 mt-1">
+                {recentTransactions.map((txn) => {
+                  const isIncome = txn.type === 'INCOME';
+                  const isExpense = txn.type === 'EXPENSE';
+                  const isInvest = txn.type === 'INVESTMENT';
+                  const isTransfer = txn.type === 'TRANSFER';
 
-                    const chipBg = isIncome
-                      ? 'bg-emerald-100 text-emerald-600'
-                      : isExpense
-                      ? 'bg-rose-100 text-rose-500'
-                      : isInvest
-                      ? 'bg-purple-100 text-purple-600'
-                      : 'bg-blue-100 text-blue-600';
+                  const chipBg = isIncome
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : isExpense
+                    ? 'bg-rose-100 text-rose-500'
+                    : isInvest
+                    ? 'bg-purple-100 text-purple-600'
+                    : 'bg-blue-100 text-blue-600';
 
-                    const formattedAmount = isIncome
-                      ? `+${formatCurrency(txn.amount, userCurrency)}`
-                      : isExpense
-                      ? `-${formatCurrency(txn.amount, userCurrency)}`
-                      : formatCurrency(txn.amount, userCurrency);
+                  const formattedAmount = isIncome
+                    ? `+${formatCurrency(txn.amount, userCurrency)}`
+                    : isExpense
+                    ? `-${formatCurrency(txn.amount, userCurrency)}`
+                    : formatCurrency(txn.amount, userCurrency);
 
-                    const amountColor = isIncome
-                      ? 'text-emerald-600'
-                      : isExpense
-                      ? 'text-rose-500'
-                      : isInvest
-                      ? 'text-purple-600'
-                      : 'text-blue-600';
+                  const amountColor = isIncome
+                    ? 'text-emerald-600'
+                    : isExpense
+                    ? 'text-rose-500'
+                    : isInvest
+                    ? 'text-purple-600'
+                    : 'text-blue-600';
 
-                    const rawDate = txn.txnDate || txn.date;
-                    const dateStr = formatDate(rawDate);
+                  const rawDate = txn.txnDate || txn.date;
+                  const dateStr = formatDate(rawDate);
 
-                    const merchantName =
-                      typeof txn.merchant === 'string' ? txn.merchant : txn.merchant?.name;
+                  const merchantName =
+                    typeof txn.merchant === 'string' ? txn.merchant : txn.merchant?.name;
 
-                    const defaultRecordLabel = isIncome
-                      ? 'Income Record'
-                      : isExpense
-                      ? 'Expense Record'
-                      : isInvest
-                      ? 'Investment Record'
-                      : 'Transfer Record';
+                  const defaultRecordLabel = isIncome
+                    ? 'Income Record'
+                    : isExpense
+                    ? 'Expense Record'
+                    : isInvest
+                    ? 'Investment Record'
+                    : 'Transfer Record';
 
-                    const title = merchantName || txn.description || defaultRecordLabel;
+                  const title = merchantName || txn.description || defaultRecordLabel;
 
-                    const defaultTypeLabel = isIncome
-                      ? 'Income'
-                      : isExpense
-                      ? 'Expense'
-                      : isInvest
-                      ? 'Investment'
-                      : 'Transfer';
+                  const defaultTypeLabel = isIncome
+                    ? 'Income'
+                    : isExpense
+                    ? 'Expense'
+                    : isInvest
+                    ? 'Investment'
+                    : 'Transfer';
 
-                    const categoryName =
-                      txn.category?.name ||
-                      (txn.description && merchantName ? txn.description : defaultTypeLabel);
+                  const categoryName =
+                    txn.category?.name ||
+                    (txn.description && merchantName ? txn.description : defaultTypeLabel);
 
-                    return (
-                      <div
-                        key={txn.id}
-                        onClick={() => navigate('/transactions')}
-                        className="flex items-center justify-between py-2.5 hover:bg-slate-50/80 cursor-pointer transition-colors px-1 rounded-xl"
-                      >
-                        <div className="flex items-center gap-3 min-w-0 pr-2">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${chipBg}`}>
-                            {isIncome && <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />}
-                            {isExpense && <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />}
-                            {isInvest && <PiggyBank className="w-4 h-4 stroke-[2.5]" />}
-                            {isTransfer && <ArrowRightLeft className="w-4 h-4 stroke-[2.5]" />}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-xs font-bold text-slate-800 truncate">
-                              {title}
-                            </div>
-                            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                              <span className="truncate">{categoryName}</span>
-                              {dateStr && <span>• {dateStr}</span>}
-                            </div>
-                          </div>
+                  return (
+                    <div
+                      key={txn.id}
+                      onClick={() => navigate('/transactions')}
+                      className="flex items-center justify-between py-2.5 hover:bg-slate-50/80 cursor-pointer transition-colors px-1 rounded-xl"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${chipBg}`}>
+                          {isIncome && <ArrowDownLeft className="w-4 h-4 stroke-[2.5]" />}
+                          {isExpense && <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />}
+                          {isInvest && <PiggyBank className="w-4 h-4 stroke-[2.5]" />}
+                          {isTransfer && <ArrowRightLeft className="w-4 h-4 stroke-[2.5]" />}
                         </div>
-                        <div className="text-right shrink-0">
-                          <div className={`text-xs font-black ${amountColor}`}>
-                            {formattedAmount}
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-800 truncate">
+                            {title}
+                          </div>
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <span className="truncate">{categoryName}</span>
+                            {dateStr && <span>• {dateStr}</span>}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                      <div className="text-right shrink-0">
+                        <div className={`text-xs font-black ${amountColor}`}>
+                          {formattedAmount}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+            )}
           </>
         )}
       </div>

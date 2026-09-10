@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Search,
   X,
@@ -33,23 +33,32 @@ import type { AuditLogRecord } from '@finance/shared-types';
 export const AuditLogPage: React.FC = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [inspectRecord, setInspectRecord] = useState<AuditLogRecord | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const categories = ['All', 'Login', 'Transactions', 'Profile', 'Settings', 'Security'];
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['user-audit-logs', selectedCategory, search],
+    queryKey: ['user-audit-logs', selectedCategory, debouncedSearch],
     queryFn: async () => {
       const categoryParam = selectedCategory === 'All' ? undefined : selectedCategory;
       const res = await apiClient.audit.getUserAuditLogs({
         page: 1,
         pageSize: 50,
         category: categoryParam,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
       });
       return (res as any)?.data || res;
     },
+    placeholderData: keepPreviousData,
   });
 
   const logs: AuditLogRecord[] = useMemo(() => {
@@ -57,15 +66,15 @@ export const AuditLogPage: React.FC = () => {
     if (!Array.isArray(rawLogs)) return [];
 
     return rawLogs.filter((log) => {
-      if (!search.trim()) return true;
-      const q = search.toLowerCase();
+      if (!debouncedSearch.trim()) return true;
+      const q = debouncedSearch.toLowerCase();
       return (
         log.action?.toLowerCase().includes(q) ||
         log.category?.toLowerCase().includes(q) ||
         JSON.stringify(log.details || {}).toLowerCase().includes(q)
       );
     });
-  }, [data, search]);
+  }, [data, debouncedSearch]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const PAGE_SIZE = 15;
@@ -73,7 +82,7 @@ export const AuditLogPage: React.FC = () => {
   // Reset currentPage to 1 on search or category filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedCategory]);
+  }, [debouncedSearch, selectedCategory]);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
 

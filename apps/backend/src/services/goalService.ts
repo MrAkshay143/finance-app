@@ -4,7 +4,7 @@ import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.
 import { toPaise } from '../utils/currency.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface CreateGoalData {
   name: string;
@@ -121,9 +121,7 @@ export class GoalService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'GOAL', action: 'CREATE', entityId: goal.id });
 
     return formatGoal(goal);
   }
@@ -182,9 +180,7 @@ export class GoalService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'GOAL', action: 'UPDATE', entityId: id });
 
     return formatGoal(updated);
   }
@@ -221,9 +217,7 @@ export class GoalService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'GOAL', action: 'DELETE', entityId: id });
 
     return { message: 'Goal deleted successfully' };
   }

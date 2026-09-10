@@ -5,7 +5,7 @@ import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface CreateRecurringData {
   accountId: string;
@@ -218,6 +218,7 @@ export class RecurringService {
       },
     });
 
+    emitSyncEvent(userId, { entity: 'RECURRING', action: 'CREATE', entityId: created.id });
     return formatRecurringTransaction(created);
   }
 
@@ -280,6 +281,7 @@ export class RecurringService {
       },
     });
 
+    emitSyncEvent(userId, { entity: 'RECURRING', action: 'UPDATE', entityId: id });
     return formatRecurringTransaction(updated);
   }
 
@@ -300,6 +302,7 @@ export class RecurringService {
       data: { status: 'DELETED' },
     });
 
+    emitSyncEvent(userId, { entity: 'RECURRING', action: 'DELETE', entityId: id });
     return { message: 'Recurring transaction deleted' };
   }
 
@@ -408,7 +411,7 @@ export class RecurringService {
     // Refresh dashboards and notify affected users
     for (const uId of affectedUserIds) {
       await invalidateDashboardCache(uId);
-      emitDashboardRefresh(uId);
+      emitSyncEvent(uId, { entity: 'RECURRING', action: 'MATERIALIZE' });
     }
 
     return {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   TrendingUp,
@@ -24,6 +24,7 @@ import { validateAmount } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
 import { MerchantAutoSuggest } from './MerchantAutoSuggest.js';
 import { syncOnTransactionMutation } from '../../services/dataSync.js';
+import { queryKeys } from '../../queries/queryKeys.js';
 import { AddAccountModal } from './AddAccountModal.js';
 import { AddCategoryModal } from './AddCategoryModal.js';
 
@@ -63,7 +64,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   // Fetch real accounts via TanStack Query
   const { data: accountsData } = useQuery(
     {
-      queryKey: ['accounts'],
+      queryKey: queryKeys.accounts.all,
       queryFn: async () => {
         return await apiClient.accounts.list();
       },
@@ -78,7 +79,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   // Fetch real categories via TanStack Query
   const { data: categoriesData } = useQuery(
     {
-      queryKey: ['categories'],
+      queryKey: queryKeys.categories.all,
       queryFn: async () => {
         return await apiClient.categories.list();
       },
@@ -90,7 +91,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   // Fetch user settings for currency symbol
   const { data: userSettings } = useQuery(
     {
-      queryKey: ['userSettings'],
+      queryKey: queryKeys.userSettings,
       queryFn: async () => apiClient.settings.get(),
       enabled: isOpen,
     },
@@ -118,11 +119,18 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         })
       : [];
 
-  // Populate or reset form fields on open / data change
+  // Track initialization state with refs to prevent background query refetches
+  // from ever wiping out user-typed inputs (amount, merchant, description, date).
+  const prevIsOpenRef = useRef(false);
+  const prevInitialDataIdRef = useRef<string | undefined>(undefined);
+  const isInitializedRef = useRef(false);
+
   useEffect(() => {
-    if (isOpen) {
+    const justOpened = isOpen && !prevIsOpenRef.current;
+    const initialDataChanged = initialData?.id !== prevInitialDataIdRef.current;
+
+    if (justOpened || (isOpen && initialDataChanged)) {
       setAmount(initialData?.amount !== undefined ? initialData.amount.toString() : '');
-      // Only pre-select a category if it's a real UUID from the API
       const initialCatId = initialData?.categoryId || '';
       const firstRealCat = realCategories[0]?.id || '';
       setCategoryId(initialCatId || firstRealCat);
@@ -134,8 +142,40 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       setDate(initialData?.date ? initialData.date.slice(0, 10) : new Date().toISOString().slice(0, 10));
       setDescription(initialData?.description || '');
       setError('');
+      isInitializedRef.current = true;
     }
-  }, [isOpen, mode, type, initialData, accountsData, categoriesData]);
+
+    if (!isOpen) {
+      isInitializedRef.current = false;
+    }
+
+    prevIsOpenRef.current = isOpen;
+    prevInitialDataIdRef.current = initialData?.id;
+  }, [
+    isOpen,
+    mode,
+    type,
+    initialData?.id,
+    initialData?.amount,
+    initialData?.categoryId,
+    initialData?.accountId,
+    initialData?.toAccountId,
+    initialData?.merchant,
+    initialData?.date,
+    initialData?.description,
+  ]);
+
+  // Non-destructive fallback for category and account selection when options load after open
+  useEffect(() => {
+    if (isOpen && isInitializedRef.current) {
+      if (!categoryId && realCategories[0]?.id) {
+        setCategoryId(realCategories[0].id);
+      }
+      if (!accountId && activeAccounts[0]?.id) {
+        setAccountId(activeAccounts[0].id);
+      }
+    }
+  }, [isOpen, realCategories.length, activeAccounts.length]);
 
 
   // Mutations
@@ -376,12 +416,13 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       subtitle={getSubtitle()}
       icon={getIcon()}
       footer={
-        <div className="flex items-center gap-2.5 w-full justify-end">
+        <div className="flex items-center gap-2 w-full justify-end">
           <Button
             type="button"
             variant="outline"
-            size="md"
+            size="sm"
             onClick={handleClose}
+            className="px-3.5 py-1.5 text-xs font-bold"
           >
             Cancel
           </Button>
@@ -389,8 +430,9 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
             type="submit"
             form="transaction-form"
             variant="primary"
-            size="md"
+            size="sm"
             isLoading={isSubmitting}
+            className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
             {submitButtonLabel}
           </Button>

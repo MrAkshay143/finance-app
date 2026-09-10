@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
+import { Skeleton } from '../components/ui/Skeleton.js';
 import {
   ChevronLeft,
   Calendar,
@@ -67,7 +68,7 @@ export const NotificationsPage: React.FC = () => {
   }, [remindersData]);
 
   // Fetch Notifications
-  const { data: notificationsResponse } = useQuery({
+  const { data: notificationsResponse, isLoading: isNotificationsLoading } = useQuery({
     queryKey: ['notifications', activeFilter],
     queryFn: async () => {
       return await apiClient.notifications.list({
@@ -76,6 +77,7 @@ export const NotificationsPage: React.FC = () => {
         pageSize: 50,
       });
     },
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   // Mark single as read mutation
@@ -310,7 +312,13 @@ export const NotificationsPage: React.FC = () => {
         </div>
 
         {/* Notification Item Cards List */}
-        {items.length === 0 ? (
+        {isNotificationsLoading && !notificationsResponse ? (
+          <div className="space-y-2.5">
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+          </div>
+        ) : items.length === 0 ? (
           <Card padding="md" className="py-12 flex flex-col items-center justify-center text-center space-y-2 bg-white border-slate-200">
             <Bell className="w-8 h-8 text-slate-300" />
             <h4 className="text-xs font-bold text-slate-800">No notifications right now</h4>

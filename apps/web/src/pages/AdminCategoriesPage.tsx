@@ -63,7 +63,8 @@ export const AdminCategoriesPage: React.FC = () => {
       return await apiClient.admin.createSystemCategory(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'active' });
       setIsCatModalOpen(false);
       resetCatForm();
       toast.success('Category created');
@@ -85,7 +86,8 @@ export const AdminCategoriesPage: React.FC = () => {
       return await apiClient.admin.updateSystemCategory(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'active' });
       setIsCatModalOpen(false);
       resetCatForm();
       toast.success('Category updated');
@@ -101,7 +103,8 @@ export const AdminCategoriesPage: React.FC = () => {
       return await apiClient.admin.deleteSystemCategory(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-system-categories'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'active' });
       setDeletingCategory(null);
       toast.success('Category deleted');
     },

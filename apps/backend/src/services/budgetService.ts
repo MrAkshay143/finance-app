@@ -4,7 +4,7 @@ import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.
 import { toPaise } from '../utils/currency.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 import { getFinancialMonthRange } from './famService.js';
 
 export interface CreateBudgetData {
@@ -191,9 +191,7 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'BUDGET', action: 'CREATE', entityId: budget.id });
 
     return formatBudget(budget, BigInt(0));
   }
@@ -255,9 +253,7 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'BUDGET', action: 'UPDATE', entityId: id });
 
     return this.getBudget(userId, id);
   }
@@ -294,9 +290,7 @@ export class BudgetService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'BUDGET', action: 'DELETE', entityId: id });
 
     return { message: 'Budget deleted successfully' };
   }

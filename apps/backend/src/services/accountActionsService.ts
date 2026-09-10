@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 import { invalidateDashboardCache } from './dashboardService.js';
 import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 
@@ -84,7 +84,8 @@ export class AccountActionsService {
     // Notify connected clients that data has been reset & invalidate cache
     await invalidateDashboardCache(userId);
     try {
-      emitDashboardRefresh(userId, { reset: true, timestamp: new Date().toISOString() });
+      // Emit a generic sync:event without entity so frontend falls through to syncAllFinanceData
+      emitSyncEvent(userId, { entity: 'ACCOUNT', action: 'STATUS_CHANGE', reset: true });
     } catch {
       // Sockets may not be available in all runtime environments
     }

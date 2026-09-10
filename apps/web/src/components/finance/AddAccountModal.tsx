@@ -107,12 +107,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       subtitle="Connect a new bank account or investment portfolio"
       icon={<Landmark className="w-5 h-5 stroke-[2.2]" />}
       footer={
-        <div className="flex items-center gap-2.5 w-full justify-end">
+        <div className="flex items-center gap-2 w-full justify-end">
           <Button
             type="button"
             variant="outline"
-            size="md"
+            size="sm"
             onClick={onClose}
+            className="px-3.5 py-1.5 text-xs font-bold"
           >
             Cancel
           </Button>
@@ -120,8 +121,9 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             type="submit"
             form="add-account-modal-form"
             variant="primary"
-            size="md"
+            size="sm"
             isLoading={createMutation.isPending}
+            className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
             Save Account
           </Button>

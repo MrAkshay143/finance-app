@@ -41,8 +41,8 @@ export const UserSettingsDataSchema = z.object({
   financialMonthStartDay: z.number().int().min(1).max(28).default(1),
   dateFormat: DateFormatSchema.default('DD-MM-YYYY'),
   timeFormat: TimeFormatSchema.default('12h'),
-  quickAdd: z.boolean().default(true),
-  quickAddEnabled: z.boolean().default(true),
+  quickAdd: z.boolean().default(false),
+  quickAddEnabled: z.boolean().default(false),
   dashboardDonuts: DashboardDonutsConfigSchema.default({
     income: true,
     expense: true,

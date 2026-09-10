@@ -5,7 +5,7 @@ import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 // Lazy import to avoid circular dependency — resolved at call time
 let _transferService: typeof import('./transferService.js').transferService | null = null;
 async function getTransferService() {
@@ -213,7 +213,7 @@ export class TransactionService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'TRANSACTION', action: 'CREATE', entityId: txn.id, affectedAccountIds: [data.accountId] });
 
     return formatTransaction(txn);
   }
@@ -361,7 +361,10 @@ export class TransactionService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    const affectedAcctIds = targetAccountId !== existing.accountId
+      ? [existing.accountId, targetAccountId]
+      : [targetAccountId];
+    emitSyncEvent(userId, { entity: 'TRANSACTION', action: 'UPDATE', entityId: id, affectedAccountIds: affectedAcctIds });
 
     return formatTransaction(updated);
   }
@@ -426,7 +429,7 @@ export class TransactionService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'TRANSACTION', action: 'DELETE', entityId: id, affectedAccountIds: [existing.accountId] });
 
     return { message: 'Transaction deleted successfully' };
   }

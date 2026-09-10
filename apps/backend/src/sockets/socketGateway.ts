@@ -134,9 +134,48 @@ export function emitUnreadCount(userId: string, unreadCount: number): void {
     const room = `user:${userId}`;
     const payload = { count: unreadCount, unreadCount };
     ioInstance.of('/notifications').to(room).emit('notification:unread-count', payload);
-    ioInstance.of('/notifications').to(room).emit('unread_count', payload);
+    // Support both primitive number listener and object listener
+    ioInstance.of('/notifications').to(room).emit('unread_count', unreadCount);
   } catch (err: any) {
     logger.warn({ err: err?.message, userId }, 'Failed to emit unread count via Socket.IO');
+  }
+}
+
+export interface SyncDomainEvent {
+  entity:
+    | 'TRANSACTION'
+    | 'TRANSFER'
+    | 'ACCOUNT'
+    | 'CATEGORY'
+    | 'MERCHANT'
+    | 'BUDGET'
+    | 'GOAL'
+    | 'RECURRING'
+    | 'PROFILE'
+    | 'SETTINGS'
+    | 'ADMIN_USER'
+    | 'ADMIN_CATEGORY';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'STATUS_CHANGE' | 'REORDER' | 'MATERIALIZE';
+  entityId?: string;
+  affectedAccountIds?: string[];
+  refreshedAt?: string;
+  [key: string]: any;
+}
+
+// Push fine-grained entity synchronization event to user room
+export function emitSyncEvent(userId: string, event: SyncDomainEvent): void {
+  if (!ioInstance) return;
+  try {
+    const room = `user:${userId}`;
+    const payload = {
+      ...event,
+      refreshedAt: event.refreshedAt || new Date().toISOString(),
+    };
+    ioInstance.of('/dashboard').to(room).emit('sync:event', payload);
+    // Single consolidated event (eliminates duplicate 'refresh' event bomb)
+    ioInstance.of('/dashboard').to(room).emit('dashboard:refresh', payload);
+  } catch (err: any) {
+    logger.warn({ err: err?.message, userId }, 'Failed to emit sync event via Socket.IO');
   }
 }
 
@@ -145,9 +184,14 @@ export function emitDashboardRefresh(userId: string, data: any = { refreshedAt: 
   if (!ioInstance) return;
   try {
     const room = `user:${userId}`;
-    ioInstance.of('/dashboard').to(room).emit('dashboard:refresh', data);
-    ioInstance.of('/dashboard').to(room).emit('refresh', data);
+    const payload = typeof data === 'object' && data !== null ? { ...data } : { data };
+    if (!payload.refreshedAt) {
+      payload.refreshedAt = new Date().toISOString();
+    }
+    // Single event emission to avoid firing redundant parallel query refreshes
+    ioInstance.of('/dashboard').to(room).emit('dashboard:refresh', payload);
   } catch (err: any) {
     logger.warn({ err: err?.message, userId }, 'Failed to emit dashboard refresh via Socket.IO');
   }
 }
+

@@ -62,7 +62,8 @@ export const AdminReportsPage: React.FC = () => {
       const res = await apiClient.admin.getSystemHealth();
       return (res as any)?.data || res;
     },
-    refetchInterval: 30000,
+    refetchInterval: false,
+    refetchIntervalInBackground: false,
   });
 
   const handleLogout = async () => {

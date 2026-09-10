@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Calendar,
   ChevronDown,
@@ -67,6 +67,7 @@ export const AnalyticsPage: React.FC = () => {
     queryFn: async () => {
       return await apiClient.analytics.get({ month: selectedMonth, accountId });
     },
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   const handlePeriodToggle = () => {

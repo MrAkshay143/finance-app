@@ -201,7 +201,7 @@ export class AuthService {
                 COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultTimeFormat) ||
               '12h',
             financialMonthStartDay: 1,
-            quickAddEnabled: true,
+            quickAddEnabled: false,
             dashboardDonutsConfig: { income: true, expense: true, investment: true },
             featuresConfig: { investments: true, recurring: true },
           },

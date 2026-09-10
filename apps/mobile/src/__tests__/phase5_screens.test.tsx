@@ -96,6 +96,8 @@ describe('Phase 5 Mobile Screens Suite (TASK-5.8)', () => {
       currency: 'INR',
       timezone: 'Asia/Kolkata',
       financialMonthStartDay: 1,
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '12h',
       quickAddEnabled: true,
       donutVisualsEnabled: true,
       investmentsTrackingEnabled: true,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Plus,
   PiggyBank,
@@ -40,6 +40,7 @@ export const InvestmentsPage: React.FC = () => {
     queryFn: async () => {
       return await apiClient.investments.getOverview();
     },
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   const totalInvested = investmentsData?.totalInvested ?? 0;

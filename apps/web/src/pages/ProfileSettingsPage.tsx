@@ -245,8 +245,7 @@ export const ProfileSettingsPage: React.FC = () => {
         currency,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['userSettings'], refetchType: 'active' });
       await syncOnProfileMutation(queryClient);
       toast.success('Basic profile updated successfully');
     } catch (err: any) {

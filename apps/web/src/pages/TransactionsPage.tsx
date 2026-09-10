@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import {
   Search,
   Plus,
@@ -137,6 +137,7 @@ export const TransactionsPage: React.FC = () => {
         });
         return res;
       },
+      placeholderData: keepPreviousData,
     },
     queryClient
   );
@@ -153,6 +154,7 @@ export const TransactionsPage: React.FC = () => {
         return await apiClient.transfers.list();
       },
       enabled: shouldFetchTransfers,
+      placeholderData: keepPreviousData,
     },
     queryClient
   );

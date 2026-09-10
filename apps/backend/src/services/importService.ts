@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
 
 export interface ImportCsvResult {
@@ -230,10 +230,10 @@ export class ImportService {
       await balanceService.recalculateAccountBalance(tx, accountId);
     });
 
-    // Invalidate dashboard caches & emit refresh
+    // Invalidate dashboard caches & emit typed sync event
     try {
       await invalidateDashboardCache(userId);
-      emitDashboardRefresh(userId, { importedCount: validRowsToCreate.length });
+      emitSyncEvent(userId, { entity: 'TRANSACTION', action: 'CREATE', affectedAccountIds: [accountId], importedCount: validRowsToCreate.length });
     } catch {
       // Ignored if socket/cache is unavailable in test
     }

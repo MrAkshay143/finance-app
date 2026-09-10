@@ -522,7 +522,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
       expect(html).toContain('View All');
     });
 
-    it('renders clean empty state with "Add Transaction" CTA when 0 transactions exist', () => {
+    it('auto-hides Recent Transactions Card when 0 transactions exist', () => {
       const qc = createTestQueryClient({
         dashboard: {
           ...MOCK_DASHBOARD_DATA,
@@ -537,8 +537,29 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
         </QueryClientProvider>
       );
 
-      expect(html).toContain('No transactions yet');
-      expect(html).toContain('Add Transaction');
+      expect(html).not.toContain('data-testid="recent-transactions-card"');
+    });
+
+    it('auto-hides Connected Accounts Card and Breakdown Card when empty', () => {
+      const qc = createTestQueryClient({
+        dashboard: {
+          ...MOCK_DASHBOARD_DATA,
+          accountSummary: { totalBalance: 0, activeCount: 0, accounts: [] },
+          expenseBreakdown: [],
+          incomeBreakdown: [],
+          investmentBreakdown: [],
+        },
+      });
+      const html = renderToString(
+        <QueryClientProvider client={qc}>
+          <MemoryRouter>
+            <DashboardPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+
+      expect(html).not.toContain('data-testid="account-summary-card"');
+      expect(html).not.toContain('data-testid="expense-overview-donut-card"');
     });
   });
 

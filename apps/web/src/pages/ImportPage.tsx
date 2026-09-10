@@ -20,6 +20,7 @@ import { toast } from '../store/toastStore.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
+import { syncOnTransactionMutation } from '../services/dataSync.js';
 import type { Account, ImportCsvResponse } from '@finance/shared-types';
 
 export const ImportPage: React.FC = () => {
@@ -116,9 +117,7 @@ export const ImportPage: React.FC = () => {
       const result = res?.data || res;
       setImportResult(result);
       toast.success(`Imported ${result.importedCount || 0} transactions successfully`);
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      syncOnTransactionMutation(queryClient);
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to import CSV transactions'));

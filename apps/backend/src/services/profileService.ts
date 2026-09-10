@@ -5,7 +5,7 @@ import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { validateAndNormalizePhone, isSupportedCountry, isSupportedCurrency } from '@finance/shared-types';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface UpdateBasicProfileData {
   firstName?: string;
@@ -249,9 +249,7 @@ export class ProfileService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'PROFILE', action: 'UPDATE' });
 
     return this.getProfile(userId);
   }
@@ -385,9 +383,7 @@ export class ProfileService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'PROFILE', action: 'UPDATE' });
 
     return this.getProfile(userId);
   }

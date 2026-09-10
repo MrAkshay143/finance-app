@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { FinanceSocketManager } from '@finance/api-client';
 import { getStoredAccessToken } from '../utils/tokenStorage.js';
-import { syncAllFinanceData } from '../services/dataSync.js';
+import { handleSilentSyncEvent } from '../services/dataSync.js';
 import { useAuthStore } from '../store/authStore.js';
 import { useSafeQueryClient } from './useSafeQueryClient.js';
 
@@ -26,11 +26,12 @@ export function getSocketBaseUrl(): string | undefined {
 
 /**
  * Custom hook that maintains a real-time connection to the backend /dashboard
- * Socket.IO namespace and synchronizes all TanStack queries on mutation signals.
+ * Socket.IO namespace and synchronizes affected TanStack queries on mutation signals.
  */
 export function useRealtimeSync(): void {
   const queryClient = useSafeQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -46,25 +47,35 @@ export function useRealtimeSync(): void {
 
     let activeSocket: any = null;
 
+    const onIncomingEvent = (eventData?: any) => {
+      // Coalesce rapid successive events into a single surgical sync pass
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        handleSilentSyncEvent(queryClient, eventData).catch(() => {});
+        debounceTimerRef.current = null;
+      }, 150);
+    };
+
     socketManager
-      .connectDashboard(() => {
-        // Automatically sync all queries when backend emits 'refresh'
-        syncAllFinanceData(queryClient);
-      })
+      .connectDashboard(onIncomingEvent)
       .then((socket) => {
         activeSocket = socket;
-        // Also listen for explicit 'dashboard:refresh' event
-        socket.on('dashboard:refresh', () => {
-          syncAllFinanceData(queryClient);
-        });
+        socket.on('sync:event', onIncomingEvent);
       })
       .catch(() => {
         // Socket connection silent failover
       });
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
       if (activeSocket) {
-        activeSocket.off('dashboard:refresh');
+        activeSocket.off('dashboard:refresh', onIncomingEvent);
+        activeSocket.off('sync:event', onIncomingEvent);
       }
       socketManager.disconnectAll();
     };

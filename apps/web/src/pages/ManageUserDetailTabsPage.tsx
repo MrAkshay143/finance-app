@@ -73,8 +73,9 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       return await apiClient.admin.updateUser(id, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', id], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
       toast.success('User settings updated successfully');
     },
     onError: (err: any) => {
@@ -133,7 +134,8 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       return await apiClient.admin.deleteUser(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
       navigate('/admin/users');
     },
     onError: (err: any) => {

@@ -37,14 +37,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       <p className="text-xs text-textMuted max-w-xs leading-relaxed mb-5">
         {description}
       </p>
-      <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-xs">
+      <div className="flex flex-wrap items-center justify-center gap-2.5">
         {actionLabel && onAction && (
           <Button
             variant="primary"
-            size="md"
-            fullWidth
+            size="sm"
             onClick={onAction}
             icon={actionIcon}
+            className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
             {actionLabel}
           </Button>
@@ -52,9 +52,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {secondaryActionLabel && onSecondaryAction && (
           <Button
             variant="outline"
-            size="md"
-            fullWidth
+            size="sm"
             onClick={onSecondaryAction}
+            className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
             {secondaryActionLabel}
           </Button>

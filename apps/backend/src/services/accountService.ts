@@ -4,7 +4,7 @@ import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.
 import { logAuditEvent } from './auditService.js';
 import { formatTransaction } from './transactionService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface CreateAccountData {
   name: string;
@@ -141,7 +141,7 @@ export class AccountService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'ACCOUNT', action: 'CREATE', entityId: account.id, affectedAccountIds: [account.id] });
 
     const userCurrency = await getUserCurrency(userId);
     return formatAccount(account, userCurrency);
@@ -225,7 +225,7 @@ export class AccountService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'ACCOUNT', action: 'UPDATE', entityId: id, affectedAccountIds: [id] });
 
     const userCurrency = await getUserCurrency(userId);
     return formatAccount(updated, userCurrency);
@@ -263,7 +263,7 @@ export class AccountService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'ACCOUNT', action: 'STATUS_CHANGE', entityId: id, affectedAccountIds: [id] });
 
     const userCurrency = await getUserCurrency(userId);
     return formatAccount(updated, userCurrency);
@@ -311,7 +311,7 @@ export class AccountService {
     }
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'ACCOUNT', action: 'DELETE', entityId: id, affectedAccountIds: [id] });
 
     return { message };
   }

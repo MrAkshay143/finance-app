@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Users,
   UserCheck,
@@ -30,10 +30,18 @@ export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED' | 'ADMIN'>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [actionModalUser, setActionModalUser] = useState<AdminUserItem | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const pageSize = 10;
 
@@ -44,6 +52,7 @@ export const AdminDashboardPage: React.FC = () => {
       const res = await apiClient.admin.getDashboard();
       return (res as any)?.data || res;
     },
+    placeholderData: keepPreviousData,
   });
 
   // Query Users
@@ -53,10 +62,10 @@ export const AdminDashboardPage: React.FC = () => {
     isError: isUsersError,
     refetch: refetchUsers,
   } = useQuery<AdminUserItem[]>({
-    queryKey: ['admin-users', filter, search, sortBy],
+    queryKey: ['admin-users', filter, debouncedSearch, sortBy],
     queryFn: async () => {
       const params: any = { pageSize: 50 };
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (filter === 'ACTIVE') params.status = 'ACTIVE';
       if (filter === 'SUSPENDED') params.status = 'SUSPENDED';
       if (filter === 'ADMIN') params.role = 'ADMIN';
@@ -65,6 +74,7 @@ export const AdminDashboardPage: React.FC = () => {
       const raw = (res as any)?.data?.users || (res as any)?.users || (Array.isArray(res) ? res : []);
       return Array.isArray(raw) ? raw : [];
     },
+    placeholderData: keepPreviousData,
   });
 
   const users = useMemo(() => {
@@ -84,7 +94,7 @@ export const AdminDashboardPage: React.FC = () => {
   // Reset to page 1 on filter/search/sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, search, sortBy]);
+  }, [filter, debouncedSearch, sortBy]);
 
   // Clamp current page to total pages if results shrink
   useEffect(() => {

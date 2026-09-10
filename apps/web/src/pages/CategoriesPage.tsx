@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   Plus,
   Tag,
@@ -103,6 +103,7 @@ export const CategoriesPage: React.FC = () => {
       const res = await apiClient.categories.list();
       return res || [];
     },
+    placeholderData: keepPreviousData,
   });
 
   const {
@@ -116,6 +117,7 @@ export const CategoriesPage: React.FC = () => {
       const res = await apiClient.merchants.list();
       return res || [];
     },
+    placeholderData: keepPreviousData,
   });
 
   // Category Mutations

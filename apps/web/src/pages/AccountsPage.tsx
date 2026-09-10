@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, keepPreviousData } from '@tanstack/react-query';
 import {
   Plus,
   Landmark,
@@ -138,6 +138,7 @@ export const AccountsPage: React.FC = () => {
         const res = await apiClient.accounts.list();
         return res;
       },
+      placeholderData: keepPreviousData,
     },
     queryClient
   );
@@ -441,12 +442,13 @@ export const AccountsPage: React.FC = () => {
         subtitle="Update connected institution details and preferences"
         icon={<Settings className="w-5 h-5 stroke-[2.2]" />}
         footer={
-          <div className="flex items-center gap-2.5 w-full justify-end">
+          <div className="flex items-center gap-2 w-full justify-end">
             <Button
               type="button"
               variant="outline"
-              size="md"
+              size="sm"
               onClick={() => setEditingAccount(null)}
+              className="px-3.5 py-1.5 text-xs font-bold"
             >
               Cancel
             </Button>
@@ -454,8 +456,9 @@ export const AccountsPage: React.FC = () => {
               type="submit"
               form="edit-account-form"
               variant="primary"
-              size="md"
+              size="sm"
               isLoading={updateAccountMutation.isPending}
+              className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
             >
               Update Account
             </Button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   PieChart as PieChartIcon,
   Target,
@@ -112,6 +112,7 @@ export const PlanningPage: React.FC = () => {
       const res = await apiClient.rawAxios.get('/budgets');
       return res.data?.data || [];
     },
+    placeholderData: keepPreviousData,
   });
 
   const {
@@ -125,6 +126,7 @@ export const PlanningPage: React.FC = () => {
       const res = await apiClient.rawAxios.get('/goals');
       return res.data?.data || [];
     },
+    placeholderData: keepPreviousData,
   });
 
   const { data: userSettings } = useQuery({

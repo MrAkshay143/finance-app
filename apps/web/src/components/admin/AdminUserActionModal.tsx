@@ -97,8 +97,9 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id], refetchType: 'active' });
       const wasActive = user?.status === 'ACTIVE';
       toast.success(wasActive ? 'Account suspended' : 'Account activated');
       handleClose();

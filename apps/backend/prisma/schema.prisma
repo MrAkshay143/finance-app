@@ -361,7 +361,7 @@ model UserSettings {
   financialMonthStartDay Int      @default(1)
   dateFormat             String   @default("DD-MM-YYYY")
   timeFormat             String   @default("12h")
-  quickAddEnabled        Boolean  @default(true)
+  quickAddEnabled        Boolean  @default(false)
   dashboardDonutsConfig  Json     @default("{\"income\":true,\"expense\":true,\"investment\":true}")
   featuresConfig         Json     @default("{\"investments\":true,\"recurring\":true}")
   createdAt              DateTime @default(now())

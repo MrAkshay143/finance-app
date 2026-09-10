@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Search,
   Filter,
@@ -38,11 +38,19 @@ export const AdminAuditPage: React.FC = () => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [inspectRecord, setInspectRecord] = useState<AuditLogRecord | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const pageSize = 15;
   const categories = ['All', 'Login', 'Profile', 'Settings', 'Security', 'Admin'];
@@ -70,17 +78,18 @@ export const AdminAuditPage: React.FC = () => {
 
   // Query audit logs
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['admin-audit-logs', filterCategory, search],
+    queryKey: ['admin-audit-logs', filterCategory, debouncedSearch],
     queryFn: async () => {
       const cat = filterCategory === 'All' ? undefined : filterCategory;
       const res = await apiClient.admin.getAuditLogs({
         page: 1,
         pageSize: 50,
         category: cat,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
       });
       return (res as any)?.data || res;
     },
+    placeholderData: keepPreviousData,
   });
 
   const logs: AuditLogRecord[] = useMemo(() => {
@@ -88,8 +97,8 @@ export const AdminAuditPage: React.FC = () => {
     if (!Array.isArray(raw)) return [];
 
     let filtered = raw.filter((log) => {
-      if (!search.trim()) return true;
-      const q = search.toLowerCase();
+      if (!debouncedSearch.trim()) return true;
+      const q = debouncedSearch.toLowerCase();
       return (
         log.actorEmail?.toLowerCase().includes(q) ||
         log.action?.toLowerCase().includes(q) ||
@@ -104,14 +113,14 @@ export const AdminAuditPage: React.FC = () => {
       const timeB = new Date(b.createdAt).getTime();
       return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
-  }, [data, search, sortOrder]);
+  }, [data, debouncedSearch, sortOrder]);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
 
   // Reset to page 1 on filter/search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterCategory, search, sortOrder]);
+  }, [filterCategory, debouncedSearch, sortOrder]);
 
   // Clamp current page to total pages if results shrink
   useEffect(() => {

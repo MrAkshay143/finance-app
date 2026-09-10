@@ -126,7 +126,7 @@ export const SettingsPage: React.FC = () => {
     currency: 'INR',
     timezone: 'Asia/Kolkata',
     financialMonthStartDay: 1,
-    quickAddEnabled: true,
+    quickAddEnabled: false,
     donutVisualsEnabled: true,
     investmentsTrackingEnabled: true,
     recurringTrackingEnabled: true,
@@ -145,7 +145,6 @@ export const SettingsPage: React.FC = () => {
     },
     onSuccess: () => {
       syncOnSettingsMutation(queryClient);
-      queryClient.invalidateQueries({ queryKey: ['fam'] });
       toast.success('Preferences updated successfully');
     },
     onError: (err: any) => {
@@ -490,20 +489,25 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => handleToggle('quickAdd', !(settings.quickAddEnabled ?? true))}
-                className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
-                  (settings.quickAddEnabled ?? true) ? 'bg-brand-primary' : 'bg-slate-300'
-                }`}
-                aria-label="Toggle quick-add button"
-              >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow-xs transform transition-transform ${
-                    (settings.quickAddEnabled ?? true) ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
+              {(() => {
+                const isQuickAddActive = Boolean(settings.quickAddEnabled === true || settings.quickAdd === true);
+                return (
+                  <button
+                    type="button"
+                    onClick={() => handleToggle('quickAdd', !isQuickAddActive)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
+                      isQuickAddActive ? 'bg-brand-primary' : 'bg-slate-300'
+                    }`}
+                    aria-label="Toggle quick-add button"
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-xs transform transition-transform ${
+                        isQuickAddActive ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                );
+              })()}
             </div>
           </Card>
         </div>

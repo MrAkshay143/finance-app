@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
 import { NotFoundError } from '../utils/errors.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface UserSettingsResponse {
   id?: string;
@@ -91,7 +91,7 @@ function formatSettingsResponse(settings: any, userId: string): UserSettingsResp
   const rawDonuts = parseJsonConfig(settings?.dashboardDonutsConfig, defaultDonuts);
   const rawFeatures = parseJsonConfig(settings?.featuresConfig, defaultFeatures);
 
-  const quickAddValue = settings?.quickAddEnabled ?? true;
+  const quickAddValue = settings?.quickAddEnabled ?? false;
 
   return {
     id: settings?.id,
@@ -154,7 +154,7 @@ export class UserSettingsService {
           financialMonthStartDay: 1,
           dateFormat: 'DD-MM-YYYY',
           timeFormat: '12h',
-          quickAddEnabled: true,
+          quickAddEnabled: false,
           dashboardDonutsConfig: { income: true, expense: true, investment: true },
           featuresConfig: { investments: true, recurring: true },
         },
@@ -184,7 +184,7 @@ export class UserSettingsService {
     });
 
     // Resolve quickAdd
-    let quickAddVal = existing?.quickAddEnabled ?? true;
+    let quickAddVal = existing?.quickAddEnabled ?? false;
     if (data.quickAdd !== undefined) {
       quickAddVal = data.quickAdd;
     } else if (data.quickAddEnabled !== undefined) {
@@ -264,9 +264,7 @@ export class UserSettingsService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'SETTINGS', action: 'UPDATE' });
 
     return formatSettingsResponse(updated, userId);
   }

@@ -4,7 +4,7 @@ import { toPaise } from '../utils/currency.js';
 import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface CreateTransferData {
   sourceAccountId: string;
@@ -153,7 +153,7 @@ export class TransferService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'TRANSFER', action: 'CREATE', entityId: transfer.id, affectedAccountIds: [data.sourceAccountId, data.destinationAccountId] });
 
     return formatTransfer(transfer);
   }
@@ -239,7 +239,7 @@ export class TransferService {
     });
 
     await invalidateDashboardCache(userId);
-    emitDashboardRefresh(userId);
+    emitSyncEvent(userId, { entity: 'TRANSFER', action: 'DELETE', entityId: id, affectedAccountIds: [transfer.sourceAccountId, transfer.destinationAccountId] });
 
     return { message: 'Transfer deleted successfully' };
   }

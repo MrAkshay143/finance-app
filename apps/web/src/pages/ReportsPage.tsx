@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   ChevronLeft,
   Download,
@@ -89,6 +89,7 @@ export const ReportsPage: React.FC = () => {
       return await apiClient.reports.getMonthly(selectedMonth);
     },
     enabled: activeTab === 'monthly',
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   // 2. Annual Report Query
@@ -98,6 +99,7 @@ export const ReportsPage: React.FC = () => {
       return await apiClient.reports.getAnnual(selectedYear);
     },
     enabled: activeTab === 'year',
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   // 3. Custom Range Report Query
@@ -107,6 +109,7 @@ export const ReportsPage: React.FC = () => {
       return await apiClient.reports.getCustom(customStartDate, customEndDate);
     },
     enabled: activeTab === 'custom' && Boolean(customStartDate && customEndDate),
+    placeholderData: keepPreviousData,
   }, queryClient);
 
   // Monthly Metrics with robust fallbacks

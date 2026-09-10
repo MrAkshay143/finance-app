@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -82,8 +82,10 @@ export const AdminAppSettingsPage: React.FC = () => {
     },
   });
 
+  const hasLoadedSettingsRef = useRef(false);
+
   useEffect(() => {
-    if (settingsData) {
+    if (settingsData && !hasLoadedSettingsRef.current) {
       if (settingsData.platformName) setPlatformName(settingsData.platformName);
       if (settingsData.supportEmail) setSupportEmail(settingsData.supportEmail);
       if (settingsData.maintenanceMode !== undefined) setMaintenanceMode(settingsData.maintenanceMode);
@@ -106,6 +108,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       if (settingsData.famExpenseThresholdPercent) setFamExpenseThreshold(settingsData.famExpenseThresholdPercent);
       if (settingsData.famInvestmentThresholdPercent) setFamInvestmentThreshold(settingsData.famInvestmentThresholdPercent);
       if (settingsData.famIncomeThresholdPercent) setFamIncomeThreshold(settingsData.famIncomeThresholdPercent);
+      hasLoadedSettingsRef.current = true;
     }
   }, [settingsData]);
 
@@ -115,6 +118,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       return await apiClient.admin.updateAppSettings(payload);
     },
     onSuccess: () => {
+      hasLoadedSettingsRef.current = false;
       queryClient.invalidateQueries({ queryKey: ['admin-app-settings'] });
       toast.success('Settings saved');
     },

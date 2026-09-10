@@ -19,17 +19,32 @@ export class FinanceSocketManager {
       return this.notificationsSocket;
     }
 
-    const token = this.options.getAccessToken ? await this.options.getAccessToken() : null;
+    const getToken = this.options.getAccessToken;
 
     this.notificationsSocket = io(`${this.baseUrl}/notifications`, {
       transports: ['websocket', 'polling'],
-      auth: { token },
+      auth: async (cb: (data: any) => void) => {
+        try {
+          const token = getToken ? await getToken() : null;
+          cb({ token });
+        } catch {
+          cb({});
+        }
+      },
       autoConnect: true,
     });
 
     this.notificationsSocket.on('notification', onNotification);
+    this.notificationsSocket.on('notification:new', onNotification);
     if (onUnreadCount) {
-      this.notificationsSocket.on('unread_count', onUnreadCount);
+      this.notificationsSocket.on('unread_count', (val: any) => {
+        const count = typeof val === 'number' ? val : (val?.count ?? val?.unreadCount ?? 0);
+        onUnreadCount(count);
+      });
+      this.notificationsSocket.on('notification:unread-count', (val: any) => {
+        const count = typeof val === 'number' ? val : (val?.count ?? val?.unreadCount ?? 0);
+        onUnreadCount(count);
+      });
     }
 
     return this.notificationsSocket;
@@ -40,14 +55,23 @@ export class FinanceSocketManager {
       return this.dashboardSocket;
     }
 
-    const token = this.options.getAccessToken ? await this.options.getAccessToken() : null;
+    const getToken = this.options.getAccessToken;
 
     this.dashboardSocket = io(`${this.baseUrl}/dashboard`, {
       transports: ['websocket', 'polling'],
-      auth: { token },
+      auth: async (cb: (data: any) => void) => {
+        try {
+          const token = getToken ? await getToken() : null;
+          cb({ token });
+        } catch {
+          cb({});
+        }
+      },
       autoConnect: true,
     });
 
+    this.dashboardSocket.on('dashboard:refresh', onRefresh);
+    this.dashboardSocket.on('sync:event', onRefresh);
     this.dashboardSocket.on('refresh', onRefresh);
 
     return this.dashboardSocket;

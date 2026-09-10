@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { emitDashboardRefresh } from '../sockets/socketGateway.js';
+import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 
 export interface CreateCategoryData {
   name: string;
@@ -279,9 +279,7 @@ export class CategoryService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'CATEGORY', action: 'CREATE', entityId: category.id });
 
     return {
       ...category,
@@ -335,9 +333,7 @@ export class CategoryService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'CATEGORY', action: 'UPDATE', entityId: id });
 
     return updated;
   }
@@ -390,9 +386,7 @@ export class CategoryService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'CATEGORY', action: 'DELETE', entityId: id });
 
     return { message: 'Category deleted successfully' };
   }
@@ -424,9 +418,7 @@ export class CategoryService {
     });
 
     await invalidateDashboardCache(userId);
-    try {
-      emitDashboardRefresh(userId);
-    } catch {}
+    emitSyncEvent(userId, { entity: 'CATEGORY', action: 'REORDER' });
 
     return { message: 'Categories reordered successfully' };
   }

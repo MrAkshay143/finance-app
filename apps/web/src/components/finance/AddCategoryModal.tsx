@@ -78,16 +78,23 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       subtitle="Create a custom category for classifying transactions"
       icon={<Tag className="w-5 h-5 stroke-[2.2] text-brand-primary" />}
       footer={
-        <div className="flex items-center gap-2.5 w-full justify-end">
-          <Button type="button" variant="outline" size="md" onClick={onClose}>
+        <div className="flex items-center gap-2 w-full justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="px-3.5 py-1.5 text-xs font-bold"
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             form="add-category-form"
             variant="primary"
-            size="md"
+            size="sm"
             isLoading={createMutation.isPending}
+            className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
             Create Category
           </Button>

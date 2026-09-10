@@ -56,7 +56,7 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
         currency: 'INR',
         timezone: 'Asia/Kolkata',
         financialMonthStartDay: 1,
-        quickAdd: true,
+        quickAdd: false,
         dashboardDonuts: { income: true, expense: true, investment: true },
         features: { investments: true, recurring: true },
       });
