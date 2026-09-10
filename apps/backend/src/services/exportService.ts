@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
 import { NotFoundError } from '../utils/errors.js';
+import { escapeCsvField } from '../utils/csv.js';
 
 export interface ExportDataResult {
   data: string;
@@ -9,14 +10,6 @@ export interface ExportDataResult {
   contentType: string;
 }
 
-function escapeCsvField(val: any): string {
-  if (val === null || val === undefined) return '';
-  const str = String(val);
-  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-}
 
 export class ExportService {
   // Export user financial records to JSON or CSV and record audit log

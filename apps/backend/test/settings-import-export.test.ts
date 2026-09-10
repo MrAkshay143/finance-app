@@ -259,5 +259,44 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
       );
       expect(auditLog).toBeDefined();
     });
+
+    it('GET /api/v1/export/data?format=csv neutralizes CSV formula injection in descriptions and categories', async () => {
+      // 1. Create category with formula injection name
+      const catRes = await request(app)
+        .post('/api/v1/categories')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          name: '@FormulaCategory',
+          type: 'EXPENSE',
+          color: '#ff0000',
+          icon: 'tag',
+        });
+      const catId = catRes.body.data.id;
+
+      // 2. Create transaction with formula injection description
+      await request(app)
+        .post('/api/v1/transactions')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          accountId,
+          categoryId: catId,
+          amount: 150,
+          type: 'EXPENSE',
+          direction: 'DEBIT',
+          description: '=HYPERLINK("http://evil.com","Click")',
+          txnDate: new Date().toISOString(),
+        });
+
+      // 3. Export CSV and verify formula characters are prefixed with single quote
+      const csvRes = await request(app)
+        .get('/api/v1/export/data?format=csv')
+        .set('Authorization', `Bearer ${userToken}`);
+
+      expect(csvRes.status).toBe(200);
+      const csv = csvRes.body.data.data;
+      expect(csv).toContain('\'@FormulaCategory');
+      expect(csv).toContain('\'=HYPERLINK');
+    });
   });
 });
+

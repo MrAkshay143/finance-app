@@ -2,6 +2,8 @@ import { prisma } from '../lib/prisma.js';
 import { famService, getFinancialMonthRange } from './famService.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { getCurrencyByCode } from '@finance/shared-types';
+import { escapeCsvField } from '../utils/csv.js';
+
 
 const FULL_MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -322,9 +324,16 @@ export class ReportService {
     lines.push('Category,Type,Amount (INR),Percentage,Transactions');
     for (const c of report.categorySummary) {
       lines.push(
-        `"${c.categoryName}",${c.type},${c.totalAmount},${c.percentage}%,${c.transactionCount}`
+        [
+          escapeCsvField(c.categoryName),
+          escapeCsvField(c.type),
+          escapeCsvField(c.totalAmount),
+          escapeCsvField(`${c.percentage}%`),
+          escapeCsvField(c.transactionCount),
+        ].join(',')
       );
     }
+
 
     const csvData = lines.join('\n');
 

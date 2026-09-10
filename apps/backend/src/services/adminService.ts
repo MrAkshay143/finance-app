@@ -8,6 +8,8 @@ import { getRedisClient } from '../lib/redis.js';
 import { recurringService } from './recurringService.js';
 import { invalidateMaintenanceCache } from '../middleware/maintenanceMiddleware.js';
 import { emitSyncEvent } from '../sockets/socketGateway.js';
+import { escapeCsvField } from '../utils/csv.js';
+
 
 
 export interface AdminDashboardMetrics {
@@ -621,25 +623,21 @@ export class AdminService {
     });
 
     const headers = ['Log ID', 'Timestamp', 'Action', 'Actor Email', 'Target Email', 'IP Address', 'Details'];
-    const escapeCsv = (val: any) => {
-      if (val === null || val === undefined) return '""';
-      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
-      return `"${str.replace(/"/g, '""')}"`;
-    };
 
     const rows = logs.map((log) =>
       [
-        escapeCsv(log.id),
-        escapeCsv(new Date(log.createdAt).toISOString()),
-        escapeCsv(log.action),
-        escapeCsv(log.actor?.email || ''),
-        escapeCsv(log.target?.email || ''),
-        escapeCsv(log.ipAddress || ''),
-        escapeCsv(log.details || {}),
+        escapeCsvField(log.id),
+        escapeCsvField(new Date(log.createdAt).toISOString()),
+        escapeCsvField(log.action),
+        escapeCsvField(log.actor?.email || ''),
+        escapeCsvField(log.target?.email || ''),
+        escapeCsvField(log.ipAddress || ''),
+        escapeCsvField(log.details || {}),
       ].join(',')
     );
 
     return [headers.join(','), ...rows].join('\n');
+
   }
 
   /**
@@ -899,15 +897,6 @@ export class AdminService {
       'Total Balance (INR)',
     ];
 
-    const escapeCsv = (val: string | number | boolean | null | undefined): string => {
-      if (val === null || val === undefined) return '';
-      const str = String(val);
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
-
     const rows = users.map((u) => {
       const fullName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Not Set';
       let _balPaise = BigInt(0);
@@ -916,21 +905,22 @@ export class AdminService {
 
 
       return [
-        escapeCsv(u.id),
-        escapeCsv(fullName),
-        escapeCsv(u.email),
-        escapeCsv(u.mobileNumber || 'Not Set'),
-        escapeCsv(u.role),
-        escapeCsv(u.status),
-        escapeCsv(u.onboardingCompleted ? 'Yes' : 'No'),
-        escapeCsv(u.securityQuestions.length >= 3 ? 'Yes' : 'No'),
-        escapeCsv(u.failedLoginAttempts),
-        escapeCsv(u.createdAt.toISOString()),
-        escapeCsv(u.lastLoginAt ? u.lastLoginAt.toISOString() : 'Never'),
-        escapeCsv(u.accounts.length),
-        escapeCsv(totalBalanceINR),
+        escapeCsvField(u.id),
+        escapeCsvField(fullName),
+        escapeCsvField(u.email),
+        escapeCsvField(u.mobileNumber || 'Not Set'),
+        escapeCsvField(u.role),
+        escapeCsvField(u.status),
+        escapeCsvField(u.onboardingCompleted ? 'Yes' : 'No'),
+        escapeCsvField(u.securityQuestions.length >= 3 ? 'Yes' : 'No'),
+        escapeCsvField(u.failedLoginAttempts),
+        escapeCsvField(u.createdAt.toISOString()),
+        escapeCsvField(u.lastLoginAt ? u.lastLoginAt.toISOString() : 'Never'),
+        escapeCsvField(u.accounts.length),
+        escapeCsvField(totalBalanceINR),
       ].join(',');
     });
+
 
     return [headers.join(','), ...rows].join('\n');
   }

@@ -295,13 +295,19 @@ export class AuthService {
   ): Promise<AuthResult> {
     const normalizedEmail = email.toLowerCase().trim();
 
+// Fixed constant bcrypt hash used to neutralize timing side-channel for email enumeration
+const DUMMY_BCRYPT_HASH = '$2a$10$7msykTl9204fsNFS7QHP2uPv8voO404reoNd4YQvH8DynJHTDc1oW';
+
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
     if (!user) {
+      // Execute constant-time dummy password comparison to eliminate email enumeration timing side-channel
+      await comparePassword(password, DUMMY_BCRYPT_HASH);
       throw new UnauthorizedError('Invalid email or password');
     }
+
 
     // Check account status
     if (user.status === 'SUSPENDED') {
