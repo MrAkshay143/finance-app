@@ -34,7 +34,7 @@ export const ProfilePage: React.FC = () => {
   const userCountryCode = (user?.country || 'IN') as CountryCode;
   const userCountryMeta = COUNTRY_REGISTRY[userCountryCode];
   const [financeProfile, setFinanceProfile] = useState<any>(null);
-  const [famScore, setFamScore] = useState<string>('N/A');
+  const [famScore, setFamScore] = useState<string>('--');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarImgError, setAvatarImgError] = useState(false);
@@ -62,9 +62,9 @@ export const ProfilePage: React.FC = () => {
             (fam.overallGrade === 'A_PLUS'
               ? 'A+'
               : fam.overallGrade === 'NOT_AVAILABLE'
-              ? 'N/A'
+              ? '--'
               : fam.overallGrade) ||
-            'N/A';
+            '--';
           setFamScore(grade);
         }
       })
@@ -271,9 +271,6 @@ export const ProfilePage: React.FC = () => {
                       <span>{userCountryMeta.code}</span>
                     </span>
                   )}
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
-                    {userCurrency} ({userCurrencySymbol})
-                  </span>
                 </div>
               </div>
             </div>
@@ -285,7 +282,9 @@ export const ProfilePage: React.FC = () => {
                 <Info className="w-2.5 h-2.5" />
               </div>
               <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="text-base font-extrabold text-textDefault">{famScore}</span>
+                <span className="text-base font-extrabold text-textDefault">
+                  {famScore && famScore !== 'N/A' ? famScore : '--'}
+                </span>
                 <BarChart2 className="w-3.5 h-3.5 text-slate-400" />
               </div>
             </div>

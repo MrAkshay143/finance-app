@@ -31,6 +31,7 @@ import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js
 import { CountrySelector } from '../components/ui/CountrySelector.js';
 import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { DatePicker } from '../components/ui/DatePicker.js';
+import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
@@ -459,25 +460,27 @@ export const ProfileSettingsPage: React.FC = () => {
 
               {/* Date & Time Preferences */}
               <div className="grid grid-cols-2 gap-3">
-                <Select
+                <CustomDropdown
                   label="Date Format"
                   value={dateFormat}
-                  onChange={(e) => setDateFormat(e.target.value as DateFormatType)}
+                  onChange={(val) => setDateFormat(val as DateFormatType)}
                   options={DATE_FORMAT_OPTIONS.map((opt) => ({
                     value: opt.value,
                     label: opt.label,
                   }))}
                   disabled={isLoading}
+                  searchable={false}
                 />
-                <Select
+                <CustomDropdown
                   label="Time Format"
                   value={timeFormat}
-                  onChange={(e) => setTimeFormat(e.target.value as TimeFormatType)}
+                  onChange={(val) => setTimeFormat(val as TimeFormatType)}
                   options={TIME_FORMAT_OPTIONS.map((opt) => ({
                     value: opt.value,
                     label: opt.label,
                   }))}
                   disabled={isLoading}
+                  searchable={false}
                 />
               </div>
 

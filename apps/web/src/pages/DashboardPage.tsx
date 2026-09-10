@@ -20,6 +20,7 @@ import {
   Wallet,
   Banknote,
   Clock,
+  Activity,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -255,34 +256,31 @@ export const DashboardPage: React.FC = () => {
           <>
             {/* 2. Security Reminder Banner (Dynamic KBA verification) */}
             {securityBanner?.showSecurityReminder && (
-              <Card className="bg-amber-50/90 border-amber-200 p-3.5" data-testid="security-reminder-banner">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                    <ShieldAlert className="w-4 h-4" />
+              <div
+                className="bg-amber-50/95 border border-amber-200/90 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-xs"
+                data-testid="security-reminder-banner"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <ShieldAlert className="w-3.5 h-3.5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide bg-amber-200/70 text-amber-900">
-                      Security Reminder
-                    </span>
-                    <h4 className="text-xs font-bold text-textDefault tracking-tight mt-1">
-                      Set Up Security Questions
-                    </h4>
-                    <p className="text-[11px] text-textMuted leading-relaxed mt-0.5">
-                      Set up 3 security questions to protect your account and enable instant self-recovery.
-                    </p>
-                    <div className="mt-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => navigate('/security/questions')}
-                        className="!py-1 !px-3 !text-xs !bg-amber-600 hover:!bg-amber-700 !border-amber-600"
-                      >
-                        Set up now
-                      </Button>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-800/90 bg-amber-100/80 px-1.5 py-0.5 rounded">
+                        Security Reminder
+                      </span>
                     </div>
+                    <div className="text-xs font-bold text-amber-950 truncate mt-0.5">Set Up Security Questions</div>
                   </div>
                 </div>
-              </Card>
+                <button
+                  type="button"
+                  onClick={() => navigate('/security/questions')}
+                  className="px-2.5 py-1 text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 rounded-lg shrink-0 transition-all shadow-xs"
+                >
+                  Set up now
+                </button>
+              </div>
             )}
 
             {/* Section 1: Financial Health Hero Card */}
@@ -302,15 +300,15 @@ export const DashboardPage: React.FC = () => {
                 <div className="flex-1 min-w-0 pr-1">
                   <div className="inline-flex items-center">
                     <span
-                      className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
                         !famIsAvailable
-                          ? 'bg-blue-100/90 text-blue-900'
+                          ? 'bg-white/20 text-white backdrop-blur-sm border border-white/25'
                           : famGrade === 'C'
                           ? 'bg-rose-100 text-rose-800'
                           : 'bg-[#DCFCE7] text-[#15803D]'
                       }`}
                     >
-                      {!famIsAvailable ? '✨ GETTING STARTED' : famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
+                      {!famIsAvailable ? 'NEW ACCOUNT' : famGrade === 'C' ? 'NEEDS ATTENTION' : 'HEALTHY'}
                     </span>
                   </div>
 
@@ -321,7 +319,7 @@ export const DashboardPage: React.FC = () => {
                   <div className="text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5">
                     <span>
                       {!famIsAvailable
-                        ? 'Ready'
+                        ? 'Build Your Score'
                         : famStatusLabel && famStatusLabel !== 'Not Available'
                         ? `${famStatusLabel}!`
                         : 'Excellent!'}
@@ -377,20 +375,30 @@ export const DashboardPage: React.FC = () => {
                   {/* Inner White Center Card */}
                   <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
                     {famIsAvailable && famGrade && famGrade !== 'NA' ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs leading-none">
-                        {famGrade}
-                      </span>
+                      <>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-xs leading-none">
+                          {famGrade}
+                        </span>
+                        <span className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
+                          {famScore}%
+                        </span>
+                        <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
+                          Overall Score
+                        </span>
+                      </>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-brand-primary leading-none">
-                        ✨ Ready
-                      </span>
+                      <>
+                        <div className="w-5 h-5 rounded-full bg-blue-50 text-brand-primary flex items-center justify-center mb-0.5">
+                          <Activity className="w-3 h-3 stroke-[2.5]" />
+                        </div>
+                        <span className="text-[11px] font-black text-slate-800 tracking-tight leading-tight">
+                          Pending
+                        </span>
+                        <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
+                          Score
+                        </span>
+                      </>
                     )}
-                    <span className="text-base font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-                      {famIsAvailable ? `${famScore}%` : '0%'}
-                    </span>
-                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-                      {famIsAvailable ? 'Overall Score' : 'Get Started'}
-                    </span>
                   </div>
                 </div>
 

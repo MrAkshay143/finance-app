@@ -218,20 +218,9 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
           <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
         </p>
-      ) : isLiveValid ? (
-        <p className="mt-1 text-xs text-semantic-success font-medium flex items-center gap-1">
-          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-          <span>Valid number</span>
-        </p>
-      ) : liveResult && nationalNumber ? (
-        <p
-          className={`mt-1 text-xs font-medium flex items-center gap-1 ${
-            liveResult.status === 'invalid' ? 'text-semantic-danger' : 'text-textMuted'
-          }`}
-        >
-          {liveResult.status === 'invalid' && (
-            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-semantic-danger" aria-hidden="true" />
-          )}
+      ) : liveResult && nationalNumber && liveResult.status === 'invalid' ? (
+        <p className="mt-1 text-xs font-medium flex items-center gap-1 text-semantic-danger">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 text-semantic-danger" aria-hidden="true" />
           <span>{liveResult.message}</span>
         </p>
       ) : helperText ? (
