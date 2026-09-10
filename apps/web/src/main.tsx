@@ -37,7 +37,7 @@ if (
 ) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     // Non-disruptive notification instead of forced reload
-    toast.info('App updated in background. Refresh whenever you are ready.', 6000);
+    toast.info('Update available. Please refresh.', 6000);
   });
 
   window.addEventListener('load', () => {
