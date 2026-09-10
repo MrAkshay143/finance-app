@@ -57,7 +57,8 @@ export const ProfileScreen: React.FC = () => {
       ]);
 
       if (profileData.status === 'fulfilled') {
-        setProfile(profileData.value);
+        const val = profileData.value as any;
+        setProfile(val?.user || val);
       }
       if (famData.status === 'fulfilled') {
         setFamScore(famData.value);

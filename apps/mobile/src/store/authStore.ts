@@ -34,18 +34,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Session exists, attempt to fetch current user profile
-      const profile = await apiClient.profile.get();
+      const profileRes: any = await apiClient.profile.get();
+      const u = profileRes?.user || profileRes?.data?.user || profileRes?.data || profileRes;
       const authUser: AuthUser = {
-        id: profile.id,
-        email: profile.email,
-        fullName: profile.fullName,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        mobileNumber: profile.mobileNumber ?? profile.phone,
-        role: (profile as any).role ?? 'USER',
-        status: 'ACTIVE',
-        avatarUrl: profile.avatarUrl,
-        onboardingCompleted: profile.onboardingCompleted,
+        id: u?.id || '',
+        email: u?.email || '',
+        fullName: u?.fullName || `${u?.firstName || ''} ${u?.lastName || ''}`.trim(),
+        firstName: u?.firstName || '',
+        lastName: u?.lastName || '',
+        mobileNumber: u?.mobileNumber ?? u?.phone ?? '',
+        role: u?.role ?? 'USER',
+        status: u?.status ?? 'ACTIVE',
+        avatarUrl: u?.avatarUrl ?? null,
+        onboardingCompleted: Boolean(u?.onboardingCompleted ?? profileRes?.onboardingCompleted),
       };
 
       set({ user: authUser, isAuthenticated: true, isLoading: false });

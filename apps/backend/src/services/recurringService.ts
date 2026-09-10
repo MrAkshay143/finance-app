@@ -91,6 +91,14 @@ export function calculateNextOccurrence(
       }
       break;
     }
+    case 'QUARTERLY': {
+      const currentDay = next.getDate();
+      next.setMonth(next.getMonth() + interval * 3);
+      if (next.getDate() !== currentDay) {
+        next.setDate(0);
+      }
+      break;
+    }
     case 'YEARLY':
       next.setFullYear(next.getFullYear() + interval);
       break;
@@ -358,6 +366,16 @@ export class RecurringService {
       );
 
       const createdTxn = await prisma.$transaction(async (tx) => {
+        // Concurrency guard: verify nextOccurrence hasn't already been advanced by a parallel process
+        const current = await tx.recurringTransaction.findUnique({
+          where: { id: rec.id },
+          select: { nextOccurrence: true, status: true },
+        });
+
+        if (!current || current.status !== 'ACTIVE' || new Date(current.nextOccurrence).getTime() > asOfDate.getTime()) {
+          return null;
+        }
+
         // 1. Create real transaction
         const txn = await tx.transaction.create({
           data: {
@@ -368,7 +386,7 @@ export class RecurringService {
             direction,
             amount: rec.amount,
             description: rec.description || `Recurring ${rec.type.toLowerCase()}`,
-            txnDate: rec.nextOccurrence,
+            txnDate: current.nextOccurrence,
             status: 'ACTIVE',
           },
         });
@@ -392,6 +410,10 @@ export class RecurringService {
 
         return txn;
       });
+
+      if (!createdTxn) {
+        continue;
+      }
 
       await logAuditEvent({
         actorUserId: rec.userId,

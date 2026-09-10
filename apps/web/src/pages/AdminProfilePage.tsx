@@ -208,7 +208,7 @@ export const AdminProfilePage: React.FC = () => {
         {/* 1. Admin Identity Hero Card */}
         <div className="p-4 bg-gradient-to-br from-[#0B1B3A] to-[#162D5A] text-white rounded-2xl shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-13 h-13 w-[52px] h-[52px] rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white font-extrabold text-lg flex items-center justify-center shadow-md border-2 border-white/20 shrink-0">
+            <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white font-extrabold text-lg flex items-center justify-center shadow-md border-2 border-white/20 shrink-0">
               {initials}
             </div>
             <div className="min-w-0">

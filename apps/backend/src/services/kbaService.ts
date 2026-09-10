@@ -219,8 +219,8 @@ export class KbaService {
       throw new ValidationError('Security questions are not configured for this account');
     }
 
-    if (!Array.isArray(answers) || answers.length === 0) {
-      throw new ValidationError('Answers to verify must be provided');
+    if (!Array.isArray(answers) || answers.length !== storedQuestions.length || answers.length < 3) {
+      throw new ValidationError('All security questions must be answered');
     }
 
     // Ensure all submitted keys are distinct
@@ -243,13 +243,11 @@ export class KbaService {
       );
     }
 
-    // Ensure all 3 submitted keys actually match the user's stored questions
+    // Ensure all submitted keys actually match the user's stored questions and cover all stored questions
     const storedKeys = new Set(storedQuestions.map((q) => q.questionKey));
-    for (const key of submittedKeys) {
-      if (!storedKeys.has(key)) {
-        await incrementKbaAttempt(targetUserId!);
-        throw new UnauthorizedError('Invalid security question key');
-      }
+    if (storedKeys.size !== uniqueSubmittedKeys.size || !storedQuestions.every((q) => uniqueSubmittedKeys.has(q.questionKey))) {
+      await incrementKbaAttempt(targetUserId!);
+      throw new UnauthorizedError('Answers must be provided for all configured security questions');
     }
 
     for (const item of answers) {

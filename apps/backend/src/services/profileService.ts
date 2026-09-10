@@ -421,15 +421,21 @@ export class ProfileService {
     }
 
     let finalAvatarUrl = avatarData;
+    const ALLOWED_IMAGE_TYPES = new Set(['jpg', 'jpeg', 'png', 'webp']);
 
     // If data URI (e.g. data:image/webp;base64,...), persist to disk under uploads/avatars/
     if (avatarData.startsWith('data:image/')) {
-      const match = avatarData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      const match = avatarData.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
       if (!match) {
         throw new ValidationError('Only valid image data URIs are supported');
       }
 
-      const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+      const rawExt = match[1].toLowerCase();
+      if (!ALLOWED_IMAGE_TYPES.has(rawExt)) {
+        throw new ValidationError('Only JPG, PNG, and WebP images are permitted for avatars');
+      }
+
+      const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
       const base64Data = match[2];
       const buffer = Buffer.from(base64Data, 'base64');
 
@@ -443,6 +449,12 @@ export class ProfileService {
 
       await fs.promises.writeFile(filePath, buffer);
       finalAvatarUrl = `/uploads/avatars/${filename}`;
+    } else if (
+      !avatarData.startsWith('https://') &&
+      !avatarData.startsWith('http://') &&
+      !avatarData.startsWith('/uploads/avatars/')
+    ) {
+      throw new ValidationError('Invalid avatar URL. Must be an HTTP(S) link or valid image data URI.');
     }
 
     // Get existing avatar to delete old file

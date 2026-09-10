@@ -55,7 +55,8 @@ export function createRateLimiter(options: RateLimiterOptions = {}) {
       (req.headers['x-forwarded-for'] as string) ||
       req.socket.remoteAddress ||
       'unknown';
-    return `${req.baseUrl || ''}:${ip}`;
+    const path = req.path || req.originalUrl?.split('?')[0] || '';
+    return `${req.baseUrl || ''}:${path}:${ip}`;
   };
   const keyGenerator = options.keyGenerator || defaultKeyGen;
 

@@ -306,38 +306,21 @@ export const ProfileSettingsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-6">
-      {/* Root Branded Navy Header */}
+      {/* Branded Nested Header */}
       <AppHeader
-        variant="root"
-        title="Finance Tracker"
-        subtitle={`Welcome back, ${user?.firstName || user?.fullName || 'User'}`}
+        variant="nested"
+        title={activeTab === 'basic' ? 'Basic Profile' : 'Finance Profile'}
+        subtitle={
+          activeTab === 'basic'
+            ? 'Manage your personal information'
+            : 'Set your monthly income, budget and investment targets'
+        }
+        onBack={() => navigate('/profile')}
       />
 
       <div className="p-4 space-y-4">
-        {/* Sub-Header Title Row */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate('/profile')}
-              aria-label="Go back to profile"
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 active:bg-slate-300 transition-colors text-slate-700"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <h2 className="text-base font-bold text-textDefault tracking-tight leading-tight">
-                {activeTab === 'basic' ? 'Basic Profile' : 'Finance Profile'}
-              </h2>
-              <p className="text-xs text-textMuted mt-0.5">
-                {activeTab === 'basic'
-                  ? 'Manage your personal information'
-                  : 'Set your monthly income, budget and investment targets'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50/80 border border-blue-100 text-brand-primary text-[11px] font-semibold shrink-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50/80 border border-blue-100 text-brand-primary text-[11px] font-semibold">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Your data is secure and private</span>
           </div>

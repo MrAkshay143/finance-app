@@ -23,8 +23,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
-      {/* Centered mobile viewport container (~390-430px wide) */}
-      <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] pb-24 overflow-x-clip">
+      {/* Mobile container (~390-430px) for consumer app, expansive container (max-w-7xl) for admin suite */}
+      <div
+        className={`w-full ${
+          isAdminRoute ? 'max-w-7xl px-3 sm:px-6 lg:px-8' : 'max-w-[430px]'
+        } min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] pb-24 overflow-x-clip transition-all duration-150`}
+      >
         {/* Dynamic Page Content */}
         <main id="main-content" role="main" className="flex-1 flex flex-col">
           {children ?? <Outlet />}

@@ -182,7 +182,7 @@ export const ForgotPasswordPage: React.FC = () => {
       <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center">
         {/* Brand Header */}
         <div className="text-center mb-2.5">
-          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
+          <div className="inline-flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
             <KeyRound className="w-6 h-6 text-blue-300" />
           </div>
           <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">

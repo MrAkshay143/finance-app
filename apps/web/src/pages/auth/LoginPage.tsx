@@ -146,7 +146,7 @@ export const LoginPage: React.FC = () => {
       <div className="relative z-10 w-full max-w-[400px] flex flex-col justify-center">
         {/* Brand Header */}
         <div className="text-center mb-2.5">
-          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
+          <div className="inline-flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
             <img
               src="/pwa-192x192.png"
               alt="Finance"

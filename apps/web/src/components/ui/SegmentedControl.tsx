@@ -55,7 +55,7 @@ export function SegmentedControl<T extends string = string>({
             <span>{option.label}</span>
             {option.badge !== undefined && (
               <span
-                className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                   isSelected ? 'bg-white/20 text-white' : 'bg-gray-200 text-textMuted'
                 }`}
               >

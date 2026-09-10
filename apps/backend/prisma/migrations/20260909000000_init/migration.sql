@@ -26,6 +26,7 @@ CREATE TABLE "users" (
     "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "mobileNumber" TEXT NOT NULL,
+    "country" TEXT NOT NULL DEFAULT 'IN',
     "passwordHash" TEXT NOT NULL,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
@@ -72,6 +73,7 @@ CREATE TABLE "finance_profiles" (
     "userId" TEXT NOT NULL,
     "dateOfBirth" TIMESTAMP(3),
     "address" TEXT,
+    "country" TEXT DEFAULT 'IN',
     "monthlyIncome" BIGINT NOT NULL DEFAULT 0,
     "monthlyExpenseBudget" BIGINT NOT NULL DEFAULT 0,
     "monthlyInvestmentTarget" BIGINT NOT NULL DEFAULT 0,
@@ -267,7 +269,9 @@ CREATE TABLE "user_settings" (
     "currency" TEXT NOT NULL DEFAULT 'INR',
     "timezone" TEXT NOT NULL DEFAULT 'Asia/Kolkata',
     "financialMonthStartDay" INTEGER NOT NULL DEFAULT 1,
-    "quickAddEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "dateFormat" TEXT NOT NULL DEFAULT 'DD-MM-YYYY',
+    "timeFormat" TEXT NOT NULL DEFAULT '12h',
+    "quickAddEnabled" BOOLEAN NOT NULL DEFAULT false,
     "dashboardDonutsConfig" JSONB NOT NULL DEFAULT '{"income":true,"expense":true,"investment":true}',
     "featuresConfig" JSONB NOT NULL DEFAULT '{"investments":true,"recurring":true}',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -310,10 +314,16 @@ CREATE INDEX "merchants_userId_idx" ON "merchants"("userId");
 CREATE INDEX "transactions_userId_txnDate_idx" ON "transactions"("userId", "txnDate");
 
 -- CreateIndex
+CREATE INDEX "transactions_userId_status_txnDate_idx" ON "transactions"("userId", "status", "txnDate");
+
+-- CreateIndex
 CREATE INDEX "transactions_accountId_idx" ON "transactions"("accountId");
 
 -- CreateIndex
 CREATE INDEX "transactions_categoryId_idx" ON "transactions"("categoryId");
+
+-- CreateIndex
+CREATE INDEX "transactions_merchantId_idx" ON "transactions"("merchantId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "transfers_debitTransactionId_key" ON "transfers"("debitTransactionId");
@@ -325,13 +335,28 @@ CREATE UNIQUE INDEX "transfers_creditTransactionId_key" ON "transfers"("creditTr
 CREATE INDEX "transfers_userId_idx" ON "transfers"("userId");
 
 -- CreateIndex
+CREATE INDEX "transfers_sourceAccountId_idx" ON "transfers"("sourceAccountId");
+
+-- CreateIndex
+CREATE INDEX "transfers_destinationAccountId_idx" ON "transfers"("destinationAccountId");
+
+-- CreateIndex
 CREATE INDEX "budgets_userId_idx" ON "budgets"("userId");
+
+-- CreateIndex
+CREATE INDEX "budgets_categoryId_idx" ON "budgets"("categoryId");
 
 -- CreateIndex
 CREATE INDEX "goals_userId_idx" ON "goals"("userId");
 
 -- CreateIndex
 CREATE INDEX "recurring_transactions_userId_idx" ON "recurring_transactions"("userId");
+
+-- CreateIndex
+CREATE INDEX "recurring_transactions_accountId_idx" ON "recurring_transactions"("accountId");
+
+-- CreateIndex
+CREATE INDEX "recurring_transactions_categoryId_idx" ON "recurring_transactions"("categoryId");
 
 -- CreateIndex
 CREATE INDEX "recurring_transactions_nextOccurrence_idx" ON "recurring_transactions"("nextOccurrence");
@@ -344,6 +369,9 @@ CREATE INDEX "reminders_userId_idx" ON "reminders"("userId");
 
 -- CreateIndex
 CREATE INDEX "audit_logs_actorUserId_idx" ON "audit_logs"("actorUserId");
+
+-- CreateIndex
+CREATE INDEX "audit_logs_targetUserId_idx" ON "audit_logs"("targetUserId");
 
 -- CreateIndex
 CREATE INDEX "audit_logs_action_idx" ON "audit_logs"("action");

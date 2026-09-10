@@ -120,10 +120,17 @@ describe('TASK-5.1 & TASK-5.3: User Settings, Danger Zone, CSV Import & Data Exp
           ],
         });
 
-      // Execute Reset Profile
-      const resetRes = await request(app)
+      // Rejects without password
+      const unauthReset = await request(app)
         .post('/api/v1/account-actions/reset-profile')
         .set('Authorization', `Bearer ${userToken}`);
+      expect(unauthReset.status).toBe(422);
+
+      // Execute Reset Profile with valid password
+      const resetRes = await request(app)
+        .post('/api/v1/account-actions/reset-profile')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ password: 'Password123!' });
 
       expect(resetRes.status).toBe(200);
       expect(resetRes.body.success).toBe(true);

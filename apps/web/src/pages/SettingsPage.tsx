@@ -89,7 +89,7 @@ export const SettingsPage: React.FC = () => {
     queryFn: async () => {
       try {
         const res = await apiClient.auth.getSessions();
-        return (res as any)?.data?.sessions || (res as any)?.sessions || [];
+        return Array.isArray(res) ? res : (res as any)?.data?.sessions || (res as any)?.sessions || [];
       } catch {
         return [];
       }

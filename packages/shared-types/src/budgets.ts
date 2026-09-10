@@ -7,8 +7,8 @@ export const MonthlyBudgetSchema = z.object({
   categoryId: z.string().uuid(),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2020),
-  limitAmount: z.number().int().positive('Budget limit must be positive'),
-  spentAmount: z.number().int().default(0),
+  limitAmount: z.number().positive('Budget limit must be positive'),
+  spentAmount: z.number().default(0),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -18,7 +18,7 @@ export const CreateMonthlyBudgetInputSchema = z.object({
   categoryId: z.string().uuid(),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2020),
-  limitAmount: z.number().int().positive('Enter a budget amount greater than zero.'),
+  limitAmount: z.number().positive('Enter a budget amount greater than zero.'),
 });
 export type CreateMonthlyBudgetInput = z.infer<typeof CreateMonthlyBudgetInputSchema>;
 
@@ -26,8 +26,8 @@ export const GoalSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
   name: z.string().min(1).max(100),
-  targetAmount: z.number().int().positive(),
-  currentAmount: z.number().int().default(0),
+  targetAmount: z.number().positive(),
+  currentAmount: z.number().default(0),
   targetDate: z.string().datetime(),
   category: z.string().max(50).nullable().optional(),
   createdAt: z.string().datetime(),
@@ -37,8 +37,8 @@ export type Goal = z.infer<typeof GoalSchema>;
 
 export const CreateGoalInputSchema = z.object({
   name: z.string().min(1).max(100),
-  targetAmount: z.number().int().positive('Target amount must be positive'),
-  currentAmount: z.number().int().default(0),
+  targetAmount: z.number().positive('Target amount must be positive'),
+  currentAmount: z.number().default(0),
   targetDate: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)),
   category: z.string().max(50).optional(),
 });
@@ -70,6 +70,26 @@ export const UpdateBudgetInputSchema = z.object({
   periodStart: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}/)).optional(),
 });
 export type UpdateBudgetInput = z.infer<typeof UpdateBudgetInputSchema>;
+
+export const BudgetSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  categoryId: z.string().uuid(),
+  name: z.string(),
+  targetAmount: z.number().positive(),
+  period: z.string().default('MONTHLY'),
+  periodStart: z.string().datetime().or(z.date()),
+  status: z.string().default('ACTIVE'),
+  spentAmount: z.number().default(0).optional(),
+  category: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+  }).optional(),
+  createdAt: z.string().datetime().or(z.date()),
+  updatedAt: z.string().datetime().or(z.date()),
+});
+export type Budget = z.infer<typeof BudgetSchema>;
 
 export {
   RecurringTransactionSchema,

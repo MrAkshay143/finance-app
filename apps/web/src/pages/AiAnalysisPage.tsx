@@ -92,41 +92,21 @@ export const AiAnalysisPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Dark Navy Header */}
+      {/* Branded Nested Header */}
       <AppHeader
-        variant="root"
-        title="Finance Tracker"
-        subtitle="Financial Intelligence"
+        variant="nested"
+        title="AI Analysis"
+        subtitle="Get AI-powered insights for a smarter financial future"
+        onBack={() => navigate(-1)}
+        rightAction={
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold shadow-sm shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-purple-300" aria-hidden="true" />
+            <span>Financial Intelligence</span>
+          </div>
+        }
       />
 
       <div className="p-4 space-y-4">
-        {/* Subheader: Back Chevron, Title, Subtitle, and Financial Intelligence Status Chip */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              aria-label="Go back"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-textDefault hover:bg-gray-100 active:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-slate-800 stroke-[2.5]" aria-hidden="true" />
-            </button>
-            <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
-                AI Analysis
-              </h1>
-              <p className="text-xs text-textMuted leading-tight mt-0.5">
-                Get AI-powered insights for a smarter financial future
-              </p>
-            </div>
-          </div>
-
-          {/* Right Status Chip: Financial Intelligence */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold shadow-sm shrink-0">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" aria-hidden="true" />
-            <span>Financial Intelligence</span>
-          </div>
-        </div>
 
         {/* Month Selector Card + Analyse Action Button */}
         <Card padding="sm" className="bg-white border-slate-200 shadow-sm p-3">

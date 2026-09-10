@@ -64,8 +64,8 @@ export const BottomNav: React.FC = () => {
 
     return (
       <nav
-        aria-label="Bottom Navigation"
-        className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[430px] bg-white border-t border-borderDefault px-2 py-2 flex items-center justify-around z-40 shadow-lg"
+        aria-label="Admin Navigation"
+        className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-7xl bg-white border-t border-borderDefault px-4 py-2 flex items-center justify-around z-40 shadow-lg"
       >
         {adminNavItems.map((item) => {
           const Icon = item.icon;
@@ -142,7 +142,7 @@ export const BottomNav: React.FC = () => {
           type="button"
           onClick={openPicker}
           aria-label="Add transaction"
-          className="w-13 h-13 w-[54px] h-[54px] rounded-full bg-brand-primary hover:bg-blue-700 active:scale-90 text-white flex items-center justify-center shadow-fab border-4 border-white transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+          className="w-[54px] h-[54px] rounded-full bg-brand-primary hover:bg-blue-700 active:scale-90 text-white flex items-center justify-center shadow-fab border-4 border-white transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
         >
           <Plus className="w-7 h-7 stroke-[2.5]" aria-hidden="true" />
         </button>

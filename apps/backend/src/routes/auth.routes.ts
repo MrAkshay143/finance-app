@@ -8,6 +8,8 @@ import {
   SignupInputSchema,
   LoginInputSchema,
   ChangePasswordSchema,
+  ForgotPasswordVerifyInputSchema,
+  ResetPasswordInputSchema,
 } from '@finance/shared-types';
 
 export const authRouter: Router = Router();
@@ -67,13 +69,23 @@ authRouter.get('/forgot-password/questions', (req, res, next) => {
   authController.initiateForgotPassword(req, res, next);
 });
 
-authRouter.post('/forgot-password/verify', forgotPasswordRateLimiter, (req, res, next) => {
-  authController.verifyForgotPassword(req, res, next);
-});
+authRouter.post(
+  '/forgot-password/verify',
+  forgotPasswordRateLimiter,
+  validateBody(ForgotPasswordVerifyInputSchema),
+  (req, res, next) => {
+    authController.verifyForgotPassword(req, res, next);
+  }
+);
 
-authRouter.post('/reset-password', forgotPasswordRateLimiter, (req, res, next) => {
-  authController.resetPassword(req, res, next);
-});
+authRouter.post(
+  '/reset-password',
+  forgotPasswordRateLimiter,
+  validateBody(ResetPasswordInputSchema),
+  (req, res, next) => {
+    authController.resetPassword(req, res, next);
+  }
+);
 
 // Client compatibility: mount security-questions under /auth as well
 authRouter.use('/security-questions', securityQuestionsRouter);

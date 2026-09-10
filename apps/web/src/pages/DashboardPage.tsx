@@ -433,15 +433,15 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Section 2: Month Selector */}
-            <div className="bg-white rounded-2xl p-2 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
+            <div className="bg-white rounded-2xl p-2 shadow-sm border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
               {/* Expenses Pill */}
-              <div className="flex items-center gap-1.5 px-1 py-0.5">
+              <div className="flex items-center gap-1.5 px-1 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
                   <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Expenses</div>
-                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight truncate">Expenses</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight truncate">
                     {!areaExpense?.statusLabel || areaExpense?.statusLabel === 'Not Available'
                       ? 'No spend yet'
                       : areaExpense.statusLabel}
@@ -450,13 +450,13 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Investments Pill */}
-              <div className="flex items-center gap-1.5 px-1.5 py-0.5">
+              <div className="flex items-center gap-1.5 px-1.5 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                   <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Investments</div>
-                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight truncate">Investments</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight truncate">
                     {!areaInvestment?.statusLabel || areaInvestment?.statusLabel === 'Not Available'
                       ? 'Ready to invest'
                       : areaInvestment.statusLabel}
@@ -465,13 +465,13 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Income Pill */}
-              <div className="flex items-center gap-1.5 px-1.5 py-0.5">
+              <div className="flex items-center gap-1.5 px-1.5 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-800 leading-tight whitespace-nowrap">Income</div>
-                  <div className="text-[10px] font-semibold text-slate-500 leading-tight whitespace-nowrap">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-bold text-slate-800 leading-tight truncate">Income</div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight truncate">
                     {!areaIncome?.statusLabel || areaIncome?.statusLabel === 'Not Available'
                       ? 'Awaiting entry'
                       : areaIncome.statusLabel}
@@ -512,7 +512,7 @@ export const DashboardPage: React.FC = () => {
                       <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.income.actual, userCurrency)}
                       </div>
-                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                      <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                         {`${targets.income.percent}%`}
                       </span>
                     </div>
@@ -556,7 +556,7 @@ export const DashboardPage: React.FC = () => {
                       <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.expense.actual, userCurrency)}
                       </div>
-                      <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                      <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                         {`${targets.expense.percent}%`}
                       </span>
                     </div>
@@ -597,7 +597,7 @@ export const DashboardPage: React.FC = () => {
                       <div className="text-xs font-black text-slate-900 whitespace-nowrap">
                         {formatCurrency(targets.investment.actual, userCurrency)}
                       </div>
-                      <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                      <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                         {`${targets.investment.percent}%`}
                       </span>
                     </div>

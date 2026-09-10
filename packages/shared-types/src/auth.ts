@@ -117,9 +117,9 @@ export const SecurityQuestionsVerifySchema = z.object({
   questions: z.array(SecurityQuestionAnswerSchema).optional(),
 }).refine(data => {
   const list = data.answers || data.questions;
-  return Array.isArray(list) && list.length >= 1 && list.length <= 3;
+  return Array.isArray(list) && list.length >= 3;
 }, {
-  message: 'At least one answer must be provided (up to 3)',
+  message: 'All 3 security questions must be answered',
   path: ['answers'],
 });
 export type SecurityQuestionsVerify = z.infer<typeof SecurityQuestionsVerifySchema>;
@@ -143,7 +143,7 @@ export const ForgotPasswordVerifyInputSchema = z.object({
       questionId: z.string().optional(),
       answer: z.string().min(1, 'Answer is required'),
     })
-  ),
+  ).min(3, 'All 3 security questions must be answered'),
 });
 export type ForgotPasswordVerifyInput = z.infer<typeof ForgotPasswordVerifyInputSchema>;
 

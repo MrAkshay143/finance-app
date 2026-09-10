@@ -247,6 +247,10 @@ export class TransactionService {
   async updateTransaction(userId: string, id: string, data: UpdateTransactionData) {
     const existing = await prisma.transaction.findUnique({
       where: { id },
+      include: {
+        transferAsDebit: true,
+        transferAsCredit: true,
+      },
     });
 
     if (!existing) {
@@ -257,6 +261,9 @@ export class TransactionService {
     }
     if (existing.status === 'DELETED') {
       throw new ValidationError('Cannot update a deleted transaction');
+    }
+    if (existing.transferAsDebit || existing.transferAsCredit) {
+      throw new ValidationError('Transfer transactions cannot be modified directly. Please delete and recreate the transfer.');
     }
 
     // Validate new account ownership if changed
@@ -496,9 +503,12 @@ export class TransactionService {
       }),
     ]);
 
+    const totalPages = Math.ceil(total / pageSize);
+
     return {
       items: items.map(formatTransaction),
       total,
+      totalPages,
       page,
       pageSize,
     };

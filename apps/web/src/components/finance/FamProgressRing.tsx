@@ -208,7 +208,7 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
       {/* Center Grade Badge, Label, and Progress Percentage */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
         <span
-          className={`inline-flex items-center justify-center px-1.5 py-0.2 rounded-md text-[11px] font-extrabold border leading-none ${gradeColor}`}
+          className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded-md text-[11px] font-extrabold border leading-none ${gradeColor}`}
         >
           {grade}
         </span>

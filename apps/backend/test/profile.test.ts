@@ -255,6 +255,7 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
           answers: [
             { questionKey: 'first_pet', answer: '  barnaby ' },
             { questionKey: 'birth_city', answer: 'BRISTOL' },
+            { questionKey: 'mother_maiden_name', answer: 'smith' },
           ],
         });
 
@@ -267,12 +268,27 @@ describe('TASK-1.2: Profile, Onboarding & KBA Integration Tests', () => {
         .post('/api/v1/security-questions/verify')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
-          answers: [{ questionKey: 'first_pet', answer: 'WrongPet' }],
+          answers: [
+            { questionKey: 'first_pet', answer: 'WrongPet' },
+            { questionKey: 'birth_city', answer: 'BRISTOL' },
+            { questionKey: 'mother_maiden_name', answer: 'Smith' },
+          ],
         });
 
       expect(verifyFail.status).toBe(401);
       expect(verifyFail.body.success).toBe(false);
       expect(verifyFail.body.error.code).toBe('UNAUTHENTICATED');
+
+      // Incomplete verification (<3 answers) rejected with 422
+      const verifyIncomplete = await request(app)
+        .post('/api/v1/security-questions/verify')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          answers: [{ questionKey: 'first_pet', answer: 'barnaby' }],
+        });
+
+      expect(verifyIncomplete.status).toBe(422);
+      expect(verifyIncomplete.body.error.code).toBe('VALIDATION_ERROR');
     });
   });
 });

@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { logAuditEvent } from './auditService.js';
 import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
 import { invalidateDashboardCache } from './dashboardService.js';
-import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
+import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/errors.js';
 
 export class AccountActionsService {
   // Atomically reset financial profile records after password verification and write audit log
@@ -16,12 +16,14 @@ export class AccountActionsService {
       throw new NotFoundError('User not found');
     }
 
-    // If password confirmation was provided, verify it before irreversible data wipe
-    if (currentPassword && typeof currentPassword === 'string') {
-      const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-      if (!passwordMatch) {
-        throw new UnauthorizedError('Incorrect password. Profile reset was not performed.');
-      }
+    // Require password confirmation before irreversible data wipe
+    if (!currentPassword || typeof currentPassword !== 'string' || currentPassword.trim().length === 0) {
+      throw new ValidationError('Password is required to confirm profile reset.');
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!passwordMatch) {
+      throw new UnauthorizedError('Incorrect password. Profile reset was not performed.');
     }
 
     await prisma.$transaction(async (tx) => {

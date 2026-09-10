@@ -199,33 +199,15 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Dark Navy Header */}
+      {/* Branded Nested Header */}
       <AppHeader
-        variant="root"
-        title="Finance Tracker"
-        subtitle="Stay informed. Stay in control."
+        variant="nested"
+        title="Notifications"
+        subtitle="Manage your alerts and reminders"
+        onBack={() => navigate(-1)}
       />
 
       <div className="p-4 space-y-4">
-        {/* Subheader: Back Chevron, Title, Subtitle */}
-        <div className="flex items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="Go back"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-textDefault hover:bg-gray-100 active:bg-gray-200 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-slate-800 stroke-[2.5]" />
-          </button>
-          <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-tight">
-              Notifications
-            </h1>
-            <p className="text-xs text-textMuted leading-tight mt-0.5">
-              Manage your alerts and reminders
-            </p>
-          </div>
-        </div>
 
         {/* Compact Due-Date Reminders Card */}
         <Card padding="sm" className="bg-white border-slate-200 shadow-sm flex items-center justify-between gap-3">

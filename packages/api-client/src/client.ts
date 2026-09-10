@@ -11,6 +11,7 @@ import type {
   Transaction,
   CreateTransactionInput,
   UpdateTransactionInput,
+  Transfer,
   CreateTransferInput,
   TransactionFilterQuery,
   Account,
@@ -53,6 +54,7 @@ import type {
   UpdateUserSettingsInput,
   FamScoreResponse,
   AdminUserItem,
+  AdminUserListResponse,
   AdminUpdateUserInput,
   AdminDashboardMetrics,
   AdminUserDetails,
@@ -239,7 +241,7 @@ export class FinanceApiClient {
     changePassword: (input: { currentPassword: string; newPassword: string }) =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/change-password', data: input }),
     getSessions: () =>
-      this.request<{ sessions: Array<{ id: string; userAgent: string | null; ipAddress: string | null; createdAt: string; isCurrent: boolean }> }>({
+      this.request<UserSessionItem[]>({
         method: 'GET',
         url: '/auth/sessions',
       }),
@@ -303,7 +305,7 @@ export class FinanceApiClient {
     delete: (id: string) =>
       this.request<{ message: string }>({ method: 'DELETE', url: `/transactions/${id}` }),
     createTransfer: (input: CreateTransferInput) =>
-      this.request<{ transferId: string; sourceTransaction: Transaction; destTransaction: Transaction }>({
+      this.request<Transfer>({
         method: 'POST',
         url: '/transfers',
         data: input,
@@ -341,7 +343,7 @@ export class FinanceApiClient {
     getById: (id: string) =>
       this.request<any>({ method: 'GET', url: `/transfers/${id}` }),
     create: (input: CreateTransferInput) =>
-      this.request<{ transferId: string; sourceTransaction: Transaction; destTransaction: Transaction }>({
+      this.request<Transfer>({
         method: 'POST',
         url: '/transfers',
         data: input,
@@ -530,7 +532,7 @@ export class FinanceApiClient {
     getDashboard: () =>
       this.request<AdminDashboardMetrics>({ method: 'GET', url: '/admin/dashboard' }),
     getUsers: (params?: { page?: number; pageSize?: number; search?: string; status?: string; role?: string; sortBy?: string }) =>
-      this.request<PaginatedResponse<AdminUserItem>['data']>({ method: 'GET', url: '/admin/users', params }),
+      this.request<AdminUserListResponse>({ method: 'GET', url: '/admin/users', params }),
     getUserDetails: (id: string) =>
       this.request<AdminUserDetails>({ method: 'GET', url: `/admin/users/${id}` }),
     updateUser: (id: string, input: AdminUpdateUserInput) =>

@@ -8,7 +8,7 @@ export const TransactionSchema = z.object({
   categoryId: z.string().uuid().nullable().optional(),
   type: TxnTypeSchema,
   direction: TxnDirectionSchema,
-  amount: z.number().int().positive('Amount must be greater than zero.'),
+  amount: z.number().positive('Amount must be greater than zero.'),
   date: z.string().datetime(),
   description: z.string().max(255),
   merchant: z.string().max(100).nullable().optional(),
@@ -18,6 +18,21 @@ export const TransactionSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 export type Transaction = z.infer<typeof TransactionSchema>;
+
+export const TransferSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  sourceAccountId: z.string().uuid(),
+  destinationAccountId: z.string().uuid(),
+  amount: z.number().positive(),
+  amountPaise: z.number().optional(),
+  txnDate: z.string().datetime().or(z.date()),
+  description: z.string().nullable().optional(),
+  debitTransactionId: z.string().uuid(),
+  creditTransactionId: z.string().uuid(),
+  createdAt: z.string().datetime().or(z.date()),
+});
+export type Transfer = z.infer<typeof TransferSchema>;
 
 export const PastOrPresentDateSchema = z
   .string()

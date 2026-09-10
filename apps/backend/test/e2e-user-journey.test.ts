@@ -821,7 +821,8 @@ describe('TASK-6.4: End-to-End Product Lifecycle Integration Regression Suite', 
     it('Danger Zone: Reset Profile atomically clears transactional records while preserving credentials & KBA', async () => {
       const resetRes = await request(app)
         .post('/api/v1/account-actions/reset-profile')
-        .set('Authorization', `Bearer ${userToken}`);
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ password: 'Password123!' });
 
       expect(resetRes.status).toBe(200);
       expect(resetRes.body.success).toBe(true);

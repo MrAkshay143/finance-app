@@ -37,10 +37,12 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-// Ensure database column types support large payloads and newly added schema fields on MySQL
+// Ensure database column types support large payloads and newly added schema fields on MySQL and PostgreSQL
 async function ensureDatabaseSchema() {
   try {
     const isMysql = env.DATABASE_URL.startsWith('mysql');
+    const isPostgres = env.DATABASE_URL.startsWith('postgres');
+
     if (isMysql) {
       try {
         await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
@@ -75,6 +77,34 @@ async function ensureDatabaseSchema() {
         logger.info('Database schema verified: added timeFormat column to user_settings table');
       } catch (err: any) {
         logger.debug({ err: err?.message }, 'user_settings.timeFormat check completed');
+      }
+    } else if (isPostgres) {
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(255) NOT NULL DEFAULT 'IN'");
+        logger.info('Postgres schema verified: users.country column present');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'postgres users.country check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE finance_profiles ADD COLUMN IF NOT EXISTS country VARCHAR(255) DEFAULT 'IN'");
+        logger.info('Postgres schema verified: finance_profiles.country column present');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'postgres finance_profiles.country check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS \"dateFormat\" VARCHAR(255) NOT NULL DEFAULT 'DD-MM-YYYY'");
+        logger.info('Postgres schema verified: user_settings.dateFormat column present');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'postgres user_settings.dateFormat check completed');
+      }
+
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS \"timeFormat\" VARCHAR(255) NOT NULL DEFAULT '12h'");
+        logger.info('Postgres schema verified: user_settings.timeFormat column present');
+      } catch (err: any) {
+        logger.debug({ err: err?.message }, 'postgres user_settings.timeFormat check completed');
       }
     }
   } catch (err: any) {

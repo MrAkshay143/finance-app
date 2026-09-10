@@ -538,8 +538,14 @@ export class AdminService {
     try {
       const redis = getRedisClient();
       if (redis && redis.isOpen) {
-        await redis.flushDb();
-        keysCleared = 1;
+        const cachePatterns = ['dashboard:*', 'cache:*', 'report:*', 'analytics:*', 'fam:*', 'admin:stats*'];
+        for (const pattern of cachePatterns) {
+          const keys = await redis.keys(pattern);
+          if (keys && keys.length > 0) {
+            await redis.del(keys);
+            keysCleared += keys.length;
+          }
+        }
       }
     } catch {
       // Redis optional in fallback mode
