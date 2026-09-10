@@ -34,13 +34,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || (label ? label.toLowerCase().replace(/[^a-z0-9]+/g, '-') : undefined);
     const errorId = inputId ? `${inputId}-error` : undefined;
     const helperId = inputId ? `${inputId}-helper` : undefined;
-    const validId = inputId ? `${inputId}-valid` : undefined;
 
+    const isPassword = props.type === 'password';
     const isInvalid = Boolean(error) || status === 'invalid';
     const isValid = !isInvalid && status === 'valid';
     const isWarning = !isInvalid && status === 'warning';
 
-    const describedBy = isInvalid ? errorId : isValid && validMessage ? validId : helperText ? helperId : undefined;
+    const describedBy = isInvalid ? errorId : helperText ? helperId : undefined;
 
     // Determine status border and ring styles
     let borderStyles = 'border-borderDefault';
@@ -52,17 +52,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       borderStyles = 'border-amber-500 focus-visible:ring-amber-500';
     }
 
-    // Determine auto right status icon if requested and no rightElement
+    // Determine auto right status icon: green tick for valid (except password), or status icon if requested
     let statusIcon: React.ReactNode = null;
-    if (showStatusIcon && !rightElement) {
-      if (isInvalid) {
-        statusIcon = <AlertCircle className="w-4 h-4 text-semantic-danger shrink-0" aria-hidden="true" />;
-      } else if (isValid) {
-        statusIcon = <CheckCircle2 className="w-4 h-4 text-semantic-success shrink-0" aria-hidden="true" />;
-      } else if (isWarning) {
-        statusIcon = <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" aria-hidden="true" />;
-      }
+    if (isValid && !isPassword) {
+      statusIcon = <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" aria-hidden="true" />;
+    } else if (isInvalid && showStatusIcon) {
+      statusIcon = <AlertCircle className="w-4 h-4 text-semantic-danger shrink-0" aria-hidden="true" />;
+    } else if (isWarning && showStatusIcon) {
+      statusIcon = <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" aria-hidden="true" />;
     }
+
+    const hasRightSlot = Boolean(rightElement || statusIcon);
 
     return (
       <div className="w-full">
@@ -87,12 +87,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={describedBy}
             className={`w-full bg-white border text-sm text-textDefault placeholder-textMuted rounded-xl px-3.5 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus:border-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
               icon ? 'pl-10' : ''
-            } ${rightElement || statusIcon ? 'pr-10' : ''} ${borderStyles} ${className}`}
+            } ${hasRightSlot ? (statusIcon && rightElement ? 'pr-16' : 'pr-10') : ''} ${borderStyles} ${className}`}
             {...props}
           />
-          {(rightElement || statusIcon) && (
-            <div className="absolute right-3.5 flex items-center text-textMuted pointer-events-none">
-              <span className="pointer-events-auto">{rightElement || statusIcon}</span>
+          {hasRightSlot && (
+            <div className="absolute right-3.5 flex items-center gap-1.5 text-textMuted pointer-events-none">
+              {statusIcon && <span className="pointer-events-auto flex items-center">{statusIcon}</span>}
+              {rightElement && <span className="pointer-events-auto flex items-center">{rightElement}</span>}
             </div>
           )}
         </div>
@@ -101,8 +102,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <AlertCircle className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </p>
-        ) : isValid && validMessage ? (
-          <p id={validId} className="mt-1 text-xs text-semantic-success text-emerald-600 font-medium flex items-center gap-1">
+        ) : isPassword && isValid && validMessage ? (
+          <p id={`${inputId}-valid`} className="mt-1 text-xs text-semantic-success text-emerald-600 font-medium flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span>{validMessage}</span>
           </p>

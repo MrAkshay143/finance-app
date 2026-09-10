@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useUserDateTime } from '../../hooks/useUserDateTime.js';
 
 export interface DatePickerProps {
@@ -88,17 +88,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
   const activeError = externalError || internalWarning;
 
-  // Formatted date preview for centralized format
-  const formattedPreview = useMemo(() => {
-    if (!value) return null;
-    try {
-      const d = new Date(value);
-      if (isNaN(d.getTime())) return null;
-      return formatDate(d);
-    } catch {
-      return null;
-    }
-  }, [value, formatDate]);
+  const isValidDate = Boolean(value && !activeError);
 
   return (
     <div className={`w-full ${className}`}>
@@ -114,8 +104,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       )}
 
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <Calendar className="w-4 h-4" />
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          {isValidDate ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          ) : (
+            <Calendar className="w-4 h-4 text-slate-400" />
+          )}
         </div>
 
         <input
@@ -128,16 +122,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           min={effectiveMin}
           max={effectiveMax}
           className={`w-full bg-white border text-sm text-textDefault rounded-xl pl-10 pr-3.5 py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
-            activeError ? 'border-semantic-danger focus:ring-semantic-danger' : 'border-borderDefault'
+            activeError
+              ? 'border-semantic-danger focus:ring-semantic-danger'
+              : isValidDate
+              ? 'border-semantic-success focus:ring-semantic-success'
+              : 'border-borderDefault'
           }`}
         />
       </div>
-
-      {formattedPreview && (
-        <p className="mt-1 text-[11px] text-brand-primary font-medium">
-          Selected: {formattedPreview}
-        </p>
-      )}
 
       {activeError ? (
         <div className="mt-1 flex items-center gap-1 text-xs text-semantic-danger font-medium">

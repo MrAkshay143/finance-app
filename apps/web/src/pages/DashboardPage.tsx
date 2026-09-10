@@ -21,6 +21,7 @@ import {
   Banknote,
   Clock,
   Activity,
+  ShieldCheck,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -340,9 +341,9 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Non-empty State: Refined, modern, perfectly proportioned, no truncated text */
+              /* Non-empty State: Refined, modern executive financial health card (no button) */
               <div
-                className="bg-gradient-to-br from-[#1E40AF] via-[#2563EB] to-[#3B82F6] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
+                className="bg-gradient-to-br from-[#1E3A8A] via-[#2563EB] to-[#1D4ED8] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
                 data-testid="fam-score-card"
               >
                 {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
@@ -353,47 +354,33 @@ export const DashboardPage: React.FC = () => {
                 <h2 className="sr-only">Financial Assessment Matrix</h2>
 
                 <div className="relative z-10 flex items-center justify-between gap-3">
-                  {/* Left Column: Info & Action */}
+                  {/* Left Column: Info & Metrics */}
                   <div className="flex-1 min-w-0 pr-1">
-                    <div className="inline-flex items-center">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
-                          famGrade === 'C'
-                            ? 'bg-rose-100 text-rose-800'
-                            : famScore >= 85
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-blue-100 text-blue-800'
-                        }`}
-                      >
-                        {famGrade === 'C' ? 'NEEDS ATTENTION' : famScore >= 85 ? 'EXCELLENT' : 'ON TRACK'}
-                      </span>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
+                      <span className={`w-1.5 h-1.5 rounded-full ${famScore >= 85 ? 'bg-emerald-400' : famGrade === 'C' ? 'bg-rose-400' : 'bg-emerald-300'} animate-pulse`} />
+                      <span>{famGrade === 'C' ? 'NEEDS ATTENTION' : famScore >= 85 ? 'EXCELLENT' : 'HEALTHY & ON TRACK'}</span>
                     </div>
 
-                    <div className="text-white/80 text-[11px] font-semibold mt-1.5">
+                    <div className="text-white/80 text-[11px] font-semibold mt-2 uppercase tracking-wider">
                       Financial Assessment
                     </div>
 
-                    <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-1.5 mt-0.5 leading-tight">
+                    <div className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2 mt-0.5 leading-tight">
                       <span>{famStatusLabel && famStatusLabel !== 'Not Available' ? famStatusLabel : 'Healthy'}</span>
                       <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0 inline" />
                     </div>
 
                     {/* Friendly context description: natural wrap, no truncate, no ellipsis '...' */}
-                    <p className="text-white/85 text-xs leading-relaxed mt-1">
+                    <p className="text-white/90 text-xs leading-relaxed mt-1.5">
                       {famScore >= 75
                         ? "You're on track to reach your monthly financial goals."
                         : 'Review expenses to optimize your financial score.'}
                     </p>
 
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        onClick={() => navigate('/reports')}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all border border-white/25 shadow-xs cursor-pointer"
-                      >
-                        <span>View Report</span>
-                        <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </button>
+                    {/* Refined Health Indicator Capsule */}
+                    <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] text-white/95 font-medium shadow-2xs">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                      <span>Grade {famGrade || 'A'} • Core targets balanced</span>
                     </div>
                   </div>
 

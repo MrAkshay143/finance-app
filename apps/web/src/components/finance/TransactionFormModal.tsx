@@ -462,7 +462,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
               if (error) setError('');
             }}
             status={amountResult ? (amountResult.isValid ? 'valid' : 'invalid') : 'idle'}
-            validMessage={amountResult?.formattedDisplay}
             icon={<span className="text-xs font-bold text-textMuted">{currencySymbol}</span>}
           />
         </div>
@@ -595,7 +594,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
               if (error) setError('');
             }}
             status={date ? (isFutureDate ? 'invalid' : 'valid') : 'idle'}
-            validMessage={date && !isFutureDate ? 'Valid transaction date' : undefined}
             error={isFutureDate ? 'Transaction date cannot be in the future' : undefined}
             icon={<Calendar className="w-4 h-4" />}
           />

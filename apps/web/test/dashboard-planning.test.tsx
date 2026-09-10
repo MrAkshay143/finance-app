@@ -342,7 +342,8 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
       expect(html).toContain('Invest');
       expect(html).toContain('Income');
       expect(html).toContain('Excellent');
-      expect(html).toContain('View Report');
+      expect(html).not.toContain('View Report');
+      expect(html).toContain('Core targets balanced');
       expect(html).not.toContain('max-w-[155px] truncate');
     });
 

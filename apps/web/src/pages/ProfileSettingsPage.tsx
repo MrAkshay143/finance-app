@@ -588,7 +588,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 value={monthlyIncome}
                 onChange={(e) => handleMonthlyIncomeChange(e.target.value)}
                 icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                helperText={`Formatted: ${formatCurrency(monthlyIncome, userCurrency)}`}
               />
 
               <Input
@@ -600,7 +599,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 value={monthlyExpenseBudget}
                 onChange={(e) => setMonthlyExpenseBudget(e.target.value)}
                 icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                helperText={`Formatted: ${formatCurrency(monthlyExpenseBudget, userCurrency)}`}
               />
 
               <Input
@@ -611,7 +609,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 value={monthlyInvestmentTarget}
                 onChange={(e) => setMonthlyInvestmentTarget(e.target.value)}
                 icon={<TrendingUp className="w-4 h-4 text-slate-400" />}
-                helperText={`Formatted: ${formatCurrency(monthlyInvestmentTarget, userCurrency)}`}
               />
 
               {/* Summary Breakdown */}
@@ -664,7 +661,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 value={savingsTarget}
                 onChange={(e) => setSavingsTarget(e.target.value)}
                 icon={<span className="text-xs font-bold text-slate-400">{getCurrencySymbol(userCurrency)}</span>}
-                helperText={`Target: ${formatCurrency(savingsTarget, userCurrency)}`}
               />
 
               <Select
