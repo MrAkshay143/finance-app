@@ -100,12 +100,71 @@ export class CategoryService {
       });
     }
 
-    return categories;
+    // Query active transactions for user to aggregate per-category metrics
+    const txns = await prisma.transaction.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      select: {
+        categoryId: true,
+        amount: true,
+        type: true,
+        direction: true,
+      },
+    });
+
+    const counts = new Map<string, number>();
+    const spentPaise = new Map<string, bigint>();
+    const incomePaise = new Map<string, bigint>();
+    const expensePaise = new Map<string, bigint>();
+    const investPaise = new Map<string, bigint>();
+
+    for (const txn of txns) {
+      if (txn.categoryId) {
+        counts.set(txn.categoryId, (counts.get(txn.categoryId) || 0) + 1);
+        const amount = BigInt(txn.amount);
+
+        if (txn.type === 'INCOME') {
+          incomePaise.set(txn.categoryId, (incomePaise.get(txn.categoryId) || BigInt(0)) + amount);
+        } else if (txn.type === 'INVESTMENT') {
+          investPaise.set(txn.categoryId, (investPaise.get(txn.categoryId) || BigInt(0)) + amount);
+        } else {
+          expensePaise.set(txn.categoryId, (expensePaise.get(txn.categoryId) || BigInt(0)) + amount);
+        }
+
+        if (txn.type === 'EXPENSE' && txn.direction === 'DEBIT') {
+          const prev = spentPaise.get(txn.categoryId) || BigInt(0);
+          spentPaise.set(txn.categoryId, prev + amount);
+        }
+      }
+    }
+
+    return categories.map((cat) => {
+      const total = spentPaise.get(cat.id) || BigInt(0);
+      const inc = incomePaise.get(cat.id) || BigInt(0);
+      const exp = expensePaise.get(cat.id) || BigInt(0);
+      const inv = investPaise.get(cat.id) || BigInt(0);
+
+      return {
+        id: cat.id,
+        userId: cat.userId,
+        name: cat.name,
+        type: cat.type,
+        isSystem: cat.isSystem,
+        sortOrder: cat.sortOrder,
+        createdAt: cat.createdAt,
+        transactionCount: counts.get(cat.id) || 0,
+        totalSpent: Number(total) / 100,
+        totalSpentPaise: Number(total),
+        totalIncome: Number(inc) / 100,
+        totalExpense: Number(exp) / 100,
+        totalInvest: Number(inv) / 100,
+      };
+    });
   }
 
-  /**
-   * Retrieves single category by ID.
-   */
+  // Retrieve single category by ID with financial metrics
   async getCategory(userId: string, id: string) {
     const category = await prisma.category.findUnique({
       where: { id },
@@ -118,7 +177,49 @@ export class CategoryService {
       throw new ForbiddenError('Access forbidden to this category');
     }
 
-    return category;
+    const txns = await prisma.transaction.findMany({
+      where: {
+        userId,
+        categoryId: id,
+        status: 'ACTIVE',
+      },
+    });
+
+    let totalPaise = BigInt(0);
+    let incPaise = BigInt(0);
+    let expPaise = BigInt(0);
+    let invPaise = BigInt(0);
+
+    for (const txn of txns) {
+      const amount = BigInt(txn.amount);
+      if (txn.type === 'INCOME') {
+        incPaise += amount;
+      } else if (txn.type === 'INVESTMENT') {
+        invPaise += amount;
+      } else {
+        expPaise += amount;
+      }
+
+      if (txn.type === 'EXPENSE' && txn.direction === 'DEBIT') {
+        totalPaise += amount;
+      }
+    }
+
+    return {
+      id: category.id,
+      userId: category.userId,
+      name: category.name,
+      type: category.type,
+      isSystem: category.isSystem,
+      sortOrder: category.sortOrder,
+      createdAt: category.createdAt,
+      transactionCount: txns.length,
+      totalSpent: Number(totalPaise) / 100,
+      totalSpentPaise: Number(totalPaise),
+      totalIncome: Number(incPaise) / 100,
+      totalExpense: Number(expPaise) / 100,
+      totalInvest: Number(invPaise) / 100,
+    };
   }
 
   /**
@@ -182,7 +283,15 @@ export class CategoryService {
       emitDashboardRefresh(userId);
     } catch {}
 
-    return category;
+    return {
+      ...category,
+      transactionCount: 0,
+      totalSpent: 0,
+      totalSpentPaise: 0,
+      totalIncome: 0,
+      totalExpense: 0,
+      totalInvest: 0,
+    };
   }
 
   /**

@@ -558,14 +558,60 @@ export const CategoriesPage: React.FC = () => {
                           {isInvest && <PiggyBank className="w-4 h-4" />}
                         </div>
 
-                        {/* Name & Type */}
+                        {/* Name, Type & Dynamic Metrics */}
                         <div className="min-w-0">
                           <h4 className="text-sm font-bold text-textDefault truncate">
                             {cat.name}
                           </h4>
-                          <span className="text-[10px] text-textMuted uppercase font-semibold">
-                            {cat.type}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-textMuted mt-0.5">
+                            <span className="text-[10px] uppercase font-semibold text-textMuted">
+                              {cat.type}
+                            </span>
+                            {(cat.transactionCount ?? 0) > 0 && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  {cat.transactionCount}{' '}
+                                  {cat.transactionCount === 1 ? 'transaction' : 'transactions'}
+                                </span>
+                              </>
+                            )}
+                            {(cat.totalIncome ?? 0) > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold">
+                                  <span>Income:</span>
+                                  <span>+{formatCurrency(cat.totalIncome!, userCurrency)}</span>
+                                </span>
+                              </>
+                            )}
+                            {(cat.totalExpense ?? 0) > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-0.5 text-rose-600 font-semibold">
+                                  <span>Expenses:</span>
+                                  <span>-{formatCurrency(cat.totalExpense!, userCurrency)}</span>
+                                </span>
+                              </>
+                            )}
+                            {(cat.totalInvest ?? 0) > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-0.5 text-brand-primary font-semibold">
+                                  <span>Invest:</span>
+                                  <span>{formatCurrency(cat.totalInvest!, userCurrency)}</span>
+                                </span>
+                              </>
+                            )}
+                            {(cat.totalIncome ?? 0) === 0 && (cat.totalExpense ?? 0) === 0 && (cat.totalInvest ?? 0) === 0 && (cat.totalSpent ?? 0) > 0 && (
+                              <>
+                                <span>•</span>
+                                <span className="font-semibold text-textDefault">
+                                  Total: {formatCurrency(cat.totalSpent ?? 0, userCurrency)}
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
 

@@ -84,10 +84,12 @@ export const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   },
 };
 
+export const DEFAULT_CURRENCY = 'INR';
+
 export const SUPPORTED_CURRENCIES: CurrencyConfig[] = Object.values(CURRENCY_CONFIGS);
 
 export function getCurrencyConfig(code?: string): CurrencyConfig {
-  const upper = (code || 'INR').toUpperCase();
+  const upper = (code || DEFAULT_CURRENCY).toUpperCase();
   return CURRENCY_CONFIGS[upper] || CURRENCY_CONFIGS.INR;
 }
 

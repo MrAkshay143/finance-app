@@ -330,7 +330,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                 {passwordMode === 'temp' ? (
                   <div className="p-4 bg-slate-50 border border-borderDefault rounded-2xl space-y-3">
                     <p className="text-xs text-textMuted leading-relaxed">
-                      Generates a cryptographically secure temporary password and revokes all active sessions. The user will be required to change it upon login.
+                      Generates a temporary password and signs out active sessions.
                     </p>
                     <Button
                       type="button"
@@ -341,7 +341,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                       onClick={() => resetPasswordMutation.mutate(undefined)}
                       icon={<RefreshCw className="w-4 h-4" />}
                     >
-                      Generate & Revoke Sessions
+                      Generate Temporary Password
                     </Button>
                   </div>
                 ) : (

@@ -8,6 +8,12 @@ export const CategorySchema = z.object({
   type: TxnTypeSchema,
   isSystem: z.boolean().default(false),
   sortOrder: z.number().int().default(0),
+  transactionCount: z.number().int().nonnegative().optional(),
+  totalSpent: z.number().nonnegative().optional(),
+  totalSpentPaise: z.number().nonnegative().optional(),
+  totalIncome: z.number().nonnegative().optional(),
+  totalExpense: z.number().nonnegative().optional(),
+  totalInvest: z.number().nonnegative().optional(),
   createdAt: z.string().or(z.date()).optional(),
 });
 export type Category = z.infer<typeof CategorySchema>;

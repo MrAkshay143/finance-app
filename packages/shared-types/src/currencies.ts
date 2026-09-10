@@ -115,3 +115,5 @@ export function getCurrencySymbol(code?: string): string {
 export function isSupportedCurrency(code: string): code is CurrencyCode {
   return SUPPORTED_CURRENCY_CODES.includes(code as CurrencyCode);
 }
+
+export const DEFAULT_CURRENCY: CurrencyCode = 'INR';

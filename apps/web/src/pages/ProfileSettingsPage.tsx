@@ -30,35 +30,13 @@ import { Select } from '../components/ui/Select.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
-import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions } from '../utils/currency.js';
+import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
-export const deriveAnnualIncomeRange = (
-  monthlyIncome: number | string,
-  currency = 'INR'
-): string => {
-  const num = Number(monthlyIncome);
-  if (isNaN(num) || num <= 0) return '';
-  const annual = num * 12;
-
-  if (currency === 'INR') {
-    if (annual < 300000) return 'Below ₹3,00,000';
-    if (annual <= 500000) return '₹3,00,000 - ₹5,00,000';
-    if (annual <= 1000000) return '₹5,00,000 - ₹10,00,000';
-    if (annual <= 2500000) return '₹10,00,000 - ₹25,00,000';
-    return 'Above ₹25,00,000';
-  } else {
-    const symbol = getCurrencySymbol(currency);
-    if (annual < 30000) return `Below ${symbol}30,000`;
-    if (annual <= 60000) return `${symbol}30,000 - ${symbol}60,000`;
-    if (annual <= 100000) return `${symbol}60,000 - ${symbol}100,000`;
-    if (annual <= 250000) return `${symbol}100,000 - ${symbol}250,000`;
-    return `Above ${symbol}250,000`;
-  }
-};
+export const deriveAnnualIncomeRange = computeIncomeBracket;
 
 export const ProfileSettingsPage: React.FC = () => {
   const queryClient = useSafeQueryClient();

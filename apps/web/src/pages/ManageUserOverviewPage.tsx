@@ -603,7 +603,7 @@ export const ManageUserOverviewPage: React.FC = () => {
       >
         <div className="space-y-3 text-xs">
           <p className="text-textMuted">
-            A temporary password has been generated for <strong>{user.email}</strong>. The user will be required to change it on their next login.
+            A temporary password has been generated for <strong>{user.email}</strong>.
           </p>
           <div className="p-3 bg-slate-900 text-slate-100 rounded-xl flex items-center justify-between font-mono">
             <span className="font-bold text-sm">{tempPasswordModal}</span>

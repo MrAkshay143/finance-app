@@ -36,6 +36,7 @@ import { Modal } from '../components/ui/Modal.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
+import { SUPPORTED_CURRENCIES } from '@finance/shared-ui-tokens';
 import { toast } from '../store/toastStore.js';
 
 export const AdminAppSettingsPage: React.FC = () => {
@@ -617,13 +618,11 @@ export const AdminAppSettingsPage: React.FC = () => {
                     onChange={(e) => setDefaultCurrency(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 border border-borderDefault rounded-xl text-xs font-semibold text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
                   >
-                    <option value="INR">INR (₹) - Indian Rupee</option>
-                    <option value="USD">USD ($) - US Dollar</option>
-                    <option value="EUR">EUR (€) - Euro</option>
-                    <option value="GBP">GBP (£) - British Pound</option>
-                    <option value="AED">AED (د.إ) - UAE Dirham</option>
-                    <option value="CAD">CAD ($) - Canadian Dollar</option>
-                    <option value="AUD">AUD ($) - Australian Dollar</option>
+                    {SUPPORTED_CURRENCIES.map((curr) => (
+                      <option key={curr.code} value={curr.code}>
+                        {curr.code} ({curr.symbol}) - {curr.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
