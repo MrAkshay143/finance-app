@@ -12,6 +12,7 @@ import { useSafeQueryClient } from '../../hooks/useSafeQueryClient.js';
 import { useUserCurrency } from '../../hooks/useUserCurrency.js';
 import { getCurrencySymbol } from '../../utils/currency.js';
 import { toast } from '../../store/toastStore.js';
+import { AccountIcon } from '../AccountIcon.js';
 import type { CreateAccountInput } from '@finance/shared-types';
 
 export const ACCOUNT_TYPE_OPTIONS = [
@@ -154,14 +155,25 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
         </div>
 
         <div>
-          <Input
-            label="Institution / Bank"
-            type="text"
-            placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Zerodha"
-            value={institution}
-            onChange={(e) => setInstitution(e.target.value)}
-            icon={<Landmark className="w-4 h-4" />}
-          />
+          <div className="flex items-end gap-2.5">
+            <div className="flex-1">
+              <Input
+                label="Institution / Bank"
+                type="text"
+                placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Zerodha"
+                value={institution}
+                onChange={(e) => setInstitution(e.target.value)}
+                icon={<Landmark className="w-4 h-4" />}
+              />
+            </div>
+            <div className="shrink-0 pb-1" title="Live institution logo preview">
+              <AccountIcon
+                institution={institution}
+                accountType={accountType}
+                size="md"
+              />
+            </div>
+          </div>
         </div>
 
         <div>

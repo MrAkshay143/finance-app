@@ -31,6 +31,7 @@ import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import { AddAccountModal } from '../components/finance/AddAccountModal.js';
+import { AccountIcon } from '../components/AccountIcon.js';
 import type { Account, UpdateAccountInput } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
 
@@ -353,15 +354,12 @@ export const AccountsPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                          isActive
-                            ? 'bg-blue-50 text-brand-primary border-blue-100'
-                            : 'bg-gray-100 text-gray-500 border-gray-200'
-                        }`}
-                      >
-                        {getAccountIcon(acc.type || (acc as any).accountType)}
-                      </div>
+                      <AccountIcon
+                        institution={acc.institutionName || (acc as any).institution}
+                        accountType={acc.type || (acc as any).accountType}
+                        cardNetworkPrefix={acc.accountNumberMask || (acc as any).accountIdentifier}
+                        size="md"
+                      />
                       <div className="min-w-0">
                         <h3 className="text-sm font-bold text-textDefault leading-tight truncate">
                           {acc.name}
@@ -489,14 +487,26 @@ export const AccountsPage: React.FC = () => {
           </div>
 
           <div>
-            <Input
-              label="Institution / Bank"
-              type="text"
-              placeholder="e.g. HDFC Bank"
-              value={editInstitution}
-              onChange={(e) => setEditInstitution(e.target.value)}
-              icon={<Landmark className="w-4 h-4" />}
-            />
+            <div className="flex items-end gap-2.5">
+              <div className="flex-1">
+                <Input
+                  label="Institution / Bank"
+                  type="text"
+                  placeholder="e.g. HDFC Bank"
+                  value={editInstitution}
+                  onChange={(e) => setEditInstitution(e.target.value)}
+                  icon={<Landmark className="w-4 h-4" />}
+                />
+              </div>
+              <div className="shrink-0 pb-1" title="Live institution logo preview">
+                <AccountIcon
+                  institution={editInstitution}
+                  accountType={editType}
+                  cardNetworkPrefix={editIdentifier}
+                  size="md"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
