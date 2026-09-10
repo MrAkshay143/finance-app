@@ -16,10 +16,7 @@ export function clearInMemoryDashboardCache(): void {
   inMemoryDashboardCache.clear();
 }
 
-/**
- * Invalidates cached dashboard summaries for a user across all periods.
- * Removes keys from Redis (if connected) and from the in-memory fallback cache.
- */
+// Invalidate Redis and in-memory dashboard cache for user
 export async function invalidateDashboardCache(userId: string): Promise<void> {
   // 1. In-memory cache invalidation
   const inMemoryKeysToDelete: string[] = [];
@@ -47,15 +44,7 @@ export async function invalidateDashboardCache(userId: string): Promise<void> {
 }
 
 export class DashboardService {
-  /**
-   * Builds or returns cached Dashboard Summary aggregate:
-   * - fam: grade, progress, areas with targets, actuals, percentages, statuses
-   * - targets: overview cards data for Income, Expense, Investment (target, actual, remaining, percent)
-   * - securityBanner: showSecurityReminder (boolean, true if KBA is NOT configured)
-   * - expenseBreakdown: array of category expenses with amount and percentage of total expenses
-   * - accountSummary: totalBalance, activeCount
-   * - recentTransactions: top 5 recent active transactions with category, account, amount
-   */
+  // Return cached or computed dashboard summary aggregate for user
   async getDashboardSummary(userId: string, refDate: Date = new Date()) {
     // 1. Determine user settings & financial month period
     const user = await prisma.user.findUnique({

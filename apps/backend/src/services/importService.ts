@@ -54,11 +54,7 @@ function parseAmountToPaise(raw: string): { amountPaise: bigint; isNegative: boo
 }
 
 export class ImportService {
-  /**
-   * Imports transactions from CSV content into a target user account.
-   * Runs inside a Prisma transaction, enforces the balance invariant via balanceService,
-   * emits dashboard refresh, and logs an unalterable audit event.
-   */
+  // Import transactions from CSV, enforce balance invariant, and log audit event
   async importCsv(
     userId: string,
     accountId: string,

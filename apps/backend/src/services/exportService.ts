@@ -19,10 +19,7 @@ function escapeCsvField(val: any): string {
 }
 
 export class ExportService {
-  /**
-   * Generates a complete data export of the user's financial record.
-   * Produces either JSON or CSV format, and writes an unalterable audit log entry.
-   */
+  // Export user financial records to JSON or CSV and record audit log
   async exportUserData(
     userId: string,
     format: 'json' | 'csv' = 'json',

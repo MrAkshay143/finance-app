@@ -75,7 +75,7 @@ export const FinanceProfileScreen: React.FC = () => {
           setInvestmentHorizon(data.investmentHorizon);
         }
       } catch {
-        // Fallback default values remain active
+        // Retain default financial targets if profile fetch fails
       } finally {
         setIsLoading(false);
       }

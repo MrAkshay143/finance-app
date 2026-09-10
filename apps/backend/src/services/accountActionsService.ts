@@ -6,14 +6,7 @@ import { invalidateDashboardCache } from './dashboardService.js';
 import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 
 export class AccountActionsService {
-  /**
-   * Danger Zone: Reset Profile
-   * Requires current password confirmation before wiping data (SEC-09).
-   * Atomically deletes transactions, transfers, accounts, budgets, goals,
-   * recurring transactions, reminders, notifications, and financeProfile records.
-   * Preserves User account and SecurityQuestions.
-   * Emits dashboard refresh and logs unalterable AuditLog ('ACCOUNT_RESET_PROFILE').
-   */
+  // Atomically reset financial profile records after password verification and write audit log
   async resetProfile(userId: string, currentPassword?: string, ipAddress?: string): Promise<{ success: boolean; message: string }> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -114,13 +107,7 @@ export class AccountActionsService {
     };
   }
 
-  /**
-   * Danger Zone: Delete Account
-   * Verifies user password with bcrypt.
-   * Marks User as DELETED (status = 'DELETED').
-   * Revokes all active refresh tokens.
-   * Creates unalterable AuditLog record ('ACCOUNT_DELETED').
-   */
+  // Soft-delete user account, revoke active tokens, and write audit log
   async deleteAccount(
     userId: string,
     password: string,

@@ -57,7 +57,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
   const [questionsPool, setQuestionsPool] = useState<QuestionItem[]>(DEFAULT_QUESTIONS_POOL);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
-  // Selected questions
   const [selectedQ1, setSelectedQ1] = useState<QuestionItem>(DEFAULT_QUESTIONS_POOL[0]);
   const [answer1, setAnswer1] = useState('');
   const [showAnswer1, setShowAnswer1] = useState(false);
@@ -70,7 +69,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
   const [answer3, setAnswer3] = useState('');
   const [showAnswer3, setShowAnswer3] = useState(false);
 
-  // Dropdown modal state
   const [modalVisible, setModalVisible] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,7 +91,7 @@ export const SecurityQuestionsScreen: React.FC = () => {
           if (mapped[2]) setSelectedQ3(mapped[2]);
         }
       } catch {
-        // Fallback default questions pool
+        // Retain default security questions pool if API endpoint fails
       }
     };
 
@@ -144,7 +142,7 @@ export const SecurityQuestionsScreen: React.FC = () => {
       return;
     }
 
-    // Step 3 - Submit all 3 questions
+    // Validate final question and submit all configured security answers
     if (!answer3.trim() || answer3.trim().length < 2) {
       setErrorMessage('Answer to Question 3 must be at least 2 characters.');
       return;
@@ -331,7 +329,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
             </Pressable>
           </View>
         ) : (
-          /* Form Card */
           <View style={styles.card}>
             <Text style={styles.stepIndicatorText}>QUESTION {currentStep} OF 3</Text>
             <Text style={styles.formSectionTitle}>Choose a security question</Text>

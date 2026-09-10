@@ -34,9 +34,7 @@ export function formatReminder(reminder: any) {
 }
 
 export class ReminderService {
-  /**
-   * Lists all reminders for a user.
-   */
+  // Return all configured reminders for user
   async listReminders(userId: string) {
     const reminders = await prisma.reminder.findMany({
       where: { userId },
@@ -45,9 +43,7 @@ export class ReminderService {
     return reminders.map(formatReminder);
   }
 
-  /**
-   * Retrieves a single reminder by ID with ownership verification.
-   */
+  // Return single reminder by ID with ownership verification
   async getReminder(userId: string, id: string) {
     const reminder = await prisma.reminder.findUnique({
       where: { id },

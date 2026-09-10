@@ -16,7 +16,7 @@ export async function seedInstitutionalData(
     process.env.USER_EMAIL ||
     'akshay@gmail.com'
   ).toLowerCase().trim();
-  console.log(`Starting real-world institutional data initialization for ${email}...`);
+  console.log(`Starting institutional data initialization for ${email}...`);
 
   // 1. Locate User or create if missing
   let user = await prisma.user.findUnique({
@@ -49,7 +49,7 @@ export async function seedInstitutionalData(
   const userId = user.id;
   console.log(`Found user: ${user.firstName} ${user.lastName} (${user.email}) [${userId}]`);
 
-  // Safeguard check: if akshay@gmail.com (or target user) already has accounts or transactions in the database, abort wiping data unless --force or OVERWRITE_EXISTING_DATA=true is set
+  // Abort wipe if user data exists unless force flag is set
   const isForce =
     Boolean(options?.force) ||
     process.argv.includes('--force') ||
@@ -831,20 +831,15 @@ export async function seedInstitutionalData(
   console.log('Active Budgets: 9 categories with live utilization');
   console.log('Milestone Goals: 3 wealth milestones');
   console.log('Recurring Schedules: 6 automated items');
-  console.log('Security Status: 100% (3 KBA questions set)');
+  console.log('Security Status: 100% (3 security questions set)');
 }
-
-export const seedRealWorldData = seedInstitutionalData;
 
 const isDirectExecution =
   typeof process !== 'undefined' &&
   process.argv[1] &&
   (process.argv[1].endsWith('seedData.ts') ||
     process.argv[1].endsWith('seedData.js') ||
-    process.argv[1].includes('seedData') ||
-    process.argv[1].endsWith('seed-realworld.ts') ||
-    process.argv[1].endsWith('seed-realworld.js') ||
-    process.argv[1].includes('seed-realworld'));
+    process.argv[1].includes('seedData'));
 
 if (isDirectExecution) {
   seedInstitutionalData()

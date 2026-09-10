@@ -32,11 +32,7 @@ export interface UpdateFinanceProfileData {
 }
 
 export class ProfileService {
-  /**
-   * Retrieves complete profile including User details, FinanceProfile,
-   * UserSettings, and security questions completion status.
-   * Answers or answer hashes are NEVER returned.
-   */
+  // Return complete user profile, finance targets, and security status
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

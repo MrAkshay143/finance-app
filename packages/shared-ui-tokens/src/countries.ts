@@ -1,7 +1,4 @@
-/**
- * packages/shared-ui-tokens/src/countries.ts
- * Centralized country presentation tokens and options for dropdowns/selectors.
- */
+// Centralized country presentation tokens and selector options
 
 export interface CountryOption {
   code: string;

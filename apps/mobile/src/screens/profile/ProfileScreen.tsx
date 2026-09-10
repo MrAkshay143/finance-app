@@ -70,7 +70,7 @@ export const ProfileScreen: React.FC = () => {
         setUnreadNotificationsCount(count);
       }
     } catch {
-      // In-memory auth user fallback
+      // Fall back to cached store user profile if remote fetch fails
     }
   }, []);
 
@@ -102,7 +102,7 @@ export const ProfileScreen: React.FC = () => {
   const displayEmail = profile?.email || authUser?.email || 'Not Set';
   const initialLetter = displayName.charAt(0).toUpperCase() || 'U';
 
-  // Calculate completion percentage
+  // Derive profile completeness score based on filled profile attributes
   let completionPercentage = 0;
   if (profile) {
     let score = 20;

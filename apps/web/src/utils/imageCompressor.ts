@@ -1,7 +1,4 @@
-/**
- * Utility for client-side image compression and WebP conversion via HTML5 Canvas.
- * Crops to square 512x512 and compresses to 0.82 quality WebP, reducing ~4MB uploads to ~25KB.
- */
+// Compress and convert image to square WebP blob using HTML5 Canvas
 
 export interface CompressedImageResult {
   blob: Blob;

@@ -55,9 +55,7 @@ export function formatGoal(g: any) {
 
 export class GoalService {
 
-  /**
-   * Returns all active goals for a user with progress percent.
-   */
+  // Return active goals for user with calculated progress
   async listGoals(userId: string) {
     const goals = await prisma.goal.findMany({
       where: {

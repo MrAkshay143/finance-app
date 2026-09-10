@@ -1,7 +1,4 @@
-/**
- * Centralized Date Formatting Utility for Mobile
- * Standardizes date formatting to DD-MM-YYYY across mobile screens and components.
- */
+// Re-export centralized date formatting utilities standardizing mobile display to DD-MM-YYYY
 export {
   formatDate,
   formatDateRange,

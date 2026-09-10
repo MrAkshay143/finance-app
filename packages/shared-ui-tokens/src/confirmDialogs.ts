@@ -197,9 +197,7 @@ export interface MobileAlertButton {
   onPress?: () => void;
 }
 
-/**
- * Helper to convert a ConfirmDialogDefinition into arguments for React Native's Alert.alert
- */
+// Convert ConfirmDialogDefinition to React Native Alert.alert arguments
 export function toMobileAlertArgs(
   def: ConfirmDialogDefinition,
   onConfirm: () => void

@@ -57,7 +57,6 @@ export const RecurringScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Modal State
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formType, setFormType] = useState<'EXPENSE' | 'INCOME' | 'INVESTMENT'>('EXPENSE');
@@ -98,7 +97,7 @@ export const RecurringScreen: React.FC = () => {
         }
       }
     } catch {
-      // Retain graceful state
+      // Preserve existing recurring schedules if fetch fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -123,7 +122,7 @@ export const RecurringScreen: React.FC = () => {
         prev.map((i) => (i.id === item.id ? { ...i, status: newStatus as any } : i))
       );
     } catch {
-      // Fallback
+      // Preserve prior status if toggling recurring schedule fails on network
     }
   };
 
@@ -135,7 +134,7 @@ export const RecurringScreen: React.FC = () => {
         await apiClient.recurring.delete(item.id);
         setItems((prev) => prev.filter((i) => i.id !== item.id));
       } catch {
-        // Fallback
+        // Preserve current items list if schedule deletion fails on network
       }
     });
     Alert.alert(title, message, buttons);

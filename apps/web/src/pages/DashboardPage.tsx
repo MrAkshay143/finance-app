@@ -282,11 +282,7 @@ export const DashboardPage: React.FC = () => {
               </Card>
             )}
 
-            {/* ==============================================================
-             * SECTION 1: FINANCIAL HEALTH HERO CARD
-             * Matches Reference Image Hero Card: vibrant blue gradient,
-             * HEALTHY pill, status heading with sparkle, donut score, and Report box.
-             * ============================================================== */}
+            {/* Section 1: Financial Health Hero Card */}
             <div
               className="bg-gradient-to-br from-[#2F74EE] via-[#3B82F6] to-[#60A5FA] rounded-3xl p-4 text-white shadow-md relative overflow-hidden border border-blue-400/30"
               data-testid="fam-score-card"
@@ -403,11 +399,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* ==============================================================
-             * SECTION 2: MONTHLY STATUS PILLS
-             * 3 Compact Pills in a White Card (Expenses, Investments, Income)
-             * Adjusted for full text display without truncation
-             * ============================================================== */}
+            {/* Section 2: Month Selector */}
             <div className="bg-white rounded-2xl p-2 shadow-xs border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
               {/* Expenses Pill */}
               <div className="flex items-center gap-1.5 px-1 py-0.5">
@@ -449,10 +441,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* ==============================================================
-             * SECTION 3: TARGET OVERVIEW
-             * Header with "Manage Planning >", 3 Cards (Income, Expense, Invest)
-             * ============================================================== */}
+            {/* Section 3: Key Financial Targets Overview */}
             <div className="space-y-2.5" data-testid="target-overview-cards">
               <div className="flex items-center justify-between px-1">
                 <h3 className="text-sm font-bold text-slate-900">Target Overview</h3>
@@ -591,11 +580,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* ==============================================================
-             * SECTION 4: EXPENSE / INCOME / INVESTMENT BREAKDOWN CARD
-             * Donut chart on left with center count, category legend list on right,
-             * Expenses / Income / Investments pill toggle in header.
-             * ============================================================== */}
+            {/* Section 4: Expense Breakdown */}
             {showDonutSection && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
@@ -862,11 +847,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             )}
 
-            {/* ==============================================================
-             * SECTION 5: CONNECTED ACCOUNTS CARD
-             * Total Liquid Balance, active count, colored account circle badges,
-             * and "+ View Accounts" action.
-             * ============================================================== */}
+            {/* Section 5: Recent Transactions */}
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="account-summary-card"
@@ -971,11 +952,7 @@ export const DashboardPage: React.FC = () => {
               )}
             </div>
 
-            {/* ==============================================================
-             * SECTION 6: RECENT TRANSACTIONS CARD
-             * Rose receipt icon, "View All >" link, top 5 active transactions
-             * with colored type icons, clean descriptions, and signed amounts.
-             * ============================================================== */}
+            {/* Section 6: Linked Accounts Summary */}
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="recent-transactions-card"

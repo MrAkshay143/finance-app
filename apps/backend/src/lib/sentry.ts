@@ -9,11 +9,7 @@ export interface SentryClientStub {
 
 let activeSentryClient: SentryClientStub | null = null;
 
-/**
- * Initializes Sentry error tracking stub.
- * Respects SENTRY_DSN environment variable when configured.
- * Sanitizes sensitive credentials and attaches process error traps.
- */
+// Initialize Sentry error tracking with credential masking and process traps
 export function initSentry(serviceName: 'backend-api' | 'worker'): SentryClientStub {
   const dsn = env.SENTRY_DSN;
 

@@ -44,11 +44,9 @@ export const CategoriesScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Search & Filter
   const [filter, setFilter] = useState<CategoryFilterType>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Modal State
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -79,7 +77,6 @@ export const CategoriesScreen: React.FC = () => {
     void fetchCategories();
   }, [fetchCategories]);
 
-  // Open Add Modal
   const handleOpenAddModal = () => {
     setModalMode('add');
     setEditingCategoryId(null);
@@ -89,7 +86,6 @@ export const CategoriesScreen: React.FC = () => {
     setShowModal(true);
   };
 
-  // Open Edit Modal
   const handleOpenEditModal = (cat: Category) => {
     if (cat.isSystem) return;
     setModalMode('edit');
@@ -100,7 +96,6 @@ export const CategoriesScreen: React.FC = () => {
     setShowModal(true);
   };
 
-  // Submit Modal
   const handleSubmitModal = async () => {
     const trimmed = categoryName.trim();
     if (!trimmed) {
@@ -133,7 +128,6 @@ export const CategoriesScreen: React.FC = () => {
     }
   };
 
-  // Delete Category
   const handleDeleteCategory = async (cat: Category) => {
     if (cat.isSystem) return;
 
@@ -155,7 +149,6 @@ export const CategoriesScreen: React.FC = () => {
     }
   };
 
-  // Filter & Search Logic
   const filteredCategories = categories.filter((cat) => {
     const matchesFilter =
       filter === 'ALL' || cat.type.toUpperCase() === filter.toUpperCase();

@@ -13,24 +13,17 @@ export interface AccessTokenPayload extends JwtPayload {
 
 const BCRYPT_ROUNDS = 10;
 
-/**
- * Hashes a plaintext password using bcryptjs.
- */
+// Hash plaintext password using bcrypt
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-/**
- * Compares candidate password against a bcrypt hash.
- */
+// Compare candidate password against bcrypt hash
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
-/**
- * Generates a short-lived signed JWT access token.
- * Payload includes { sub: user.id, role: user.role, jti: uuid }.
- */
+// Generate signed JWT access token with custom or default TTL
 export function signAccessToken(
   payload: { userId: string; role: string },
   customTtlMinutes?: number
@@ -65,33 +58,23 @@ export function signAccessToken(
   return { token, expiresIn, jti };
 }
 
-/**
- * Verifies and decodes a signed JWT access token.
- */
+// Verify and decode signed JWT access token
 export function verifyAccessToken(token: string): AccessTokenPayload {
   const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
   return decoded as AccessTokenPayload;
 }
 
-/**
- * Generates an opaque, cryptographically secure 40-byte random string for refresh tokens.
- */
+// Generate cryptographically secure 40-byte hex refresh token
 export function generateRefreshTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
 }
 
-/**
- * Deterministically hashes a refresh token string using SHA-256 for secure database storage.
- */
+// Hash refresh token using SHA-256 for secure persistent storage
 export function hashRefreshToken(token: string): string {
   return crypto.createHash('sha256').update(token.trim()).digest('hex');
 }
 
-/**
- * Signs a short-lived (15 min) JWT password reset token.
- * Uses a DEDICATED reset secret (JWT_RESET_SECRET) so reset tokens cannot
- * be used as Bearer access tokens (SEC-04).
- */
+// Sign 15-minute password reset token using dedicated reset secret
 export function signResetToken(payload: { userId: string; email: string }): string {
   return jwt.sign(
     { sub: payload.userId, email: payload.email, type: 'PASSWORD_RESET' },
@@ -100,10 +83,7 @@ export function signResetToken(payload: { userId: string; email: string }): stri
   );
 }
 
-/**
- * Verifies a password reset token and returns payload.
- * Only accepts tokens signed with JWT_RESET_SECRET and typed as PASSWORD_RESET.
- */
+// Verify password reset token authenticity and token type
 export function verifyResetToken(token: string): { userId: string; email: string } {
   const decoded = jwt.verify(token, env.JWT_RESET_SECRET) as any;
   if (!decoded || decoded.type !== 'PASSWORD_RESET' || !decoded.sub) {

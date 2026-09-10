@@ -45,7 +45,7 @@ export const InvestmentsScreen: React.FC = () => {
       const data = await apiClient.investments.getOverview();
       setOverview(data);
     } catch {
-      // Retain previous or empty state gracefully
+      // Preserve cached investments overview if network fetch fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

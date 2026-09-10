@@ -88,18 +88,15 @@ export const PlanningScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal visibility
   const [showAddBudgetModal, setShowAddBudgetModal] = useState<boolean>(false);
   const [showAddGoalModal, setShowAddGoalModal] = useState<boolean>(false);
 
-  // Budget form state
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [budgetName, setBudgetName] = useState<string>('');
   const [budgetLimit, setBudgetLimit] = useState<string>('');
   const [budgetSubmitting, setBudgetSubmitting] = useState<boolean>(false);
   const [budgetError, setBudgetError] = useState<string | null>(null);
 
-  // Goal form state
   const defaultGoalTargetDate = useMemo(() => `${new Date().getFullYear()}-12-31`, []);
   const [goalName, setGoalName] = useState<string>('');
   const [goalTargetAmount, setGoalTargetAmount] = useState<string>('');
@@ -136,7 +133,6 @@ export const PlanningScreen: React.FC = () => {
     void loadData();
   }, [loadData]);
 
-  // Handle create budget
   const handleCreateBudget = async () => {
     if (!selectedCategoryId) {
       setBudgetError('Please select a category for this budget.');
@@ -168,7 +164,6 @@ export const PlanningScreen: React.FC = () => {
     }
   };
 
-  // Handle delete budget
   const handleDeleteBudget = (id: string, name?: string) => {
     const dialogDef = CONFIRM_DIALOGS.planning.deleteBudget(name || 'this budget');
     const [title, message, buttons] = toMobileAlertArgs(dialogDef, async () => {
@@ -182,7 +177,6 @@ export const PlanningScreen: React.FC = () => {
     Alert.alert(title, message, buttons);
   };
 
-  // Handle create goal
   const handleCreateGoal = async () => {
     if (!goalName.trim()) {
       setGoalError('Goal name is required.');
@@ -221,7 +215,6 @@ export const PlanningScreen: React.FC = () => {
     }
   };
 
-  // Handle delete goal
   const handleDeleteGoal = (id: string, name?: string) => {
     const dialogDef = CONFIRM_DIALOGS.planning.deleteGoal(name || 'this goal');
     const [title, message, buttons] = toMobileAlertArgs(dialogDef, async () => {
@@ -353,7 +346,6 @@ export const PlanningScreen: React.FC = () => {
             <Text style={styles.loadingText}>Loading planning configuration...</Text>
           </View>
         ) : tab === 'budgets' ? (
-          /* Budgets Tab Content */
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeading}>CATEGORY SPENDING BUDGETS</Text>
@@ -471,7 +463,6 @@ export const PlanningScreen: React.FC = () => {
             )}
           </View>
         ) : (
-          /* Goals Tab Content */
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionHeading}>TARGET MILESTONES</Text>

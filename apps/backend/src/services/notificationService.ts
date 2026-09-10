@@ -21,9 +21,7 @@ export function formatNotification(notification: any) {
 }
 
 export class NotificationService {
-  /**
-   * Lists notifications for a user with optional filter ('all' | 'unread' | 'read') and pagination.
-   */
+  // Return paginated user notifications filtered by read status
   async listNotifications(
     userId: string,
     filter: 'all' | 'unread' | 'read' = 'all',
@@ -103,9 +101,7 @@ export class NotificationService {
     return { message: 'All notifications marked as read' };
   }
 
-  /**
-   * Creates a notification, writes to DB, and broadcasts live to connected user sessions.
-   */
+  // Create notification record and broadcast realtime socket event
   async createNotification(userId: string, data: CreateNotificationData) {
     const created = await prisma.notification.create({
       data: {

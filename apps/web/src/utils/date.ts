@@ -1,7 +1,4 @@
-/**
- * Centralized Date Formatting Utility for Web
- * Standardizes date formatting to DD-MM-YYYY across web components and pages.
- */
+// Centralized date formatting utilities delegating to shared tokens
 export {
   formatDate,
   formatDateRange,
@@ -9,10 +6,7 @@ export {
   type FormatDateOptions,
 } from '@finance/shared-ui-tokens';
 
-/**
- * Calculates human-readable relative time string:
- * "just now", "${m}m ago", "${h}h ago", "${d}d ago".
- */
+// Format human-readable relative time string
 export function formatRelativeTime(dateStr: string | Date): string {
   if (!dateStr) return '';
   const d = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
@@ -29,9 +23,7 @@ export function formatRelativeTime(dateStr: string | Date): string {
   return 'just now';
 }
 
-/**
- * Formats a date or year-month string to "Month Year" (e.g., "September 2026").
- */
+// Format date or year-month string to Month Year
 export function formatMonthYear(dateStr: string | Date): string {
   if (!dateStr) return '';
   let d: Date;

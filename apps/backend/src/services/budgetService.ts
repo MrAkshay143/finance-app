@@ -67,11 +67,7 @@ export function formatBudget(budget: any, spentPaise: bigint = BigInt(0)) {
 
 export class BudgetService {
 
-  /**
-   * Returns all active budgets for a user with category, targetAmount,
-   * live spent amount computed from active EXPENSE transactions matching category this period,
-   * remaining amount, and progress percentage.
-   */
+  // Return active budgets with live spending calculations for current period
   async listBudgets(userId: string, _period?: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -114,9 +110,7 @@ export class BudgetService {
     return budgets.map((b) => formatBudget(b, spentByCat.get(b.categoryId) || BigInt(0)));
   }
 
-  /**
-   * Retrieves single budget with live spent calculations.
-   */
+  // Return single budget with live spent calculation
   async getBudget(userId: string, id: string) {
     const budget = await prisma.budget.findUnique({
       where: { id },

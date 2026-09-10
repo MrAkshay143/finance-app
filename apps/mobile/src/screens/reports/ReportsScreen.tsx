@@ -88,7 +88,7 @@ export const ReportsScreen: React.FC = () => {
       }
       setReportData(data);
     } catch {
-      // Retain previous or empty state gracefully
+      // Preserve existing report data if network fetch fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -127,7 +127,7 @@ export const ReportsScreen: React.FC = () => {
   const currentMonthLabel =
     MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label ?? selectedMonth;
 
-  // Actual vs Target Calculations
+  // Calculate variance between actual finances and target goals
   const incomeActual = reportData?.targetVsActual?.income?.actual ?? (reportData?.totals?.earnedPaise ? reportData.totals.earnedPaise / 100 : 0);
   const incomeTarget = reportData?.targetVsActual?.income?.target ?? 0;
   const incomeDiff = reportData?.targetVsActual?.income?.diff ?? (incomeActual - incomeTarget);

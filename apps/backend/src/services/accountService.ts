@@ -62,10 +62,7 @@ async function getUserCurrency(userId: string): Promise<string> {
 }
 
 export class AccountService {
-  /**
-   * Returns all accounts for user with currentBalance, openingBalance, status,
-   * plus total balance aggregate and active account count.
-   */
+  // Return user accounts with aggregate balance and active account counts
   async listAccounts(userId: string) {
     const [accounts, userCurrency] = await Promise.all([
       prisma.account.findMany({
@@ -96,9 +93,7 @@ export class AccountService {
     };
   }
 
-  /**
-   * Creates an account, converting openingBalance to BigInt paise and setting currentBalance = openingBalance.
-   */
+  // Create account with initial balances normalized to BigInt paise
   async createAccount(userId: string, data: CreateAccountData) {
     if (!data.name || !data.name.trim()) {
       throw new ValidationError('Account name is required');
@@ -152,9 +147,7 @@ export class AccountService {
     return formatAccount(account, userCurrency);
   }
 
-  /**
-   * Returns account detail along with recent transactions.
-   */
+  // Return single account detail with recent transactions
   async getAccount(userId: string, id: string) {
     const account = await prisma.account.findUnique({
       where: { id },
@@ -182,9 +175,7 @@ export class AccountService {
     };
   }
 
-  /**
-   * Updates name, institution, accountType, accountIdentifier.
-   */
+  // Update account metadata and emit dashboard refresh
   async updateAccount(userId: string, id: string, data: UpdateAccountData) {
     const existing = await prisma.account.findUnique({
       where: { id },
@@ -240,9 +231,7 @@ export class AccountService {
     return formatAccount(updated, userCurrency);
   }
 
-  /**
-   * Toggles account status between ACTIVE and INACTIVE.
-   */
+  // Toggle or update account active status and emit dashboard refresh
   async toggleAccountStatus(userId: string, id: string, status?: AccountStatus) {
     const existing = await prisma.account.findUnique({
       where: { id },

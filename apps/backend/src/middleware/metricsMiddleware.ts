@@ -1,10 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { httpRequestsTotal, httpRequestDurationSeconds } from '../lib/metrics.js';
 
-/**
- * Express middleware to record Prometheus metrics for HTTP traffic.
- * Tracks total request counts and duration histograms labeled by method, route, and status_code.
- */
+// Record Prometheus HTTP request counts and duration histograms
 export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
   // Suppress metrics collection for the /metrics endpoint itself to avoid recursive inflation
   if (req.path === '/metrics') {

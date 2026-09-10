@@ -10,9 +10,7 @@ const TOKEN_SERVICE = 'finance_tracker_auth_tokens';
 class SecureStorageService {
   private inMemoryTokens: AuthTokens | null = null;
 
-  /**
-   * Securely persist both access and refresh tokens in Keychain/Keystore.
-   */
+  // Securely persist access and refresh tokens in Keychain or Keystore
   async saveTokens(tokens: AuthTokens): Promise<void> {
     this.inMemoryTokens = tokens;
     try {
@@ -21,14 +19,11 @@ class SecureStorageService {
         accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
       });
     } catch (error) {
-      // In non-native test environments or device fallback
-      // In-memory tokens retain state
+      // Fall back to in-memory tokens when native keychain is unavailable
     }
   }
 
-  /**
-   * Retrieve both tokens from Keychain/Keystore.
-   */
+  // Retrieve cached or persisted session tokens
   async getTokens(): Promise<AuthTokens | null> {
     if (this.inMemoryTokens) {
       return this.inMemoryTokens;
@@ -45,31 +40,25 @@ class SecureStorageService {
         return parsed;
       }
     } catch (error) {
-      // Fallback
+      // Silently handle keychain lookup errors and return null
     }
 
     return null;
   }
 
-  /**
-   * Retrieve the current access token.
-   */
+  // Retrieve current session access token
   async getAccessToken(): Promise<string | null> {
     const tokens = await this.getTokens();
     return tokens?.accessToken ?? null;
   }
 
-  /**
-   * Retrieve the current refresh token.
-   */
+  // Retrieve current session refresh token
   async getRefreshToken(): Promise<string | null> {
     const tokens = await this.getTokens();
     return tokens?.refreshToken ?? null;
   }
 
-  /**
-   * Update only the access token (e.g., following token refresh).
-   */
+  // Update access token while retaining current refresh token
   async updateAccessToken(newAccessToken: string): Promise<void> {
     const current = await this.getTokens();
     if (current) {
@@ -85,9 +74,7 @@ class SecureStorageService {
     }
   }
 
-  /**
-   * Remove all tokens on logout or unauthorized response.
-   */
+  // Clear tokens from memory and keychain on logout or session expiration
   async clearTokens(): Promise<void> {
     this.inMemoryTokens = null;
     try {
@@ -95,13 +82,11 @@ class SecureStorageService {
         service: TOKEN_SERVICE,
       });
     } catch (error) {
-      // Fallback
+      // Ignore keychain reset errors during teardown
     }
   }
 
-  /**
-   * Check if a valid session exists.
-   */
+  // Check whether active session access token exists
   async hasValidSession(): Promise<boolean> {
     const tokens = await this.getTokens();
     return Boolean(tokens?.accessToken);

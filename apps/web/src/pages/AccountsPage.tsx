@@ -486,10 +486,7 @@ export const AccountsPage: React.FC = () => {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* 1. ADD ACCOUNT MODAL (Strictly Separate from Edit)                         */}
-      {/* Title: "Add Account", Submit: "Save Account"                              */}
-      {/* ========================================================================= */}
+      {/* Add Account Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -588,10 +585,7 @@ export const AccountsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* 2. EDIT ACCOUNT MODAL (Strictly Separate from Add)                        */}
-      {/* Title: "Edit Account", Submit: "Update Account"                           */}
-      {/* ========================================================================= */}
+      {/* Edit Account Modal */}
       <Modal
         isOpen={editingAccount !== null}
         onClose={() => setEditingAccount(null)}
@@ -700,9 +694,7 @@ export const AccountsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* 3. CONFIRMATION DIALOG FOR ACTIVATE / DEACTIVATE ACCOUNT                   */}
-      {/* ========================================================================= */}
+      {/* Delete Account Modal */}
       {(() => {
         const isCurrentlyActive = statusConfirmAccount?.status === 'ACTIVE';
         const dialogDef = CONFIRM_DIALOGS.accounts.toggleStatus(

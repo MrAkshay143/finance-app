@@ -57,7 +57,7 @@ export const AdminSettingsScreen: React.FC = () => {
         }
       }
     } catch {
-      // Offline fallback: keep standard defaults
+      // Retain default security thresholds if settings endpoint is unreachable
     } finally {
       setIsLoading(false);
     }

@@ -35,9 +35,7 @@ export interface AmountValidationResult extends ValidationResult {
   formattedDisplay?: string;
 }
 
-/**
- * Real-time Email Validator
- */
+// Real-time email address validator
 export function validateEmail(email: string): ValidationResult {
   const trimmed = email.trim();
   if (!trimmed) {
@@ -61,9 +59,7 @@ export function validateEmail(email: string): ValidationResult {
   };
 }
 
-/**
- * Real-time Password Rules & Strength Validator
- */
+// Real-time password rules and strength validator
 export function validatePassword(password: string): PasswordValidationResult {
   if (!password) {
     return {
@@ -119,9 +115,7 @@ export function validatePassword(password: string): PasswordValidationResult {
   };
 }
 
-/**
- * Real-time Confirm Password Match Validator
- */
+// Real-time confirm password match validator
 export function validateConfirmPassword(password: string, confirmPassword: string): ValidationResult {
   if (!confirmPassword) {
     return { isValid: false, status: 'idle' };
@@ -142,9 +136,7 @@ export function validateConfirmPassword(password: string, confirmPassword: strin
   };
 }
 
-/**
- * Real-time Amount & Currency Validator
- */
+// Real-time amount and currency validator
 export function validateAmount(
   rawAmount: string | number,
   currency = 'INR',
@@ -195,9 +187,7 @@ export function validateAmount(
   };
 }
 
-/**
- * Real-time Date of Birth / Age Validator
- */
+// Real-time date of birth and age eligibility validator
 export function validateAge(dobString: string, minAge = 16): ValidationResult {
   if (!dobString) {
     return { isValid: false, status: 'idle' };
@@ -234,9 +224,7 @@ export function validateAge(dobString: string, minAge = 16): ValidationResult {
   };
 }
 
-/**
- * Real-time Mobile Number & Country Calling Code Validator
- */
+// Real-time mobile number and country calling code validator
 export function validatePhoneRealtime(
   nationalNumber: string,
   countryIso: string = 'IN'
@@ -307,9 +295,7 @@ export function validatePhoneRealtime(
   };
 }
 
-/**
- * Cryptographically Secure Password Generator
- */
+// Cryptographically secure password generator meeting all strength criteria
 export function generateSecurePassword(length = 16): string {
   const targetLength = Math.max(14, length);
 

@@ -9,12 +9,7 @@ const FULL_MONTH_NAMES = [
 ];
 
 export class AiService {
-  /**
-   * Generates comprehensive AI financial intelligence analysis for a requested financial month:
-   * - Monthly allocation ratios vs standard 50/30/20 guidelines
-   * - Forward wealth projections across 3, 6, and 12-month horizons with compound growth
-   * - Actionable, personalized suggestions based on actual spending and investment ratios
-   */
+  // Generate financial intelligence, budget allocations, and wealth projections
   async getAiAnalysis(userId: string, monthStr?: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

@@ -63,7 +63,7 @@ export const AuditLogScreen: React.FC = () => {
         setLogs(res.logs);
       }
     } catch {
-      // Offline fallback: keep current logs
+      // Preserve cached audit logs if network query fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

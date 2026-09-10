@@ -1,9 +1,4 @@
-/**
- * packages/shared-ui-tokens/src/currency.ts
- * Centralized, universal currency formatting and token system.
- * Supports all registered currencies (INR, USD, EUR, GBP, CAD, AUD, SGD, AED, JPY),
- * with strict adherence to regional numbering systems (Indian Lakhs/Crores vs Western Millions/Billions).
- */
+// Centralized currency formatting and token system supporting Indian and standard numbering
 
 export interface CurrencyConfig {
   code: string;
@@ -106,10 +101,7 @@ export interface FormatCurrencyOptions {
   minimumFractionDigits?: number;
 }
 
-/**
- * Universal Currency Formatter.
- * Respects user's active currency, correct symbol, and regional numbering systems.
- */
+// Format monetary amount to currency string respecting regional numbering
 export function formatCurrency(
   amount: number | string | null | undefined,
   currency: string = 'INR',
@@ -147,11 +139,7 @@ export function formatCurrency(
   return `${prefix}${sym}${formatted}`;
 }
 
-/**
- * Compact Currency Formatter for Charts, Badges, and Micro-Stat cards.
- * E.g., INR: ₹1.5Cr, ₹2.4L, ₹45k, ₹500
- * E.g., USD: $1.5B, $2.4M, $45k, $500
- */
+// Format monetary amount to compact abbreviated string (k, L, Cr, M, B)
 export function formatCompactCurrency(
   amount: number | string | null | undefined,
   currency: string = 'INR'
@@ -203,9 +191,7 @@ export function formatCompactCurrency(
   return `${prefix}${sym}${Math.round(absVal)}`;
 }
 
-/**
- * Backward compatibility alias for Indian Rupees formatting.
- */
+// Format Indian Rupees currency string
 export function formatIndianRupees(
   amount: number | string | null | undefined,
   options?: FormatCurrencyOptions
@@ -213,9 +199,7 @@ export function formatIndianRupees(
   return formatCurrency(amount, 'INR', options);
 }
 
-/**
- * Strips non-numeric characters and parses monetary input strings.
- */
+// Strip non-numeric characters and parse monetary input string
 export function parseCurrencyAmount(val: string): number {
   const cleaned = (val || '').replace(/[^0-9.-]/g, '');
   const parsed = parseFloat(cleaned);

@@ -132,7 +132,7 @@ export const SignupScreen: React.FC = () => {
         routes: [{ name: 'Onboarding' }],
       });
     } catch {
-      // Error handled in store and displayed in activeError banner
+      // Rely on auth store reactive error state for screen error banner
     }
   };
 

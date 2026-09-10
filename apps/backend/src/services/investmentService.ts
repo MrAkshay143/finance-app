@@ -8,14 +8,7 @@ const MONTH_NAMES = [
 ];
 
 export class InvestmentService {
-  /**
-   * Retrieves investments overview:
-   * - Total invested across all time (paise & rupees)
-   * - Current month investment total vs FinanceProfile target
-   * - Category breakdown across all investment transactions
-   * - Recent investment transactions
-   * - 6-month historical investment trend
-   */
+  // Return investment metrics, target comparison, breakdowns, and historical trend
   async getInvestmentsOverview(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

@@ -11,9 +11,7 @@ export interface UpdateMerchantData {
 }
 
 export class MerchantService {
-  /**
-   * Returns all merchants for a user with transaction counts and total spent.
-   */
+  // Return merchants with transaction counts and total spent
   async listMerchants(userId: string) {
     const merchants = await prisma.merchant.findMany({
       where: { userId },

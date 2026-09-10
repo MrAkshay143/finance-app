@@ -15,7 +15,6 @@
     "db:generate": "prisma generate",
     "prisma:seed": "tsx prisma/seed.ts",
     "seed:data": "tsx src/seedData.ts",
-    "seed:realworld": "tsx src/seedData.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"

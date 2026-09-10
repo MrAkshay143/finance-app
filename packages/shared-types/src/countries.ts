@@ -177,10 +177,7 @@ export interface ParsedPhoneNumber {
   raw: string;
 }
 
-/**
- * Parses any phone string (E.164, dial-code prefixed, or local number)
- * into its country, calling code, and national digits.
- */
+// Resolve country code from formatted phone number or international dial prefix
 export function parsePhoneNumber(phoneInput: string, defaultCountry: CountryCode = 'IN'): ParsedPhoneNumber {
   const trimmed = (phoneInput || '').trim();
   const defaultMeta = COUNTRY_REGISTRY[defaultCountry] || COUNTRY_REGISTRY.IN;
@@ -297,10 +294,7 @@ export interface PhoneValidationResult {
   error?: string;
 }
 
-/**
- * Validates and normalizes phone numbers against country-specific metadata.
- * Returns normalized E.164 string on success.
- */
+// Validate phone number against national length rules and regex pattern
 export function validateAndNormalizePhone(
   phoneInput: string | null | undefined,
   preferredCountry: CountryCode = 'IN'

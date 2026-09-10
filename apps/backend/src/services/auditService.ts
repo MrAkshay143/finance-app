@@ -107,10 +107,7 @@ export class AuditService {
     return logAuditEvent(params);
   }
 
-  /**
-   * Lists user-scoped audit logs filtered by actorUserId or targetUserId.
-   * Uses DB-level skip/take pagination — no in-memory slicing (SEC-16).
-   */
+  // Return paginated user audit logs using database offset pagination
   async listUserAuditLogs(
     userId: string,
     options: ListUserAuditLogsOptions = {}
@@ -202,10 +199,7 @@ export class AuditService {
     return { logs, pagination: { page, pageSize, total, totalPages } };
   }
 
-  /**
-   * System-wide audit log query for administrators.
-   * Uses DB-level skip/take pagination — no in-memory slicing (SEC-16).
-   */
+  // Return paginated system-wide audit logs for administrators
   async listSystemAuditLogs(options: ListSystemAuditLogsOptions = {}): Promise<{
     logs: FormattedAuditLog[];
     pagination: { page: number; pageSize: number; total: number; totalPages: number };

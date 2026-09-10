@@ -1,31 +1,11 @@
-/**
- * Centralized Date Formatting Utilities
- * Standardizes display dates across the entire application to DD-MM-YYYY format
- * (e.g. 01-09-2026, 30-09-2026).
- */
+// Centralized date formatting utilities standardizing display to DD-MM-YYYY
 
 export interface FormatDateOptions {
-  /**
-   * Set true when formatting an exclusive range end boundary that may be at midnight
-   * (00:00:00.000). It will roll back 1 millisecond so the date falls on the inclusive
-   * last day of the intended range.
-   */
+  // Flag to roll back exclusive midnight boundary by 1ms for inclusive ranges
   isEndDate?: boolean;
 }
 
-/**
- * Parses any valid date representation (Date, ISO string, timestamp, YYYY-MM-DD, DD-MM-YYYY)
- * and formats it strictly as DD-MM-YYYY.
- *
- * @param date - Date instance, ISO string, timestamp, or string
- * @param options - FormatDateOptions
- * @returns Formatted date string in DD-MM-YYYY format, or empty string if invalid/missing
- *
- * @example
- * formatDate('2026-09-01') // "01-09-2026"
- * formatDate(new Date(2026, 8, 1)) // "01-09-2026"
- * formatDate('2026-08-31T18:30:00.000Z') // "01-09-2026" (in IST UTC+5:30)
- */
+// Parse valid date input and format strictly as DD-MM-YYYY
 export function formatDate(
   date?: string | Date | number | null,
   options?: FormatDateOptions
@@ -80,14 +60,7 @@ export function formatDate(
   }
 }
 
-/**
- * Formats a date range into standard DD-MM-YYYY - DD-MM-YYYY format.
- * Handles both ISO timestamp boundaries and clean YYYY-MM-DD inputs.
- *
- * @example
- * formatDateRange('2026-09-01', '2026-09-30') // "01-09-2026 - 30-09-2026"
- * formatDateRange('2026-08-31T18:30:00.000Z', '2026-09-30T18:30:00.000Z') // "01-09-2026 - 30-09-2026"
- */
+// Format date range into standard DD-MM-YYYY - DD-MM-YYYY
 export function formatDateRange(
   startDate?: string | Date | number | null,
   endDate?: string | Date | number | null,
@@ -102,12 +75,7 @@ export function formatDateRange(
   return start || end || '';
 }
 
-/**
- * Formats a date and time in DD-MM-YYYY HH:mm format.
- *
- * @example
- * formatDateTime('2026-09-01T14:30:00Z') // "01-09-2026 20:00" (in IST)
- */
+// Format date and time in DD-MM-YYYY HH:mm format
 export function formatDateTime(
   date?: string | Date | number | null
 ): string {

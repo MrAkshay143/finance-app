@@ -77,7 +77,7 @@ export const LoginScreen: React.FC = () => {
         routes: [{ name: dest as any }],
       });
     } catch {
-      // Error is set in store and displayed in the error banner
+      // Rely on auth store reactive error state for screen error banner
     }
   };
 

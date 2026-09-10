@@ -75,7 +75,7 @@ export const AdminDashboardScreen: React.FC = () => {
         setUsers(items);
       }
     } catch {
-      // Fallback in test/offline environment
+      // Preserve existing dashboard metrics and user list if network request fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

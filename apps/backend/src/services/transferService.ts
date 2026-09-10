@@ -37,13 +37,7 @@ export function formatTransfer(transfer: any) {
 
 export class TransferService {
 
-  /**
-   * Creates a dual-leg transfer between two distinct accounts owned by the user.
-   * 1. Creates debit Transaction on sourceAccountId (direction: DEBIT)
-   * 2. Creates credit Transaction on destinationAccountId (direction: CREDIT)
-   * 3. Creates Transfer linking both transactions
-   * 4. Updates both accounts' balances via balanceService inside a single $transaction.
-   */
+  // Execute atomic dual-leg account transfer and update balances
   async createTransfer(userId: string, data: CreateTransferData) {
     if (data.sourceAccountId === data.destinationAccountId) {
       throw new ValidationError('Please choose two different accounts.');

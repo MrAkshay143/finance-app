@@ -57,26 +57,22 @@ export const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { logout } = useAuthStore();
 
-  // Settings State
   const [currency, setCurrency] = useState<string>('INR');
   const [timezone, setTimezone] = useState<string>('Asia/Kolkata');
   const [startDay, setStartDay] = useState<string>('1');
 
-  // Toggles State
   const [quickAdd, setQuickAdd] = useState<boolean>(true);
   const [showExpenseDonut, setShowExpenseDonut] = useState<boolean>(true);
   const [showFamDonut, setShowFamDonut] = useState<boolean>(true);
   const [enableInvestments, setEnableInvestments] = useState<boolean>(true);
   const [enableRecurring, setEnableRecurring] = useState<boolean>(true);
 
-  // Modals & Danger Zone State
   const [isResetModalOpen, setIsResetModalOpen] = useState<boolean>(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [deletePassword, setDeletePassword] = useState<string>('');
   const [isProcessingAction, setIsProcessingAction] = useState<boolean>(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
-  // Dropdown Picker Modals
   const [pickerModalType, setPickerModalType] = useState<
     'currency' | 'timezone' | 'cycle' | null
   >(null);
@@ -105,7 +101,7 @@ export const SettingsScreen: React.FC = () => {
         }
       }
     } catch {
-      // Retain standard defaults if offline
+      // Retain standard preference defaults if settings endpoint is unreachable
     }
   }, []);
 

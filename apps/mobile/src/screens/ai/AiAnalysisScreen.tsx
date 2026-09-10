@@ -61,7 +61,7 @@ export const AiAnalysisScreen: React.FC = () => {
       const data = await apiClient.aiAnalysis.get(monthToFetch || selectedMonth);
       setAnalysisData(data);
     } catch {
-      // Graceful fallback
+      // Retain existing analysis state if network query fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

@@ -1,12 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 
-/**
- * Centralized Data Synchronization Service
- * 
- * Ensures all dependent views (Dashboard totals, account balances, FAM score,
- * category donut breakdowns, monthly budgets, analytics, and reports) are
- * immediately invalidated and refetched whenever any data mutation occurs.
- */
+// Realtime Socket.IO synchronization service for active web sessions
 
 export async function syncOnTransactionMutation(queryClient?: QueryClient): Promise<void> {
   if (!queryClient) return;

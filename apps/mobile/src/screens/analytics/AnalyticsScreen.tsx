@@ -57,7 +57,7 @@ export const AnalyticsScreen: React.FC = () => {
       const data = await apiClient.analytics.get({ period: selectedPeriod });
       setAnalyticsData(data);
     } catch {
-      // Retain previous or empty state gracefully
+      // Preserve existing analytics data if network request fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -108,7 +108,7 @@ export const AnalyticsScreen: React.FC = () => {
       ? (analyticsData?.expenseCategoryBreakdown || analyticsData?.categoryBreakdown || [])
       : (analyticsData?.incomeCategoryBreakdown || []);
 
-  // Determine maximum spend in trends to normalize bar heights
+  // Normalize chart bar heights relative to peak period spend
   const maxTrendSpend = Math.max(...spendingTrends.map((t) => t.spent), 1);
 
   return (

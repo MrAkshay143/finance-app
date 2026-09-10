@@ -49,10 +49,7 @@ export const SYSTEM_CATEGORIES: SystemCategorySeed[] = [
 ];
 
 export class CategoryService {
-  /**
-   * Ensures all default system categories are provisioned in the database.
-   * Runs idempotently (inserts missing categories without modifying user custom data).
-   */
+  // Seed default system categories idempotently
   async ensureSystemCategories(): Promise<void> {
     try {
       for (const cat of SYSTEM_CATEGORIES) {

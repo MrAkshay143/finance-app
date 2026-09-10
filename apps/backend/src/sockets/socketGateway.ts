@@ -14,9 +14,7 @@ export function setSocketServer(io: SocketIOServer | null): void {
   ioInstance = io;
 }
 
-/**
- * Socket.IO authentication middleware verifying Bearer JWT access token from handshake.
- */
+// Verify Bearer JWT access token during Socket.IO handshake
 export async function socketAuthMiddleware(
   socket: Socket,
   next: (err?: Error) => void
@@ -56,9 +54,7 @@ export async function socketAuthMiddleware(
   }
 }
 
-/**
- * Initializes namespaces, authentication, and room subscription for Socket.IO.
- */
+// Initialize Socket.IO namespaces, auth middleware, and room subscriptions
 export function initSocketGateway(io: SocketIOServer): void {
   ioInstance = io;
 
@@ -110,9 +106,7 @@ export function initSocketGateway(io: SocketIOServer): void {
   });
 }
 
-/**
- * Pushes a new notification event to connected client sessions for a user.
- */
+// Push notification event to user room across active sessions
 export function emitNotification(userId: string, notification: any): void {
   if (!ioInstance) return;
   try {
@@ -133,9 +127,7 @@ export function emitNotification(userId: string, notification: any): void {
   }
 }
 
-/**
- * Pushes updated unread notification count to connected sessions.
- */
+// Push updated unread notification count to user room
 export function emitUnreadCount(userId: string, unreadCount: number): void {
   if (!ioInstance) return;
   try {
@@ -148,9 +140,7 @@ export function emitUnreadCount(userId: string, unreadCount: number): void {
   }
 }
 
-/**
- * Emits dashboard refresh signal to connected user sessions after mutations.
- */
+// Emit dashboard refresh signal to active user sessions
 export function emitDashboardRefresh(userId: string, data: any = { refreshedAt: new Date().toISOString() }): void {
   if (!ioInstance) return;
   try {

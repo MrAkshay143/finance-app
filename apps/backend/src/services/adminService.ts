@@ -55,10 +55,7 @@ export interface AppSettingsData {
 }
 
 export class AdminService {
-  /**
-   * Retrieves high-level dashboard metrics for administrators:
-   * Total Users, Active Users, Suspended Users, Admins count.
-   */
+  // Return aggregate user metrics for administrative dashboard
   async getDashboardMetrics(): Promise<AdminDashboardMetrics> {
     const [totalUsers, activeUsers, suspendedUsers, adminUsers] = await Promise.all([
       prisma.user.count({ where: { status: { not: 'DELETED' } } }),
@@ -76,9 +73,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Returns a paginated list of users with search and filter capabilities.
-   */
+  // Return paginated users matching search query and status filters
   async listUsers(options: {
     page?: number;
     pageSize?: number;
@@ -152,9 +147,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Retrieves detailed user card, profile, accounts summary, and activity.
-   */
+  // Return comprehensive user details, financial summary, and audit logs
   async getUserDetails(targetUserId: string): Promise<AdminUserDetails> {
     const user = await prisma.user.findUnique({
       where: { id: targetUserId },
@@ -214,10 +207,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Updates user role, status (ACTIVE <-> SUSPENDED), or basic info.
-   * Writes AuditLog ('ADMIN_USER_UPDATE').
-   */
+  // Update user status or role and record administrative audit log
   async updateUser(
     adminId: string,
     targetUserId: string,
@@ -286,10 +276,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Resets user password by generating a temporary password and revoking all sessions.
-   * Writes AuditLog ('ADMIN_RESET_PASSWORD').
-   */
+  // Reset user password, revoke active sessions, and record audit log
   async resetUserPassword(
     adminId: string,
     targetUserId: string,
@@ -347,10 +334,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Resets user's Security Questions (KBA).
-   * Writes AuditLog ('ADMIN_RESET_KBA').
-   */
+  // Reset user security questions and record administrative audit log
   async resetUserKba(
     adminId: string,
     targetUserId: string,

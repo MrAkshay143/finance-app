@@ -45,11 +45,9 @@ export const ManageUserScreen: React.FC = () => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Status & Role local state
   const [isActive, setIsActive] = useState<boolean>(true);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
 
   const triggerFeedback = (msg: string) => {

@@ -333,9 +333,7 @@ export const ReportsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* ============================================================ */}
-        {/* TAB 1: MONTHLY REPORT                                        */}
-        {/* ============================================================ */}
+        {/* Report Filter Bar */}
         {activeTab === 'monthly' && (
           <div className="space-y-4">
             {/* Report Month Picker/Selector: Dynamic Year & Month */}
@@ -750,9 +748,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* TAB 2: YEAR IN REVIEW                                        */}
-        {/* ============================================================ */}
+        {/* Target vs Actual Comparison */}
         {activeTab === 'year' && (
           <div className="space-y-4">
             {/* Year Selector (Inline) */}
@@ -885,9 +881,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* TAB 3: CUSTOM RANGE REPORT                                   */}
-        {/* ============================================================ */}
+        {/* Category Spending Breakdown */}
         {activeTab === 'custom' && (
           <div className="space-y-4">
             {/* Date Pickers */}

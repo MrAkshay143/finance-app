@@ -9,10 +9,7 @@ const FULL_MONTH_NAMES = [
 ];
 
 export class ReportService {
-  /**
-   * Generates comprehensive monthly financial report integrating FAM score,
-   * Target vs Actual comparisons, callout cards, and category breakdowns.
-   */
+  // Generate comprehensive monthly financial report with FAM score and budget variance
   async getMonthlyReport(userId: string, month: string) {
     const [yearStr, monthStr] = month.split('-');
     const year = parseInt(yearStr, 10);

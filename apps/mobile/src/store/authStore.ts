@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({ user: authUser, isAuthenticated: true, isLoading: false });
     } catch {
-      // In case of profile fetch failure or offline session
+      // Check local session validity if remote profile fetch fails or device is offline
       const hasToken = await secureStorage.hasValidSession();
       set({ isAuthenticated: hasToken, isLoading: false });
     }
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await apiClient.auth.logout();
     } catch {
-      // Fallback: ignore network failures on logout
+      // Ignore network errors during logout so local session always clears
     } finally {
       await secureStorage.clearTokens();
       set({

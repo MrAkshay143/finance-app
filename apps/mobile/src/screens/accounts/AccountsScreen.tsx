@@ -62,13 +62,11 @@ export const AccountsScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  // Add form fields
   const [addName, setAddName] = useState('');
   const [addInstitution, setAddInstitution] = useState('');
   const [addType, setAddType] = useState<AccountType>('BANK');
@@ -77,7 +75,6 @@ export const AccountsScreen: React.FC = () => {
   const [addCurrency, setAddCurrency] = useState('INR');
   const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
 
-  // Edit form fields
   const [editName, setEditName] = useState('');
   const [editInstitution, setEditInstitution] = useState('');
   const [editType, setEditType] = useState<AccountType>('BANK');
@@ -107,11 +104,9 @@ export const AccountsScreen: React.FC = () => {
     void fetchAccounts();
   }, [fetchAccounts]);
 
-  // Aggregate metrics
   const activeAccounts = accounts.filter((a) => a.status === 'ACTIVE');
   const totalBalance = activeAccounts.reduce((sum, a) => sum + (Number(a.currentBalance) || 0), 0);
 
-  // Handle Add Account
   const handleOpenAddModal = () => {
     setAddName('');
     setAddInstitution('');
@@ -154,7 +149,6 @@ export const AccountsScreen: React.FC = () => {
     }
   };
 
-  // Handle Edit Account
   const handleOpenEditModal = (account: Account) => {
     setEditingAccount(account);
     setEditName(account.name);
@@ -195,7 +189,6 @@ export const AccountsScreen: React.FC = () => {
     }
   };
 
-  // Handle Quick Toggle Status
   const handleToggleStatus = (account: Account) => {
     const isDeactivating = account.status === 'ACTIVE';
     const nextStatus: AccountStatus = isDeactivating ? 'INACTIVE' : 'ACTIVE';

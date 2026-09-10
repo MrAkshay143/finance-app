@@ -1,10 +1,6 @@
 import React, { ComponentType, lazy } from 'react';
 
-/**
- * Enhanced lazy loader that automatically retries dynamic imports
- * and gracefully reloads the page once if an outdated chunk hash is encountered
- * (common after a new deployment).
- */
+// Auto-retry dynamic import on network failure with chunk refresh recovery
 export function lazyWithRetry<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
   retries = 2,

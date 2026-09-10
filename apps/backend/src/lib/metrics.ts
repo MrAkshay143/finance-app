@@ -55,9 +55,7 @@ export const bullmqJobsTotal: promClient.Counter<'queue' | 'status'> =
     labelNames: ['queue', 'status'] as const,
   });
 
-/**
- * Utility helper to increment BullMQ job metrics across background workers.
- */
+// Increment BullMQ job metric counter by queue and status
 export function recordBullmqJob(queue: string, status: 'completed' | 'failed' | 'active'): void {
   bullmqJobsTotal.inc({ queue, status });
 }

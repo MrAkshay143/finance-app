@@ -1,9 +1,4 @@
-/**
- * apps/mobile/src/utils/currency.ts
- * Delegates to centralized currency tokens in @finance/shared-ui-tokens.
- * Strictly maintains backward compatibility with formatIndianRupees and parseIndianRupees,
- * while defaulting to standard 2-decimal financial precision on mobile.
- */
+// Delegates currency formatting to @finance/shared-ui-tokens with mobile 2-decimal default precision
 
 import {
   formatCurrency as baseFormatCurrency,

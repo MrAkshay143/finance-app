@@ -102,9 +102,7 @@ export function calculateNextOccurrence(
 }
 
 export class RecurringService {
-  /**
-   * Lists recurring transactions for a user, optionally filtering by status and type.
-   */
+  // Return all recurring transaction schedules for user
   async listRecurring(
     userId: string,
     filters?: { status?: RecurringStatus; type?: TxnType }
@@ -332,11 +330,7 @@ export class RecurringService {
     return formatRecurringTransaction(updated);
   }
 
-  /**
-   * Materializes all active recurring transactions where nextOccurrence <= asOfDate.
-   * Runs atomically per recurring transaction: creates Transaction, updates Account balance,
-   * advances nextOccurrence, and notifies connected clients.
-   */
+  // Materialize due recurring schedules into active transactions
   async materializeDueTransactions(asOfDate: Date = new Date()) {
     const dueRecurring = await prisma.recurringTransaction.findMany({
       where: {

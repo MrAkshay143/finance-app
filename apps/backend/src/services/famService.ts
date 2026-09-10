@@ -46,12 +46,7 @@ export interface FamScoreResult {
   income: DimensionCalcResult;
 }
 
-/**
- * Computes financial month boundaries based on financialMonthStartDay.
- * For example, if startDay = 1, period is 1st of month 00:00:00 to 1st of next month 00:00:00.
- * If startDay = 5 and refDate is Sept 8, period is Sept 5 to Oct 5.
- * If startDay = 5 and refDate is Sept 3, period is Aug 5 to Sept 5.
- */
+// Calculate financial month date range based on user billing cycle start day
 export function getFinancialMonthRange(
   financialMonthStartDay = 1,
   refDate: Date = new Date()
@@ -100,9 +95,7 @@ export function getFinancialMonthRange(
   };
 }
 
-/**
- * Pure calculation logic for FAM Score & Grades per Plan/prd.md §5.3.
- */
+// Calculate FAM score metrics, area progress, and grade allocations
 export function calculateFamScore({
   expenseTargetPaise,
   investmentTargetPaise,

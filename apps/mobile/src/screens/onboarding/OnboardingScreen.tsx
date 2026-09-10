@@ -114,7 +114,6 @@ export const OnboardingScreen: React.FC = () => {
         </View>
 
         {step === 1 ? (
-          /* Step 1: Financial Baselines */
           <View style={styles.card}>
             <View style={styles.stepIndicatorRow}>
               <Text style={styles.stepIndicator}>STEP 1 OF 2: BASELINE BUDGET</Text>
@@ -176,7 +175,6 @@ export const OnboardingScreen: React.FC = () => {
             </Pressable>
           </View>
         ) : (
-          /* Step 2: Account Security Prompt */
           <View style={styles.card}>
             <View style={styles.stepIndicatorRow}>
               <Text style={styles.stepIndicator}>STEP 2 OF 2: SECURITY READY</Text>

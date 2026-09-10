@@ -56,7 +56,6 @@ export const NotificationsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Reminders state
   const [remindersEnabled, setRemindersEnabled] = useState<boolean>(true);
   const [reminderDays, setReminderDays] = useState<number>(3);
   const [primaryReminderId, setPrimaryReminderId] = useState<string | null>(null);
@@ -84,7 +83,7 @@ export const NotificationsScreen: React.FC = () => {
         }
       }
     } catch {
-      // Retain graceful state
+      // Preserve existing notifications and reminders if fetch fails
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -96,7 +95,7 @@ export const NotificationsScreen: React.FC = () => {
     void fetchNotificationsAndReminders();
   }, [fetchNotificationsAndReminders]);
 
-  // Realtime Socket.IO connection
+  // Subscribe to real-time notification events via websocket
   useEffect(() => {
     let activeSocket: any = null;
 
@@ -130,7 +129,7 @@ export const NotificationsScreen: React.FC = () => {
           });
         }
       } catch {
-        // Socket connection fallback
+        // Silently fall back to polling when socket connection fails
       }
     };
 
@@ -165,7 +164,7 @@ export const NotificationsScreen: React.FC = () => {
       try {
         await apiClient.notifications.markAsRead(item.id);
       } catch {
-        // Fallback
+        // Optimistically update read status locally even if network request fails
       }
       setNotifications((prev) =>
         prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
@@ -188,7 +187,7 @@ export const NotificationsScreen: React.FC = () => {
         setPrimaryReminderId(created.id);
       }
     } catch {
-      // Offline fallback
+      // Preserve optimistic reminder toggle locally if network request fails
     }
   };
 
@@ -208,7 +207,7 @@ export const NotificationsScreen: React.FC = () => {
         setPrimaryReminderId(created.id);
       }
     } catch {
-      // Offline fallback
+      // Preserve optimistic reminder days locally if network request fails
     }
   };
 

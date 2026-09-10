@@ -57,7 +57,7 @@ export const ExportScreen: React.FC = () => {
         message: content,
       });
     } catch {
-      // Ignored or cancelled
+      // Silently ignore user dismissal or cancellation of system share sheet
     }
   };
 

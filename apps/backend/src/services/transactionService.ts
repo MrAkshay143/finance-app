@@ -97,12 +97,7 @@ export function formatTransaction(txn: any) {
 }
 
 export class TransactionService {
-  /**
-   * Maps TxnType to default TxnDirection:
-   * INCOME -> CREDIT
-   * EXPENSE -> DEBIT
-   * INVESTMENT -> DEBIT
-   */
+  // Map transaction type to default cash flow direction
   mapTypeToDirection(type: TxnType): TxnDirection {
     switch (type) {
       case 'INCOME':
@@ -115,10 +110,7 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Creates a transaction, validating account ownership, converting amounts to BigInt paise,
-   * inserting record and updating account balance via balanceService inside a single Prisma transaction.
-   */
+  // Create transaction, validate account ownership, and atomically update balance
   async createTransaction(userId: string, data: CreateTransactionData) {
     // 1. Validate account ownership
     const account = await prisma.account.findUnique({

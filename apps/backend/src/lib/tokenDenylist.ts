@@ -17,9 +17,7 @@ if (cleanupTimer.unref) {
   cleanupTimer.unref();
 }
 
-/**
- * Adds a revoked access token's jti or token hash to the denylist with a TTL.
- */
+// Add revoked token identifier to Redis with in-memory TTL fallback
 export async function addToDenylist(key: string, ttlSeconds = 900): Promise<void> {
   const redis = getRedisClient();
   if (redis) {
@@ -36,9 +34,7 @@ export async function addToDenylist(key: string, ttlSeconds = 900): Promise<void
   memoryDenylist.set(key, exp);
 }
 
-/**
- * Checks if a token's jti or token hash is currently denylisted.
- */
+// Check if token identifier exists in Redis or in-memory denylist
 export async function isDenylisted(key: string): Promise<boolean> {
   const redis = getRedisClient();
   if (redis) {
@@ -61,9 +57,7 @@ export async function isDenylisted(key: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Clears the in-memory denylist (primarily for test isolation).
- */
+// Clear in-memory token denylist for test isolation
 export function clearMemoryDenylist(): void {
   memoryDenylist.clear();
 }
