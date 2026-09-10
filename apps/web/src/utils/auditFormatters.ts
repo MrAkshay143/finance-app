@@ -569,3 +569,117 @@ export function getAuditCategoryBadge(category?: string): {
       };
   }
 }
+
+export interface ParsedClientDevice {
+  device: string;
+  location: string;
+  browser?: string;
+  os?: string;
+}
+
+// Parses user-agent strings into human-readable OS and browser information
+export function parseClientDevice(
+  userAgent?: string | null,
+  ipAddress?: string | null
+): ParsedClientDevice {
+  const rawIp = (ipAddress || '').replace(/^::ffff:/, '').trim();
+  let location = 'Local Network';
+  if (
+    rawIp &&
+    rawIp !== '127.0.0.1' &&
+    rawIp !== '::1' &&
+    rawIp !== 'Local' &&
+    rawIp !== 'Internal' &&
+    !rawIp.startsWith('192.168.') &&
+    !rawIp.startsWith('10.') &&
+    !rawIp.startsWith('172.16.')
+  ) {
+    location = rawIp;
+  }
+
+  const effectiveUa =
+    userAgent && typeof userAgent === 'string' && userAgent.trim()
+      ? userAgent
+      : typeof window !== 'undefined' && window.navigator?.userAgent
+        ? window.navigator.userAgent
+        : null;
+
+  if (!effectiveUa) {
+    return {
+      device: 'Web Client',
+      location,
+      os: 'Web',
+      browser: 'Browser',
+    };
+  }
+
+  const ua = effectiveUa;
+
+  // Detect Operating System
+  let os = '';
+  if (/Windows NT 10\.0/i.test(ua)) {
+    os = 'Windows 10/11';
+  } else if (/Windows NT 6\.3/i.test(ua)) {
+    os = 'Windows 8.1';
+  } else if (/Windows NT 6\.1/i.test(ua)) {
+    os = 'Windows 7';
+  } else if (/Windows/i.test(ua)) {
+    os = 'Windows';
+  } else if (/iPhone/i.test(ua)) {
+    os = 'iPhone (iOS)';
+  } else if (/iPad/i.test(ua)) {
+    os = 'iPad (iPadOS)';
+  } else if (/Android/i.test(ua)) {
+    const androidMatch = ua.match(/Android\s+([\d.]+)/i);
+    os = androidMatch ? `Android ${androidMatch[1]}` : 'Android';
+  } else if (/Macintosh|Mac OS X/i.test(ua)) {
+    os = 'macOS';
+  } else if (/CrOS/i.test(ua)) {
+    os = 'ChromeOS';
+  } else if (/Ubuntu/i.test(ua)) {
+    os = 'Ubuntu Linux';
+  } else if (/Linux/i.test(ua)) {
+    os = 'Linux';
+  }
+
+  // Detect Browser or Client Engine
+  let browser = '';
+  if (/Edg\//i.test(ua)) {
+    browser = 'Edge';
+  } else if (/OPR\/|Opera/i.test(ua)) {
+    browser = 'Opera';
+  } else if (/Brave/i.test(ua)) {
+    browser = 'Brave';
+  } else if (/Vivaldi/i.test(ua)) {
+    browser = 'Vivaldi';
+  } else if (/Chrome\/[\d.]+/i.test(ua) && !/Edg\//i.test(ua) && !/OPR\//i.test(ua)) {
+    browser = 'Chrome';
+  } else if (/Firefox\/[\d.]+/i.test(ua)) {
+    browser = 'Firefox';
+  } else if (/Safari\/[\d.]+/i.test(ua) && !/Chrome\//i.test(ua)) {
+    browser = 'Safari';
+  } else if (/PostmanRuntime/i.test(ua)) {
+    browser = 'Postman API';
+  } else if (/curl/i.test(ua)) {
+    browser = 'cURL CLI';
+  } else if (/axios|node-fetch/i.test(ua)) {
+    browser = 'API Service';
+  }
+
+  // Assemble friendly device label
+  let deviceName = 'Web Client';
+  if (os && browser) {
+    deviceName = `${os} • ${browser}`;
+  } else if (os) {
+    deviceName = `${os} • Web`;
+  } else if (browser) {
+    deviceName = `${browser} Client`;
+  }
+
+  return {
+    device: deviceName,
+    location,
+    os: os || 'Web',
+    browser: browser || 'Browser',
+  };
+}

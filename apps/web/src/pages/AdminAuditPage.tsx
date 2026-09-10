@@ -30,7 +30,7 @@ import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
 import { Pagination } from '../components/ui/Pagination.js';
-import { formatAuditAction, formatAuditActionLabel, getAuditCategoryBadge } from '../utils/auditFormatters.js';
+import { formatAuditAction, formatAuditActionLabel, getAuditCategoryBadge, parseClientDevice } from '../utils/auditFormatters.js';
 import { formatRelativeTime } from '../utils/date.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
@@ -60,7 +60,7 @@ export const AdminAuditPage: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success('Audit logs exported successfully');
+      toast.success('Audit logs exported');
     } catch (err: any) {
       toast.error(getFriendlyErrorMessage(err, 'Failed to export audit logs'));
     } finally {
@@ -157,23 +157,6 @@ export const AdminAuditPage: React.FC = () => {
         <ShieldCheck className="w-5 h-5" />
       </div>
     );
-  };
-
-  const parseClientDevice = (userAgent?: string | null, ipAddress?: string | null) => {
-    const ip = ipAddress || 'Internal';
-    if (!userAgent) {
-      return { device: 'Unknown Device', location: ip === 'Internal' || ip.includes(':') || ip === '127.0.0.1' ? 'Local Network' : ip };
-    }
-    let os = 'Windows';
-    if (userAgent.includes('Mac')) os = 'macOS';
-    if (userAgent.includes('Android')) os = 'Android App';
-    if (userAgent.includes('iPhone')) os = 'iOS App';
-    if (userAgent.includes('Linux')) os = 'Linux';
-
-    return {
-      device: os,
-      location: ip.includes(':') || ip === 'Internal' || ip === '127.0.0.1' ? 'Local Network' : ip,
-    };
   };
 
   const handleLogout = async () => {
@@ -457,8 +440,12 @@ export const AdminAuditPage: React.FC = () => {
                 <span>{new Date(inspectRecord.createdAt).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-textMuted">IP Address:</span>
-                <span className="font-mono">{inspectRecord.ipAddress || 'Internal'}</span>
+                <span className="text-textMuted">Device:</span>
+                <span className="font-semibold text-textDefault">{parseClientDevice(inspectRecord.details?.userAgent, inspectRecord.ipAddress).device}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-textMuted">Location:</span>
+                <span className="font-mono">{parseClientDevice(inspectRecord.details?.userAgent, inspectRecord.ipAddress).location}</span>
               </div>
             </div>
 

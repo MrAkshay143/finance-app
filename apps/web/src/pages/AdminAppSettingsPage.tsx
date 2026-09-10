@@ -113,7 +113,7 @@ export const AdminAppSettingsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-app-settings'] });
-      toast.success('Platform settings updated successfully');
+      toast.success('Settings saved');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update settings'));
@@ -125,8 +125,8 @@ export const AdminAppSettingsPage: React.FC = () => {
     mutationFn: async () => {
       return await apiClient.admin.clearCache();
     },
-    onSuccess: (res: any) => {
-      toast.success(res?.message || 'System cache cleared successfully');
+    onSuccess: () => {
+      toast.success('System cache cleared');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to clear cache'));
@@ -137,8 +137,8 @@ export const AdminAppSettingsPage: React.FC = () => {
     mutationFn: async () => {
       return await apiClient.admin.runRecurringTransactions();
     },
-    onSuccess: (res: any) => {
-      toast.success(res?.message || 'Recurring transactions materialized successfully');
+    onSuccess: () => {
+      toast.success('Recurring payments processed');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to run recurring transactions'));
@@ -159,7 +159,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       URL.revokeObjectURL(url);
     },
     onSuccess: () => {
-      toast.success('Audit logs exported successfully');
+      toast.success('Audit logs exported');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to export audit logs'));
@@ -173,7 +173,7 @@ export const AdminAppSettingsPage: React.FC = () => {
     onSuccess: (res: any) => {
       setIsPurgeModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin-audit-logs'] });
-      toast.success(`Purged ${res?.purgedCount ?? 0} audit logs older than ${res?.retentionDays ?? purgeRetentionDays} days`);
+      toast.success(res?.purgedCount ? `Purged ${res.purgedCount} audit logs` : 'Audit logs purged');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to purge audit logs'));

@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import path from 'path';
 import fs from 'fs';
 import { requestId } from './middleware/requestId.js';
+import { requestContextMiddleware } from './middleware/requestContext.js';
 import { metricsMiddleware } from './middleware/metricsMiddleware.js';
 import { corsMiddleware } from './middleware/cors.js';
 import { requestLogger } from './middleware/requestLogger.js';
@@ -33,6 +34,9 @@ export function createApp(): Express {
 
   // 1. Request ID correlation middleware
   app.use(requestId);
+
+  // Request context storage for user-agent and client IP
+  app.use(requestContextMiddleware);
 
   // 2. Prometheus HTTP metrics collection middleware
   app.use(metricsMiddleware);

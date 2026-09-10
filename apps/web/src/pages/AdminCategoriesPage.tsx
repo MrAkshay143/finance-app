@@ -66,7 +66,7 @@ export const AdminCategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
       setIsCatModalOpen(false);
       resetCatForm();
-      toast.success('System category created successfully');
+      toast.success('Category created');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to create category');
@@ -88,7 +88,7 @@ export const AdminCategoriesPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
       setIsCatModalOpen(false);
       resetCatForm();
-      toast.success('System category updated successfully');
+      toast.success('Category updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update category');
@@ -103,7 +103,7 @@ export const AdminCategoriesPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-system-categories'] });
       setDeletingCategory(null);
-      toast.success('System category deleted successfully');
+      toast.success('Category deleted');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to delete category');

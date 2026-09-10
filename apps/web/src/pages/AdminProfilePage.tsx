@@ -93,7 +93,7 @@ export const AdminProfilePage: React.FC = () => {
     setShowNewPassword(true);
     setShowConfirmPassword(true);
     navigator.clipboard.writeText(generated).catch(() => {});
-    toast.success('Secure password generated and copied to clipboard');
+    toast.success('Password copied');
   };
 
   // Mutation: Update Profile Details
@@ -108,10 +108,10 @@ export const AdminProfilePage: React.FC = () => {
     },
     onSuccess: async () => {
       await checkAuth();
-      toast.success('Admin profile details updated successfully');
+      toast.success('Profile updated');
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to update profile');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update profile'));
     },
   });
 
@@ -128,7 +128,7 @@ export const AdminProfilePage: React.FC = () => {
       });
     },
     onSuccess: () => {
-      toast.success('Password changed successfully');
+      toast.success('Password updated');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -144,11 +144,11 @@ export const AdminProfilePage: React.FC = () => {
       if (!user?.id) throw new Error('Admin profile session not loaded');
       return await apiClient.admin.revokeAllUserSessions(user.id);
     },
-    onSuccess: (data) => {
-      toast.success(`Active sessions revoked (${data?.revokedCount ?? 0} session(s))`);
+    onSuccess: () => {
+      toast.success('Active sessions signed out');
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to revoke sessions');
+      toast.error(getFriendlyErrorMessage(err, 'Failed to revoke sessions'));
     },
   });
 

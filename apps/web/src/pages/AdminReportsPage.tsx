@@ -86,7 +86,7 @@ export const AdminReportsPage: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('User directory CSV exported successfully');
+      toast.success('CSV report downloaded');
     } catch (err: any) {
       toast.error(getFriendlyErrorMessage(err, 'Failed to export CSV report'));
     } finally {

@@ -76,7 +76,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       if (tempPass) {
         setGeneratedTempPassword(tempPass);
       } else {
-        toast.success(`Password updated successfully for ${user?.email}`);
+        toast.success('Password updated');
         handleClose();
       }
       onSuccess?.();
@@ -100,11 +100,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id] });
       const wasActive = user?.status === 'ACTIVE';
-      toast.success(
-        wasActive
-          ? `Account for ${user?.email} has been locked`
-          : `Account for ${user?.email} has been unlocked`
-      );
+      toast.success(wasActive ? 'Account suspended' : 'Account activated');
       handleClose();
       onSuccess?.();
     },
@@ -123,7 +119,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id] });
       const count = res?.data?.revokedCount ?? res?.revokedCount ?? 0;
-      toast.success(`Revoked ${count} active session${count === 1 ? '' : 's'} for ${user?.email}`);
+      toast.success(count > 0 ? `Revoked ${count} session${count === 1 ? '' : 's'}` : 'Sessions revoked');
       handleClose();
       onSuccess?.();
     },
@@ -135,7 +131,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
   const handleCopyPassword = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.info('Temporary password copied to clipboard');
+    toast.info('Password copied');
     setTimeout(() => setCopied(false), 2000);
   };
 

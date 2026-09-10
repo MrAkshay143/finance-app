@@ -207,6 +207,7 @@ export class AuthService {
       actorUserId: user.id,
       action: 'AUTH_SIGNUP',
       ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
       details: { email: user.email },
     });
 
@@ -307,6 +308,7 @@ export class AuthService {
           actorUserId: user.id,
           action: 'AUTH_ACCOUNT_LOCKED',
           ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
           details: { failedAttempts: nextAttempts, lockedUntil },
         });
 
@@ -365,6 +367,7 @@ export class AuthService {
       actorUserId: updatedUser.id,
       action: 'AUTH_LOGIN',
       ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
       details: { email: updatedUser.email },
     });
 
@@ -428,6 +431,7 @@ export class AuthService {
         actorUserId: tokenRecord.userId,
         action: 'AUTH_TOKEN_THEFT_DETECTED',
         ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
         details: { familyId: tokenRecord.familyId, revokedTokenId: tokenRecord.id },
       });
 
@@ -488,6 +492,7 @@ export class AuthService {
       actorUserId: tokenRecord.userId,
       action: 'AUTH_TOKEN_ROTATED',
       ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
       details: { familyId: tokenRecord.familyId },
     });
 
@@ -510,7 +515,8 @@ export class AuthService {
   async logout(
     refreshTokenString?: string,
     accessTokenString?: string,
-    userId?: string
+    userId?: string,
+    metadata?: ClientMetadata
   ): Promise<void> {
     if (refreshTokenString) {
       const tokenHash = hashRefreshToken(refreshTokenString);
@@ -541,6 +547,8 @@ export class AuthService {
       await logAuditEvent({
         actorUserId: userId,
         action: 'AUTH_LOGOUT',
+        ipAddress: metadata?.ipAddress,
+        userAgent: metadata?.userAgent,
       });
     }
   }
@@ -551,7 +559,8 @@ export class AuthService {
   async changePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
+    metadata?: ClientMetadata
   ): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -591,6 +600,8 @@ export class AuthService {
     await logAuditEvent({
       actorUserId: userId,
       action: 'AUTH_PASSWORD_CHANGE',
+      ipAddress: metadata?.ipAddress,
+      userAgent: metadata?.userAgent,
     });
   }
 

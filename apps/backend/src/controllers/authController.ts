@@ -102,7 +102,12 @@ export class AuthController {
         ? authHeader.substring(7).trim()
         : undefined;
 
-      await authService.logout(refreshToken, accessToken, req.user?.id);
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip || req.socket.remoteAddress,
+      };
+
+      await authService.logout(refreshToken, accessToken, req.user?.id, metadata);
       clearRefreshTokenCookie(res);
 
       res.status(200).json({
@@ -119,7 +124,12 @@ export class AuthController {
       const userId = req.user!.id;
       const { currentPassword, newPassword } = req.body;
 
-      await authService.changePassword(userId, currentPassword, newPassword);
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip || req.socket.remoteAddress,
+      };
+
+      await authService.changePassword(userId, currentPassword, newPassword, metadata);
 
       res.status(200).json({
         success: true,

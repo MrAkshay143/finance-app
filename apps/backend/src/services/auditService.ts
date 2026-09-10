@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
+import { getRequestContext } from '../middleware/requestContext.js';
 
 export interface AuditLogParams {
   actorUserId?: string | null;
@@ -7,6 +8,7 @@ export interface AuditLogParams {
   targetUserId?: string | null;
   details?: Record<string, any>;
   ipAddress?: string | null;
+  userAgent?: string | null;
 }
 
 export function deriveAuditCategory(action: string): string {
@@ -56,13 +58,29 @@ export function deriveAuditCategory(action: string): string {
 
 export async function logAuditEvent(params: AuditLogParams): Promise<void> {
   try {
+    const ctx = getRequestContext();
+    const userAgent =
+      params.userAgent ||
+      (params.details as any)?.userAgent ||
+      ctx?.userAgent ||
+      null;
+    const ipAddress =
+      params.ipAddress ||
+      ctx?.ipAddress ||
+      null;
+
+    const details = {
+      ...(params.details || {}),
+      ...(userAgent ? { userAgent } : {}),
+    };
+
     await prisma.auditLog.create({
       data: {
         actorUserId: params.actorUserId || null,
         action: params.action,
         targetUserId: params.targetUserId || null,
-        details: params.details ? (params.details as any) : undefined,
-        ipAddress: params.ipAddress || null,
+        details: Object.keys(details).length > 0 ? (details as any) : undefined,
+        ipAddress: ipAddress,
       },
     });
   } catch (err: any) {
@@ -162,7 +180,19 @@ export class AuditService {
         skip,
         take: pageSize,
         include: {
-          actor: { select: { id: true, email: true, firstName: true, lastName: true } },
+          actor: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              refreshTokens: {
+                select: { userAgent: true },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
           target: { select: { id: true, email: true, firstName: true, lastName: true } },
         },
       }),
@@ -179,6 +209,9 @@ export class AuditService {
       const targetName = log.target
         ? `${log.target.firstName || ''} ${log.target.lastName || ''}`.trim()
         : null;
+      const details = (log.details as any) || {};
+      const userAgent = details.userAgent || (log.actor as any)?.refreshTokens?.[0]?.userAgent || null;
+      const enrichedDetails = userAgent ? { ...details, userAgent } : details;
 
       return {
         id: log.id,
@@ -191,7 +224,7 @@ export class AuditService {
         targetEmail: log.target?.email || null,
         targetName,
         ipAddress: log.ipAddress || null,
-        details: (log.details as any) || null,
+        details: Object.keys(enrichedDetails).length > 0 ? enrichedDetails : null,
         createdAt: new Date(log.createdAt).toISOString(),
       };
     });
@@ -261,7 +294,19 @@ export class AuditService {
         skip,
         take: pageSize,
         include: {
-          actor: { select: { id: true, email: true, firstName: true, lastName: true } },
+          actor: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              refreshTokens: {
+                select: { userAgent: true },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+          },
           target: { select: { id: true, email: true, firstName: true, lastName: true } },
         },
       }),
@@ -278,6 +323,9 @@ export class AuditService {
       const targetName = log.target
         ? `${log.target.firstName || ''} ${log.target.lastName || ''}`.trim()
         : null;
+      const details = (log.details as any) || {};
+      const userAgent = details.userAgent || (log.actor as any)?.refreshTokens?.[0]?.userAgent || null;
+      const enrichedDetails = userAgent ? { ...details, userAgent } : details;
 
       return {
         id: log.id,
@@ -290,7 +338,7 @@ export class AuditService {
         targetEmail: log.target?.email || null,
         targetName,
         ipAddress: log.ipAddress || null,
-        details: (log.details as any) || null,
+        details: Object.keys(enrichedDetails).length > 0 ? enrichedDetails : null,
         createdAt: new Date(log.createdAt).toISOString(),
       };
     });

@@ -27,7 +27,7 @@ import { Skeleton } from '../components/ui/Skeleton.js';
 import { Pagination } from '../components/ui/Pagination.js';
 import { apiClient } from '../services/apiClient.js';
 import { formatDate, formatDateTime } from '../utils/date.js';
-import { formatAuditAction } from '../utils/auditFormatters.js';
+import { formatAuditAction, parseClientDevice } from '../utils/auditFormatters.js';
 import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AuditLogPage: React.FC = () => {
@@ -143,28 +143,6 @@ export const AuditLogPage: React.FC = () => {
 
   const formatTimestamp = (dateStr: string) => {
     return formatDateTime(dateStr);
-  };
-
-  const parseClientDevice = (userAgent?: string | null, ipAddress?: string | null) => {
-    const ip = ipAddress || 'Local';
-    if (!userAgent) {
-      return { device: 'Unknown Device', location: ip === 'Local' || ip === '127.0.0.1' || ip.includes(':') ? 'Local Network' : ip };
-    }
-    let os = 'Windows';
-    if (userAgent.includes('Mac')) os = 'macOS';
-    if (userAgent.includes('Android')) os = 'Android';
-    if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS';
-    if (userAgent.includes('Linux')) os = 'Linux';
-
-    let browser = 'Chrome';
-    if (userAgent.includes('Firefox')) browser = 'Firefox';
-    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) browser = 'Safari';
-    if (userAgent.includes('Edge')) browser = 'Edge';
-
-    return {
-      device: `${os} • ${browser}`,
-      location: ip.includes(':') || ip === 'Local' || ip === '127.0.0.1' ? 'Local Network' : ip,
-    };
   };
 
   return (
@@ -393,8 +371,12 @@ export const AuditLogPage: React.FC = () => {
                 <span className="text-textDefault">{formatTimestamp(inspectRecord.createdAt)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-textMuted">IP Address:</span>
-                <span className="font-mono text-textDefault">{inspectRecord.ipAddress || 'Internal / Local'}</span>
+                <span className="text-textMuted">Device:</span>
+                <span className="font-semibold text-textDefault">{parseClientDevice(inspectRecord.details?.userAgent, inspectRecord.ipAddress).device}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-textMuted">Location:</span>
+                <span className="font-mono text-textDefault">{parseClientDevice(inspectRecord.details?.userAgent, inspectRecord.ipAddress).location}</span>
               </div>
             </div>
 
