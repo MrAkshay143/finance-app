@@ -43,6 +43,15 @@ describe('Institution Logo & Card Network Resolution Pipeline', () => {
         expect(sbi.matchedBy).toBe('exact');
       }
 
+      const stateBank = await resolveInstitutionIcon('State Bank of India');
+      expect(stateBank.type).toBe('logo');
+      if (stateBank.type === 'logo') {
+        expect(stateBank.domain).toBe('sbi.co.in');
+        expect(stateBank.urls[0]).toContain('sbi.co.in');
+        expect(stateBank.urls.some((u) => u.includes('onlinesbi.sbi'))).toBe(true);
+        expect(stateBank.matchedBy).toBe('exact');
+      }
+
       const pnb = await resolveInstitutionIcon('PNB');
       expect(pnb.type).toBe('logo');
       if (pnb.type === 'logo') {

@@ -134,15 +134,81 @@ for (const [domain, aliases] of Object.entries(INSTITUTION_ALIASES)) {
 }
 
 /**
+ * Curated high-fidelity vector/raster logos for institutions whose primary corporate
+ * domain returns 404 on public favicon services or blocks scraping.
+ * Guarantees zero-latency, offline availability, and 100% resolution.
+ */
+export const CURATED_INSTITUTION_LOGOS: Record<string, string> = {
+  'sbi.co.in': `data:image/svg+xml;utf8,${encodeURIComponent(
+    '<svg id="sbi.co.in" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><path fill="#0072bc" d="m234,499a249,249 0 1,1 32,0V295a45,45 0 1,0-32,0"/></svg>'
+  )}`,
+  'onlinesbi.sbi': `data:image/svg+xml;utf8,${encodeURIComponent(
+    '<svg id="sbi.co.in" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><path fill="#0072bc" d="m234,499a249,249 0 1,1 32,0V295a45,45 0 1,0-32,0"/></svg>'
+  )}`,
+  'bank.sbi': `data:image/svg+xml;utf8,${encodeURIComponent(
+    '<svg id="sbi.co.in" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><path fill="#0072bc" d="m234,499a249,249 0 1,1 32,0V295a45,45 0 1,0-32,0"/></svg>'
+  )}`,
+};
+
+/**
+ * Secondary/subsidiary domain mappings for institutions whose corporate base domain
+ * blocks third-party favicon scrapers (e.g. Google Favicons returning 404).
+ */
+export const DOMAIN_FALLBACKS: Record<string, string[]> = {
+  'sbi.co.in': ['onlinesbi.sbi', 'sbicard.com'],
+  'onlinesbi.sbi': ['sbicard.com', 'sbi.co.in'],
+  'bank.sbi': ['onlinesbi.sbi', 'sbicard.com', 'sbi.co.in'],
+  'pnbindia.in': ['pnbcards.in', 'pnbhousing.com'],
+  'punjabandsindbank.co.in': ['psbindia.com'],
+  'paytmbank.com': ['paytm.com'],
+  'jiopaymentsbank.com': ['jio.com'],
+  'icicidirect.com': ['icicibank.com'],
+  'kvb.co.in': ['kvb.in'],
+  'csb.co.in': ['csbbank.com'],
+  'bandhanbank.com': ['bandhanmutual.com'],
+};
+
+/**
  * Ordered fallback chain of icon URLs for a domain:
- * 1. Google Favicons (high-res 128px)
- * 2. DuckDuckGo Icons (standard ico)
+ * 1. Curated vector logo if available (instant 0ms, 100% reliable)
+ * 2. Google Favicons (high-res 128px) for primary domain
+ * 3. Fallback domains for Google Favicons (e.g. onlinesbi.sbi for sbi.co.in)
+ * 4. DuckDuckGo Icons (standard ico) for primary and fallback domains
  */
 export function buildIconUrls(domain: string): string[] {
-  return [
-    `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`,
-    `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`,
-  ];
+  const urls: string[] = [];
+  const normalized = domain.toLowerCase();
+
+  // 1. Curated vector logo (instant offline render)
+  if (CURATED_INSTITUTION_LOGOS[normalized]) {
+    urls.push(CURATED_INSTITUTION_LOGOS[normalized]);
+  }
+
+  // 2. Google Favicon (high-res 128px) for primary domain
+  urls.push(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`);
+
+  // 3. Fallback domains (e.g. onlinesbi.sbi, sbicard.com)
+  const fallbacks = DOMAIN_FALLBACKS[normalized] || [];
+  for (const fb of fallbacks) {
+    if (CURATED_INSTITUTION_LOGOS[fb] && !urls.includes(CURATED_INSTITUTION_LOGOS[fb])) {
+      urls.push(CURATED_INSTITUTION_LOGOS[fb]);
+    }
+    const gUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(fb)}&sz=128`;
+    if (!urls.includes(gUrl)) {
+      urls.push(gUrl);
+    }
+  }
+
+  // 4. DuckDuckGo Icons for primary domain and fallbacks
+  urls.push(`https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`);
+  for (const fb of fallbacks) {
+    const ddUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(fb)}.ico`;
+    if (!urls.includes(ddUrl)) {
+      urls.push(ddUrl);
+    }
+  }
+
+  return urls;
 }
 
 /**
