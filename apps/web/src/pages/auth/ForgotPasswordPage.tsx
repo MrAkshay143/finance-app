@@ -173,13 +173,13 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] relative overflow-hidden bg-slate-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none relative bg-slate-50 flex flex-col items-center justify-center p-3 sm:p-4">
       {/* Modern ambient glow orbs & fine geometric dot grid */}
       <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
 
-      <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center">
+      <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center my-auto">
         {/* Brand Header */}
         <div className="text-center mb-2.5">
           <div className="inline-flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
