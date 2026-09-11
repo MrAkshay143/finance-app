@@ -364,10 +364,23 @@ export async function resolveInstitutionIcon(
     return result;
   }
 
-  // 6. Dynamic domain guessing (if cleaned token has 3+ characters)
+  // 6. Dynamic domain guessing / direct domain probing (if input looks like domain or token has 3+ chars)
+  const looksLikeDomain = raw.includes('.') && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(raw);
+  const candidates: string[] = [];
+  if (looksLikeDomain) {
+    candidates.push(raw.toLowerCase());
+  }
   const cleanWord = coreToken.replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
   if (cleanWord.length >= 3) {
-    const candidates = [`${cleanWord}.com`, `${cleanWord}.in`, `${cleanWord}.co.in`];
+    for (const ext of ['.com', '.in', '.co.in']) {
+      const c = `${cleanWord}${ext}`;
+      if (!candidates.includes(c)) {
+        candidates.push(c);
+      }
+    }
+  }
+
+  if (candidates.length > 0) {
     const probeFn = options.customProbe || probeFavicon;
 
     for (const candidate of candidates) {

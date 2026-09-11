@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Landmark, CreditCard, TrendingUp, Wallet } from 'lucide-react';
+import { Landmark, CreditCard, TrendingUp, Wallet, Coins, HandCoins } from 'lucide-react';
 import type { AccountType } from '@finance/shared-types';
 import {
   resolveInstitutionIcon,
   type IconResult,
-  getDeterministicColor,
-  getInitials,
 } from '../lib/resolveInstitutionLogo.js';
 import {
   detectCardNetwork,
@@ -165,12 +163,7 @@ export function useInstitutionIcon(
         })
         .catch(() => {
           if (isMounted) {
-            setIconResult({
-              type: 'initials',
-              initials: getInitials(raw),
-              color: getDeterministicColor(raw),
-              name: raw,
-            });
+            setIconResult(null);
             setIsLoading(false);
           }
         });
@@ -188,31 +181,84 @@ export function useInstitutionIcon(
   return { iconResult, isLoading };
 }
 
+export interface AccountTypeTheme {
+  icon: React.ReactNode;
+  containerClass: string;
+  label: string;
+}
+
 /**
- * Returns default semantic Lucide icon and styling for account type
- * when no specific institution logo is available.
+ * Returns crisp semantic Lucide vector icon, container styling, and label for each account type.
+ * When an institution logo is unavailable or errors out (e.g. 404 on Google Favicon / DuckDuckGo),
+ * this dynamic real icon is displayed as the primary fallback.
  */
-function getDefaultTypeIcon(type?: string) {
-  const t = (type || '').toUpperCase();
+export function getAccountTypeTheme(
+  type?: string,
+  iconClassName = 'w-1/2 h-1/2 stroke-[2.2]'
+): AccountTypeTheme {
+  const t = (type || '').trim().toUpperCase().replace(/[\s-]+/g, '_');
   switch (t) {
     case 'CREDIT_CARD':
-      return <CreditCard className="w-1/2 h-1/2 stroke-[2.2]" />;
+    case 'CARD':
+    case 'CREDIT':
+    case 'DEBIT_CARD':
+      return {
+        icon: <CreditCard className={iconClassName} />,
+        containerClass: 'bg-purple-50 text-purple-600 border border-purple-100/90 shadow-2xs',
+        label: 'Credit Card',
+      };
     case 'INVESTMENT':
-      return <TrendingUp className="w-1/2 h-1/2 stroke-[2.2]" />;
+    case 'INVESTMENTS':
+    case 'STOCKS':
+    case 'STOCK':
+    case 'MUTUAL_FUNDS':
+    case 'DEMAT':
+      return {
+        icon: <TrendingUp className={iconClassName} />,
+        containerClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100/90 shadow-2xs',
+        label: 'Investment',
+      };
     case 'WALLET':
+    case 'DIGITAL_WALLET':
+    case 'PAYMENTS':
+      return {
+        icon: <Wallet className={iconClassName} />,
+        containerClass: 'bg-amber-50 text-amber-600 border border-amber-100/90 shadow-2xs',
+        label: 'Digital Wallet',
+      };
     case 'CASH':
-      return <Wallet className="w-1/2 h-1/2 stroke-[2.2]" />;
+      return {
+        icon: <Coins className={iconClassName} />,
+        containerClass: 'bg-teal-50 text-teal-600 border border-teal-100/90 shadow-2xs',
+        label: 'Cash',
+      };
+    case 'LOAN':
+    case 'MORTGAGE':
+    case 'DEBT':
+      return {
+        icon: <HandCoins className={iconClassName} />,
+        containerClass: 'bg-rose-50 text-rose-600 border border-rose-100/90 shadow-2xs',
+        label: 'Loan',
+      };
+    case 'BANK':
+    case 'SAVINGS':
+    case 'CHECKING':
+    case 'CURRENT':
     default:
-      return <Landmark className="w-1/2 h-1/2 stroke-[2.2]" />;
+      return {
+        icon: <Landmark className={iconClassName} />,
+        containerClass: 'bg-blue-50 text-blue-600 border border-blue-100/90 shadow-2xs',
+        label: 'Bank Account',
+      };
   }
 }
 
 /**
  * AccountIcon component
  * 
- * Dynamically resolves and renders high-res bank / institution logos,
- * gracefully falling back to DuckDuckGo, deterministic initials avatars,
- * and semantic type icons with optional card-network badges.
+ * Dynamically resolves and renders high-res bank / institution logos.
+ * If any logo error occurs (e.g. 404 on Google Favicon / DuckDuckGo, broken image, or missing logo),
+ * it immediately renders the dynamic real icon as per the account type.
  */
 export const AccountIcon: React.FC<AccountIconProps> = ({
   institution,
@@ -246,24 +292,28 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
         return {
           container: 'w-6 h-6 rounded-md text-[10px]',
           img: 'w-4 h-4',
+          icon: 'w-3.5 h-3.5 stroke-[2.2]',
           badge: 'w-3.5 h-2.5 -bottom-0.5 -right-0.5',
         };
       case 'sm':
         return {
           container: 'w-8 h-8 rounded-lg text-xs',
           img: 'w-5 h-5',
+          icon: 'w-4 h-4 stroke-[2.2]',
           badge: 'w-4 h-3 -bottom-1 -right-1',
         };
       case 'lg':
         return {
           container: 'w-12 h-12 rounded-2xl text-base',
           img: 'w-7 h-7',
+          icon: 'w-6 h-6 stroke-[2.2]',
           badge: 'w-6 h-4.5 -bottom-1.5 -right-1.5',
         };
       case 'xl':
         return {
           container: 'w-14 h-14 rounded-2xl text-lg',
           img: 'w-8 h-8',
+          icon: 'w-7 h-7 stroke-[2.2]',
           badge: 'w-7 h-5 -bottom-2 -right-2',
         };
       case 'md':
@@ -271,10 +321,16 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
         return {
           container: 'w-10 h-10 rounded-xl text-xs',
           img: 'w-6 h-6',
+          icon: 'w-5 h-5 stroke-[2.2]',
           badge: 'w-5 h-3.5 -bottom-1 -right-1',
         };
     }
   }, [size]);
+
+  const typeTheme = useMemo(
+    () => getAccountTypeTheme(accountType, sizeClasses.icon),
+    [accountType, sizeClasses.icon]
+  );
 
   // Handle fallback progression on <img> error
   const handleImageError = () => {
@@ -289,15 +345,33 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
     }
   };
 
+  // Detect Google Favicon service default 16x16 fallback globe icon or empty load
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (
+      img.src.includes('google.com/s2/favicons') &&
+      img.src.includes('sz=128') &&
+      img.naturalWidth === 16 &&
+      img.naturalHeight === 16
+    ) {
+      handleImageError();
+    }
+  };
+
   const hasInstitution = Boolean((institution || '').trim());
+  const canShowLogo =
+    hasInstitution &&
+    iconResult?.type === 'logo' &&
+    !hasImgError &&
+    iconResult.urls.length > 0;
 
   return (
     <div
       className={`relative inline-flex items-center justify-center shrink-0 select-none ${sizeClasses.container} ${className}`}
       data-testid="account-icon"
     >
-      {/* 1. Dynamic Logo Image */}
-      {hasInstitution && iconResult?.type === 'logo' && !hasImgError ? (
+      {/* 1. Dynamic Real Logo Image when valid & successfully loaded */}
+      {canShowLogo ? (
         <div className="w-full h-full rounded-[inherit] overflow-hidden bg-white border border-borderDefault/80 shadow-2xs flex items-center justify-center p-1">
           <img
             src={iconResult.urls[urlIndex]}
@@ -305,34 +379,23 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
             className={`${sizeClasses.img} object-contain rounded-xs transition-opacity duration-200 ${
               isLoading ? 'opacity-70' : 'opacity-100'
             }`}
+            onLoad={handleImageLoad}
             onError={handleImageError}
             loading="lazy"
           />
         </div>
-      ) : hasInstitution && (iconResult?.type === 'initials' || hasImgError) ? (
-        /* 2. Deterministic Initials Avatar */
-        <div
-          className="w-full h-full rounded-[inherit] flex items-center justify-center font-bold text-white shadow-2xs border border-black/10"
-          style={{
-            backgroundColor:
-              iconResult?.type === 'initials'
-                ? iconResult.color
-                : getDeterministicColor(institution || 'Account'),
-          }}
-          title={institution || 'Account'}
-        >
-          {iconResult?.type === 'initials'
-            ? iconResult.initials
-            : getInitials(institution || 'AC')}
-        </div>
       ) : (
-        /* 3. Semantic Account Type Fallback */
-        <div className="w-full h-full rounded-[inherit] bg-blue-50 text-brand-primary border border-blue-100/80 flex items-center justify-center shadow-2xs">
-          {getDefaultTypeIcon(accountType)}
+        /* 2. Dynamic Real Icon Fallback as per Account Type */
+        <div
+          className={`w-full h-full rounded-[inherit] flex items-center justify-center ${typeTheme.containerClass}`}
+          title={institution || typeTheme.label}
+          data-testid="account-type-fallback"
+        >
+          {typeTheme.icon}
         </div>
       )}
 
-      {/* 4. Card Network Overlay Badge for Credit Cards */}
+      {/* 3. Card Network Overlay Badge for Credit Cards */}
       {showNetworkBadge && cardNetwork && (
         <div
           className={`absolute ${sizeClasses.badge} rounded bg-white shadow-xs border border-borderDefault/90 p-[1px] flex items-center justify-center overflow-hidden z-10`}
