@@ -191,6 +191,20 @@ describe('Institution Logo & Card Network Resolution Pipeline', () => {
         expect(res.matchedBy).toBe('domain-guess');
       }
     });
+
+    it('does NOT probe or guess domains for non-financial arbitrary words like "love"', async () => {
+      const probedList: string[] = [];
+      // Even if DuckDuckGo or web probe would return true for love.com
+      const customProbe = async (domain: string) => {
+        probedList.push(domain);
+        return true;
+      };
+
+      // "love" has no financial keywords and is not in alias map
+      const res = await resolveInstitutionIcon('love');
+      expect(res.type).not.toBe('logo');
+      expect(probedList).toHaveLength(0);
+    });
   });
 
   describe('6. Fallback Initials Avatar (No Match)', () => {

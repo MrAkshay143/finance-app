@@ -120,6 +120,54 @@ export function calculateSimilarity(s1: string, s2: string): number {
 }
 
 /**
+ * Keywords that signal a legitimate financial, banking, or wealth institution.
+ * Dynamic domain guessing is strictly guarded to inputs containing at least one
+ * financial marker to prevent guessing random non-financial websites (e.g. "love" -> "love.com").
+ */
+export const FINANCIAL_KEYWORDS = new Set([
+  'bank',
+  'banking',
+  'finance',
+  'financial',
+  'fintech',
+  'capital',
+  'securities',
+  'invest',
+  'investment',
+  'investments',
+  'wealth',
+  'mutual',
+  'fund',
+  'funds',
+  'broker',
+  'broking',
+  'credit',
+  'payments',
+  'payment',
+  'pay',
+  'cooperative',
+  'society',
+  'gramin',
+  'nidhi',
+  'trust',
+  'forex',
+  'exchange',
+  'remit',
+  'remittance',
+  'demat',
+]);
+
+/**
+ * Checks whether an institution name contains an indicator of a financial entity.
+ */
+export function hasFinancialIndicator(input?: string | null): boolean {
+  if (!input) return false;
+  const normalized = normalizeInstitutionName(input);
+  const words = normalized.split(/\s+/).filter(Boolean);
+  return words.some((w) => FINANCIAL_KEYWORDS.has(w));
+}
+
+/**
  * Pre-computes exact alias -> domain lookup table for fast O(1) matching.
  */
 const aliasToDomainMap = new Map<string, string>();
@@ -364,18 +412,26 @@ export async function resolveInstitutionIcon(
     return result;
   }
 
-  // 6. Dynamic domain guessing / direct domain probing (if input looks like domain or token has 3+ chars)
-  const looksLikeDomain = raw.includes('.') && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(raw);
+  // 6. Dynamic domain guessing / direct domain probing
+  // Guard: Only guess/probe domains if customProbe is explicitly supplied (e.g. in tests)
+  // OR if the input contains a legitimate financial keyword (e.g. "bank", "finance", "fintech", "capital").
+  // This strictly prevents arbitrary words (e.g. "love", "home", "car", "salary") from matching
+  // unrelated third-party websites like "love.com".
+  const allowDomainGuess = Boolean(options.customProbe) || hasFinancialIndicator(raw);
   const candidates: string[] = [];
-  if (looksLikeDomain) {
-    candidates.push(raw.toLowerCase());
-  }
-  const cleanWord = coreToken.replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
-  if (cleanWord.length >= 3) {
-    for (const ext of ['.com', '.in', '.co.in']) {
-      const c = `${cleanWord}${ext}`;
-      if (!candidates.includes(c)) {
-        candidates.push(c);
+
+  if (allowDomainGuess) {
+    const looksLikeDomain = raw.includes('.') && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(raw);
+    if (looksLikeDomain) {
+      candidates.push(raw.toLowerCase());
+    }
+    const cleanWord = coreToken.replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+    if (cleanWord.length >= 3) {
+      for (const ext of ['.com', '.in', '.co.in']) {
+        const c = `${cleanWord}${ext}`;
+        if (!candidates.includes(c)) {
+          candidates.push(c);
+        }
       }
     }
   }
