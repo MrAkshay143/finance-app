@@ -20,7 +20,7 @@ import { Button } from '../components/ui/Button.js';
 import { Input } from '../components/ui/Input.js';
 import { Badge } from '../components/ui/Badge.js';
 import { Modal } from '../components/ui/Modal.js';
-import { Pagination } from '../components/ui/Pagination.js';
+import { useInfiniteFeed } from '../hooks/useInfiniteFeed.js';
 import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { CurrencyReceiptIcon } from '../components/ui/CurrencyReceiptIcon.js';
@@ -124,6 +124,7 @@ export const TransactionsPage: React.FC = () => {
     isLoading: isLoadingTxns,
     isError: isTxnError,
     error: txnError,
+    refetch: refetchTxns,
   } = useQuery(
     {
       queryKey: ['transactions', txnTypeQuery, accountIdParam, debouncedSearch],
@@ -197,6 +198,8 @@ export const TransactionsPage: React.FC = () => {
   // Unify and filter items
   const displayItems = useMemo<DisplayItem[]>(() => {
     const items: DisplayItem[] = [];
+    const q = debouncedSearch.trim().toLowerCase();
+    const numQ = q.replace(/[^0-9.]/g, '');
 
     // Map regular transactions
     const rawTxns = txnsData?.items || [];
@@ -208,6 +211,23 @@ export const TransactionsPage: React.FC = () => {
 
       // If active filter is "transfer", skip regular transactions unless marked as transfer
       if (activeFilter === 'transfer') continue;
+
+      // Filter across all transaction fields
+      if (q) {
+        const rawDate = t.date || (t as any).txnDate || t.createdAt || '';
+        const formattedDateStr = rawDate ? formatDate(rawDate).toLowerCase() : '';
+        const matches =
+          title.toLowerCase().includes(q) ||
+          (t.merchant && t.merchant.toLowerCase().includes(q)) ||
+          (joinedCategory && joinedCategory.toLowerCase().includes(q)) ||
+          (t.description && t.description.toLowerCase().includes(q)) ||
+          accName.toLowerCase().includes(q) ||
+          tType.toLowerCase().includes(q) ||
+          (rawDate && String(rawDate).toLowerCase().includes(q)) ||
+          formattedDateStr.includes(q) ||
+          (numQ && String(t.amount).includes(numQ));
+        if (!matches) continue;
+      }
 
       items.push({
         id: t.id,
@@ -234,11 +254,19 @@ export const TransactionsPage: React.FC = () => {
 
         const sourceName = accountMap.get(tr.sourceAccountId) || 'Source Account';
         const destName = accountMap.get(tr.destinationAccountId) || 'Destination Account';
+        const transferDate = tr.txnDate || tr.date || tr.createdAt || '';
+        const formattedTransferDate = transferDate ? formatDate(transferDate).toLowerCase() : '';
+
+        // Filter across all transfer fields
         const searchMatches =
-          !debouncedSearch ||
-          tr.description?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          sourceName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          destName.toLowerCase().includes(debouncedSearch.toLowerCase());
+          !q ||
+          (tr.description && tr.description.toLowerCase().includes(q)) ||
+          sourceName.toLowerCase().includes(q) ||
+          destName.toLowerCase().includes(q) ||
+          'transfer'.includes(q) ||
+          (numQ && String(tr.amount).includes(numQ)) ||
+          (transferDate && String(transferDate).toLowerCase().includes(q)) ||
+          formattedTransferDate.includes(q);
 
         if (searchMatches) {
           items.push({
@@ -250,7 +278,7 @@ export const TransactionsPage: React.FC = () => {
             accountId: tr.sourceAccountId,
             toAccountId: tr.destinationAccountId,
             amount: tr.amount,
-            date: tr.txnDate || tr.date || tr.createdAt,
+            date: transferDate,
             description: tr.description || 'Account Transfer',
           });
         }
@@ -261,26 +289,18 @@ export const TransactionsPage: React.FC = () => {
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [txnsData, transfersData, activeFilter, shouldFetchTransfers, accountIdParam, debouncedSearch, accountMap]);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
-
-  // Reset currentPage to 1 whenever activeFilter, debouncedSearch, or accountIdParam changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter, debouncedSearch, accountIdParam]);
-
-  const totalPages = Math.max(1, Math.ceil(displayItems.length / PAGE_SIZE));
-
-  // Clamp current page if items shrink
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  const paginatedItems = useMemo(() => {
-    return displayItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  }, [displayItems, currentPage]);
+  // Mobile-app-style infinite scrolling: initially loads 15 items, automatically appends next 15 on scroll
+  const {
+    visibleItems,
+    hasMore,
+    isLoadingMore,
+    sentinelRef,
+  } = useInfiniteFeed<DisplayItem>({
+    items: displayItems,
+    pageSize: 15,
+    resetDeps: [activeFilter, debouncedSearch, accountIdParam],
+    isError: isTxnError,
+  });
 
   const isLoading = isLoadingTxns || (shouldFetchTransfers && isLoadingTransfers);
   const totalRecordsCount = displayItems.length;
@@ -477,7 +497,7 @@ export const TransactionsPage: React.FC = () => {
             />
           ) : (
             <div className="space-y-2.5">
-              {paginatedItems.map((item) => {
+              {visibleItems.map((item) => {
                 const isExpanded = expandedId === item.id;
                 return (
                   <article
@@ -606,14 +626,26 @@ export const TransactionsPage: React.FC = () => {
                 );
               })}
 
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={displayItems.length}
-                pageSize={PAGE_SIZE}
-                onPageChange={setCurrentPage}
-                itemLabel="transactions"
-              />
+              {/* Mobile-app-style subtle loading sentinel */}
+              {isTxnError ? (
+                <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
+                  <span>Failed to load</span>
+                  <button
+                    type="button"
+                    onClick={() => refetchTxns()}
+                    className="underline text-brand-primary font-semibold hover:opacity-80"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : hasMore ? (
+                <div
+                  ref={sentinelRef}
+                  className="py-4 flex items-center justify-center"
+                >
+                  <div className="w-4 h-4 border-2 border-slate-200 border-t-brand-primary rounded-full animate-spin" />
+                </div>
+              ) : null}
             </div>
           )}
         </section>

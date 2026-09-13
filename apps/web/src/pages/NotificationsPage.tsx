@@ -18,7 +18,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
-import { Pagination } from '../components/ui/Pagination.js';
+import { useInfiniteFeed } from '../hooks/useInfiniteFeed.js';
 import { toast } from '../store/toastStore.js';
 import { apiClient, getStoredAccessToken, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { FinanceSocketManager } from '@finance/api-client';
@@ -40,12 +40,6 @@ export const NotificationsPage: React.FC = () => {
   const [tempEnabled, setTempEnabled] = useState<boolean>(true);
   const [tempDays, setTempDays] = useState<number>(2);
   const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 10;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter]);
 
   // Fetch Reminders
   const { data: remindersData } = useQuery<Reminder[]>({
@@ -68,7 +62,12 @@ export const NotificationsPage: React.FC = () => {
   }, [remindersData]);
 
   // Fetch Notifications
-  const { data: notificationsResponse, isLoading: isNotificationsLoading } = useQuery({
+  const {
+    data: notificationsResponse,
+    isLoading: isNotificationsLoading,
+    isError: isNotificationsError,
+    refetch: refetchNotifications,
+  } = useQuery({
     queryKey: ['notifications', activeFilter],
     queryFn: async () => {
       return await apiClient.notifications.list({
@@ -165,15 +164,16 @@ export const NotificationsPage: React.FC = () => {
   const items = notificationsResponse?.items || [];
   const unreadCount = notificationsResponse?.unreadCount ?? items.filter((i) => !i.read).length;
 
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  const paginatedItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const {
+    visibleItems,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteFeed<NotificationItem>({
+    items,
+    pageSize: 10,
+    resetDeps: [activeFilter],
+    isError: isNotificationsError,
+  });
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -308,7 +308,7 @@ export const NotificationsPage: React.FC = () => {
           </Card>
         ) : (
           <div className="space-y-2.5">
-            {paginatedItems.map((item) => (
+            {visibleItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => handleItemClick(item)}
@@ -348,17 +348,26 @@ export const NotificationsPage: React.FC = () => {
               </div>
             ))}
 
-            {/* Centralized Pagination */}
-            {items.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={items.length}
-                pageSize={pageSize}
-                onPageChange={(p) => setCurrentPage(p)}
-                itemLabel="notifications"
-              />
-            )}
+            {/* Mobile-app-style subtle loading sentinel */}
+            {isNotificationsError ? (
+              <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
+                <span>Failed to load</span>
+                <button
+                  type="button"
+                  onClick={() => refetchNotifications()}
+                  className="underline text-brand-primary font-semibold hover:opacity-80"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : hasMore ? (
+              <div
+                ref={sentinelRef}
+                className="py-4 flex items-center justify-center"
+              >
+                <div className="w-4 h-4 border-2 border-slate-200 border-t-brand-primary rounded-full animate-spin" />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

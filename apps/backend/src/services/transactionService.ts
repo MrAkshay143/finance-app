@@ -480,11 +480,18 @@ export class TransactionService {
     if (filters.search) {
       const term = filters.search.trim();
       if (term) {
-        where.OR = [
+        const orConditions: any[] = [
           { description: { contains: term } },
           { merchant: { name: { contains: term } } },
           { category: { name: { contains: term } } },
+          { account: { name: { contains: term } } },
         ];
+        const num = parseFloat(term.replace(/[^0-9.]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          const paise = BigInt(Math.round(num * 100));
+          orConditions.push({ amount: paise });
+        }
+        where.OR = orConditions;
       }
     }
 

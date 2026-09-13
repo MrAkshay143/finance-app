@@ -24,7 +24,8 @@ import { Card } from '../components/ui/Card.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
-import { Pagination } from '../components/ui/Pagination.js';
+import { useInfiniteFeed } from '../hooks/useInfiniteFeed.js';
+import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { apiClient } from '../services/apiClient.js';
 import { formatDate, formatDateTime } from '../utils/date.js';
 import { formatAuditAction, parseClientDevice } from '../utils/auditFormatters.js';
@@ -32,6 +33,7 @@ import type { AuditLogRecord } from '@finance/shared-types';
 
 export const AuditLogPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useSafeQueryClient();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -46,7 +48,7 @@ export const AuditLogPage: React.FC = () => {
 
   const categories = ['All', 'Login', 'Transactions', 'Profile', 'Settings', 'Security'];
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery<any>({
     queryKey: ['user-audit-logs', selectedCategory, debouncedSearch],
     queryFn: async () => {
       const categoryParam = selectedCategory === 'All' ? undefined : selectedCategory;
@@ -59,7 +61,7 @@ export const AuditLogPage: React.FC = () => {
       return (res as any)?.data || res;
     },
     placeholderData: keepPreviousData,
-  });
+  }, queryClient);
 
   const logs: AuditLogRecord[] = useMemo(() => {
     const rawLogs = data?.logs || (Array.isArray(data) ? data : []);
@@ -67,41 +69,39 @@ export const AuditLogPage: React.FC = () => {
 
     return rawLogs.filter((log) => {
       if (!debouncedSearch.trim()) return true;
-      const q = debouncedSearch.toLowerCase();
+      const q = debouncedSearch.trim().toLowerCase();
+      const actionInfo = formatAuditAction(log.action);
+      const client = parseClientDevice(log.details?.userAgent, log.ipAddress);
       return (
         log.action?.toLowerCase().includes(q) ||
+        actionInfo.title?.toLowerCase().includes(q) ||
+        actionInfo.description?.toLowerCase().includes(q) ||
         log.category?.toLowerCase().includes(q) ||
+        log.ipAddress?.toLowerCase().includes(q) ||
+        client.device?.toLowerCase().includes(q) ||
+        client.browser?.toLowerCase().includes(q) ||
+        client.location?.toLowerCase().includes(q) ||
         JSON.stringify(log.details || {}).toLowerCase().includes(q)
       );
     });
   }, [data, debouncedSearch]);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
+  // Mobile-app-style infinite scrolling: initially loads 15 items, automatically appends next 15 on scroll
+  const {
+    visibleItems,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteFeed<AuditLogRecord>({
+    items: logs,
+    pageSize: 15,
+    resetDeps: [debouncedSearch, selectedCategory],
+    isError,
+  });
 
-  // Reset currentPage to 1 on search or category filter change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, selectedCategory]);
-
-  const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
-
-  // Clamp current page if logs list shrinks
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  // Paginated logs slice
-  const paginatedLogs = useMemo(() => {
-    return logs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  }, [logs, currentPage]);
-
-  // Group paginated logs by date
+  // Group visible logs by date
   const groupedLogs = useMemo(() => {
     const groups: { [dateStr: string]: AuditLogRecord[] } = {};
-    paginatedLogs.forEach((log) => {
+    visibleItems.forEach((log) => {
       const dateKey = formatDate(log.createdAt) || 'Recent Activity';
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -109,7 +109,7 @@ export const AuditLogPage: React.FC = () => {
       groups[dateKey].push(log);
     });
     return groups;
-  }, [paginatedLogs]);
+  }, [visibleItems]);
 
   const getActionIcon = (action: string, category?: string) => {
     const cat = category?.toLowerCase() || '';
@@ -321,28 +321,42 @@ export const AuditLogPage: React.FC = () => {
               </div>
             ))}
 
-            {/* Centralized App-Style Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={logs.length}
-              pageSize={PAGE_SIZE}
-              onPageChange={setCurrentPage}
-              itemLabel="logs"
-            />
-
-            {/* End of Feed Illustration */}
-            <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shadow-xs">
-                <CheckCircle2 className="w-6 h-6" />
+            {/* Mobile-app-style subtle loading sentinel */}
+            {isError ? (
+              <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
+                <span>Failed to load</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    (refetch as any)?.();
+                    queryClient.invalidateQueries({ queryKey: ['user-audit-logs'] });
+                  }}
+                  className="underline text-brand-primary font-semibold hover:opacity-80"
+                >
+                  Retry
+                </button>
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-textDefault">That&apos;s all for now</h4>
-                <p className="text-[11px] text-textMuted mt-0.5">
-                  You&apos;re all caught up! New activity will appear here.
-                </p>
+            ) : hasMore ? (
+              <div
+                ref={sentinelRef}
+                className="py-4 flex items-center justify-center"
+              >
+                <div className="w-4 h-4 border-2 border-slate-200 border-t-brand-primary rounded-full animate-spin" />
               </div>
-            </div>
+            ) : (
+              /* End of Feed Illustration */
+              <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shadow-xs">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-textDefault">That&apos;s all for now</h4>
+                  <p className="text-[11px] text-textMuted mt-0.5">
+                    You&apos;re all caught up! New activity will appear here.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
