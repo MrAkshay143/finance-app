@@ -532,7 +532,8 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Category Breakdown Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2.5">
+            {/* Row 1: Title (left) & Month Dropdown (right) */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-brand-primary">
@@ -542,8 +543,7 @@ export const AnalyticsPage: React.FC = () => {
                   Category Breakdown
                 </h3>
               </div>
-              {/* On mobile, period dropdown sits on the right of the title row */}
-              <div className="w-28 sm:hidden">
+              <div className="w-28 sm:w-32 shrink-0">
                 <CustomDropdown
                   size="sm"
                   align="right"
@@ -558,58 +558,41 @@ export const AnalyticsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 justify-between sm:justify-end">
-              {/* Segmented Expenses / Income / Investment Toggle */}
-              <div className="flex flex-1 sm:flex-initial rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
-                <button
-                  type="button"
-                  onClick={() => setCategoryType('EXPENSE')}
-                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
-                    categoryType === 'EXPENSE'
-                      ? 'bg-white text-rose-600 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Expenses
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryType('INCOME')}
-                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
-                    categoryType === 'INCOME'
-                      ? 'bg-white text-emerald-600 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Income
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryType('INVESTMENT')}
-                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
-                    categoryType === 'INVESTMENT'
-                      ? 'bg-white text-purple-600 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Investments
-                </button>
-              </div>
-
-              {/* On desktop (sm+), period dropdown sits next to the segmented toggle */}
-              <div className="hidden sm:block sm:w-36">
-                <CustomDropdown
-                  size="sm"
-                  align="right"
-                  value={selectedCategoryPeriod}
-                  onChange={(val) => setSelectedCategoryPeriod(val)}
-                  options={[
-                    { value: 'This Month', label: 'This Month' },
-                    { value: 'Last Month', label: 'Last Month' },
-                  ]}
-                  searchable={false}
-                />
-              </div>
+            {/* Row 2: Full-width Segmented Expenses / Income / Investment Toggle */}
+            <div className="flex w-full rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
+              <button
+                type="button"
+                onClick={() => setCategoryType('EXPENSE')}
+                className={`flex-1 px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
+                  categoryType === 'EXPENSE'
+                    ? 'bg-white text-rose-600 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Expenses
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryType('INCOME')}
+                className={`flex-1 px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
+                  categoryType === 'INCOME'
+                    ? 'bg-white text-emerald-600 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Income
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategoryType('INVESTMENT')}
+                className={`flex-1 px-2.5 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
+                  categoryType === 'INVESTMENT'
+                    ? 'bg-white text-purple-600 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Investments
+              </button>
             </div>
           </div>
 
