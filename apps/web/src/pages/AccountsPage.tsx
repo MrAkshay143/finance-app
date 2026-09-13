@@ -218,6 +218,7 @@ export const AccountsPage: React.FC = () => {
     if (!editingAccount) return;
     if (!editName.trim()) {
       setEditError('Account name is required.');
+      toast.error('Account name is required.');
       return;
     }
 

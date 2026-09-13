@@ -25,6 +25,8 @@ export interface CustomDropdownProps {
   className?: string;
   id?: string;
   'aria-label'?: string;
+  align?: 'left' | 'right' | 'auto';
+  minWidth?: number;
 }
 
 export const CustomDropdown: React.FC<CustomDropdownProps> = ({
@@ -44,6 +46,8 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
   className = '',
   id,
   'aria-label': ariaLabel,
+  align = 'auto',
+  minWidth,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,8 +71,21 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
     const spaceAbove = rect.top;
     const placeAbove = spaceBelow < 180 && spaceAbove > spaceBelow;
 
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8));
-    const width = Math.min(rect.width, window.innerWidth - 16);
+    const viewportPadding = 8;
+    const width = Math.min(
+      Math.max(minWidth ?? 0, rect.width),
+      window.innerWidth - viewportPadding * 2
+    );
+
+    const isRightAligned =
+      align === 'right' ||
+      (align === 'auto' && rect.left + width > window.innerWidth - viewportPadding);
+
+    let left = isRightAligned ? rect.right - width : rect.left;
+    left = Math.max(
+      viewportPadding,
+      Math.min(left, window.innerWidth - width - viewportPadding)
+    );
 
     if (placeAbove) {
       setCoords({
@@ -85,7 +102,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         maxHeight: Math.max(120, Math.min(dropdownMaxHeight, spaceBelow - 16)),
       });
     }
-  }, []);
+  }, [align, minWidth]);
 
   const handleToggle = () => {
     if (disabled) return;
@@ -151,6 +168,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const isClient = typeof window !== 'undefined' && typeof document !== 'undefined';
 
+  const isRightAligned = align === 'right';
   const popoverContent = (
     <div
       ref={popoverRef}
@@ -166,10 +184,10 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
             }
           : undefined
       }
-      className={`${
+      className={`max-w-[calc(100vw-16px)] ${
         isClient
           ? 'z-[9999]'
-          : 'absolute top-full left-0 mt-1.5 w-full z-[9999]'
+          : `absolute top-full ${isRightAligned ? 'right-0' : 'left-0'} mt-1.5 w-full z-[9999]`
       } bg-white border border-borderDefault rounded-xl shadow-modal overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100`}
     >
       {/* Search option only where needed */}

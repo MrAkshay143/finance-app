@@ -136,6 +136,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
+      toast.success('User deleted successfully');
       navigate('/admin/users');
     },
     onError: (err: any) => {

@@ -329,25 +329,30 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     const numAmount = parseFloat(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
       setError('Please enter a valid amount greater than 0.');
+      toast.error('Please enter a valid amount greater than 0.');
       return;
     }
 
     if (type === 'transfer') {
       if (!accountId) {
         setError('Please select a source account.');
+        toast.error('Please select a source account.');
         return;
       }
       if (!toAccountId) {
         setError('Please select a destination account.');
+        toast.error('Please select a destination account.');
         return;
       }
       if (accountId === toAccountId) {
         setError('Source and destination accounts must be different.');
+        toast.error('Source and destination accounts must be different.');
         return;
       }
     } else {
       if (!accountId) {
         setError('Please select an account.');
+        toast.error('Please select an account.');
         return;
       }
     }
@@ -356,6 +361,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     const todayStr = new Date().toISOString().slice(0, 10);
     if (date && date > todayStr) {
       setError('Transaction date cannot be in the future.');
+      toast.error('Transaction date cannot be in the future.');
       return;
     }
 

@@ -177,12 +177,19 @@ body {
 
 /* Hide native arrows and indicators for number and date inputs to match custom UI */
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-outer-spin-button,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-outer-spin-button,
+input[type="date"]::-webkit-clear-button {
   -webkit-appearance: none;
+  display: none;
   margin: 0;
 }
-input[type="number"] {
+input[type="number"],
+input[type="date"] {
   -moz-appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
 }
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {

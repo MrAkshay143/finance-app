@@ -16,6 +16,7 @@ import { Card } from '../../components/ui/Card.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { validateEmail } from '../../utils/validation.js';
+import { toast } from '../../store/toastStore.js';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     if (isSessionExpired) {
       useAuthStore.getState().logout().catch(() => {});
+      toast.warning('Your session has expired. Please sign in again.');
     }
   }, [isSessionExpired]);
 
@@ -99,10 +101,27 @@ export const LoginPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const isLocked = Boolean(
+    (lockoutRemaining !== null && lockoutRemaining > 0) ||
+    (lockoutUntil && lockoutUntil > Date.now())
+  );
+  const remainingSeconds =
+    lockoutRemaining !== null
+      ? lockoutRemaining
+      : lockoutUntil
+      ? Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000))
+      : 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (lockoutRemaining && lockoutRemaining > 0) return;
-    if (!validate()) return;
+    if (isLocked) {
+      toast.error(`Account is temporarily locked. Please try again in ${remainingSeconds}s.`);
+      return;
+    }
+    if (!validate()) {
+      toast.error('Please resolve the errors below.');
+      return;
+    }
 
     try {
       const res = await login(
@@ -126,22 +145,13 @@ export const LoginPage: React.FC = () => {
         }
       }
 
+      toast.success('Signed in successfully');
       navigate(destination, { replace: true });
-    } catch {
-      // Error handled in store and displayed
+    } catch (err: any) {
+      const errorMsg = useAuthStore.getState().error || err?.message || 'Failed to sign in. Please check your credentials.';
+      toast.error(errorMsg);
     }
   };
-
-  const isLocked = Boolean(
-    (lockoutRemaining !== null && lockoutRemaining > 0) ||
-    (lockoutUntil && lockoutUntil > Date.now())
-  );
-  const remainingSeconds =
-    lockoutRemaining !== null
-      ? lockoutRemaining
-      : lockoutUntil
-      ? Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000))
-      : 0;
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none relative bg-slate-50 flex flex-col items-center justify-center p-3 sm:p-4">

@@ -61,6 +61,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     e.preventDefault();
     if (!name.trim()) {
       setError('Category name is required.');
+      toast.error('Category name is required.');
       return;
     }
     setError('');

@@ -104,12 +104,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       )}
 
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          {isValidDate ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          ) : (
-            <Calendar className="w-4 h-4 text-slate-400" />
-          )}
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+          <Calendar className="w-4 h-4 text-slate-400" />
         </div>
 
         <input
@@ -121,7 +117,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           disabled={disabled}
           min={effectiveMin}
           max={effectiveMax}
-          className={`relative w-full bg-white border text-sm text-textDefault rounded-xl pl-10 pr-3.5 py-2.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
+          className={`relative w-full bg-white border text-sm text-textDefault rounded-xl pl-10 ${
+            isValidDate ? 'pr-10' : 'pr-3.5'
+          } py-2.5 appearance-none transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:bg-gray-50 disabled:text-textMuted ${
             activeError
               ? 'border-semantic-danger focus:ring-semantic-danger'
               : isValidDate
@@ -129,6 +127,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               : 'border-borderDefault'
           }`}
         />
+
+        {isValidDate && (
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none z-10">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+        )}
       </div>
 
       {activeError ? (

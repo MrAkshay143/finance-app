@@ -16,6 +16,8 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
   leftIcon?: React.ReactNode;
   placeholder?: string;
   searchable?: boolean;
+  align?: 'left' | 'right' | 'auto';
+  minWidth?: number;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
@@ -36,6 +38,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       required,
       placeholder,
       searchable,
+      align,
+      minWidth,
       ...props
     },
     ref
@@ -72,6 +76,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         placeholder={placeholder}
         searchable={searchable ?? (options.length > 8)}
         aria-label={props['aria-label']}
+        align={align}
+        minWidth={minWidth}
       />
     );
   }

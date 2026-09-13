@@ -224,6 +224,7 @@ export const SettingsPage: React.FC = () => {
     onSuccess: async () => {
       setIsDeleteModalOpen(false);
       await logout();
+      toast.success('Account deleted successfully');
       navigate('/login');
     },
     onError: (err: any) => {
@@ -235,6 +236,7 @@ export const SettingsPage: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
+    toast.info('Signed out successfully');
     navigate('/login');
   };
 
@@ -261,14 +263,17 @@ export const SettingsPage: React.FC = () => {
     e.preventDefault();
     if (!currentPassword) {
       setPasswordError('Current password is required');
+      toast.error('Current password is required');
       return;
     }
     if (newPassword.length < 8) {
       setPasswordError('New password must be at least 8 characters long');
+      toast.error('New password must be at least 8 characters long');
       return;
     }
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
     setPasswordError(null);

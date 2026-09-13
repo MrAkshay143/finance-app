@@ -26,7 +26,8 @@ import { Select } from '../components/ui/Select.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { formatCurrency, getCurrencySymbol } from '../utils/currency.js';
 import { formatDate } from '../utils/date.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { toast } from '../store/toastStore.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import { syncOnTransactionMutation } from '../services/dataSync.js';
@@ -99,8 +100,12 @@ export const RecurringTransactionsPage: React.FC = () => {
     mutationFn: async ({ id, status }: { id: string; status: 'ACTIVE' | 'PAUSED' }) => {
       return await apiClient.recurring.toggleStatus(id, status);
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
+      toast.success(vars.status === 'ACTIVE' ? 'Recurring transaction resumed' : 'Recurring transaction paused');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update recurring transaction status'));
     },
   }, queryClient);
 
@@ -114,6 +119,10 @@ export const RecurringTransactionsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
       setDeleteTarget(null);
+      toast.success('Recurring transaction deleted successfully');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to delete recurring transaction'));
     },
   }, queryClient);
 
@@ -125,8 +134,13 @@ export const RecurringTransactionsPage: React.FC = () => {
     onSuccess: (data) => {
       syncOnTransactionMutation(queryClient);
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
-      setMaterializeResult(`Processed ${data.materializedCount} due transactions.`);
+      const msg = `Processed ${data.materializedCount} due transactions.`;
+      setMaterializeResult(msg);
       setTimeout(() => setMaterializeResult(null), 4000);
+      toast.success(msg);
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to process recurring transactions'));
     },
   }, queryClient);
 
@@ -139,6 +153,10 @@ export const RecurringTransactionsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
       setIsAddModalOpen(false);
       resetForm();
+      toast.success('Recurring transaction scheduled successfully');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to schedule recurring transaction'));
     },
   }, queryClient);
 
@@ -152,6 +170,10 @@ export const RecurringTransactionsPage: React.FC = () => {
       setIsEditModalOpen(false);
       setEditingItem(null);
       resetForm();
+      toast.success('Recurring transaction updated successfully');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to update recurring transaction'));
     },
   }, queryClient);
 
@@ -187,7 +209,14 @@ export const RecurringTransactionsPage: React.FC = () => {
 
   const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formAmount || !formAccountId) return;
+    if (!formAmount || isNaN(parseFloat(formAmount)) || parseFloat(formAmount) <= 0) {
+      toast.error('Please enter a valid amount greater than 0.');
+      return;
+    }
+    if (!formAccountId) {
+      toast.error('Please select an account.');
+      return;
+    }
     createMutation.mutate({
       type: formType,
       amount: parseFloat(formAmount),
@@ -201,7 +230,11 @@ export const RecurringTransactionsPage: React.FC = () => {
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingItem || !formAmount) return;
+    if (!editingItem) return;
+    if (!formAmount || isNaN(parseFloat(formAmount)) || parseFloat(formAmount) <= 0) {
+      toast.error('Please enter a valid amount greater than 0.');
+      return;
+    }
     updateMutation.mutate({
       id: editingItem.id,
       payload: {

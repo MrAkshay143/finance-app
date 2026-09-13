@@ -279,10 +279,12 @@ export const PlanningPage: React.FC = () => {
     const amountNum = parseFloat(budgetTargetAmount);
     if (!budgetCategoryId) {
       setBudgetError('Please select a category');
+      toast.error('Please select a category');
       return;
     }
     if (isNaN(amountNum) || amountNum <= 0) {
       setBudgetError('Please enter a positive budget amount');
+      toast.error('Please enter a positive budget amount');
       return;
     }
     setBudgetError(null);
@@ -300,10 +302,12 @@ export const PlanningPage: React.FC = () => {
     const amountNum = parseFloat(budgetTargetAmount);
     if (!budgetCategoryId) {
       setBudgetError('Please select a category');
+      toast.error('Please select a category');
       return;
     }
     if (isNaN(amountNum) || amountNum <= 0) {
       setBudgetError('Please enter a positive budget amount');
+      toast.error('Please enter a positive budget amount');
       return;
     }
     setBudgetError(null);
@@ -352,18 +356,22 @@ export const PlanningPage: React.FC = () => {
     const currentNum = Math.round(parseFloat(goalCurrentAmount || '0'));
     if (!goalName.trim()) {
       setGoalError('Please enter a goal name');
+      toast.error('Please enter a goal name');
       return;
     }
     if (isNaN(targetNum) || targetNum <= 0) {
       setGoalError('Please enter a positive target amount');
+      toast.error('Please enter a positive target amount');
       return;
     }
     if (isNaN(currentNum) || currentNum < 0) {
       setGoalError('Current amount cannot be negative');
+      toast.error('Current amount cannot be negative');
       return;
     }
     if (!goalTargetDate) {
       setGoalError('Please specify a target date');
+      toast.error('Please specify a target date');
       return;
     }
     setGoalError(null);
@@ -383,18 +391,22 @@ export const PlanningPage: React.FC = () => {
     const currentNum = Math.round(parseFloat(goalCurrentAmount || '0'));
     if (!goalName.trim()) {
       setGoalError('Please enter a goal name');
+      toast.error('Please enter a goal name');
       return;
     }
     if (isNaN(targetNum) || targetNum <= 0) {
       setGoalError('Please enter a positive target amount');
+      toast.error('Please enter a positive target amount');
       return;
     }
     if (isNaN(currentNum) || currentNum < 0) {
       setGoalError('Current amount cannot be negative');
+      toast.error('Current amount cannot be negative');
       return;
     }
     if (!goalTargetDate) {
       setGoalError('Please specify a target date');
+      toast.error('Please specify a target date');
       return;
     }
     setGoalError(null);

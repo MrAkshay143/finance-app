@@ -153,11 +153,15 @@ export const SecurityQuestionsPage: React.FC = () => {
   const handleNextStep = () => {
     setWizardError(null);
     if (!currentAnswerData.key) {
-      setWizardError('Please choose a security question.');
+      const msg = 'Please choose a security question.';
+      setWizardError(msg);
+      toast.error(msg);
       return;
     }
     if (!currentAnswerData.answer.trim()) {
-      setWizardError('Please enter your secret answer.');
+      const msg = 'Please enter your secret answer.';
+      setWizardError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -182,17 +186,23 @@ export const SecurityQuestionsPage: React.FC = () => {
   const handleSubmitQuestions = async () => {
     setWizardError(null);
     if (!currentAnswerData.key) {
-      setWizardError('Please choose a security question.');
+      const msg = 'Please choose a security question.';
+      setWizardError(msg);
+      toast.error(msg);
       return;
     }
     if (!currentAnswerData.answer.trim()) {
-      setWizardError('Please enter your secret answer.');
+      const msg = 'Please enter your secret answer.';
+      setWizardError(msg);
+      toast.error(msg);
       return;
     }
 
     for (let i = 1; i <= 3; i++) {
       if (!answers[i]?.key || !answers[i]?.answer.trim()) {
-        setWizardError(`Please complete question ${i} before submitting.`);
+        const msg = `Please complete question ${i} before submitting.`;
+        setWizardError(msg);
+        toast.error(msg);
         setCurrentStep(i as 1 | 2 | 3);
         return;
       }
@@ -253,7 +263,9 @@ export const SecurityQuestionsPage: React.FC = () => {
     }));
 
     if (payload.some((p) => !p.answer)) {
-      setVerifyError('Please enter answers for all 3 questions.');
+      const msg = 'Please enter answers for all 3 questions.';
+      setVerifyError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -263,9 +275,9 @@ export const SecurityQuestionsPage: React.FC = () => {
       toast.success('All 3 security answers verified successfully');
       setIsVerifyModalOpen(false);
     } catch (err: any) {
-      setVerifyError(
-        getFriendlyErrorMessage(err, 'Verification failed. One or more answers are incorrect.')
-      );
+      const msg = getFriendlyErrorMessage(err, 'Verification failed. One or more answers are incorrect.');
+      setVerifyError(msg);
+      toast.error(msg);
     } finally {
       setIsVerifying(false);
     }

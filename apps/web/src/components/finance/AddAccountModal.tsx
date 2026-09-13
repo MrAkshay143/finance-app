@@ -82,11 +82,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     e.preventDefault();
     if (!name.trim()) {
       setError('Account name is required.');
+      toast.error('Account name is required.');
       return;
     }
     const balNum = openingBalance ? parseFloat(openingBalance) : 0;
     if (isNaN(balNum) || balNum < 0) {
       setError('Please enter a valid opening balance (0 or greater).');
+      toast.error('Please enter a valid opening balance (0 or greater).');
       return;
     }
 

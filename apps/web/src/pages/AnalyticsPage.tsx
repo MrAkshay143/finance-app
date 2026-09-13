@@ -176,6 +176,7 @@ export const AnalyticsPage: React.FC = () => {
           <div className="relative shrink-0 w-32 sm:w-36">
             <CustomDropdown
               size="sm"
+              align="right"
               leftIcon={<Calendar className="w-3.5 h-3.5 text-slate-500" />}
               value={selectedPeriod}
               onChange={(val) => {
@@ -458,6 +459,7 @@ export const AnalyticsPage: React.FC = () => {
             <div className="w-36">
               <CustomDropdown
                 size="sm"
+                align="right"
                 value={selectedTrendHorizon}
                 onChange={(val) => setSelectedTrendHorizon(val)}
                 options={[
@@ -530,22 +532,39 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Category Breakdown Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-brand-primary">
-                <PieChart className="w-4 h-4 stroke-[2.5]" />
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-brand-primary">
+                  <PieChart className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <h3 className="text-xs font-bold text-slate-900">
+                  Category Breakdown
+                </h3>
               </div>
-              <h3 className="text-xs font-bold text-slate-900">
-                Category Breakdown
-              </h3>
+              {/* On mobile, period dropdown sits on the right of the title row */}
+              <div className="w-28 sm:hidden">
+                <CustomDropdown
+                  size="sm"
+                  align="right"
+                  value={selectedCategoryPeriod}
+                  onChange={(val) => setSelectedCategoryPeriod(val)}
+                  options={[
+                    { value: 'This Month', label: 'This Month' },
+                    { value: 'Last Month', label: 'Last Month' },
+                  ]}
+                  searchable={false}
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {/* Segmented Expenses / Income Toggle */}
-              <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
+
+            <div className="flex items-center gap-1.5 justify-between sm:justify-end">
+              {/* Segmented Expenses / Income / Investment Toggle */}
+              <div className="flex flex-1 sm:flex-initial rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
                 <button
                   type="button"
                   onClick={() => setCategoryType('EXPENSE')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
                     categoryType === 'EXPENSE'
                       ? 'bg-white text-rose-600 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -556,7 +575,7 @@ export const AnalyticsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryType('INCOME')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
                     categoryType === 'INCOME'
                       ? 'bg-white text-emerald-600 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -567,7 +586,7 @@ export const AnalyticsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryType('INVESTMENT')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${
+                  className={`flex-1 sm:flex-initial px-2 py-1 text-[10px] font-bold rounded-md transition-colors text-center ${
                     categoryType === 'INVESTMENT'
                       ? 'bg-white text-purple-600 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -577,9 +596,11 @@ export const AnalyticsPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="w-32 sm:w-36">
+              {/* On desktop (sm+), period dropdown sits next to the segmented toggle */}
+              <div className="hidden sm:block sm:w-36">
                 <CustomDropdown
                   size="sm"
+                  align="right"
                   value={selectedCategoryPeriod}
                   onChange={(val) => setSelectedCategoryPeriod(val)}
                   options={[

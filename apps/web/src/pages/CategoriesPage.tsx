@@ -260,6 +260,7 @@ export const CategoriesPage: React.FC = () => {
     e.preventDefault();
     if (!categoryName.trim()) {
       setCategoryError('Category name is required');
+      toast.error('Category name is required');
       return;
     }
     setCategoryError(null);
@@ -274,6 +275,7 @@ export const CategoriesPage: React.FC = () => {
     if (!selectedCategory) return;
     if (!categoryName.trim()) {
       setCategoryError('Category name is required');
+      toast.error('Category name is required');
       return;
     }
     setCategoryError(null);
@@ -325,6 +327,7 @@ export const CategoriesPage: React.FC = () => {
     e.preventDefault();
     if (!merchantName.trim()) {
       setMerchantError('Merchant name is required');
+      toast.error('Merchant name is required');
       return;
     }
     setMerchantError(null);
@@ -338,6 +341,7 @@ export const CategoriesPage: React.FC = () => {
     if (!selectedMerchant) return;
     if (!merchantName.trim()) {
       setMerchantError('Merchant name is required');
+      toast.error('Merchant name is required');
       return;
     }
     setMerchantError(null);

@@ -28,6 +28,7 @@ import {
   COUNTRY_REGISTRY,
 } from '@finance/shared-types';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
+import { toast } from '../../store/toastStore.js';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -126,7 +127,10 @@ export const SignupPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      toast.error('Please resolve the errors below.');
+      return;
+    }
 
     try {
       await signup({
@@ -140,10 +144,12 @@ export const SignupPage: React.FC = () => {
         password,
       });
 
+      toast.success('Account created successfully! Welcome!');
       // New users go to Onboarding Wizard
       navigate('/onboarding', { replace: true });
-    } catch {
-      // Error handled by store
+    } catch (err: any) {
+      const msg = useAuthStore.getState().error || err?.message || 'Failed to create account. Please try again.';
+      toast.error(msg);
     }
   };
 

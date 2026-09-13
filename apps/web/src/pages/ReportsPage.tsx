@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
@@ -67,7 +67,7 @@ export const ReportsPage: React.FC = () => {
     return { value: String(y), label: String(y) };
   });
 
-  const MONTHS_LIST = [
+  const ALL_MONTHS = [
     { value: '01', label: 'January' },
     { value: '02', label: 'February' },
     { value: '03', label: 'March' },
@@ -81,6 +81,24 @@ export const ReportsPage: React.FC = () => {
     { value: '11', label: 'November' },
     { value: '12', label: 'December' },
   ];
+
+  const currentMonthInt = new Date().getMonth() + 1;
+
+  const availableMonths = useMemo(() => {
+    if (parseInt(monthlyYear, 10) === currentYear) {
+      return ALL_MONTHS.slice(0, currentMonthInt);
+    }
+    return ALL_MONTHS;
+  }, [monthlyYear, currentYear, currentMonthInt]);
+
+  const handleMonthlyYearChange = (newYear: string) => {
+    setMonthlyYear(newYear);
+    if (parseInt(newYear, 10) === currentYear) {
+      if (parseInt(monthlyMonth, 10) > currentMonthInt) {
+        setMonthlyMonth(currentMonthNum);
+      }
+    }
+  };
 
   // 1. Monthly Report Query
   const { data: reportData } = useQuery<MonthlyReportResponse>({
@@ -327,12 +345,12 @@ export const ReportsPage: React.FC = () => {
                 <Select
                   options={availableYears}
                   value={monthlyYear}
-                  onChange={(e) => setMonthlyYear(e.target.value)}
+                  onChange={(e) => handleMonthlyYearChange(e.target.value)}
                   size="sm"
                   leftIcon={<Calendar className="w-3.5 h-3.5" />}
                 />
                 <Select
-                  options={MONTHS_LIST}
+                  options={availableMonths}
                   value={monthlyMonth}
                   onChange={(e) => setMonthlyMonth(e.target.value)}
                   size="sm"

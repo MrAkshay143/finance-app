@@ -78,12 +78,14 @@ export const ForgotPasswordPage: React.FC = () => {
         setAnswers(initialAnswers);
         setStep(2);
       } else {
-        setErrorMessage('Security questions are not configured for this account. Please contact an administrator.');
+        const msg = 'Security questions are not configured for this account. Please contact an administrator.';
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setErrorMessage(
-        getFriendlyErrorMessage(err, 'No account found with this email or security questions not configured.')
-      );
+      const msg = getFriendlyErrorMessage(err, 'No account found with this email or security questions not configured.');
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +103,9 @@ export const ForgotPasswordPage: React.FC = () => {
 
     // Check all answers filled
     if (answerPayload.some((a) => !a.answer)) {
-      setErrorMessage('Please provide answers for all 3 security questions.');
+      const msg = 'Please provide answers for all 3 security questions.';
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -118,12 +122,14 @@ export const ForgotPasswordPage: React.FC = () => {
         setStep(3);
         toast.success('Identity verified. Please choose a new password.');
       } else {
-        setErrorMessage('Failed to verify answers. Please try again.');
+        const msg = 'Failed to verify answers. Please try again.';
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
-      setErrorMessage(
-        getFriendlyErrorMessage(err, 'Incorrect answers. Please check your answers and try again.')
-      );
+      const msg = getFriendlyErrorMessage(err, 'Incorrect answers. Please check your answers and try again.');
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -135,18 +141,24 @@ export const ForgotPasswordPage: React.FC = () => {
     setErrorMessage(null);
 
     if (!resetToken) {
-      setErrorMessage('Session expired. Please restart the recovery process.');
+      const msg = 'Session expired. Please restart the recovery process.';
+      setErrorMessage(msg);
+      toast.error(msg);
       setStep(1);
       return;
     }
 
     if (!passwordValidation.isValid) {
-      setErrorMessage(passwordValidation.message || 'Password does not meet complexity requirements');
+      const msg = passwordValidation.message || 'Password does not meet complexity requirements';
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
     if (!confirmValidation.isValid) {
-      setErrorMessage(confirmValidation.message || 'Passwords do not match');
+      const msg = confirmValidation.message || 'Passwords do not match';
+      setErrorMessage(msg);
+      toast.error(msg);
       return;
     }
 
@@ -164,9 +176,9 @@ export const ForgotPasswordPage: React.FC = () => {
         navigate('/login', { replace: true });
       }, 2500);
     } catch (err: any) {
-      setErrorMessage(
-        getFriendlyErrorMessage(err, 'Failed to reset password. Please try again.')
-      );
+      const msg = getFriendlyErrorMessage(err, 'Failed to reset password. Please try again.');
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

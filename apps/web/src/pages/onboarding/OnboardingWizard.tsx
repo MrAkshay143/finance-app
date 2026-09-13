@@ -29,6 +29,7 @@ import { useUserCurrency } from '../../hooks/useUserCurrency.js';
 import { validateAndNormalizePhone } from '@finance/shared-types';
 import type { RiskAppetite, InvestmentHorizon } from '@finance/shared-types';
 import { validateAge, validateAmount } from '../../utils/validation.js';
+import { toast } from '../../store/toastStore.js';
 
 const DRAFT_STORAGE_KEY = 'finance_onboarding_draft';
 
@@ -150,31 +151,37 @@ export const OnboardingWizard: React.FC = () => {
     // Date of Birth is strictly mandatory
     if (!dateOfBirth) {
       setErrorMessage('Date of birth is required to proceed.');
+      toast.error('Date of birth is required to proceed.');
       return;
     }
     const selectedDob = new Date(dateOfBirth);
     if (isNaN(selectedDob.getTime())) {
       setErrorMessage('Invalid date of birth.');
+      toast.error('Invalid date of birth.');
       return;
     }
     const today = new Date();
     if (today.getFullYear() - selectedDob.getFullYear() > 120 || selectedDob > today) {
       setErrorMessage('Invalid date of birth.');
+      toast.error('Invalid date of birth.');
       return;
     }
     if (selectedDob > maxDobDate) {
       setErrorMessage('You must be at least 16 years old to register.');
+      toast.error('You must be at least 16 years old to register.');
       return;
     }
 
     // Phone / Mobile Number is strictly mandatory
     if (!phone.trim()) {
       setErrorMessage('Mobile number is required to proceed.');
+      toast.error('Mobile number is required to proceed.');
       return;
     }
     const phoneVal = validateAndNormalizePhone(phone.trim());
     if (!phoneVal.isValid) {
       setErrorMessage(phoneVal.error || 'Please enter a valid mobile number.');
+      toast.error(phoneVal.error || 'Please enter a valid mobile number.');
       return;
     }
 
@@ -190,7 +197,9 @@ export const OnboardingWizard: React.FC = () => {
 
       setCurrentStep(2);
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to save personal details. Please try again.');
+      const msg = err?.message || 'Failed to save personal details. Please try again.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -205,11 +214,13 @@ export const OnboardingWizard: React.FC = () => {
 
     if (isNaN(inc) || inc <= 0) {
       setErrorMessage('Please enter a valid monthly income greater than 0.');
+      toast.error('Please enter a valid monthly income greater than 0.');
       return;
     }
 
     if (isNaN(exp) || exp < 0) {
       setErrorMessage('Please enter a valid monthly expense budget.');
+      toast.error('Please enter a valid monthly expense budget.');
       return;
     }
 
@@ -245,10 +256,13 @@ export const OnboardingWizard: React.FC = () => {
         // Ignore
       }
 
+      toast.success('Onboarding completed! Please set up security questions.');
       setOnboardingCompleted(true);
       navigate('/security/questions', { replace: true });
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to save financial profile. Please try again.');
+      const msg = err?.message || 'Failed to save financial profile. Please try again.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
