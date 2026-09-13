@@ -295,14 +295,14 @@ export const ReportsPage: React.FC = () => {
     if (delta === null) return null;
     if (delta === 0) {
       return {
-        text: '(0% vs last mo)',
+        text: '(0% MoM)',
         colorClass: 'text-slate-500',
       };
     }
     const isUp = delta > 0;
     const arrow = isUp ? '↑' : '↓';
     const absVal = Math.abs(delta);
-    const text = `(${arrow}${absVal}% vs last mo)`;
+    const text = `(${arrow}${absVal}% MoM)`;
 
     // For expenses: down (spending less) is favorable (green), up (spending more) is unfavorable (red)
     // For income and FAM score: up is favorable (green), down is unfavorable (red)
@@ -525,12 +525,12 @@ export const ReportsPage: React.FC = () => {
                     <span className="text-xs font-semibold text-slate-500">/ 100</span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-blue-100/80 flex items-center gap-1.5 flex-wrap">
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-primary bg-blue-100/90 px-1.5 py-0.5 rounded-md">
+                <div className="mt-2 pt-1 border-t border-blue-100/80 flex items-center gap-1 flex-nowrap overflow-hidden">
+                  <span className="inline-flex items-center text-[10px] font-bold text-brand-primary bg-blue-100/90 px-1.5 py-0.5 rounded-md shrink-0">
                     {famGradeVal}
                   </span>
                   {famComparison && (
-                    <span className={`text-[10px] font-bold whitespace-nowrap ${famComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap truncate ${famComparison.colorClass}`}>
                       {famComparison.text}
                     </span>
                   )}
@@ -554,12 +554,12 @@ export const ReportsPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-emerald-100/80 flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] font-bold text-emerald-700">
-                    {earnedProjected > 0 ? `${earnedPercent}% target` : 'Active'}
+                <div className="mt-2 pt-1 border-t border-emerald-100/80 flex items-center gap-1 flex-nowrap overflow-hidden">
+                  <span className="text-[10px] font-bold text-emerald-700 shrink-0">
+                    {earnedProjected > 0 ? `${earnedPercent}%` : 'Active'}
                   </span>
                   {incomeComparison && (
-                    <span className={`text-[10px] font-bold whitespace-nowrap ${incomeComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap truncate ${incomeComparison.colorClass}`}>
                       {incomeComparison.text}
                     </span>
                   )}
@@ -583,12 +583,12 @@ export const ReportsPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-rose-100/80 flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] font-bold text-rose-700">
-                    {expenseProjected > 0 ? `${expensePercent}% budget` : 'Active'}
+                <div className="mt-2 pt-1 border-t border-rose-100/80 flex items-center gap-1 flex-nowrap overflow-hidden">
+                  <span className="text-[10px] font-bold text-rose-700 shrink-0">
+                    {expenseProjected > 0 ? `${expensePercent}%` : 'Active'}
                   </span>
                   {expenseComparison && (
-                    <span className={`text-[10px] font-bold whitespace-nowrap ${expenseComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap truncate ${expenseComparison.colorClass}`}>
                       {expenseComparison.text}
                     </span>
                   )}

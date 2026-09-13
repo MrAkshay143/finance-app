@@ -188,18 +188,18 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // Card 1: FAM Score Grade with positive increase (↑12% vs last mo) in green
+      // Card 1: FAM Score Grade with positive increase (↑12% MoM) in green
       expect(html).toContain('A+');
-      expect(html).toContain('(↑12% vs last mo)');
+      expect(html).toContain('(↑12% MoM)');
       expect(html).toContain('text-emerald-600');
 
-      // Card 2: Total Income Target with positive increase (↑26% vs last mo) in green
-      expect(html).toContain('206% target');
-      expect(html).toContain('(↑26% vs last mo)');
+      // Card 2: Total Income Target with positive increase (↑26% MoM) in green
+      expect(html).toContain('206%');
+      expect(html).toContain('(↑26% MoM)');
 
-      // Card 3: Total Expenses Budget with decrease (↓6% vs last mo) in green (spending less is favorable)
-      expect(html).toContain('79% budget');
-      expect(html).toContain('(↓6% vs last mo)');
+      // Card 3: Total Expenses Budget with decrease (↓6% MoM) in green (spending less is favorable)
+      expect(html).toContain('79%');
+      expect(html).toContain('(↓6% MoM)');
     });
 
     it('renders unfavorable decreases and increases with rose red color', () => {
@@ -240,12 +240,12 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // FAM score decrease: (↓10% vs last mo) in red
-      expect(html).toContain('(↓10% vs last mo)');
-      // Income target decrease: (↓20% vs last mo) in red
-      expect(html).toContain('(↓20% vs last mo)');
-      // Expense budget increase: (↑15% vs last mo) in red (spending more budget is unfavorable)
-      expect(html).toContain('(↑15% vs last mo)');
+      // FAM score decrease: (↓10% MoM) in red
+      expect(html).toContain('(↓10% MoM)');
+      // Income target decrease: (↓20% MoM) in red
+      expect(html).toContain('(↓20% MoM)');
+      // Expense budget increase: (↑15% MoM) in red (spending more budget is unfavorable)
+      expect(html).toContain('(↑15% MoM)');
       expect(html).toContain('text-rose-600');
     });
   });
