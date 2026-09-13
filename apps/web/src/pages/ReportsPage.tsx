@@ -295,14 +295,14 @@ export const ReportsPage: React.FC = () => {
     if (delta === null) return null;
     if (delta === 0) {
       return {
-        text: '(0% MoM)',
+        text: '(0% Last Month)',
         colorClass: 'text-slate-500',
       };
     }
     const isUp = delta > 0;
     const arrow = isUp ? '↑' : '↓';
     const absVal = Math.abs(delta);
-    const text = `(${arrow}${absVal}% MoM)`;
+    const text = `(${arrow}${absVal}% Last Month)`;
 
     // For expenses: down (spending less) is favorable (green), up (spending more) is unfavorable (red)
     // For income and FAM score: up is favorable (green), down is unfavorable (red)

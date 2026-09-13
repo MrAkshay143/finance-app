@@ -188,18 +188,18 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // Card 1: FAM Score Grade with positive increase (↑12% MoM) in green
+      // Card 1: FAM Score Grade with positive increase (↑12% Last Month) in green
       expect(html).toContain('A+');
-      expect(html).toContain('(↑12% MoM)');
+      expect(html).toContain('(↑12% Last Month)');
       expect(html).toContain('text-emerald-600');
 
-      // Card 2: Total Income Target with positive increase (↑26% MoM) in green
+      // Card 2: Total Income Target with positive increase (↑26% Last Month) in green
       expect(html).toContain('206%');
-      expect(html).toContain('(↑26% MoM)');
+      expect(html).toContain('(↑26% Last Month)');
 
-      // Card 3: Total Expenses Budget with decrease (↓6% MoM) in green (spending less is favorable)
+      // Card 3: Total Expenses Budget with decrease (↓6% Last Month) in green (spending less is favorable)
       expect(html).toContain('79%');
-      expect(html).toContain('(↓6% MoM)');
+      expect(html).toContain('(↓6% Last Month)');
     });
 
     it('renders unfavorable decreases and increases with rose red color', () => {
@@ -240,12 +240,12 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // FAM score decrease: (↓10% MoM) in red
-      expect(html).toContain('(↓10% MoM)');
-      // Income target decrease: (↓20% MoM) in red
-      expect(html).toContain('(↓20% MoM)');
-      // Expense budget increase: (↑15% MoM) in red (spending more budget is unfavorable)
-      expect(html).toContain('(↑15% MoM)');
+      // FAM score decrease: (↓10% Last Month) in red
+      expect(html).toContain('(↓10% Last Month)');
+      // Income target decrease: (↓20% Last Month) in red
+      expect(html).toContain('(↓20% Last Month)');
+      // Expense budget increase: (↑15% Last Month) in red (spending more budget is unfavorable)
+      expect(html).toContain('(↑15% Last Month)');
       expect(html).toContain('text-rose-600');
     });
   });
