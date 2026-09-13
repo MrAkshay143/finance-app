@@ -148,7 +148,7 @@ export class ReportService {
         area: 'EXPENSE',
         title: 'Disciplined Spending',
         status: 'success',
-        message: `Excellent expense discipline. Spending remained under 80% of your allocated budget this month.`,
+        message: `Spending remained under 80% of your budget.`,
       });
     }
 
