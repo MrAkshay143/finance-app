@@ -188,18 +188,18 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // Card 1: FAM Score Grade with positive increase (↑12% Last Month) in green
+      // Card 1: FAM Score Grade with positive increase (↑12% L.M.) in green
       expect(html).toContain('A+');
-      expect(html).toContain('(↑12% Last Month)');
+      expect(html).toContain('(↑12% L.M.)');
       expect(html).toContain('text-emerald-600');
 
-      // Card 2: Total Income Target with positive increase (↑26% Last Month) in green
+      // Card 2: Total Income Target with positive increase (↑26% L.M.) in green
       expect(html).toContain('206%');
-      expect(html).toContain('(↑26% Last Month)');
+      expect(html).toContain('(↑26% L.M.)');
 
-      // Card 3: Total Expenses Budget with decrease (↓6% Last Month) in green (spending less is favorable)
+      // Card 3: Total Expenses Budget with decrease (↓6% L.M.) in green (spending less is favorable)
       expect(html).toContain('79%');
-      expect(html).toContain('(↓6% Last Month)');
+      expect(html).toContain('(↓6% L.M.)');
     });
 
     it('renders unfavorable decreases and increases with rose red color', () => {
@@ -240,12 +240,12 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // FAM score decrease: (↓10% Last Month) in red
-      expect(html).toContain('(↓10% Last Month)');
-      // Income target decrease: (↓20% Last Month) in red
-      expect(html).toContain('(↓20% Last Month)');
-      // Expense budget increase: (↑15% Last Month) in red (spending more budget is unfavorable)
-      expect(html).toContain('(↑15% Last Month)');
+      // FAM score decrease: (↓10% L.M.) in red
+      expect(html).toContain('(↓10% L.M.)');
+      // Income target decrease: (↓20% L.M.) in red
+      expect(html).toContain('(↓20% L.M.)');
+      // Expense budget increase: (↑15% L.M.) in red (spending more budget is unfavorable)
+      expect(html).toContain('(↑15% L.M.)');
       expect(html).toContain('text-rose-600');
     });
   });
