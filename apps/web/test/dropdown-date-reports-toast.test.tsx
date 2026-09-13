@@ -149,6 +149,105 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
       expect(html).toContain('Reports');
       expect(html).toContain('Report period');
     });
+
+    it('renders previous comparison percentages in brackets with dynamic color on stats cards', () => {
+      const queryClient = createTestQueryClient();
+      const d = new Date();
+      const currentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+      const mockReportWithComparison = {
+        month: currentMonth,
+        monthLabel: 'Current Month',
+        year: d.getFullYear(),
+        famScore: { score: 85, overallGrade: 'A+', gradeDisplay: 'A+' },
+        totals: { earnedPaise: 2060000, spentPaise: 790000, investedPaise: 500000 },
+        targetVsActual: {
+          income: { target: 10000, actual: 20600, percentageAchieved: 206 },
+          expense: { target: 10000, actual: 7900, percentageAchieved: 79 },
+          investment: { target: 5000, actual: 5000, percentageAchieved: 100 },
+          netSavings: { actual: 12700, actualPaise: 1270000, savingsRate: 61 },
+        },
+        comparison: {
+          hasPrevData: true,
+          prevMonth: '2026-08',
+          famScoreDelta: 12,
+          incomeTargetDelta: 26,
+          expenseBudgetDelta: -6,
+        },
+        callouts: [],
+        categorySummary: [],
+      };
+
+      queryClient.setQueryData(['reports', 'monthly', currentMonth], mockReportWithComparison);
+
+      const html = renderToString(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <ReportsPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+
+      // Card 1: FAM Score Grade with positive increase (+12%) in green
+      expect(html).toContain('A+');
+      expect(html).toContain('(+12%)');
+      expect(html).toContain('text-emerald-600');
+
+      // Card 2: Total Income Target with positive increase (+26%) in green
+      expect(html).toContain('206% target');
+      expect(html).toContain('(+26%)');
+
+      // Card 3: Total Expenses Budget with decrease (-6%) in green (spending less is favorable)
+      expect(html).toContain('79% budget');
+      expect(html).toContain('(-6%)');
+    });
+
+    it('renders unfavorable decreases and increases with rose red color', () => {
+      const queryClient = createTestQueryClient();
+      const d = new Date();
+      const currentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+      const mockUnfavorableReport = {
+        month: currentMonth,
+        monthLabel: 'Current Month',
+        year: d.getFullYear(),
+        famScore: { score: 65, overallGrade: 'B', gradeDisplay: 'B' },
+        totals: { earnedPaise: 800000, spentPaise: 1100000, investedPaise: 200000 },
+        targetVsActual: {
+          income: { target: 10000, actual: 8000, percentageAchieved: 80 },
+          expense: { target: 10000, actual: 11000, percentageAchieved: 110 },
+          investment: { target: 5000, actual: 2000, percentageAchieved: 40 },
+          netSavings: { actual: -3000, actualPaise: -300000, savingsRate: 0 },
+        },
+        comparison: {
+          hasPrevData: true,
+          prevMonth: '2026-08',
+          famScoreDelta: -10,
+          incomeTargetDelta: -20,
+          expenseBudgetDelta: 15,
+        },
+        callouts: [],
+        categorySummary: [],
+      };
+
+      queryClient.setQueryData(['reports', 'monthly', currentMonth], mockUnfavorableReport);
+
+      const html = renderToString(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <ReportsPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+
+      // FAM score decrease: (-10%) in red
+      expect(html).toContain('(-10%)');
+      // Income target decrease: (-20%) in red
+      expect(html).toContain('(-20%)');
+      // Expense budget increase: (+15%) in red (spending more budget is unfavorable)
+      expect(html).toContain('(+15%)');
+      expect(html).toContain('text-rose-600');
+    });
   });
 
   describe('4. Central Toast Standardizations', () => {

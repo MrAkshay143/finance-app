@@ -110,6 +110,26 @@ export const ReportsPage: React.FC = () => {
     placeholderData: keepPreviousData,
   }, queryClient);
 
+  // Compute previous month string (YYYY-MM)
+  const prevMonthStr = useMemo(() => {
+    const y = parseInt(monthlyYear, 10);
+    const m = parseInt(monthlyMonth, 10);
+    if (isNaN(y) || isNaN(m)) return '';
+    const prevY = m === 1 ? y - 1 : y;
+    const prevM = m === 1 ? 12 : m - 1;
+    return `${prevY}-${String(prevM).padStart(2, '0')}`;
+  }, [monthlyYear, monthlyMonth]);
+
+  // Query previous month data for delta comparisons
+  const { data: prevReportData } = useQuery<MonthlyReportResponse>({
+    queryKey: ['reports', 'monthly', prevMonthStr],
+    queryFn: async () => {
+      return await apiClient.reports.getMonthly(prevMonthStr);
+    },
+    enabled: activeTab === 'monthly' && Boolean(prevMonthStr),
+    placeholderData: keepPreviousData,
+  }, queryClient);
+
   // 2. Annual Report Query
   const { data: annualData } = useQuery<any>({
     queryKey: ['reports', 'annual', selectedYear],
@@ -169,6 +189,104 @@ export const ReportsPage: React.FC = () => {
     (reportData?.famScore?.overallGrade === 'A_PLUS' ? 'A+' : reportData?.famScore?.overallGrade) ||
     reportData?.famScore?.grade ||
     'N/A';
+
+  // Target percentages
+  const earnedPercent = earnedProjected > 0 ? Math.round((earnedActual / earnedProjected) * 100) : 0;
+  const expensePercent = expenseProjected > 0 ? Math.round((expenseActual / expenseProjected) * 100) : 0;
+
+  // Previous month metrics calculation
+  const prevEarnedActual =
+    prevReportData?.targetVsActual?.income?.actual ??
+    (prevReportData?.totals?.earnedPaise ? prevReportData.totals.earnedPaise / 100 : 0);
+  const prevEarnedProjected =
+    prevReportData?.targetVsActual?.income?.target ??
+    (prevReportData?.famScore?.areas?.income?.target ?? 0);
+  const prevIncomePercent =
+    prevEarnedProjected > 0
+      ? Math.round((prevEarnedActual / prevEarnedProjected) * 100)
+      : prevReportData?.targetVsActual?.income?.percentageAchieved;
+
+  const prevExpenseActual =
+    prevReportData?.targetVsActual?.expense?.actual ??
+    (prevReportData?.totals?.spentPaise ? prevReportData.totals.spentPaise / 100 : 0);
+  const prevExpenseProjected =
+    prevReportData?.targetVsActual?.expense?.target ??
+    (prevReportData?.famScore?.areas?.expense?.target ?? 0);
+  const prevExpensePercent =
+    prevExpenseProjected > 0
+      ? Math.round((prevExpenseActual / prevExpenseProjected) * 100)
+      : prevReportData?.targetVsActual?.expense?.percentageAchieved;
+
+  const prevFamScoreVal =
+    typeof prevReportData?.famScore?.overallProgressPercentage === 'number'
+      ? Math.round(prevReportData.famScore.overallProgressPercentage)
+      : typeof prevReportData?.famScore?.progress === 'number'
+      ? Math.round(prevReportData.famScore.progress)
+      : typeof prevReportData?.famScore?.score === 'number'
+      ? Math.round(prevReportData.famScore.score)
+      : null;
+
+  // Comparison deltas: prioritize backend report comparison, fallback to prevReportData query
+  const comparisonData = reportData?.comparison;
+
+  const famDelta: number | null = useMemo(() => {
+    if (comparisonData?.hasPrevData && typeof comparisonData.famScoreDelta === 'number') {
+      return comparisonData.famScoreDelta;
+    }
+    if (prevReportData && prevFamScoreVal !== null) {
+      const hasActivity =
+        (prevReportData.totals?.transactionCount ?? 0) > 0 ||
+        prevEarnedActual > 0 ||
+        prevExpenseActual > 0 ||
+        prevFamScoreVal > 0;
+      if (hasActivity) {
+        return famScoreVal - prevFamScoreVal;
+      }
+    }
+    return null;
+  }, [comparisonData, prevReportData, prevFamScoreVal, famScoreVal, prevEarnedActual, prevExpenseActual]);
+
+  const incomeDelta: number | null = useMemo(() => {
+    if (comparisonData?.hasPrevData && typeof comparisonData.incomeTargetDelta === 'number') {
+      return comparisonData.incomeTargetDelta;
+    }
+    if (prevReportData) {
+      const hasActivity =
+        (prevReportData.totals?.transactionCount ?? 0) > 0 ||
+        prevEarnedActual > 0 ||
+        prevExpenseActual > 0;
+      if (hasActivity) {
+        if (earnedProjected > 0 && typeof prevIncomePercent === 'number') {
+          return earnedPercent - prevIncomePercent;
+        }
+        if (earnedProjected === 0 && prevEarnedActual > 0) {
+          return Math.round(((earnedActual - prevEarnedActual) / prevEarnedActual) * 100);
+        }
+      }
+    }
+    return null;
+  }, [comparisonData, prevReportData, earnedProjected, prevIncomePercent, earnedPercent, prevEarnedActual, earnedActual, prevExpenseActual]);
+
+  const expenseDelta: number | null = useMemo(() => {
+    if (comparisonData?.hasPrevData && typeof comparisonData.expenseBudgetDelta === 'number') {
+      return comparisonData.expenseBudgetDelta;
+    }
+    if (prevReportData) {
+      const hasActivity =
+        (prevReportData.totals?.transactionCount ?? 0) > 0 ||
+        prevEarnedActual > 0 ||
+        prevExpenseActual > 0;
+      if (hasActivity) {
+        if (expenseProjected > 0 && typeof prevExpensePercent === 'number') {
+          return expensePercent - prevExpensePercent;
+        }
+        if (expenseProjected === 0 && prevExpenseActual > 0) {
+          return Math.round(((expenseActual - prevExpenseActual) / prevExpenseActual) * 100);
+        }
+      }
+    }
+    return null;
+  }, [comparisonData, prevReportData, expenseProjected, prevExpensePercent, expensePercent, prevEarnedActual, expenseActual, prevExpenseActual]);
 
   const formatBarBadge = (amount: number): string => {
     return formatCompactCurrency(amount, userCurrency);
@@ -267,7 +385,7 @@ export const ReportsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col pb-20">
+    <div className="flex-1 flex flex-col">
       {/* Branded Nested Header */}
       <AppHeader
         variant="nested"
@@ -379,10 +497,23 @@ export const ReportsPage: React.FC = () => {
                     <span className="text-xs font-semibold text-slate-500">/ 100</span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-blue-100/80">
+                <div className="mt-2 pt-1 border-t border-blue-100/80 flex items-center gap-1.5 flex-wrap">
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-primary bg-blue-100/90 px-1.5 py-0.5 rounded-md">
                     {famGradeVal}
                   </span>
+                  {famDelta !== null && (
+                    <span
+                      className={`text-[10px] font-bold ${
+                        famDelta > 0
+                          ? 'text-emerald-600'
+                          : famDelta < 0
+                          ? 'text-rose-600'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      {`(${famDelta > 0 ? `+${famDelta}%` : `${famDelta}%`})`}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -403,10 +534,23 @@ export const ReportsPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-emerald-100/80">
+                <div className="mt-2 pt-1 border-t border-emerald-100/80 flex items-center gap-1 flex-wrap">
                   <span className="text-[10px] font-bold text-emerald-700">
-                    {earnedProjected > 0 ? `${Math.round((earnedActual / earnedProjected) * 100)}% target` : 'Active'}
+                    {earnedProjected > 0 ? `${earnedPercent}% target` : 'Active'}
                   </span>
+                  {incomeDelta !== null && (
+                    <span
+                      className={`text-[10px] font-bold ${
+                        incomeDelta > 0
+                          ? 'text-emerald-600'
+                          : incomeDelta < 0
+                          ? 'text-rose-600'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      {`(${incomeDelta > 0 ? `+${incomeDelta}%` : `${incomeDelta}%`})`}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -427,10 +571,23 @@ export const ReportsPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-2 pt-1 border-t border-rose-100/80">
+                <div className="mt-2 pt-1 border-t border-rose-100/80 flex items-center gap-1 flex-wrap">
                   <span className="text-[10px] font-bold text-rose-700">
-                    {expenseProjected > 0 ? `${Math.round((expenseActual / expenseProjected) * 100)}% budget` : 'Active'}
+                    {expenseProjected > 0 ? `${expensePercent}% budget` : 'Active'}
                   </span>
+                  {expenseDelta !== null && (
+                    <span
+                      className={`text-[10px] font-bold ${
+                        expenseDelta < 0
+                          ? 'text-emerald-600'
+                          : expenseDelta > 0
+                          ? 'text-rose-600'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      {`(${expenseDelta > 0 ? `+${expenseDelta}%` : `${expenseDelta}%`})`}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

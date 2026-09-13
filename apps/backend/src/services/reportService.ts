@@ -261,6 +261,90 @@ export class ReportService {
 
     const monthLabel = `${FULL_MONTH_NAMES[monthNum - 1]} ${year}`;
 
+    // 5. Previous Month Comparison for Stats Cards
+    const prevMonthNum = monthNum === 1 ? 12 : monthNum - 1;
+    const prevYear = monthNum === 1 ? year - 1 : year;
+    const prevRefDate = new Date(prevYear, prevMonthNum - 1, startDay);
+    const prevPeriod = getFinancialMonthRange(startDay, prevRefDate);
+
+    let comparison = {
+      hasPrevData: false,
+      prevMonth: `${prevYear}-${String(prevMonthNum).padStart(2, '0')}`,
+      famScoreDelta: null as number | null,
+      incomeTargetDelta: null as number | null,
+      expenseBudgetDelta: null as number | null,
+      prevFamScoreVal: null as number | null,
+      prevIncomePercentage: null as number | null,
+      prevExpensePercentage: null as number | null,
+    };
+
+    try {
+      const prevFamScore = await famService.getFamScore(userId, {
+        month: prevMonthNum,
+        year: prevYear,
+        refDate: prevRefDate,
+      });
+
+      const prevMonthTxnCount = await prisma.transaction.count({
+        where: {
+          userId,
+          status: 'ACTIVE',
+          txnDate: { gte: prevPeriod.start, lt: prevPeriod.end },
+          transferAsDebit: null,
+          transferAsCredit: null,
+        },
+      });
+
+      const prevEarnedPaise = prevFamScore.income.actualPaise;
+      const prevSpentPaise = prevFamScore.expense.actualPaise;
+      const prevFamScoreVal = Math.round(
+        prevFamScore.overallProgressPercentage ?? prevFamScore.progress ?? 0
+      );
+      const currFamScoreVal = Math.round(
+        famScore.overallProgressPercentage ?? famScore.progress ?? 0
+      );
+
+      const hasPrevActivity =
+        prevMonthTxnCount > 0 ||
+        prevEarnedPaise > 0 ||
+        prevSpentPaise > 0 ||
+        prevFamScoreVal > 0;
+
+      if (hasPrevActivity) {
+        const prevIncomePercentage =
+          incomeTargetPaise > 0 ? Math.round((prevEarnedPaise / incomeTargetPaise) * 100) : 0;
+        const prevExpensePercentage =
+          expenseBudgetPaise > 0 ? Math.round((prevSpentPaise / expenseBudgetPaise) * 100) : 0;
+
+        let incomeDelta: number | null = null;
+        if (incomeTargetPaise > 0) {
+          incomeDelta = incomePercentage - prevIncomePercentage;
+        } else if (prevEarnedPaise > 0) {
+          incomeDelta = Math.round(((earnedPaise - prevEarnedPaise) / prevEarnedPaise) * 100);
+        }
+
+        let expenseDelta: number | null = null;
+        if (expenseBudgetPaise > 0) {
+          expenseDelta = expensePercentage - prevExpensePercentage;
+        } else if (prevSpentPaise > 0) {
+          expenseDelta = Math.round(((spentPaise - prevSpentPaise) / prevSpentPaise) * 100);
+        }
+
+        comparison = {
+          hasPrevData: true,
+          prevMonth: `${prevYear}-${String(prevMonthNum).padStart(2, '0')}`,
+          famScoreDelta: currFamScoreVal - prevFamScoreVal,
+          incomeTargetDelta: incomeDelta,
+          expenseBudgetDelta: expenseDelta,
+          prevFamScoreVal,
+          prevIncomePercentage,
+          prevExpensePercentage,
+        };
+      }
+    } catch {
+      // Gracefully fall back if previous period data cannot be computed
+    }
+
     return {
       month,
       monthLabel,
@@ -271,6 +355,7 @@ export class ReportService {
       targetVsActual,
       callouts,
       categorySummary,
+      comparison,
       totals: {
         earnedPaise,
         spentPaise,

@@ -35,6 +35,18 @@ export const ReportCategorySummarySchema = z.object({
 });
 export type ReportCategorySummary = z.infer<typeof ReportCategorySummarySchema>;
 
+export const ReportComparisonSchema = z.object({
+  hasPrevData: z.boolean(),
+  prevMonth: z.string(),
+  famScoreDelta: z.number().nullable(),
+  incomeTargetDelta: z.number().nullable(),
+  expenseBudgetDelta: z.number().nullable(),
+  prevFamScoreVal: z.number().nullable().optional(),
+  prevIncomePercentage: z.number().nullable().optional(),
+  prevExpensePercentage: z.number().nullable().optional(),
+});
+export type ReportComparison = z.infer<typeof ReportComparisonSchema>;
+
 export const MonthlyReportResponseSchema = z.object({
   month: z.string(), // 'YYYY-MM'
   monthLabel: z.string(), // e.g. 'September 2026'
@@ -54,6 +66,7 @@ export const MonthlyReportResponseSchema = z.object({
   }),
   callouts: z.array(ReportCalloutCardSchema),
   categorySummary: z.array(ReportCategorySummarySchema),
+  comparison: ReportComparisonSchema.optional(),
   totals: z.object({
     earnedPaise: z.number(),
     spentPaise: z.number(),
