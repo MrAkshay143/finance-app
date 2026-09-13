@@ -5,7 +5,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  AlertCircle,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
@@ -210,17 +209,6 @@ export const ForgotPasswordPage: React.FC = () => {
 
         {/* Main Card */}
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-slate-200/80 space-y-3">
-          {/* Error Banner */}
-          {errorMessage && (
-            <div
-              role="alert"
-              className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-medium"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <p className="leading-tight">{errorMessage}</p>
-            </div>
-          )}
-
           {/* Step 1: Email Form */}
           {step === 1 && (
             <form onSubmit={handleInitiate} className="space-y-3.5" noValidate>

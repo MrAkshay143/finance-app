@@ -12,7 +12,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  AlertCircle,
   Clock,
   Briefcase,
 } from 'lucide-react';
@@ -308,17 +307,6 @@ export const OnboardingWizard: React.FC = () => {
 
         {/* Wizard Main Content */}
         <main className="flex-1 p-5 space-y-4">
-          {/* Error Banner */}
-          {errorMessage && (
-            <div
-              role="alert"
-              className="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2.5 text-semantic-danger"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 text-semantic-danger" />
-              <p className="text-xs font-medium leading-tight">{errorMessage}</p>
-            </div>
-          )}
-
           {/* Step 1: Personal Details */}
           {currentStep === 1 && (
             <form onSubmit={handleStep1Next} className="space-y-4">
@@ -339,8 +327,17 @@ export const OnboardingWizard: React.FC = () => {
                   isDob
                   max={maxDobString}
                   value={dateOfBirth}
-                  onChange={(val) => setDateOfBirth(val)}
-                  error={dobResult && !dobResult.isValid ? dobResult.message : undefined}
+                  onChange={(val) => {
+                    setDateOfBirth(val);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  error={
+                    dobResult && !dobResult.isValid
+                      ? dobResult.message
+                      : !dateOfBirth && errorMessage?.includes('birth')
+                      ? errorMessage
+                      : undefined
+                  }
                   helperText="Must be at least 16 years old to register."
                 />
 

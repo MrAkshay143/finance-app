@@ -8,7 +8,6 @@ import {
   Calendar,
   Building,
   FileText,
-  AlertCircle,
   Plus,
 } from 'lucide-react';
 import { Modal } from '../ui/Modal.js';
@@ -57,9 +56,11 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   const [merchant, setMerchant] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [error, setError] = useState<string>('');
   const [isAddAccountOpen, setIsAddAccountOpen] = useState<boolean>(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
+  const [amountError, setAmountError] = useState<string>('');
+  const [accountError, setAccountError] = useState<string>('');
+  const [toAccountError, setToAccountError] = useState<string>('');
 
   // Fetch real accounts via TanStack Query
   const { data: accountsData } = useQuery(
@@ -141,7 +142,9 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       setMerchant(initialData?.merchant || '');
       setDate(initialData?.date ? initialData.date.slice(0, 10) : new Date().toISOString().slice(0, 10));
       setDescription(initialData?.description || '');
-      setError('');
+      setAmountError('');
+      setAccountError('');
+      setToAccountError('');
       isInitializedRef.current = true;
     }
 
@@ -199,7 +202,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to save transaction.';
-        setError(msg);
         toast.error(msg);
       },
     },
@@ -224,7 +226,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to save transfer.';
-        setError(msg);
         toast.error(msg);
       },
     },
@@ -257,7 +258,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to update transaction.';
-        setError(msg);
         toast.error(msg);
       },
     },
@@ -326,44 +326,40 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    let hasError = false;
     const numAmount = parseFloat(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid amount greater than 0.');
-      toast.error('Please enter a valid amount greater than 0.');
-      return;
+      setAmountError('Please enter a valid amount greater than 0.');
+      hasError = true;
     }
 
     if (type === 'transfer') {
       if (!accountId) {
-        setError('Please select a source account.');
-        toast.error('Please select a source account.');
-        return;
+        setAccountError('Please select a source account.');
+        hasError = true;
       }
       if (!toAccountId) {
-        setError('Please select a destination account.');
-        toast.error('Please select a destination account.');
-        return;
-      }
-      if (accountId === toAccountId) {
-        setError('Source and destination accounts must be different.');
-        toast.error('Source and destination accounts must be different.');
-        return;
+        setToAccountError('Please select a destination account.');
+        hasError = true;
+      } else if (accountId === toAccountId) {
+        setToAccountError('Source and destination accounts must be different.');
+        hasError = true;
       }
     } else {
       if (!accountId) {
-        setError('Please select an account.');
-        toast.error('Please select an account.');
-        return;
+        setAccountError('Please select an account.');
+        hasError = true;
       }
     }
 
     // Future date prevention
     const todayStr = new Date().toISOString().slice(0, 10);
     if (date && date > todayStr) {
-      setError('Transaction date cannot be in the future.');
       toast.error('Transaction date cannot be in the future.');
-      return;
+      hasError = true;
     }
+
+    if (hasError) return;
 
     // Default description if empty
     const resolvedDescription = description.trim() || `${typeCapitalized} record`;
@@ -446,13 +442,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       }
     >
       <form id="transaction-form" onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
         {/* Amount Input */}
         <div>
           <Input
@@ -465,9 +454,10 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
             value={amount}
             onChange={(e) => {
               setAmount(e.target.value);
-              if (error) setError('');
+              if (amountError) setAmountError('');
             }}
-            status={amountResult ? (amountResult.isValid ? 'valid' : 'invalid') : 'idle'}
+            error={amountError}
+            status={amountError ? 'invalid' : amountResult ? (amountResult.isValid ? 'valid' : 'invalid') : 'idle'}
             icon={<span className="text-xs font-bold text-textMuted">{currencySymbol}</span>}
           />
         </div>
@@ -498,9 +488,10 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
               value={accountId}
               onChange={(e) => {
                 setAccountId(e.target.value);
-                if (error) setError('');
+                if (accountError) setAccountError('');
               }}
               options={accountOptions}
+              error={accountError}
             />
           )}
         </div>
@@ -526,9 +517,10 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
               value={toAccountId}
               onChange={(e) => {
                 setToAccountId(e.target.value);
-                if (error) setError('');
+                if (toAccountError) setToAccountError('');
               }}
               options={accountOptions.filter((opt) => opt.value !== accountId)}
+              error={toAccountError}
             />
           </div>
         )}
@@ -597,7 +589,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
             value={date}
             onChange={(e) => {
               setDate(e.target.value);
-              if (error) setError('');
             }}
             status={date ? (isFutureDate ? 'invalid' : 'valid') : 'idle'}
             error={isFutureDate ? 'Transaction date cannot be in the future' : undefined}

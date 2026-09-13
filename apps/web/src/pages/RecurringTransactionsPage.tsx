@@ -12,14 +12,12 @@ import {
   TrendingUp,
   TrendingDown,
   PiggyBank,
-  CheckCircle2,
   Clock,
   Zap,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
-import { Badge } from '../components/ui/Badge.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Input } from '../components/ui/Input.js';
 import { Select } from '../components/ui/Select.js';
@@ -40,7 +38,6 @@ export const RecurringTransactionsPage: React.FC = () => {
   const queryClient = useSafeQueryClient();
 
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  const [materializeResult, setMaterializeResult] = useState<string | null>(null);
 
   // Separate Add vs Edit Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -135,8 +132,6 @@ export const RecurringTransactionsPage: React.FC = () => {
       syncOnTransactionMutation(queryClient);
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
       const msg = `Processed ${data.materializedCount} due transactions.`;
-      setMaterializeResult(msg);
-      setTimeout(() => setMaterializeResult(null), 4000);
       toast.success(msg);
     },
     onError: (err: any) => {
@@ -335,13 +330,6 @@ export const RecurringTransactionsPage: React.FC = () => {
           </button>
         </div>
 
-        {materializeResult && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{materializeResult}</span>
-          </div>
-        )}
-
         {/* Filter Pills */}
         <div
           role="tablist"
@@ -404,9 +392,6 @@ export const RecurringTransactionsPage: React.FC = () => {
                           <h4 className="text-xs font-bold text-slate-900 truncate">
                             {item.description || `${item.type} payment`}
                           </h4>
-                          <Badge variant={isActive ? 'success' : 'neutral'} size="sm">
-                            {item.status}
-                          </Badge>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 truncate">
                           {item.account?.name || 'Account'} • {item.category?.name || 'Uncategorized'}
@@ -614,35 +599,27 @@ export const RecurringTransactionsPage: React.FC = () => {
           </div>
 
           {/* Frequency & Next Due Date */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Frequency
-              </label>
-              <Select
-                options={[
-                  { value: 'MONTHLY', label: 'Monthly' },
-                  { value: 'WEEKLY', label: 'Weekly' },
-                  { value: 'BI_WEEKLY', label: 'Bi-Weekly' },
-                  { value: 'DAILY', label: 'Daily' },
-                  { value: 'QUARTERLY', label: 'Quarterly' },
-                  { value: 'ANNUALLY', label: 'Annually' },
-                ]}
-                value={formFrequency}
-                onChange={(e) => setFormFrequency(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Next Occurrence
-              </label>
-              <Input
-                type="date"
-                value={formNextDate}
-                onChange={(e) => setFormNextDate(e.target.value)}
-                required
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3 items-start">
+            <Select
+              label="Frequency"
+              options={[
+                { value: 'MONTHLY', label: 'Monthly' },
+                { value: 'WEEKLY', label: 'Weekly' },
+                { value: 'BI_WEEKLY', label: 'Bi-Weekly' },
+                { value: 'DAILY', label: 'Daily' },
+                { value: 'QUARTERLY', label: 'Quarterly' },
+                { value: 'ANNUALLY', label: 'Annually' },
+              ]}
+              value={formFrequency}
+              onChange={(e) => setFormFrequency(e.target.value)}
+            />
+            <Input
+              label="Next Due Date"
+              type="date"
+              value={formNextDate}
+              onChange={(e) => setFormNextDate(e.target.value)}
+              required
+            />
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">
@@ -790,35 +767,27 @@ export const RecurringTransactionsPage: React.FC = () => {
           </div>
 
           {/* Frequency & Next Due Date */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Frequency
-              </label>
-              <Select
-                options={[
-                  { value: 'MONTHLY', label: 'Monthly' },
-                  { value: 'WEEKLY', label: 'Weekly' },
-                  { value: 'BI_WEEKLY', label: 'Bi-Weekly' },
-                  { value: 'DAILY', label: 'Daily' },
-                  { value: 'QUARTERLY', label: 'Quarterly' },
-                  { value: 'ANNUALLY', label: 'Annually' },
-                ]}
-                value={formFrequency}
-                onChange={(e) => setFormFrequency(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Next Occurrence
-              </label>
-              <Input
-                type="date"
-                value={formNextDate}
-                onChange={(e) => setFormNextDate(e.target.value)}
-                required
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3 items-start">
+            <Select
+              label="Frequency"
+              options={[
+                { value: 'MONTHLY', label: 'Monthly' },
+                { value: 'WEEKLY', label: 'Weekly' },
+                { value: 'BI_WEEKLY', label: 'Bi-Weekly' },
+                { value: 'DAILY', label: 'Daily' },
+                { value: 'QUARTERLY', label: 'Quarterly' },
+                { value: 'ANNUALLY', label: 'Annually' },
+              ]}
+              value={formFrequency}
+              onChange={(e) => setFormFrequency(e.target.value)}
+            />
+            <Input
+              label="Next Due Date"
+              type="date"
+              value={formNextDate}
+              onChange={(e) => setFormNextDate(e.target.value)}
+              required
+            />
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">

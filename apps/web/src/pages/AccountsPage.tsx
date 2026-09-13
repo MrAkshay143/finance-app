@@ -119,7 +119,7 @@ export const AccountsPage: React.FC = () => {
   const [editInstitution, setEditInstitution] = useState<string>('');
   const [editType, setEditType] = useState<string>('BANK');
   const [editIdentifier, setEditIdentifier] = useState<string>('');
-  const [editError, setEditError] = useState<string>('');
+  const [editNameError, setEditNameError] = useState<string>('');
 
   // TanStack Query: Fetch user settings
   const { data: userSettings } = useQuery(
@@ -164,9 +164,7 @@ export const AccountsPage: React.FC = () => {
         toast.success('Account updated successfully');
       },
       onError: (err: any) => {
-        const msg = getFriendlyErrorMessage(err, 'Failed to update account. Please try again.');
-        setEditError(msg);
-        toast.error(msg);
+        toast.error(getFriendlyErrorMessage(err, 'Failed to update account. Please try again.'));
       },
     },
     queryClient
@@ -201,7 +199,7 @@ export const AccountsPage: React.FC = () => {
     setEditInstitution('');
     setEditType('BANK');
     setEditIdentifier('');
-    setEditError('');
+    setEditNameError('');
   };
 
   const handleOpenEdit = (acc: Account) => {
@@ -210,15 +208,14 @@ export const AccountsPage: React.FC = () => {
     setEditInstitution(acc.institutionName || (acc as any).institution || '');
     setEditType(acc.type || (acc as any).accountType || 'BANK');
     setEditIdentifier(acc.accountNumberMask || (acc as any).accountIdentifier || '');
-    setEditError('');
+    setEditNameError('');
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAccount) return;
     if (!editName.trim()) {
-      setEditError('Account name is required.');
-      toast.error('Account name is required.');
+      setEditNameError('Account name is required.');
       return;
     }
 
@@ -379,9 +376,9 @@ export const AccountsPage: React.FC = () => {
                       >
                         {typeLabel}
                       </Badge>
-                      <Badge variant={isActive ? 'success' : 'neutral'} size="sm">
-                        {isActive ? 'Active' : 'Inactive'}
-                      </Badge>
+                      {!isActive && (
+                        <Badge variant="neutral" size="sm">Inactive</Badge>
+                      )}
                     </div>
                   </div>
 
@@ -465,12 +462,6 @@ export const AccountsPage: React.FC = () => {
         }
       >
         <form id="edit-account-form" onSubmit={handleEditSubmit} className="space-y-4">
-          {editError && (
-            <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{editError}</span>
-            </div>
-          )}
 
           <div>
             <Input
@@ -479,10 +470,8 @@ export const AccountsPage: React.FC = () => {
               required
               placeholder="e.g. HDFC Salary Account"
               value={editName}
-              onChange={(e) => {
-                setEditName(e.target.value);
-                if (editError) setEditError('');
-              }}
+              onChange={(e) => { setEditName(e.target.value); if (editNameError) setEditNameError(''); }}
+              error={editNameError}
               icon={<Building2 className="w-4 h-4" />}
             />
           </div>

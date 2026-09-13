@@ -353,13 +353,6 @@ export const AdminDashboardPage: React.FC = () => {
                         {item.email}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1 text-[10px] text-textMuted">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isActive ? 'bg-emerald-500' : 'bg-rose-500'
-                          }`}
-                        />
-                        <span>{isActive ? 'Active' : 'Suspended'}</span>
-                        <span>•</span>
                         <span>{formatLastActive(item)}</span>
                       </div>
                     </div>

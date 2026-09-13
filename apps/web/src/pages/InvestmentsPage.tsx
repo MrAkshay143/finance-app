@@ -16,7 +16,7 @@ import {
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Button } from '../components/ui/Button.js';
-import { Badge } from '../components/ui/Badge.js';
+
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { formatCurrency } from '../utils/currency.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
@@ -98,9 +98,6 @@ export const InvestmentsPage: React.FC = () => {
                 Total Portfolio Value
               </span>
             </div>
-            <Badge variant="investment" size="sm">
-              ACTIVE WEALTH
-            </Badge>
           </div>
 
           <div className="mt-3">

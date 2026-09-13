@@ -194,12 +194,6 @@ export const ProfilePage: React.FC = () => {
 
         {/* User Hero & Profile Completion Card */}
         <Card className="p-4 space-y-4 shadow-card">
-          {avatarError && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
-              {avatarError}
-            </div>
-          )}
-
           {/* Avatar and Identity Row */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">

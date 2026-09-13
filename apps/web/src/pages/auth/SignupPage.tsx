@@ -9,7 +9,6 @@ import {
   EyeOff,
   Check,
   X,
-  AlertCircle,
   ArrowRight,
   ShieldCheck,
   Wallet,
@@ -183,17 +182,6 @@ export const SignupPage: React.FC = () => {
 
         {/* Card Container */}
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-3.5 sm:p-5 shadow-xl border border-slate-200/80 space-y-2 sm:space-y-2.5">
-          {/* Friendly API Error Display */}
-          {error && (
-            <div
-              role="alert"
-              className="p-2.5 bg-red-50/90 border border-red-200 rounded-xl flex items-center gap-2 text-semantic-danger text-xs font-medium"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 text-semantic-danger" />
-              <p className="leading-tight">{error}</p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
             {/* Name Row (2 columns) */}
             <div className="grid grid-cols-2 gap-2.5">

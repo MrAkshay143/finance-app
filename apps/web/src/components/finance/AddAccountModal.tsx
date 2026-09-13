@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Landmark, Building2, AlertCircle } from 'lucide-react';
+import { Landmark, Building2 } from 'lucide-react';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
@@ -45,7 +45,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [accountType, setAccountType] = useState<string>('BANK');
   const [openingBalance, setOpeningBalance] = useState<string>('');
   const [currency, setCurrency] = useState<string>(initialCurrency || userCurrency || 'INR');
-  const [error, setError] = useState<string>('');
+  const [nameError, setNameError] = useState<string>('');
+  const [balanceError, setBalanceError] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -54,7 +55,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setAccountType('BANK');
       setOpeningBalance('');
       setCurrency(initialCurrency || userCurrency || 'INR');
-      setError('');
+      setNameError('');
+      setBalanceError('');
     }
   }, [isOpen, initialCurrency, userCurrency]);
 
@@ -70,9 +72,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
         onClose();
       },
       onError: (err: any) => {
-        const msg = getFriendlyErrorMessage(err, 'Failed to create account. Please try again.');
-        setError(msg);
-        toast.error(msg);
+        toast.error(getFriendlyErrorMessage(err, 'Failed to create account. Please try again.'));
       },
     },
     queryClient
@@ -80,17 +80,17 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    let hasError = false;
     if (!name.trim()) {
-      setError('Account name is required.');
-      toast.error('Account name is required.');
-      return;
+      setNameError('Account name is required.');
+      hasError = true;
     }
     const balNum = openingBalance ? parseFloat(openingBalance) : 0;
     if (isNaN(balNum) || balNum < 0) {
-      setError('Please enter a valid opening balance (0 or greater).');
-      toast.error('Please enter a valid opening balance (0 or greater).');
-      return;
+      setBalanceError('Enter a valid balance (0 or greater).');
+      hasError = true;
     }
+    if (hasError) return;
 
     createMutation.mutate({
       name: name.trim(),
@@ -134,13 +134,6 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       }
     >
       <form id="add-account-modal-form" onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
         <div>
           <Input
             label="Account Name"
@@ -148,10 +141,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             required
             placeholder="e.g. HDFC Salary Account, Zerodha Demat"
             value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (error) setError('');
-            }}
+            onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
+            error={nameError}
             icon={<Building2 className="w-4 h-4" />}
           />
         </div>
@@ -203,12 +194,10 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             min="0"
             placeholder="0.00"
             value={openingBalance}
-            onChange={(e) => {
-              setOpeningBalance(e.target.value);
-              if (error) setError('');
-            }}
+            onChange={(e) => { setOpeningBalance(e.target.value); if (balanceError) setBalanceError(''); }}
+            error={balanceError}
             icon={<span className="text-xs font-bold text-textMuted">{getCurrencySymbol(currency)}</span>}
-            helperText="Initial balance when connecting this account"
+            helperText={balanceError ? undefined : 'Initial balance when connecting this account'}
           />
         </div>
       </form>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Tag, AlertCircle } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
@@ -26,13 +26,13 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const queryClient = useSafeQueryClient();
   const [name, setName] = useState('');
   const [type, setType] = useState<TxnType>(initialType);
-  const [error, setError] = useState('');
+  const [nameError, setNameError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setName('');
       setType(initialType || 'EXPENSE');
-      setError('');
+      setNameError('');
     }
   }, [isOpen, initialType]);
 
@@ -49,9 +49,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
         onClose();
       },
       onError: (err: any) => {
-        const msg = getFriendlyErrorMessage(err, 'Failed to create category.');
-        setError(msg);
-        toast.error(msg);
+        toast.error(getFriendlyErrorMessage(err, 'Failed to create category.'));
       },
     },
     queryClient
@@ -60,11 +58,9 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Category name is required.');
-      toast.error('Category name is required.');
+      setNameError('Category name is required.');
       return;
     }
-    setError('');
     createMutation.mutate({
       name: name.trim(),
       type,
@@ -104,13 +100,6 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       }
     >
       <form id="add-category-form" onSubmit={handleSubmit} className="space-y-3">
-        {error && (
-          <div className="p-3 bg-semantic-danger-bg text-semantic-danger text-xs font-semibold rounded-xl border border-semantic-danger/30 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
         {/* Classification Type */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-textDefault">Category Type</label>
@@ -138,10 +127,8 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           required
           placeholder="e.g. Groceries, Gym, Side Hustle"
           value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (error) setError('');
-          }}
+          onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
+          error={nameError}
           icon={<Tag className="w-4 h-4 text-slate-400" />}
         />
       </form>

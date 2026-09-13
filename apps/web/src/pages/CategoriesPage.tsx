@@ -852,20 +852,17 @@ export const CategoriesPage: React.FC = () => {
         }
       >
         <form onSubmit={handleSaveCategory} className="space-y-3">
-          {categoryError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{categoryError}</span>
-            </div>
-          )}
-
           <div>
             <Input
               label="Category Name"
               type="text"
               placeholder="e.g. Freelance Consulting"
               value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
+              onChange={(e) => {
+                setCategoryName(e.target.value);
+                if (categoryError) setCategoryError(null);
+              }}
+              error={categoryError || undefined}
               required
             />
           </div>
@@ -916,20 +913,17 @@ export const CategoriesPage: React.FC = () => {
         }
       >
         <form onSubmit={handleUpdateCategory} className="space-y-3">
-          {categoryError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{categoryError}</span>
-            </div>
-          )}
-
           <div>
             <Input
               label="Category Name"
               type="text"
               placeholder="e.g. Freelance Consulting"
               value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
+              onChange={(e) => {
+                setCategoryName(e.target.value);
+                if (categoryError) setCategoryError(null);
+              }}
+              error={categoryError || undefined}
               required
             />
           </div>
@@ -1064,20 +1058,17 @@ export const CategoriesPage: React.FC = () => {
         }
       >
         <form onSubmit={handleSaveMerchant} className="space-y-3">
-          {merchantError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{merchantError}</span>
-            </div>
-          )}
-
           <div>
             <Input
               label="Merchant / Vendor Name"
               type="text"
               placeholder="e.g. Reliance Fresh"
               value={merchantName}
-              onChange={(e) => setMerchantName(e.target.value)}
+              onChange={(e) => {
+                setMerchantName(e.target.value);
+                if (merchantError) setMerchantError(null);
+              }}
+              error={merchantError || undefined}
               required
             />
           </div>
@@ -1114,20 +1105,17 @@ export const CategoriesPage: React.FC = () => {
         }
       >
         <form onSubmit={handleUpdateMerchant} className="space-y-3">
-          {merchantError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{merchantError}</span>
-            </div>
-          )}
-
           <div>
             <Input
               label="Merchant / Vendor Name"
               type="text"
               placeholder="e.g. Reliance Fresh"
               value={merchantName}
-              onChange={(e) => setMerchantName(e.target.value)}
+              onChange={(e) => {
+                setMerchantName(e.target.value);
+                if (merchantError) setMerchantError(null);
+              }}
+              error={merchantError || undefined}
               required
             />
           </div>

@@ -1090,31 +1090,38 @@ export const SettingsPage: React.FC = () => {
         }
       >
         <form onSubmit={handleSavePassword} className="space-y-3">
-          {passwordError && (
-            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-semibold">
-              {passwordError}
-            </div>
-          )}
           <Input
             label="Current Password"
             type="password"
             value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
+            onChange={(e) => {
+              setCurrentPassword(e.target.value);
+              if (passwordError) setPasswordError(null);
+            }}
+            error={passwordError?.includes('Current') ? passwordError : undefined}
             required
           />
           <Input
             label="New Password"
             type="password"
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            helperText="Minimum 8 characters"
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              if (passwordError) setPasswordError(null);
+            }}
+            error={passwordError?.includes('8 characters') ? passwordError : undefined}
+            helperText={passwordError?.includes('8 characters') ? undefined : 'Minimum 8 characters'}
             required
           />
           <Input
             label="Confirm New Password"
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (passwordError) setPasswordError(null);
+            }}
+            error={passwordError?.includes('match') ? passwordError : undefined}
             required
           />
         </form>

@@ -834,12 +834,6 @@ export const PlanningPage: React.FC = () => {
         }
       >
         <form onSubmit={handleSaveBudget} className="space-y-4">
-          {budgetError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{budgetError}</span>
-            </div>
-          )}
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -857,8 +851,12 @@ export const PlanningPage: React.FC = () => {
             </div>
             <Select
               value={budgetCategoryId}
-              onChange={(e) => setBudgetCategoryId(e.target.value)}
+              onChange={(e) => {
+                setBudgetCategoryId(e.target.value);
+                if (budgetError) setBudgetError(null);
+              }}
               options={categoryOptions}
+              error={budgetError?.includes('category') ? budgetError : undefined}
               required
             />
           </div>
@@ -871,7 +869,11 @@ export const PlanningPage: React.FC = () => {
               min="1"
               placeholder="e.g. 15000"
               value={budgetTargetAmount}
-              onChange={(e) => setBudgetTargetAmount(e.target.value)}
+              onChange={(e) => {
+                setBudgetTargetAmount(e.target.value);
+                if (budgetError) setBudgetError(null);
+              }}
+              error={budgetError?.includes('amount') ? budgetError : undefined}
               required
             />
           </div>
@@ -917,12 +919,6 @@ export const PlanningPage: React.FC = () => {
         }
       >
         <form onSubmit={handleUpdateBudget} className="space-y-4">
-          {budgetError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{budgetError}</span>
-            </div>
-          )}
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -940,8 +936,12 @@ export const PlanningPage: React.FC = () => {
             </div>
             <Select
               value={budgetCategoryId}
-              onChange={(e) => setBudgetCategoryId(e.target.value)}
+              onChange={(e) => {
+                setBudgetCategoryId(e.target.value);
+                if (budgetError) setBudgetError(null);
+              }}
               options={categoryOptions}
+              error={budgetError?.includes('category') ? budgetError : undefined}
               required
             />
           </div>
@@ -954,7 +954,11 @@ export const PlanningPage: React.FC = () => {
               min="1"
               placeholder="e.g. 15000"
               value={budgetTargetAmount}
-              onChange={(e) => setBudgetTargetAmount(e.target.value)}
+              onChange={(e) => {
+                setBudgetTargetAmount(e.target.value);
+                if (budgetError) setBudgetError(null);
+              }}
+              error={budgetError?.includes('amount') ? budgetError : undefined}
               required
             />
           </div>
@@ -1000,12 +1004,6 @@ export const PlanningPage: React.FC = () => {
         }
       >
         <form onSubmit={handleSaveGoal} className="space-y-4">
-          {goalError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{goalError}</span>
-            </div>
-          )}
 
           <div>
             <Input
@@ -1013,7 +1011,11 @@ export const PlanningPage: React.FC = () => {
               type="text"
               placeholder="e.g. Emergency Fund"
               value={goalName}
-              onChange={(e) => setGoalName(e.target.value)}
+              onChange={(e) => {
+                setGoalName(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('name') ? goalError : undefined}
               required
             />
           </div>
@@ -1026,7 +1028,11 @@ export const PlanningPage: React.FC = () => {
               min="1"
               placeholder="e.g. 500000"
               value={goalTargetAmount}
-              onChange={(e) => setGoalTargetAmount(e.target.value)}
+              onChange={(e) => {
+                setGoalTargetAmount(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('target') ? goalError : undefined}
               required
             />
           </div>
@@ -1039,7 +1045,11 @@ export const PlanningPage: React.FC = () => {
               min="0"
               placeholder="e.g. 150000"
               value={goalCurrentAmount}
-              onChange={(e) => setGoalCurrentAmount(e.target.value)}
+              onChange={(e) => {
+                setGoalCurrentAmount(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('Current') ? goalError : undefined}
             />
           </div>
 
@@ -1048,7 +1058,11 @@ export const PlanningPage: React.FC = () => {
               label="Target Date"
               type="date"
               value={goalTargetDate}
-              onChange={(e) => setGoalTargetDate(e.target.value)}
+              onChange={(e) => {
+                setGoalTargetDate(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('date') ? goalError : undefined}
               required
             />
           </div>
@@ -1084,12 +1098,6 @@ export const PlanningPage: React.FC = () => {
         }
       >
         <form onSubmit={handleUpdateGoal} className="space-y-4">
-          {goalError && (
-            <div className="p-2.5 rounded-xl bg-semantic-danger-bg text-semantic-danger text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{goalError}</span>
-            </div>
-          )}
 
           <div>
             <Input
@@ -1097,7 +1105,11 @@ export const PlanningPage: React.FC = () => {
               type="text"
               placeholder="e.g. Emergency Fund"
               value={goalName}
-              onChange={(e) => setGoalName(e.target.value)}
+              onChange={(e) => {
+                setGoalName(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('name') ? goalError : undefined}
               required
             />
           </div>
@@ -1110,7 +1122,11 @@ export const PlanningPage: React.FC = () => {
               min="1"
               placeholder="e.g. 500000"
               value={goalTargetAmount}
-              onChange={(e) => setGoalTargetAmount(e.target.value)}
+              onChange={(e) => {
+                setGoalTargetAmount(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('target') ? goalError : undefined}
               required
             />
           </div>
@@ -1123,7 +1139,11 @@ export const PlanningPage: React.FC = () => {
               min="0"
               placeholder="e.g. 150000"
               value={goalCurrentAmount}
-              onChange={(e) => setGoalCurrentAmount(e.target.value)}
+              onChange={(e) => {
+                setGoalCurrentAmount(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('Current') ? goalError : undefined}
             />
           </div>
 
@@ -1132,7 +1152,11 @@ export const PlanningPage: React.FC = () => {
               label="Target Date"
               type="date"
               value={goalTargetDate}
-              onChange={(e) => setGoalTargetDate(e.target.value)}
+              onChange={(e) => {
+                setGoalTargetDate(e.target.value);
+                if (goalError) setGoalError(null);
+              }}
+              error={goalError?.includes('date') ? goalError : undefined}
               required
             />
           </div>

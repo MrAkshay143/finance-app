@@ -465,17 +465,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Error Alert */}
-            {wizardError && (
-              <div
-                role="alert"
-                className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-medium"
-              >
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{wizardError}</span>
-              </div>
-            )}
-
             {/* Question Card */}
             <Card className="p-4 space-y-3.5 shadow-card">
               <div>
@@ -510,8 +499,15 @@ export const SecurityQuestionsPage: React.FC = () => {
                     type={showAnswer ? 'text' : 'password'}
                     placeholder="Enter your secret answer"
                     value={currentAnswerData.answer}
-                    onChange={(e) => handleAnswerChange(e.target.value)}
-                    className="w-full pl-3 pr-10 py-2 bg-white border border-borderDefault rounded-xl text-xs text-textDefault focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    onChange={(e) => {
+                      handleAnswerChange(e.target.value);
+                      if (wizardError) setWizardError(null);
+                    }}
+                    className={`w-full pl-3 pr-10 py-2 bg-white border rounded-xl text-xs text-textDefault focus:outline-none focus:ring-2 ${
+                      wizardError
+                        ? 'border-semantic-danger focus:ring-semantic-danger'
+                        : 'border-borderDefault focus:ring-brand-primary'
+                    }`}
                   />
                   <button
                     type="button"
@@ -522,6 +518,12 @@ export const SecurityQuestionsPage: React.FC = () => {
                     {showAnswer ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                {wizardError && (
+                  <p className="mt-1 text-xs text-semantic-danger font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    <span>{wizardError}</span>
+                  </p>
+                )}
               </div>
             </Card>
 
@@ -590,16 +592,6 @@ export const SecurityQuestionsPage: React.FC = () => {
           <p className="text-xs text-slate-600">
             Verify that you remember the answers to your 3 security questions:
           </p>
-
-          {verifyError && (
-            <div
-              role="alert"
-              className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-medium"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{verifyError}</span>
-            </div>
-          )}
 
           <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 scrollbar-thin">
             {existingQuestions.map((q, idx) => (

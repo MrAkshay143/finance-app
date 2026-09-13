@@ -295,14 +295,14 @@ export const ReportsPage: React.FC = () => {
     if (delta === null) return null;
     if (delta === 0) {
       return {
-        text: '(0% from last month)',
+        text: '(0% vs last mo)',
         colorClass: 'text-slate-500',
       };
     }
     const isUp = delta > 0;
     const arrow = isUp ? '↑' : '↓';
     const absVal = Math.abs(delta);
-    const text = `(${arrow}${absVal}% from last month)`;
+    const text = `(${arrow}${absVal}% vs last mo)`;
 
     // For expenses: down (spending less) is favorable (green), up (spending more) is unfavorable (red)
     // For income and FAM score: up is favorable (green), down is unfavorable (red)
@@ -530,7 +530,7 @@ export const ReportsPage: React.FC = () => {
                     {famGradeVal}
                   </span>
                   {famComparison && (
-                    <span className={`text-[10px] font-bold ${famComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap ${famComparison.colorClass}`}>
                       {famComparison.text}
                     </span>
                   )}
@@ -559,7 +559,7 @@ export const ReportsPage: React.FC = () => {
                     {earnedProjected > 0 ? `${earnedPercent}% target` : 'Active'}
                   </span>
                   {incomeComparison && (
-                    <span className={`text-[10px] font-bold ${incomeComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap ${incomeComparison.colorClass}`}>
                       {incomeComparison.text}
                     </span>
                   )}
@@ -588,7 +588,7 @@ export const ReportsPage: React.FC = () => {
                     {expenseProjected > 0 ? `${expensePercent}% budget` : 'Active'}
                   </span>
                   {expenseComparison && (
-                    <span className={`text-[10px] font-bold ${expenseComparison.colorClass}`}>
+                    <span className={`text-[10px] font-bold whitespace-nowrap ${expenseComparison.colorClass}`}>
                       {expenseComparison.text}
                     </span>
                   )}
