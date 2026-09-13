@@ -188,18 +188,18 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // Card 1: FAM Score Grade with positive increase (+12%) in green
+      // Card 1: FAM Score Grade with positive increase (↑12% from last month) in green
       expect(html).toContain('A+');
-      expect(html).toContain('(+12%)');
+      expect(html).toContain('(↑12% from last month)');
       expect(html).toContain('text-emerald-600');
 
-      // Card 2: Total Income Target with positive increase (+26%) in green
+      // Card 2: Total Income Target with positive increase (↑26% from last month) in green
       expect(html).toContain('206% target');
-      expect(html).toContain('(+26%)');
+      expect(html).toContain('(↑26% from last month)');
 
-      // Card 3: Total Expenses Budget with decrease (-6%) in green (spending less is favorable)
+      // Card 3: Total Expenses Budget with decrease (↓6% from last month) in green (spending less is favorable)
       expect(html).toContain('79% budget');
-      expect(html).toContain('(-6%)');
+      expect(html).toContain('(↓6% from last month)');
     });
 
     it('renders unfavorable decreases and increases with rose red color', () => {
@@ -240,12 +240,12 @@ describe('Dropdown, DatePicker, Reports, & Toast Unit Tests', () => {
         </QueryClientProvider>
       );
 
-      // FAM score decrease: (-10%) in red
-      expect(html).toContain('(-10%)');
-      // Income target decrease: (-20%) in red
-      expect(html).toContain('(-20%)');
-      // Expense budget increase: (+15%) in red (spending more budget is unfavorable)
-      expect(html).toContain('(+15%)');
+      // FAM score decrease: (↓10% from last month) in red
+      expect(html).toContain('(↓10% from last month)');
+      // Income target decrease: (↓20% from last month) in red
+      expect(html).toContain('(↓20% from last month)');
+      // Expense budget increase: (↑15% from last month) in red (spending more budget is unfavorable)
+      expect(html).toContain('(↑15% from last month)');
       expect(html).toContain('text-rose-600');
     });
   });

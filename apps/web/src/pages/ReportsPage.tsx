@@ -288,6 +288,34 @@ export const ReportsPage: React.FC = () => {
     return null;
   }, [comparisonData, prevReportData, expenseProjected, prevExpensePercent, expensePercent, prevEarnedActual, expenseActual, prevExpenseActual]);
 
+  const formatDelta = (
+    delta: number | null,
+    isExpense: boolean = false
+  ): { text: string; colorClass: string } | null => {
+    if (delta === null) return null;
+    if (delta === 0) {
+      return {
+        text: '(0% from last month)',
+        colorClass: 'text-slate-500',
+      };
+    }
+    const isUp = delta > 0;
+    const arrow = isUp ? '↑' : '↓';
+    const absVal = Math.abs(delta);
+    const text = `(${arrow}${absVal}% from last month)`;
+
+    // For expenses: down (spending less) is favorable (green), up (spending more) is unfavorable (red)
+    // For income and FAM score: up is favorable (green), down is unfavorable (red)
+    const isFavorable = isExpense ? !isUp : isUp;
+    const colorClass = isFavorable ? 'text-emerald-600' : 'text-rose-600';
+
+    return { text, colorClass };
+  };
+
+  const famComparison = useMemo(() => formatDelta(famDelta, false), [famDelta]);
+  const incomeComparison = useMemo(() => formatDelta(incomeDelta, false), [incomeDelta]);
+  const expenseComparison = useMemo(() => formatDelta(expenseDelta, true), [expenseDelta]);
+
   const formatBarBadge = (amount: number): string => {
     return formatCompactCurrency(amount, userCurrency);
   };
@@ -501,17 +529,9 @@ export const ReportsPage: React.FC = () => {
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brand-primary bg-blue-100/90 px-1.5 py-0.5 rounded-md">
                     {famGradeVal}
                   </span>
-                  {famDelta !== null && (
-                    <span
-                      className={`text-[10px] font-bold ${
-                        famDelta > 0
-                          ? 'text-emerald-600'
-                          : famDelta < 0
-                          ? 'text-rose-600'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {`(${famDelta > 0 ? `+${famDelta}%` : `${famDelta}%`})`}
+                  {famComparison && (
+                    <span className={`text-[10px] font-bold ${famComparison.colorClass}`}>
+                      {famComparison.text}
                     </span>
                   )}
                 </div>
@@ -538,17 +558,9 @@ export const ReportsPage: React.FC = () => {
                   <span className="text-[10px] font-bold text-emerald-700">
                     {earnedProjected > 0 ? `${earnedPercent}% target` : 'Active'}
                   </span>
-                  {incomeDelta !== null && (
-                    <span
-                      className={`text-[10px] font-bold ${
-                        incomeDelta > 0
-                          ? 'text-emerald-600'
-                          : incomeDelta < 0
-                          ? 'text-rose-600'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {`(${incomeDelta > 0 ? `+${incomeDelta}%` : `${incomeDelta}%`})`}
+                  {incomeComparison && (
+                    <span className={`text-[10px] font-bold ${incomeComparison.colorClass}`}>
+                      {incomeComparison.text}
                     </span>
                   )}
                 </div>
@@ -575,17 +587,9 @@ export const ReportsPage: React.FC = () => {
                   <span className="text-[10px] font-bold text-rose-700">
                     {expenseProjected > 0 ? `${expensePercent}% budget` : 'Active'}
                   </span>
-                  {expenseDelta !== null && (
-                    <span
-                      className={`text-[10px] font-bold ${
-                        expenseDelta < 0
-                          ? 'text-emerald-600'
-                          : expenseDelta > 0
-                          ? 'text-rose-600'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {`(${expenseDelta > 0 ? `+${expenseDelta}%` : `${expenseDelta}%`})`}
+                  {expenseComparison && (
+                    <span className={`text-[10px] font-bold ${expenseComparison.colorClass}`}>
+                      {expenseComparison.text}
                     </span>
                   )}
                 </div>
