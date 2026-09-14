@@ -7,7 +7,7 @@ const getBaseUrl = (): string => {
   if (envUrl) {
     return envUrl;
   }
-  return 'http://localhost:4000/api/v1';
+  return 'https://finance.imakshay.in/api/v1';
 };
 
 export const apiClient = new FinanceApiClient({

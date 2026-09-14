@@ -2,6 +2,16 @@ import { z } from 'zod';
 import { UserRoleSchema, UserStatusSchema } from './enums.js';
 import { PaginationSchema } from './api.js';
 
+export interface EmailTemplate {
+  key: string;
+  name: string;
+  subject: string;
+  htmlContent: string;
+  textContent?: string;
+  variables: string[];
+  isActive: boolean;
+}
+
 export const AdminDashboardMetricsSchema = z.object({
   totalUsers: z.number().int().nonnegative(),
   activeUsers: z.number().int().nonnegative(),

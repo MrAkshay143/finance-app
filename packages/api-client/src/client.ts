@@ -218,6 +218,10 @@ export class FinanceApiClient {
       this.request<AuthResponse>({ method: 'POST', url: '/auth/login', data: input }),
     logout: () =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/logout' }),
+    verifyRegistrationOtp: (input: { email: string; otp: string }) =>
+      this.request<AuthResponse>({ method: 'POST', url: '/auth/signup/verify', data: input }),
+    resendRegistrationOtp: (input: { email: string }) =>
+      this.request<{ message: string }>({ method: 'POST', url: '/auth/signup/resend-otp', data: input }),
     refreshToken: async (token?: string) => {
       const storedRefreshToken = token ?? (this.config.getRefreshToken ? await this.config.getRefreshToken() : undefined);
       return this.request<AuthResponse>({
@@ -534,6 +538,10 @@ export class FinanceApiClient {
   readonly admin = {
     getDashboard: () =>
       this.request<AdminDashboardMetrics>({ method: 'GET', url: '/admin/dashboard' }),
+    getEmailTemplates: () =>
+      this.request<any[]>({ method: 'GET', url: '/admin/email-templates' }),
+    updateEmailTemplate: (key: string, data: any) =>
+      this.request<any>({ method: 'PUT', url: `/admin/email-templates/${key}`, data }),
     getUsers: (params?: { page?: number; pageSize?: number; search?: string; status?: string; role?: string; sortBy?: string }) =>
       this.request<AdminUserListResponse>({ method: 'GET', url: '/admin/users', params }),
     getUserDetails: (id: string) =>

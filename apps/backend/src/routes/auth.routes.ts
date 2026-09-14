@@ -10,6 +10,8 @@ import {
   ChangePasswordSchema,
   ForgotPasswordVerifyInputSchema,
   ResetPasswordInputSchema,
+  SendRegistrationOtpInputSchema,
+  VerifyRegistrationOtpInputSchema,
 } from '@finance/shared-types';
 
 export const authRouter: Router = Router();
@@ -35,9 +37,16 @@ const forgotPasswordRateLimiter = createRateLimiter({
   message: 'Too many password reset requests. Please wait a minute before trying again.',
 });
 
-// Public auth endpoints
 authRouter.post('/signup', signupRateLimiter, validateBody(SignupInputSchema), (req, res, next) => {
   authController.signup(req, res, next);
+});
+
+authRouter.post('/signup/verify', signupRateLimiter, validateBody(VerifyRegistrationOtpInputSchema), (req, res, next) => {
+  authController.verifyRegistrationOtp(req, res, next);
+});
+
+authRouter.post('/signup/resend-otp', signupRateLimiter, validateBody(SendRegistrationOtpInputSchema), (req, res, next) => {
+  authController.resendRegistrationOtp(req, res, next);
 });
 
 authRouter.post('/login', loginRateLimiter, validateBody(LoginInputSchema), (req, res, next) => {

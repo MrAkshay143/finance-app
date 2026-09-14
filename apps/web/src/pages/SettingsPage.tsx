@@ -288,7 +288,7 @@ export const SettingsPage: React.FC = () => {
     <div className="flex-1 flex flex-col pb-8">
       <AppHeader
         variant="root"
-        title="Finance Tracker"
+        
         subtitle="Manage your account & preferences"
       />
 
@@ -1241,3 +1241,5 @@ export const SettingsPage: React.FC = () => {
     </div>
   );
 };
+
+

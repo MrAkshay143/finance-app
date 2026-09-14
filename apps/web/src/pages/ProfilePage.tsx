@@ -163,7 +163,7 @@ export const ProfilePage: React.FC = () => {
       {/* Branded Root Header */}
       <AppHeader
         variant="root"
-        title="Finance Tracker"
+        
         subtitle={`Welcome back, ${user?.firstName || user?.fullName || 'User'}`}
       />
 
@@ -492,3 +492,5 @@ export const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+
+

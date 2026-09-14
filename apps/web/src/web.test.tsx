@@ -72,7 +72,7 @@ describe('Web Shell, Shared Tokens & Navigation Test Suite', () => {
     it('renders root header with title, unread notification count, and avatar progress ring', () => {
       const html = renderToString(
         <MemoryRouter>
-          <AppHeader variant="root" title="Finance Tracker" subtitle="Personal Wealth & Spending Hub" />
+          <AppHeader variant="root"  subtitle="Personal Wealth & Spending Hub" />
         </MemoryRouter>
       );
       expect(html).toContain('#0B1B3A');
@@ -314,3 +314,5 @@ describe('Web Shell, Shared Tokens & Navigation Test Suite', () => {
     });
   });
 });
+
+

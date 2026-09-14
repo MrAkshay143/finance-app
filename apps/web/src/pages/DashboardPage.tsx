@@ -219,7 +219,7 @@ export const DashboardPage: React.FC = () => {
       {/* 1. Centralized Branded Dark Navy Header (Preserved exactly as requested) */}
       <AppHeader
         variant="root"
-        title="Finance Tracker"
+        
         subtitle="Financial Assessment & Wealth Hub"
       />
 
@@ -1116,3 +1116,5 @@ export const DashboardPage: React.FC = () => {
     </div>
   );
 };
+
+

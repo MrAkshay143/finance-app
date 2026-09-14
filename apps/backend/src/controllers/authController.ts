@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { authService } from '../services/authService.js';
+import { authService, AuthResult } from '../services/authService.js';
 import { env } from '../config/env.js';
 
 function parseCookie(cookieHeader?: string): Record<string, string> {
@@ -58,12 +58,57 @@ export class AuthController {
       };
 
       const result = await authService.signup(req.body, metadata);
-      setRefreshTokenCookie(res, result.tokens.refreshToken);
-      setAccessTokenCookie(res, result.tokens.accessToken);
+      
+      if ('requiresEmailVerification' in result && result.requiresEmailVerification) {
+        res.status(202).json({
+          success: true,
+          data: result,
+        });
+        return;
+      }
+
+      const authResult = result as unknown as AuthResult;
+      setRefreshTokenCookie(res, authResult.tokens.refreshToken);
+      setAccessTokenCookie(res, authResult.tokens.accessToken);
 
       res.status(201).json({
         success: true,
         data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async verifyRegistrationOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, otp } = req.body;
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip || req.socket.remoteAddress,
+      };
+
+      const result = await authService.verifyRegistrationOtp(email, otp, metadata);
+      setRefreshTokenCookie(res, result.tokens.refreshToken);
+      setAccessTokenCookie(res, result.tokens.accessToken);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async resendRegistrationOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body;
+      await authService.resendRegistrationOtp(email);
+
+      res.status(200).json({
+        success: true,
+        data: { message: 'OTP resent successfully' },
       });
     } catch (err) {
       next(err);

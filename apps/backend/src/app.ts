@@ -97,7 +97,9 @@ export function createApp(): Express {
   });
 
   // Serve static SPA files if public/ directory exists
-  const publicDir = process.env.PUBLIC_DIR || path.join(process.cwd(), 'public');
+  const publicDir = process.env.PUBLIC_DIR 
+    ? path.resolve(__dirname, process.env.PUBLIC_DIR)
+    : path.join(__dirname, 'public');
   const hasSpa = fs.existsSync(path.join(publicDir, 'index.html'));
 
   // Root endpoint: Serves SPA index.html for browsers/web clients, or JSON API info for API monitors

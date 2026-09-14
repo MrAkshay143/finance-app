@@ -5,6 +5,7 @@ import { AvatarProgressRing } from '../finance/FamProgressRing.js';
 import { useUiStore } from '../../store/uiStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
+import { useConfigStore } from '../../store/configStore.js';
 
 export interface AppHeaderProps {
   variant?: 'root' | 'nested';
@@ -21,7 +22,7 @@ export interface AppHeaderProps {
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   variant = 'root',
-  title = 'Finance Tracker',
+  title,
   subtitle = 'Personal Wealth & Spending Hub',
   backTo,
   onBack,
@@ -38,6 +39,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     : useUiStore((state) => state.unreadCount);
   const unreadCount = propUnreadCount !== undefined ? propUnreadCount : storeUnreadCount;
   const user = useAuthStore((state) => state.user);
+  
+  const platformName = useConfigStore((s) => s.platformName);
+  const displayTitle = title || platformName;
 
   const dynamicInitials =
     user?.firstName && user?.lastName
@@ -78,7 +82,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <button
               type="button"
               onClick={handleAppIconClick}
-              aria-label="Finance Tracker Home"
+              aria-label={`${displayTitle} Home`}
               className="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-md active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1B3A] border border-white/20 bg-[#0B0F17]"
             >
               <img
@@ -93,7 +97,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </button>
             <div className="min-w-0">
               <h1 className="text-lg font-bold tracking-tight text-white leading-tight truncate">
-                {title}
+                {displayTitle}
               </h1>
               {subtitle && (
                 <p className="text-xs text-slate-300 font-normal leading-tight truncate mt-0.5">
@@ -173,3 +177,4 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     </header>
   );
 };
+

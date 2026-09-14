@@ -57,6 +57,7 @@ model User {
   failedLoginAttempts Int        @default(0)
   lockedUntil         DateTime?
   onboardingCompleted Boolean    @default(false)
+  emailVerified       Boolean    @default(false)
   avatarUrl           String?    @db.LongText
   country             String     @default("IN")
   createdAt           DateTime   @default(now())
@@ -370,3 +371,24 @@ model UserSettings {
   @@map("user_settings")
 }
 
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model EmailOtp {
+  id        String     @id @default(uuid())
+  email     String
+  otpHash   String
+  purpose   OtpPurpose
+  attempts  Int        @default(0)
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime   @default(now())
+
+  @@index([email])
+  @@index([purpose])
+  @@index([expiresAt])
+  @@map("email_otps")
+}

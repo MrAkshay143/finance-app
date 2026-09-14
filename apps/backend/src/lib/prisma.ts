@@ -8,7 +8,7 @@ declare global {
 
 export const prisma =
   global.prisma ||
-  new PrismaClient({
+  new PrismaClient({ datasourceUrl: env.DATABASE_URL,
     log:
       env.NODE_ENV === 'development'
         ? ['warn', 'error']
@@ -22,3 +22,4 @@ if (env.NODE_ENV !== 'production') {
 }
 
 export default prisma;
+

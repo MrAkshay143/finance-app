@@ -152,3 +152,14 @@ export const ResetPasswordInputSchema = z.object({
   newPassword: PasswordSchema,
 });
 export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;
+
+export const SendRegistrationOtpInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+export type SendRegistrationOtpInput = z.infer<typeof SendRegistrationOtpInputSchema>;
+
+export const VerifyRegistrationOtpInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  otp: z.string().min(6, 'OTP must be 6 characters').max(6, 'OTP must be 6 characters'),
+});
+export type VerifyRegistrationOtpInput = z.infer<typeof VerifyRegistrationOtpInputSchema>;

@@ -6,7 +6,7 @@ const getSocketUrl = (): string => {
   if (envUrl) {
     return envUrl.replace(/\/api\/v1\/?$/, '');
   }
-  return 'http://localhost:4000';
+  return 'https://finance.imakshay.in';
 };
 
 export const socketManager = new FinanceSocketManager({

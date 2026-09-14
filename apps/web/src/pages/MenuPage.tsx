@@ -256,7 +256,7 @@ export const MenuPage: React.FC = () => {
     <div className="flex-1 flex flex-col pb-6">
       <AppHeader
         variant="root"
-        title="Finance Tracker"
+        
         subtitle={`Welcome back, ${displayName}`}
         avatarInitials={initial}
       />
@@ -390,3 +390,5 @@ export const MenuPage: React.FC = () => {
     </div>
   );
 };
+
+

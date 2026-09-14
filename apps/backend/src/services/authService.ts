@@ -15,6 +15,8 @@ import { logger } from '../lib/logger.js';
 import { logAuditEvent } from './auditService.js';
 import { kbaService } from './kbaService.js';
 import { categoryService } from './categoryService.js';
+import { otpService } from './otpService.js';
+import { enqueueEmail } from './emailQueue.js';
 import {
   UnauthorizedError,
   ConflictError,
@@ -90,7 +92,7 @@ export class AuthService {
   /**
    * Registers a new user with default settings and issues an auth token pair.
    */
-  async signup(data: SignupData, metadata: ClientMetadata = {}): Promise<AuthResult> {
+  async signup(data: SignupData, metadata: ClientMetadata = {}): Promise<AuthResult | { requiresEmailVerification: true; email: string; userId: string }> {
     const normalizedEmail = data.email.toLowerCase().trim();
 
     // Check email uniqueness
@@ -226,6 +228,29 @@ export class AuthService {
     // Ensure default system categories are provisioned for new user
     categoryService.ensureSystemCategories().catch(() => {});
 
+    const isEmailVerificationRequired = await otpService.isEmailVerificationRequired();
+
+    if (isEmailVerificationRequired) {
+      const { otp } = await otpService.generateOtp(user.email, 'EMAIL_VERIFICATION');
+      await enqueueEmail({
+        type: 'custom',
+        to: user.email,
+        subject: 'Verify your email address',
+        htmlContent: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
+      });
+
+      return {
+        requiresEmailVerification: true,
+        email: user.email,
+        userId: user.id,
+      };
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true },
+    });
+
     // Issue initial tokens
     const familyId = crypto.randomUUID();
     const refreshTokenString = generateRefreshTokenString();
@@ -283,6 +308,104 @@ export class AuthService {
         expiresIn,
       },
     };
+  }
+
+  /**
+   * Verifies the email OTP and issues auth tokens.
+   */
+  async verifyRegistrationOtp(email: string, otp: string, metadata: ClientMetadata = {}): Promise<AuthResult> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    await otpService.verifyOtp(normalizedEmail, 'EMAIL_VERIFICATION', otp);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true },
+    });
+
+    // Issue tokens
+    const familyId = crypto.randomUUID();
+    const refreshTokenString = generateRefreshTokenString();
+    const tokenHash = hashRefreshToken(refreshTokenString);
+    const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
+
+    const refreshTokenRow = await prisma.refreshToken.create({
+      data: {
+        userId: updatedUser.id,
+        tokenHash,
+        familyId,
+        userAgent: metadata.userAgent || null,
+        ipAddress: metadata.ipAddress || null,
+        expiresAt,
+      },
+    });
+
+    const sessionTimeout = await this.getSessionTimeoutMinutes();
+    const { token: accessToken, expiresIn } = signAccessToken(
+      {
+        userId: updatedUser.id,
+        role: updatedUser.role,
+        sessionId: refreshTokenRow.id,
+      },
+      sessionTimeout
+    );
+
+    await logAuditEvent({
+      actorUserId: updatedUser.id,
+      action: 'AUTH_EMAIL_VERIFIED',
+      ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
+    });
+
+    return {
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        fullName: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        mobileNumber: updatedUser.mobileNumber,
+        country: updatedUser.country,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        onboardingCompleted: updatedUser.onboardingCompleted,
+        avatarUrl: updatedUser.avatarUrl ?? null,
+        lastLoginAt: updatedUser.lastLoginAt,
+      },
+      tokens: {
+        accessToken,
+        refreshToken: refreshTokenString,
+        expiresIn,
+      },
+    };
+  }
+
+  /**
+   * Resends the registration OTP.
+   */
+  async resendRegistrationOtp(email: string): Promise<void> {
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    if (user.emailVerified) {
+      throw new ConflictError('Email is already verified');
+    }
+
+    const { otp } = await otpService.generateOtp(normalizedEmail, 'EMAIL_VERIFICATION');
+    await enqueueEmail({
+      type: 'custom',
+      to: normalizedEmail,
+      subject: 'Verify your email address',
+      htmlContent: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
+    });
   }
 
   /**

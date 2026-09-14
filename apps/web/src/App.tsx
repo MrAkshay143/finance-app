@@ -7,10 +7,15 @@ import { SplashScreen } from './components/common/SplashScreen.js';
 import { ErrorBoundary } from './components/common/ErrorBoundary.js';
 import { useMaintenanceStore } from './store/maintenanceStore.js';
 import { useAuthStore } from './store/authStore.js';
+import { useConfigStore } from './store/configStore.js';
 
 export function App() {
   const isMaintenanceActive = useMaintenanceStore((s) => s.isMaintenanceActive);
   const user = useAuthStore((s) => s.user);
+  
+  React.useEffect(() => {
+    useConfigStore.getState().fetchConfig();
+  }, []);
 
   if (isMaintenanceActive && user?.role !== 'ADMIN') {
     return <MaintenanceScreen />;

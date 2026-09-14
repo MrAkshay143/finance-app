@@ -149,7 +149,7 @@ export const AnalyticsPage: React.FC = () => {
       {/* Branded Dark Navy Header */}
       <AppHeader
         variant="root"
-        title="Finance Tracker"
+        
         subtitle="Trends & Spending Insights"
       />
 
@@ -662,3 +662,5 @@ export const AnalyticsPage: React.FC = () => {
     </div>
   );
 };
+
+

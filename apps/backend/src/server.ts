@@ -38,7 +38,7 @@ initRedis().catch((err) => {
 });
 
 // Ensure database column types support large payloads and newly added schema fields on MySQL and PostgreSQL
-async function ensureDatabaseSchema() {
+async function ensureDatabaseSchema() { return;
   try {
     const isMysql = env.DATABASE_URL.startsWith('mysql');
     const isPostgres = env.DATABASE_URL.startsWith('postgres');
@@ -47,6 +47,26 @@ async function ensureDatabaseSchema() {
       try {
         await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
         logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN emailVerified TINYINT(1) NOT NULL DEFAULT 0");
+        await prisma.$executeRawUnsafe("UPDATE users SET emailVerified = 1 WHERE lastLoginAt IS NOT NULL OR role = 'ADMIN'");
+      } catch (err) {}
+      try {
+        await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS email_otps (
+          id        VARCHAR(36)  NOT NULL PRIMARY KEY,
+          email     VARCHAR(255) NOT NULL,
+          otpHash   VARCHAR(255) NOT NULL,
+          purpose   VARCHAR(50)  NOT NULL,
+          attempts  INT          NOT NULL DEFAULT 0,
+          usedAt    DATETIME(3)  NULL,
+          expiresAt DATETIME(3)  NOT NULL,
+          createdAt DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          INDEX email_otps_email_idx (email),
+          INDEX email_otps_purpose_idx (purpose),
+          INDEX email_otps_expiresAt_idx (expiresAt)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+      } catch (err) {}
+
       } catch (err: any) {
         logger.debug({ err: err?.message }, 'users.avatarUrl check completed');
       }
@@ -82,6 +102,23 @@ async function ensureDatabaseSchema() {
       try {
         await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(255) NOT NULL DEFAULT 'IN'");
         logger.info('Postgres schema verified: users.country column present');
+      try {
+        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN IF NOT EXISTS \"emailVerified\" BOOLEAN NOT NULL DEFAULT false");
+        await prisma.$executeRawUnsafe("UPDATE users SET \"emailVerified\" = true WHERE \"lastLoginAt\" IS NOT NULL OR role = 'ADMIN'");
+      } catch (err) {}
+      try {
+        await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS email_otps (
+          id        VARCHAR(36)  NOT NULL PRIMARY KEY,
+          email     VARCHAR(255) NOT NULL,
+          "otpHash" VARCHAR(255) NOT NULL,
+          purpose   VARCHAR(50)  NOT NULL,
+          attempts  INT          NOT NULL DEFAULT 0,
+          "usedAt"  TIMESTAMP(3) NULL,
+          "expiresAt" TIMESTAMP(3) NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`);
+      } catch (err) {}
+
       } catch (err: any) {
         logger.debug({ err: err?.message }, 'postgres users.country check completed');
       }
@@ -146,6 +183,7 @@ async function ensureAdminUser() {
           lockedUntil: null,
           status: 'ACTIVE',
           onboardingCompleted: true,
+          emailVerified: true,
         },
       });
       logger.info(`Admin user ${adminEmail} verified, password updated, promoted to ADMIN, and unlocked.`);
@@ -162,6 +200,7 @@ async function ensureAdminUser() {
         role: 'ADMIN',
         status: 'ACTIVE',
         onboardingCompleted: true,
+        emailVerified: true,
         userSettings: {
           create: {
             currency: 'INR',
@@ -301,3 +340,4 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 export { server, io };
+

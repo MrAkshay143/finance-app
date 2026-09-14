@@ -11,7 +11,7 @@ export class FinanceSocketManager {
   private baseUrl: string;
 
   constructor(private options: SocketManagerOptions = {}) {
-    this.baseUrl = options.url || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000');
+    this.baseUrl = options.url || (typeof window !== 'undefined' ? window.location.origin : '');
   }
 
   async connectNotifications(onNotification: (data: any) => void, onUnreadCount?: (count: number) => void): Promise<Socket> {

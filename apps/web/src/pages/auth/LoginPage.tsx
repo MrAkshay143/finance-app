@@ -18,6 +18,7 @@ import { Input } from '../../components/ui/Input.js';
 import { validateEmail } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
 import { apiClient } from '../../services/apiClient.js';
+import { useConfigStore } from '../../store/configStore.js';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -180,21 +181,23 @@ export const LoginPage: React.FC = () => {
       <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
 
       <div className="relative z-10 w-full max-w-[400px] flex flex-col justify-center my-auto">
-        {/* Brand Header */}
-        <div className="text-center mb-2.5">
-          <div className="inline-flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
-            <img
-              src="/pwa-192x192.png"
-              alt="Finance"
-              className="w-10 h-10 rounded-xl object-cover"
-              onError={(e) => {
-                (e.currentTarget as HTMLElement).style.display = 'none';
-              }}
-            />
+        {/* Logo and Header */}
+        <div className="flex flex-col items-center mb-10 mt-6 relative z-10">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-[14px] overflow-hidden shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700 p-0.5 border border-white/20">
+              <img
+                src="/pwa-192x192.png"
+                alt="Finance Tracker Logo"
+                className="w-full h-full object-cover rounded-[12px]"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
+            </div>
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
+              {useConfigStore((s) => s.platformName)}
+            </h1>
           </div>
-          <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
-            Finance Tracker
-          </h1>
           <p className="text-[11px] text-slate-500 mt-0.5 font-normal">
             Personal Wealth & Spending Hub
           </p>
@@ -363,3 +366,5 @@ export const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+
