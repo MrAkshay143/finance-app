@@ -24,6 +24,11 @@ import {
   Unlock,
   LogOut,
   ArrowLeftFromLine,
+  Wallet,
+  Receipt,
+  Activity,
+  Laptop,
+  Globe,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -35,6 +40,8 @@ import { SegmentedControl } from '../components/ui/SegmentedControl.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
 import { toast } from '../store/toastStore.js';
+import { formatCurrency } from '../utils/currency.js';
+import { parseClientDevice, formatAuditAction, getAuditCategoryBadge } from '../utils/auditFormatters.js';
 import { CONFIRM_DIALOGS } from '@finance/shared-ui-tokens';
 import type { AdminUserDetails, AdminUserItem } from '@finance/shared-types';
 
@@ -43,7 +50,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'permissions' | 'security'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'accounts' | 'transactions' | 'permissions' | 'security' | 'audit'>('overview');
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [tempPasswordModal, setTempPasswordModal] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -57,6 +64,51 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       return (res as any)?.data || res;
     },
     enabled: !!id,
+  });
+
+  // Query accounts
+  const { data: accountsData, isLoading: isAccountsLoading } = useQuery({
+    queryKey: ['admin-user-accounts', id],
+    queryFn: async () => {
+      const res = await apiClient.admin.getUserAccounts(id);
+      return (res as any)?.data || res;
+    },
+    enabled: !!id && activeTab === 'accounts',
+  });
+
+  // Query transactions
+  const { data: txnsData, isLoading: isTxnsLoading } = useQuery({
+    queryKey: ['admin-user-transactions', id],
+    queryFn: async () => {
+      const res = await apiClient.admin.getUserTransactions(id, 25);
+      return (res as any)?.data || res;
+    },
+    enabled: !!id && activeTab === 'transactions',
+  });
+
+  // Query active sessions
+  const { data: sessionsData, isLoading: isSessionsLoading, refetch: refetchSessions } = useQuery({
+    queryKey: ['admin-user-sessions', id],
+    queryFn: async () => {
+      const res = await apiClient.admin.getUserSessions(id);
+      return (res as any)?.data || res;
+    },
+    enabled: !!id && activeTab === 'security',
+  });
+
+  // Single session revoke mutation
+  const revokeSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      return await apiClient.admin.revokeUserSession(id, sessionId);
+    },
+    onSuccess: () => {
+      refetchSessions();
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
+      toast.success('Session revoked successfully');
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to revoke session'));
+    },
   });
 
   const user: AdminUserItem | undefined = userDetails?.user;
@@ -284,18 +336,23 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* 3-Tab Sub Navigation */}
-        <SegmentedControl
-          options={[
-            { value: 'overview', label: 'Overview' },
-            { value: 'permissions', label: 'Permissions' },
-            { value: 'security', label: 'Security' },
-          ]}
-          value={activeTab}
-          onChange={(v) => setActiveTab(v as any)}
-          size="sm"
-          aria-label="User management tabs"
-        />
+        {/* 6-Tab Sub Navigation */}
+        <div className="overflow-x-auto pb-1 scrollbar-none">
+          <SegmentedControl
+            options={[
+              { value: 'overview', label: 'Overview' },
+              { value: 'accounts', label: `Accounts (${userDetails?.stats?.accountsCount ?? 0})` },
+              { value: 'transactions', label: `Txns (${userDetails?.stats?.transactionsCount ?? 0})` },
+              { value: 'permissions', label: 'Permissions' },
+              { value: 'security', label: 'Security' },
+              { value: 'audit', label: 'Audit Trail' },
+            ]}
+            value={activeTab}
+            onChange={(v) => setActiveTab(v as any)}
+            size="sm"
+            aria-label="User management tabs"
+          />
+        </div>
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
@@ -466,7 +523,136 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: PERMISSIONS */}
+        {/* TAB 2: ACCOUNTS */}
+        {activeTab === 'accounts' && (
+          <div className="space-y-3">
+            {isAccountsLoading ? (
+              <div className="space-y-2.5">
+                <Skeleton className="h-20 w-full rounded-2xl" />
+                <Skeleton className="h-20 w-full rounded-2xl" />
+              </div>
+            ) : !accountsData || (Array.isArray(accountsData) && accountsData.length === 0) ? (
+              <div className="py-10 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-2xl border border-borderDefault p-6">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <h4 className="text-xs font-bold text-textDefault">No accounts found</h4>
+                <p className="text-[11px] text-textMuted">This user has not linked or created any financial accounts.</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {(Array.isArray(accountsData) ? accountsData : []).map((acc: any) => {
+                  const balance = Number(acc.currentBalance ?? 0) / 100;
+                  const isAccActive = acc.status === 'ACTIVE';
+                  return (
+                    <Card
+                      key={acc.id}
+                      padding="sm"
+                      className="bg-white border border-borderDefault shadow-card hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+                            <Wallet className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-bold text-textDefault truncate">{acc.name}</h4>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 uppercase">
+                                {acc.type}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-textMuted mt-0.5 truncate">
+                              {acc.institution || 'Manual Account'} • {acc.accountIdentifier || 'No identifier'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-bold text-textDefault">
+                            {formatCurrency(balance, user?.currency || 'INR')}
+                          </div>
+                          <span
+                            className={`inline-flex items-center gap-1 text-[10px] font-semibold mt-0.5 ${
+                              isAccActive ? 'text-emerald-600' : 'text-slate-400'
+                            }`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${isAccActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                            {acc.status}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: TRANSACTIONS */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-3">
+            {isTxnsLoading ? (
+              <div className="space-y-2.5">
+                <Skeleton className="h-16 w-full rounded-2xl" />
+                <Skeleton className="h-16 w-full rounded-2xl" />
+                <Skeleton className="h-16 w-full rounded-2xl" />
+              </div>
+            ) : !txnsData || (Array.isArray(txnsData) && txnsData.length === 0) ? (
+              <div className="py-10 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-2xl border border-borderDefault p-6">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                  <Receipt className="w-6 h-6" />
+                </div>
+                <h4 className="text-xs font-bold text-textDefault">No transactions found</h4>
+                <p className="text-[11px] text-textMuted">This user has not recorded any transactions yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(Array.isArray(txnsData) ? txnsData : []).map((txn: any) => {
+                  const amount = Number(txn.amount ?? 0) / 100;
+                  const isIncome = txn.type === 'INCOME';
+                  return (
+                    <Card
+                      key={txn.id}
+                      padding="sm"
+                      className="bg-white border border-borderDefault shadow-card hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                          }`}>
+                            <Receipt className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-textDefault truncate">
+                              {txn.description || 'Transaction'}
+                            </h4>
+                            <p className="text-[10px] text-textMuted mt-0.5">
+                              {txn.category?.name || 'Uncategorized'} • {new Date(txn.transactionDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className={`text-xs font-bold ${isIncome ? 'text-emerald-600' : 'text-textDefault'}`}>
+                            {isIncome ? '+' : '-'} {formatCurrency(amount, user?.currency || 'INR')}
+                          </span>
+                          <div className="text-[10px] text-textMuted mt-0.5">
+                            {txn.account?.name || 'Account'}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: PERMISSIONS */}
         {activeTab === 'permissions' && (
           <div className="space-y-4">
             <Card padding="sm" className="bg-white border border-borderDefault shadow-card space-y-3">
@@ -602,6 +788,116 @@ export const ManageUserDetailTabsPage: React.FC = () => {
                 </Button>
               </div>
             </Card>
+
+            {/* Active Sessions List */}
+            <div className="space-y-2.5 pt-2">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-xs font-bold text-textDefault">
+                  Active Sessions ({sessionsData?.length ?? 0})
+                </h4>
+                {sessionsData && sessionsData.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                    onClick={() => setIsRevokeModalOpen(true)}
+                  >
+                    Revoke All
+                  </Button>
+                )}
+              </div>
+
+              {isSessionsLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-14 w-full rounded-xl" />
+                  <Skeleton className="h-14 w-full rounded-xl" />
+                </div>
+              ) : !sessionsData || sessionsData.length === 0 ? (
+                <div className="p-4 bg-slate-50 border border-borderDefault rounded-xl text-center">
+                  <p className="text-xs text-textMuted">No active sessions found for this user.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {sessionsData.map((session: any) => {
+                    const client = parseClientDevice(session.userAgent, session.ipAddress);
+                    return (
+                      <Card
+                        key={session.id}
+                        padding="sm"
+                        className="bg-white border border-borderDefault shadow-card flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+                            <Laptop className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 text-xs">
+                            <div className="font-semibold text-textDefault truncate">{client.device}</div>
+                            <div className="text-[10px] text-textMuted truncate">
+                              IP: {session.ipAddress || 'Unknown'} • Created: {new Date(session.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-rose-600 border-rose-200 hover:bg-rose-50 shrink-0"
+                          disabled={revokeSessionMutation.isPending}
+                          onClick={() => revokeSessionMutation.mutate(session.id)}
+                        >
+                          Revoke
+                        </Button>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: AUDIT TRAIL */}
+        {activeTab === 'audit' && (
+          <div className="space-y-3">
+            {userDetails?.recentAuditLogs && userDetails.recentAuditLogs.length > 0 ? (
+              <div className="space-y-2">
+                {userDetails.recentAuditLogs.map((log: any) => {
+                  const client = parseClientDevice(log.details?.userAgent, log.ipAddress);
+                  const badge = getAuditCategoryBadge(log.category);
+                  return (
+                    <Card
+                      key={log.id}
+                      padding="sm"
+                      className="bg-white border border-borderDefault shadow-card"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-xs font-bold text-textDefault">
+                              {formatAuditAction(log.action).title}
+                            </h4>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${badge.className}`}>
+                              {badge.label}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-textMuted mt-0.5">
+                            {new Date(log.createdAt).toLocaleString()} • {client.device} • IP: {log.ipAddress || 'Internal'}
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-10 flex flex-col items-center justify-center text-center space-y-2 bg-white rounded-2xl border border-borderDefault p-6">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <h4 className="text-xs font-bold text-textDefault">No audit logs</h4>
+                <p className="text-[11px] text-textMuted">No security or activity events recorded for this user.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

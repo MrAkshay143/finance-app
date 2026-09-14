@@ -24,6 +24,7 @@ export const AdminUserItemSchema = z.object({
   lockedUntil: z.string().datetime().nullable().optional(),
   lastLoginAt: z.string().datetime().nullable().optional(),
   onboardingCompleted: z.boolean().optional(),
+  currency: z.string().optional(),
   createdAt: z.string().datetime(),
 });
 export type AdminUserItem = z.infer<typeof AdminUserItemSchema>;
@@ -42,7 +43,14 @@ export const AdminUserDetailsSchema = z.object({
   accountsSummary: z.object({
     count: z.number().int().nonnegative(),
     totalBalancePaise: z.number().int(),
-  }),
+  }).optional(),
+  stats: z.object({
+    accountsCount: z.number().int().optional(),
+    transactionsCount: z.number().int().optional(),
+    budgetsCount: z.number().int().optional(),
+    goalsCount: z.number().int().optional(),
+    totalBalancePaise: z.string().optional(),
+  }).optional(),
   recentAuditLogs: z.array(z.record(z.any())),
 });
 export type AdminUserDetails = z.infer<typeof AdminUserDetailsSchema>;
@@ -80,7 +88,7 @@ export const AppSettingsSchema = z.object({
   maxFailedAttempts: z.number().int().min(1).max(20).optional().default(5),
   lockoutDurationMinutes: z.number().int().min(1).max(1440).default(15),
   requireKbaForSensitiveActions: z.boolean().default(true),
-  passwordMinLength: z.number().int().min(6).max(32).default(8),
+  passwordMinLength: z.number().int().min(8).max(32).default(8),
 
   // Financial Defaults
   defaultCountry: z.string().default('IN'),

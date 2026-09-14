@@ -124,8 +124,8 @@ async function ensureAdminUser() {
       return;
     }
 
-    if (adminPassword.length < 12) {
-      logger.warn('ADMIN_PASSWORD is too short (min 12 chars) - skipping admin provisioning for security');
+    if (adminPassword.length < 8) {
+      logger.warn('ADMIN_PASSWORD is too short (min 8 chars) - skipping admin provisioning for security');
       return;
     }
 
@@ -136,20 +136,19 @@ async function ensureAdminUser() {
     });
 
     if (existingUser) {
-      // If user exists, ensure they have ADMIN role and clear any test lockout
-      if (existingUser.role !== 'ADMIN' || existingUser.lockedUntil || existingUser.failedLoginAttempts > 0) {
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            role: 'ADMIN',
-            failedLoginAttempts: 0,
-            lockedUntil: null,
-            status: 'ACTIVE',
-            onboardingCompleted: true,
-          },
-        });
-        logger.info(`Admin user ${adminEmail} verified, promoted to ADMIN, and unlocked.`);
-      }
+      // Ensure user has ADMIN role, updated passwordHash from ADMIN_PASSWORD, and clear any test lockout
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          role: 'ADMIN',
+          passwordHash,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          status: 'ACTIVE',
+          onboardingCompleted: true,
+        },
+      });
+      logger.info(`Admin user ${adminEmail} verified, password updated, promoted to ADMIN, and unlocked.`);
       return;
     }
 

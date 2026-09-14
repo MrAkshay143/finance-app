@@ -25,10 +25,23 @@ adminRouter.get('/system/health', (req, res, next) => adminController.getSystemH
 
 // Users management
 adminRouter.get('/users', (req, res, next) => adminController.listUsers(req, res, next));
+adminRouter.get('/users/export', (req, res, next) => adminController.exportUsersCsv(req, res, next));
 adminRouter.get('/users/:id', (req, res, next) => adminController.getUserDetails(req, res, next));
 adminRouter.patch('/users/:id', (req, res, next) => adminController.updateUser(req, res, next));
+adminRouter.get('/users/:id/accounts', (req, res, next) =>
+  adminController.getUserAccounts(req, res, next)
+);
+adminRouter.get('/users/:id/transactions', (req, res, next) =>
+  adminController.getUserTransactions(req, res, next)
+);
 adminRouter.get('/users/:id/sessions', (req, res, next) =>
   adminController.getUserSessions(req, res, next)
+);
+adminRouter.delete('/users/:id/sessions/:sessionId', (req, res, next) =>
+  adminController.revokeUserSession(req, res, next)
+);
+adminRouter.post('/users/:id/sessions/:sessionId/revoke', (req, res, next) =>
+  adminController.revokeUserSession(req, res, next)
 );
 adminRouter.post('/users/:id/sessions/revoke-all', (req, res, next) =>
   adminController.revokeAllUserSessions(req, res, next)

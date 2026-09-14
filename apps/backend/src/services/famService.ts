@@ -119,6 +119,9 @@ export function calculateFamScore({
   year,
   periodStart,
   periodEnd,
+  expenseMaxRatio,
+  investmentTargetRatio,
+  incomeTargetRatio,
 }: {
   expenseTargetPaise: bigint;
   investmentTargetPaise: bigint;
@@ -133,6 +136,9 @@ export function calculateFamScore({
   year: number;
   periodStart: Date;
   periodEnd: Date;
+  expenseMaxRatio?: number;
+  investmentTargetRatio?: number;
+  incomeTargetRatio?: number;
 }): FamScoreResult {
   const expenseTarget = Number(expenseTargetPaise) / 100;
   const investmentTarget = Number(investmentTargetPaise) / 100;
@@ -199,14 +205,14 @@ export function calculateFamScore({
   }
 
   // 1. Expense dimension (lower is better: spent / target)
-  // <= 80% -> A+ (Excellent), 81-100% -> B (Good), > 100% -> C (Poor)
   const expenseRatio = Number(spentPaise) / Number(expenseTargetPaise);
   const expensePercentage = Math.round(expenseRatio * 100 * 10) / 10;
   let expenseGrade: FamGrade = 'A_PLUS';
   let expenseGradeDisplay: GradeDisplay = 'A+';
   let expenseStatus: StatusLabel = 'Excellent';
 
-  if (expensePercentage <= 80) {
+  const expMax = expenseMaxRatio ?? 80;
+  if (expensePercentage <= expMax) {
     expenseGrade = 'A_PLUS';
     expenseGradeDisplay = 'A+';
     expenseStatus = 'Excellent';
@@ -221,18 +227,18 @@ export function calculateFamScore({
   }
 
   // 2. Investment dimension (higher is better: invested / target)
-  // >= 100% -> A+ (Excellent), 70-99% -> B (Good), < 70% -> C (Poor)
   const investmentRatio = Number(investedPaise) / Number(investmentTargetPaise);
   const investmentPercentage = Math.round(investmentRatio * 100 * 10) / 10;
   let investmentGrade: FamGrade = 'A_PLUS';
   let investmentGradeDisplay: GradeDisplay = 'A+';
   let investmentStatus: StatusLabel = 'Excellent';
 
-  if (investmentPercentage >= 100) {
+  const invTarget = investmentTargetRatio ?? 100;
+  if (investmentPercentage >= invTarget) {
     investmentGrade = 'A_PLUS';
     investmentGradeDisplay = 'A+';
     investmentStatus = 'Excellent';
-  } else if (investmentPercentage >= 70) {
+  } else if (investmentPercentage >= invTarget * 0.7) {
     investmentGrade = 'B';
     investmentGradeDisplay = 'B';
     investmentStatus = 'Good';
@@ -243,18 +249,18 @@ export function calculateFamScore({
   }
 
   // 3. Income dimension (higher is better: earned / target)
-  // >= 100% -> A+ (Excellent), 70-99% -> B (Good), < 70% -> C (Poor)
   const incomeRatio = Number(earnedPaise) / Number(incomeTargetPaise);
   const incomePercentage = Math.round(incomeRatio * 100 * 10) / 10;
   let incomeGrade: FamGrade = 'A_PLUS';
   let incomeGradeDisplay: GradeDisplay = 'A+';
   let incomeStatus: StatusLabel = 'Excellent';
 
-  if (incomePercentage >= 100) {
+  const incTarget = incomeTargetRatio ?? 100;
+  if (incomePercentage >= incTarget) {
     incomeGrade = 'A_PLUS';
     incomeGradeDisplay = 'A+';
     incomeStatus = 'Excellent';
-  } else if (incomePercentage >= 70) {
+  } else if (incomePercentage >= incTarget * 0.7) {
     incomeGrade = 'B';
     incomeGradeDisplay = 'B';
     incomeStatus = 'Good';
@@ -440,6 +446,22 @@ export class FamService {
     const investedPaise = investedAgg?._sum?.amount ?? BigInt(0);
     const earnedPaise = earnedAgg?._sum?.amount ?? BigInt(0);
 
+    const famSettings = await prisma.appSetting.findMany({
+      where: {
+        key: {
+          in: [
+            'fam_expense_threshold_percent',
+            'fam_investment_threshold_percent',
+            'fam_income_threshold_percent',
+          ],
+        },
+      },
+    });
+    const famMap = new Map(famSettings.map((s) => [s.key, Number(s.value)]));
+    const expenseMaxRatio = famMap.get('fam_expense_threshold_percent') ?? 80;
+    const investmentTargetRatio = famMap.get('fam_investment_threshold_percent') ?? 100;
+    const incomeTargetRatio = famMap.get('fam_income_threshold_percent') ?? 100;
+
     return calculateFamScore({
       expenseTargetPaise,
       investmentTargetPaise,
@@ -454,6 +476,9 @@ export class FamService {
       year: period.year,
       periodStart: period.start,
       periodEnd: period.end,
+      expenseMaxRatio,
+      investmentTargetRatio,
+      incomeTargetRatio,
     });
   }
 }

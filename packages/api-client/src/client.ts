@@ -564,8 +564,14 @@ export class FinanceApiClient {
       this.request<SystemHealthData>({ method: 'GET', url: '/admin/system/health' }),
     getUserSessions: (id: string) =>
       this.request<UserSessionItem[]>({ method: 'GET', url: `/admin/users/${id}/sessions` }),
+    revokeUserSession: (userId: string, sessionId: string) =>
+      this.request<{ success: boolean }>({ method: 'POST', url: `/admin/users/${userId}/sessions/${sessionId}/revoke` }),
     revokeAllUserSessions: (id: string) =>
       this.request<{ revokedCount: number }>({ method: 'POST', url: `/admin/users/${id}/sessions/revoke-all` }),
+    getUserAccounts: (id: string) =>
+      this.request<any[]>({ method: 'GET', url: `/admin/users/${id}/accounts` }),
+    getUserTransactions: (id: string, limit?: number) =>
+      this.request<any[]>({ method: 'GET', url: `/admin/users/${id}/transactions`, params: { limit } }),
     clearCache: () =>
       this.request<{ success: boolean; clearedKeys: number; message: string }>({
         method: 'POST',
@@ -629,6 +635,19 @@ export class FinanceApiClient {
         params: { format },
       });
     },
+  };
+
+  readonly publicConfig = {
+    get: () =>
+      this.request<{
+        platformName: string;
+        supportEmail: string;
+        allowUserRegistration: boolean;
+        pwaInstallEnabled: boolean;
+        maintenanceMode: boolean;
+        defaultBaseCurrency: string;
+        defaultCountry: string;
+      }>({ method: 'GET', url: '/public/config' }),
   };
 
   // Raw client accessor

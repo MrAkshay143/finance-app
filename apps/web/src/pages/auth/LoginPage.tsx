@@ -17,6 +17,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { validateEmail } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
+import { apiClient } from '../../services/apiClient.js';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +30,24 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
   const [lockoutRemaining, setLockoutRemaining] = useState<number | null>(null);
+  const [allowRegistration, setAllowRegistration] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    apiClient.publicConfig
+      ?.get?.()
+      ?.then((res: any) => {
+        if (!mounted) return;
+        const cfg = res?.data || res;
+        if (cfg?.allowUserRegistration === false) {
+          setAllowRegistration(false);
+        }
+      })
+      ?.catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const searchParams = new URLSearchParams(location.search);
   const isSessionExpired = Boolean(
@@ -324,17 +343,19 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Link to Signup */}
-          <div className="text-center pt-1">
-            <p className="text-xs text-textMuted">
-              Do not have an account?{' '}
-              <Link
-                to="/signup"
-                className="text-brand-primary font-bold hover:underline ml-1"
-              >
-                Create Account
-              </Link>
-            </p>
-          </div>
+          {allowRegistration && (
+            <div className="text-center pt-1">
+              <p className="text-xs text-textMuted">
+                Do not have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="text-brand-primary font-bold hover:underline ml-1"
+                >
+                  Create Account
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

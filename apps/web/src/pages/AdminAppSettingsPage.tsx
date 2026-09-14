@@ -581,7 +581,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                     <div className="flex items-center bg-white border border-borderDefault rounded-xl overflow-hidden shadow-2xs">
                       <button
                         type="button"
-                        onClick={() => setPasswordMinLength((prev) => Math.max(6, prev - 1))}
+                        onClick={() => setPasswordMinLength((prev) => Math.max(8, prev - 1))}
                         className="w-9 h-8 flex items-center justify-center text-textDefault hover:bg-slate-100 transition-colors"
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -589,7 +589,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                       <input
                         type="number"
                         value={passwordMinLength}
-                        onChange={(e) => setPasswordMinLength(Math.max(6, parseInt(e.target.value, 10) || 8))}
+                        onChange={(e) => setPasswordMinLength(Math.max(8, parseInt(e.target.value, 10) || 8))}
                         className="w-14 h-8 text-center font-bold text-xs text-textDefault focus:outline-none border-x border-borderDefault"
                       />
                       <button

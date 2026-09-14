@@ -161,7 +161,13 @@ export class BudgetService {
     }
 
     const targetAmountPaise = toPaise(data.targetAmount ?? data.limitAmount);
-    const period = data.period || 'MONTHLY';
+    let period = data.period;
+    if (!period) {
+      const defaultPeriodSetting = await prisma.appSetting.findUnique({
+        where: { key: 'default_budget_period' },
+      });
+      period = (defaultPeriodSetting?.value as string) || 'MONTHLY';
+    }
     const periodStart = data.periodStart ? new Date(data.periodStart) : new Date();
     const name = data.name?.trim() || `${category.name} Budget`;
 

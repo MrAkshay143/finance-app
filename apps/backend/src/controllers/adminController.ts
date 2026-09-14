@@ -321,6 +321,47 @@ export class AdminController {
       next(err);
     }
   }
+
+  async revokeUserSession(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const adminId = req.user!.id;
+      const { sessionId } = req.params;
+      const result = await adminService.revokeUserSession(sessionId, adminId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getUserAccounts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const accounts = await adminService.getUserAccounts(id);
+      res.status(200).json({
+        success: true,
+        data: accounts,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getUserTransactions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
+      const transactions = await adminService.getUserTransactions(id, limit);
+      res.status(200).json({
+        success: true,
+        data: transactions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const adminController = new AdminController();

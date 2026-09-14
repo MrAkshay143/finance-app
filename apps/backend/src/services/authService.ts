@@ -639,6 +639,14 @@ export class AuthService {
       throw new ValidationError('New password must be different.');
     }
 
+    const minLenSetting = await prisma.appSetting.findUnique({
+      where: { key: 'password_min_length' },
+    });
+    const minLen = Number(minLenSetting?.value ?? 8);
+    if (newPassword.length < minLen) {
+      throw new ValidationError(`Password must be at least ${minLen} characters long`);
+    }
+
     const newPasswordHash = await hashPassword(newPassword);
 
     await prisma.user.update({

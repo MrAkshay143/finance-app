@@ -56,6 +56,46 @@ apiV1Router.get('/', (_req, res) => {
   });
 });
 
+// Public platform config endpoint for client apps
+apiV1Router.get('/public/config', async (_req, res, next) => {
+  try {
+    const settings = await prisma.appSetting.findMany({
+      where: {
+        key: {
+          in: [
+            'platform_name',
+            'support_email',
+            'allow_user_registration',
+            'pwa_install_enabled',
+            'maintenance_mode',
+            'default_base_currency',
+            'default_country',
+          ],
+        },
+      },
+    });
+    const map = new Map(settings.map((s) => [s.key, s.value]));
+    res.status(200).json({
+      success: true,
+      data: {
+        platformName: String(map.get('platform_name') ?? 'Finance Tracker'),
+        supportEmail: String(map.get('support_email') ?? 'support@imakshay.in'),
+        allowUserRegistration: map.has('allow_user_registration')
+          ? Boolean(map.get('allow_user_registration') === true || map.get('allow_user_registration') === 'true')
+          : true,
+        pwaInstallEnabled: map.has('pwa_install_enabled')
+          ? Boolean(map.get('pwa_install_enabled') === true || map.get('pwa_install_enabled') === 'true')
+          : true,
+        maintenanceMode: Boolean(map.get('maintenance_mode') === true || map.get('maintenance_mode') === 'true'),
+        defaultBaseCurrency: String(map.get('default_base_currency') ?? 'INR'),
+        defaultCountry: String(map.get('default_country') ?? 'IN'),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Mount all resource route groups per Plan/backend.md §4
 apiV1Router.use('/auth', authRouter);
 apiV1Router.use('/profile', profileRouter);

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError } from '../utils/errors.js';
 import { verifyAccessToken } from '../lib/jwt.js';
-import { isDenylisted } from '../lib/tokenDenylist.js';
+import { isDenylisted, isUserRevoked } from '../lib/tokenDenylist.js';
 
 export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
@@ -35,6 +35,14 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     const denylisted = await isDenylisted(payload.jti || token);
     if (denylisted) {
       return next(new UnauthorizedError('Session has been revoked. Please log in again.'));
+    }
+
+    // Check if user tokens have been revoked (e.g. suspension, role demotion, or session revocation)
+    if (payload.sub) {
+      const userRevoked = await isUserRevoked(payload.sub, payload.iat);
+      if (userRevoked) {
+        return next(new UnauthorizedError('Session has been revoked. Please log in again.'));
+      }
     }
 
     req.user = {
@@ -78,7 +86,8 @@ export async function optionalAuthenticate(
   try {
     const payload = verifyAccessToken(token);
     const denylisted = await isDenylisted(payload.jti || token);
-    if (!denylisted) {
+    const userRevoked = payload.sub ? await isUserRevoked(payload.sub, payload.iat) : false;
+    if (!denylisted && !userRevoked) {
       req.user = { id: payload.sub, role: payload.role, sessionId: payload.sessionId };
     }
   } catch {

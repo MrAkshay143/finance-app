@@ -67,6 +67,7 @@ export async function maintenanceMiddleware(
   if (
     path.startsWith('/auth') ||
     path.startsWith('/admin') ||
+    path.startsWith('/public') ||
     path.startsWith('/healthz') ||
     path.startsWith('/readyz') ||
     path.startsWith('/metrics')

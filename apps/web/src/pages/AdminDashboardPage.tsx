@@ -14,6 +14,7 @@ import {
   X,
   LogOut,
   ArrowLeftFromLine,
+  Download,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -21,8 +22,9 @@ import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
 import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { Pagination } from '../components/ui/Pagination.js';
-import { apiClient } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toast } from '../store/toastStore.js';
 import { AdminUserActionModal } from '../components/admin/AdminUserActionModal.js';
 import { formatRelativeTime } from '../utils/date.js';
 import type { AdminDashboardMetrics, AdminUserItem } from '@finance/shared-types';
@@ -36,6 +38,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [actionModalUser, setActionModalUser] = useState<AdminUserItem | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -56,41 +59,38 @@ export const AdminDashboardPage: React.FC = () => {
     placeholderData: keepPreviousData,
   });
 
-  // Query Users
+  // Query Users with server-side pagination & sorting
   const {
     data: usersData,
     isLoading: isUsersLoading,
     isError: isUsersError,
     refetch: refetchUsers,
-  } = useQuery<AdminUserItem[]>({
+  } = useQuery({
     queryKey: ['admin-users', filter, debouncedSearch, sortBy],
     queryFn: async () => {
-      const params: any = { pageSize: 50 };
+      const params: any = {
+        page: currentPage,
+        pageSize,
+        sortBy: sortBy === 'name' ? 'name:asc' : 'recent:desc',
+      };
       if (debouncedSearch) params.search = debouncedSearch;
       if (filter === 'ACTIVE') params.status = 'ACTIVE';
       if (filter === 'SUSPENDED') params.status = 'SUSPENDED';
       if (filter === 'ADMIN') params.role = 'ADMIN';
 
       const res = await apiClient.admin.getUsers(params);
-      const raw = (res as any)?.data?.users || (res as any)?.users || (Array.isArray(res) ? res : []);
-      return Array.isArray(raw) ? raw : [];
+      return (res as any)?.data || res;
     },
     placeholderData: keepPreviousData,
   });
 
-  const users = useMemo(() => {
-    const list = Array.isArray(usersData) ? [...usersData] : [];
-    return list.sort((a, b) => {
-      if (sortBy === 'name') {
-        const nameA = a.fullName || a.email || '';
-        const nameB = b.fullName || b.email || '';
-        return nameA.localeCompare(nameB);
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [usersData, sortBy]);
+  const users: AdminUserItem[] = useMemo(() => {
+    const raw = (usersData as any)?.users || (Array.isArray(usersData) ? usersData : []);
+    return Array.isArray(raw) ? raw : [];
+  }, [usersData]);
 
-  const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
+  const totalPages = (usersData as any)?.pagination?.totalPages ?? Math.max(1, Math.ceil(((usersData as any)?.pagination?.total ?? users.length) / pageSize));
+  const totalUsersCount = (usersData as any)?.pagination?.total ?? users.length;
 
   // Reset to page 1 on filter/search/sort change
   useEffect(() => {
@@ -104,8 +104,29 @@ export const AdminDashboardPage: React.FC = () => {
     }
   }, [currentPage, totalPages]);
 
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      const res = await apiClient.admin.exportUsersCsv();
+      const blob = res.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users_export_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Users exported successfully');
+    } catch (err: any) {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to export users'));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const metrics = {
-    totalUsers: metricsData?.totalUsers ?? users.length,
+    totalUsers: metricsData?.totalUsers ?? totalUsersCount,
     activeUsers: metricsData?.activeUsers ?? users.filter((u) => u.status === 'ACTIVE').length,
     suspendedUsers: metricsData?.suspendedUsers ?? users.filter((u) => u.status === 'SUSPENDED').length,
     adminUsers: metricsData?.adminUsers ?? metricsData?.adminsCount ?? users.filter((u) => u.role === 'ADMIN').length,
@@ -232,7 +253,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search Bar + Filter */}
+        {/* Search Bar + Export */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -255,46 +276,53 @@ export const AdminDashboardPage: React.FC = () => {
             )}
           </div>
 
-          <div className="w-36 shrink-0">
-            <CustomDropdown
-              size="sm"
-              leftIcon={<Filter className="w-3 h-3 text-textMuted" />}
-              value={filter}
-              onChange={(val) => setFilter(val as any)}
-              options={[
-                { value: 'ALL', label: 'Filter: All' },
-                { value: 'ACTIVE', label: 'Filter: Active' },
-                { value: 'SUSPENDED', label: 'Filter: Suspended' },
-                { value: 'ADMIN', label: 'Filter: Admins' },
-              ]}
-              searchable={false}
-              aria-label="Filter users"
-            />
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            disabled={isExporting}
+            icon={<Download className="w-3.5 h-3.5" />}
+            className="shrink-0"
+          >
+            {isExporting ? 'Exporting...' : 'Export CSV'}
+          </Button>
         </div>
 
-        {/* Header row: Users count and Sort */}
+        {/* Filter + Sort Bar */}
+        <div className="grid grid-cols-2 gap-2">
+          <CustomDropdown
+            size="sm"
+            leftIcon={<Filter className="w-3 h-3 text-textMuted" />}
+            value={filter}
+            onChange={(val) => setFilter(val as any)}
+            options={[
+              { value: 'ALL', label: 'Filter: All' },
+              { value: 'ACTIVE', label: 'Filter: Active' },
+              { value: 'SUSPENDED', label: 'Filter: Suspended' },
+              { value: 'ADMIN', label: 'Filter: Admins' },
+            ]}
+            searchable={false}
+            aria-label="Filter users"
+          />
+
+          <CustomDropdown
+            size="sm"
+            value={sortBy}
+            onChange={(val) => setSortBy(val as any)}
+            options={[
+              { value: 'name', label: 'Sort: Name' },
+              { value: 'recent', label: 'Sort: Recent' },
+            ]}
+            searchable={false}
+            aria-label="Sort users"
+          />
+        </div>
+
+        {/* Header row: Users count */}
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-textDefault">
-            Users ({users.length})
+            Users ({totalUsersCount})
           </h3>
-
-          <div className="flex items-center gap-1.5 text-xs text-textMuted">
-            <span>Sort by</span>
-            <div className="w-28">
-              <CustomDropdown
-                size="sm"
-                value={sortBy}
-                onChange={(val) => setSortBy(val as any)}
-                options={[
-                  { value: 'name', label: 'Name' },
-                  { value: 'recent', label: 'Recent' },
-                ]}
-                searchable={false}
-                aria-label="Sort users"
-              />
-            </div>
-          </div>
         </div>
 
         {/* User List */}
@@ -321,7 +349,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            {users.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((item) => {
+            {users.map((item) => {
               const initials = getInitials(item);
               const isActive = item.status === 'ACTIVE';
               const isAdmin = item.role === 'ADMIN';
@@ -406,7 +434,7 @@ export const AdminDashboardPage: React.FC = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={users.length}
+              totalItems={totalUsersCount}
               pageSize={pageSize}
               onPageChange={(p) => setCurrentPage(p)}
               itemLabel="users"

@@ -83,8 +83,8 @@ export const AdminAuditPage: React.FC = () => {
     queryFn: async () => {
       const cat = filterCategory === 'All' ? undefined : filterCategory;
       const res = await apiClient.admin.getAuditLogs({
-        page: 1,
-        pageSize: 50,
+        page: currentPage,
+        pageSize,
         category: cat,
         search: debouncedSearch || undefined,
       });
@@ -95,33 +95,16 @@ export const AdminAuditPage: React.FC = () => {
 
   const logs: AuditLogRecord[] = useMemo(() => {
     const raw = data?.logs || (Array.isArray(data) ? data : []);
-    if (!Array.isArray(raw)) return [];
+    return Array.isArray(raw) ? raw : [];
+  }, [data]);
 
-    let filtered = raw.filter((log) => {
-      if (!debouncedSearch.trim()) return true;
-      const q = debouncedSearch.toLowerCase();
-      return (
-        log.actorEmail?.toLowerCase().includes(q) ||
-        log.action?.toLowerCase().includes(q) ||
-        log.category?.toLowerCase().includes(q) ||
-        log.ipAddress?.toLowerCase().includes(q) ||
-        JSON.stringify(log.details || {}).toLowerCase().includes(q)
-      );
-    });
-
-    return filtered.sort((a, b) => {
-      const timeA = new Date(a.createdAt).getTime();
-      const timeB = new Date(b.createdAt).getTime();
-      return sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
-    });
-  }, [data, debouncedSearch, sortOrder]);
-
-  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
+  const totalPages = data?.pagination?.totalPages ?? Math.max(1, Math.ceil((data?.pagination?.total ?? logs.length) / pageSize));
+  const totalAuditEvents = data?.pagination?.total ?? logs.length;
 
   // Reset to page 1 on filter/search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterCategory, debouncedSearch, sortOrder]);
+  }, [filterCategory, debouncedSearch]);
 
   // Clamp current page to total pages if results shrink
   useEffect(() => {
@@ -332,7 +315,7 @@ export const AdminAuditPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2.5">
-            {logs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => {
+            {logs.map((log) => {
               const client = parseClientDevice(log.details?.userAgent, log.ipAddress);
               const actorEmail = log.actorEmail || 'system';
               const categoryBadge = getAuditCategoryBadge(log.category);
@@ -412,7 +395,7 @@ export const AdminAuditPage: React.FC = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={logs.length}
+              totalItems={totalAuditEvents}
               pageSize={pageSize}
               onPageChange={(p) => setCurrentPage(p)}
               itemLabel="events"

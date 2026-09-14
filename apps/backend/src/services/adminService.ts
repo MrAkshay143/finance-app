@@ -9,6 +9,7 @@ import { recurringService } from './recurringService.js';
 import { invalidateMaintenanceCache } from '../middleware/maintenanceMiddleware.js';
 import { emitSyncEvent } from '../sockets/socketGateway.js';
 import { escapeCsvField } from '../utils/csv.js';
+import { revokeUserTokens } from '../lib/tokenDenylist.js';
 
 
 
@@ -95,11 +96,11 @@ export class AdminService {
 
     const where: any = {};
 
-    if (options.status) {
+    if (options.status && options.status !== 'ALL') {
       where.status = options.status as UserStatus;
     }
 
-    if (options.role) {
+    if (options.role && options.role !== 'ALL') {
       where.role = options.role as UserRole;
     }
 
@@ -112,12 +113,23 @@ export class AdminService {
       ];
     }
 
+    let orderBy: any = { createdAt: 'desc' };
+    if (options.sortBy === 'name' || options.sortBy === 'name:asc') {
+      orderBy = [{ firstName: 'asc' }, { lastName: 'asc' }];
+    } else if (options.sortBy === 'name:desc') {
+      orderBy = [{ firstName: 'desc' }, { lastName: 'desc' }];
+    } else if (options.sortBy === 'recent:asc' || options.sortBy === 'oldest') {
+      orderBy = { createdAt: 'asc' };
+    } else if (options.sortBy === 'recent' || options.sortBy === 'recent:desc') {
+      orderBy = { createdAt: 'desc' };
+    }
+
     const [rawUsers, total] = await Promise.all([
       prisma.user.findMany({
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       }),
       prisma.user.count({ where }),
     ]);
@@ -249,12 +261,13 @@ export class AdminService {
       data: updateData,
     });
 
-    // If account was suspended or deleted, revoke all active sessions immediately
-    if (data.status === 'SUSPENDED' || data.status === 'DELETED') {
+    // If account was suspended, deleted, or role changed, revoke all active sessions and access tokens immediately
+    if (data.status === 'SUSPENDED' || data.status === 'DELETED' || (data.role && data.role !== existing.role)) {
       await prisma.refreshToken.updateMany({
         where: { userId: targetUserId, revokedAt: null },
         data: { revokedAt: new Date() },
       });
+      await revokeUserTokens(targetUserId);
     }
 
     await logAuditEvent({
@@ -405,6 +418,8 @@ export class AdminService {
         data: { revokedAt: new Date() },
       });
     });
+
+    await revokeUserTokens(targetUserId);
 
     await logAuditEvent({
       actorUserId: adminId,
@@ -1007,6 +1022,8 @@ export class AdminService {
       },
     });
 
+    await revokeUserTokens(userId);
+
     await logAuditEvent({
       actorUserId: adminId,
       targetUserId: userId,
@@ -1016,6 +1033,86 @@ export class AdminService {
     });
 
     return { revokedCount: result.count };
+  }
+
+  /**
+   * Retrieves all accounts for a specific user.
+   */
+  async getUserAccounts(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    const accounts = await prisma.account.findMany({
+      where: { userId },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+    });
+    return accounts.map((a) => ({
+      id: a.id,
+      name: a.name,
+      accountType: a.accountType,
+      accountIdentifier: a.accountIdentifier,
+      institution: a.institution,
+      currentBalance: Number(a.currentBalance),
+      currentBalancePaise: Number(a.currentBalance),
+      status: a.status,
+      createdAt: a.createdAt.toISOString(),
+      updatedAt: a.updatedAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Retrieves recent transactions for a specific user.
+   */
+  async getUserTransactions(userId: string, limit = 50) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    const transactions = await prisma.transaction.findMany({
+      where: { userId },
+      take: Math.min(100, Math.max(1, limit)),
+      orderBy: { txnDate: 'desc' },
+      include: {
+        category: { select: { id: true, name: true, type: true } },
+        account: { select: { id: true, name: true, accountType: true } },
+      },
+    });
+    return transactions.map((t) => ({
+      id: t.id,
+      amount: Number(t.amount),
+      amountPaise: Number(t.amount),
+      type: t.type,
+      status: t.status,
+      direction: t.direction,
+      description: t.description || '',
+      txnDate: t.txnDate.toISOString(),
+      category: t.category ? { id: t.category.id, name: t.category.name, type: t.category.type } : null,
+      account: t.account ? { id: t.account.id, name: t.account.name, accountType: t.account.accountType } : null,
+      createdAt: t.createdAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Revokes a single session for a user.
+   */
+  async revokeUserSession(sessionId: string, adminId: string, ipAddress?: string) {
+    const session = await prisma.refreshToken.findUnique({ where: { id: sessionId } });
+    if (!session) {
+      throw new NotFoundError('Session not found');
+    }
+    await prisma.refreshToken.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+    await logAuditEvent({
+      actorUserId: adminId,
+      targetUserId: session.userId,
+      action: 'ADMIN_REVOKE_USER_SESSION',
+      details: { sessionId },
+      ipAddress,
+    });
+    return { success: true };
   }
 }
 
