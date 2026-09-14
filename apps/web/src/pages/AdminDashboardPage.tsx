@@ -413,17 +413,6 @@ export const AdminDashboardPage: React.FC = () => {
             />
           </div>
         )}
-
-        {/* Footer Info Banner */}
-        <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-1.5">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center border border-blue-100">
-            <Users className="w-6 h-6" />
-          </div>
-          <h4 className="text-xs font-bold text-textDefault">All users are here!</h4>
-          <p className="text-[11px] text-textMuted max-w-[260px]">
-            Manage user accounts, roles, and permissions.
-          </p>
-        </div>
       </div>
 
       {/* Admin User Action Modal */}

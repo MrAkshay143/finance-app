@@ -438,6 +438,7 @@ export class AdminService {
     const maintenanceMode = Boolean(settingsMap.get('maintenance_mode') ?? false);
     const maintenanceMessage = String(settingsMap.get('maintenance_message') ?? 'Platform is currently undergoing scheduled maintenance. Please try again shortly.');
     const allowUserRegistration = Boolean(settingsMap.get('allow_user_registration') ?? true);
+    const pwaInstallEnabled = Boolean(settingsMap.get('pwa_install_enabled') ?? true);
     const sessionTimeout = Number(settingsMap.get('session_timeout_minutes') ?? 60);
     const maxFailed = Number(settingsMap.get('max_failed_attempts') ?? 5);
     const lockoutDuration = Number(settingsMap.get('lockout_duration_minutes') ?? 15);
@@ -456,6 +457,7 @@ export class AdminService {
       maintenanceMode,
       maintenanceMessage,
       allowUserRegistration,
+      pwaInstallEnabled,
       sessionTimeoutMinutes: sessionTimeout,
       maxFailedLoginAttempts: maxFailed,
       maxFailedAttempts: maxFailed,
@@ -486,6 +488,7 @@ export class AdminService {
       maintenanceMode: 'maintenance_mode',
       maintenanceMessage: 'maintenance_message',
       allowUserRegistration: 'allow_user_registration',
+      pwaInstallEnabled: 'pwa_install_enabled',
       sessionTimeoutMinutes: 'session_timeout_minutes',
       maxFailedLoginAttempts: 'max_failed_attempts',
       maxFailedAttempts: 'max_failed_attempts',
@@ -510,6 +513,10 @@ export class AdminService {
     if ('allowUserRegistration' in sanitized) {
       sanitized.allowUserRegistration =
         sanitized.allowUserRegistration === true || sanitized.allowUserRegistration === 'true';
+    }
+    if ('pwaInstallEnabled' in sanitized) {
+      sanitized.pwaInstallEnabled =
+        sanitized.pwaInstallEnabled === true || sanitized.pwaInstallEnabled === 'true';
     }
 
     for (const [key, value] of Object.entries(sanitized)) {

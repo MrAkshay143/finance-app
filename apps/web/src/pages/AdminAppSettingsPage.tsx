@@ -56,6 +56,7 @@ export const AdminAppSettingsPage: React.FC = () => {
     'Platform is currently undergoing scheduled maintenance. Please try again shortly.'
   );
   const [allowUserRegistration, setAllowUserRegistration] = useState<boolean>(true);
+  const [pwaInstallEnabled, setPwaInstallEnabled] = useState<boolean>(true);
 
   // Security Policies State
   const [sessionTimeout, setSessionTimeout] = useState<number>(60);
@@ -94,6 +95,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       if (settingsData.maintenanceMode !== undefined) setMaintenanceMode(settingsData.maintenanceMode);
       if (settingsData.maintenanceMessage !== undefined) setMaintenanceMessage(settingsData.maintenanceMessage);
       if (settingsData.allowUserRegistration !== undefined) setAllowUserRegistration(settingsData.allowUserRegistration);
+      if (settingsData.pwaInstallEnabled !== undefined) setPwaInstallEnabled(settingsData.pwaInstallEnabled);
 
       if (settingsData.sessionTimeoutMinutes) setSessionTimeout(settingsData.sessionTimeoutMinutes);
       if (settingsData.maxFailedAttempts || settingsData.maxFailedLoginAttempts) {
@@ -197,6 +199,7 @@ export const AdminAppSettingsPage: React.FC = () => {
       maintenanceMode,
       maintenanceMessage,
       allowUserRegistration,
+      pwaInstallEnabled,
       sessionTimeoutMinutes: sessionTimeout,
       maxFailedAttempts,
       maxFailedLoginAttempts: maxFailedAttempts,
@@ -356,6 +359,32 @@ export const AdminAppSettingsPage: React.FC = () => {
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                         allowUserRegistration ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Enable PWA & Device Installation Toggle */}
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
+                  <div className="flex items-start gap-2.5">
+                    <Download className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="text-xs font-bold text-textDefault">Enable PWA & Device Installation</h3>
+                      <p className="text-[11px] text-textMuted mt-0.5">Show "App & Device" install card in user settings</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={pwaInstallEnabled}
+                    onClick={() => setPwaInstallEnabled((prev) => !prev)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      pwaInstallEnabled ? 'bg-brand-primary' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        pwaInstallEnabled ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
                   </button>

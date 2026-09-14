@@ -422,11 +422,11 @@ export const AdminReportsPage: React.FC = () => {
           </Card>
 
           {/* System Liquidity by Account Type */}
-          <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <Card className="p-3 sm:p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
               <div className="flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-emerald-600" />
-                <h3 className="text-sm font-bold text-slate-900">System Liquidity Breakdown</h3>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">System Liquidity Breakdown</h3>
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Live
@@ -440,17 +440,26 @@ export const AdminReportsPage: React.FC = () => {
                 No active accounts registered.
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {liquidityBreakdown.map((liq) => (
-                  <div key={liq.accountType} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      {liq.accountType}
+                  <div
+                    key={liq.accountType}
+                    className="p-1.5 sm:p-2 bg-slate-50 rounded-xl border border-slate-100 min-w-0 flex flex-col justify-between"
+                  >
+                    <div
+                      className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate"
+                      title={liq.accountType}
+                    >
+                      {liq.accountType.replace(/_/g, ' ')}
                     </div>
-                    <div className="text-sm font-black text-slate-900 mt-0.5">
+                    <div
+                      className="text-xs sm:text-sm font-black text-slate-900 mt-0.5 tracking-tight truncate"
+                      title={formatCurrency(liq.balancePaise / 100, currency)}
+                    >
                       {formatCurrency(liq.balancePaise / 100, currency)}
                     </div>
-                    <div className="text-[10px] text-textMuted mt-0.5">
-                      {liq.count} account{liq.count === 1 ? '' : 's'}
+                    <div className="text-[9px] sm:text-[10px] text-textMuted mt-0.5 truncate">
+                      {liq.count} {liq.count === 1 ? 'acct' : 'accts'}
                     </div>
                   </div>
                 ))}

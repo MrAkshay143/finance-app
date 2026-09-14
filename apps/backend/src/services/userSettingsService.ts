@@ -37,6 +37,7 @@ export interface UserSettingsResponse {
   recurringTrackingEnabled?: boolean;
   reminderDaysBeforeDue?: number;
   notificationsEnabled?: boolean;
+  pwaInstallEnabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -84,7 +85,11 @@ function parseJsonConfig<T>(raw: any, fallback: T): T {
   }
 }
 
-function formatSettingsResponse(settings: any, userId: string): UserSettingsResponse {
+function formatSettingsResponse(
+  settings: any,
+  userId: string,
+  pwaInstallEnabled: boolean = true
+): UserSettingsResponse {
   const defaultDonuts = { income: true, expense: true, investment: true };
   const defaultFeatures = { investments: true, recurring: true };
 
@@ -126,6 +131,7 @@ function formatSettingsResponse(settings: any, userId: string): UserSettingsResp
     recurringTrackingEnabled: rawFeatures.recurring ?? true,
     reminderDaysBeforeDue: 3,
     notificationsEnabled: true,
+    pwaInstallEnabled,
     createdAt: settings?.createdAt ? new Date(settings.createdAt).toISOString() : undefined,
     updatedAt: settings?.updatedAt ? new Date(settings.updatedAt).toISOString() : undefined,
   };
@@ -161,7 +167,12 @@ export class UserSettingsService {
       });
     }
 
-    return formatSettingsResponse(settings, userId);
+    const appSettingRow = await prisma.appSetting.findUnique({
+      where: { key: 'pwa_install_enabled' },
+    });
+    const pwaInstallEnabled = appSettingRow ? Boolean(appSettingRow.value) : true;
+
+    return formatSettingsResponse(settings, userId, pwaInstallEnabled);
   }
 
   async updateUserSettings(
@@ -264,9 +275,12 @@ export class UserSettingsService {
     });
 
     await invalidateDashboardCache(userId);
-    emitSyncEvent(userId, { entity: 'SETTINGS', action: 'UPDATE' });
+    const appSettingRow = await prisma.appSetting.findUnique({
+      where: { key: 'pwa_install_enabled' },
+    });
+    const pwaInstallEnabled = appSettingRow ? Boolean(appSettingRow.value) : true;
 
-    return formatSettingsResponse(updated, userId);
+    return formatSettingsResponse(updated, userId, pwaInstallEnabled);
   }
 }
 

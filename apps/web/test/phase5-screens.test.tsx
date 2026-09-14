@@ -315,7 +315,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
       expect(html).toContain('Users');
       expect(html).toContain('Rajib Finance');
       expect(html).toContain('rajibs.finance@gmail.com');
-      expect(html).toContain('All users are here!');
+      expect(html).not.toContain('All users are here!');
     });
 
     it('renders ManageUserOverviewPage with details, 2x2 actions, and soft delete', () => {

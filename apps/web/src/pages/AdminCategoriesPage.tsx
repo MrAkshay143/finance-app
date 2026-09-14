@@ -218,29 +218,28 @@ export const AdminCategoriesPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4 max-w-4xl mx-auto w-full">
-        {/* KPI Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        {/* KPI Metric Cards - Matching Admin Users Page Style */}
+        <div className="grid grid-cols-4 gap-2">
           {/* Total Categories */}
           <button
             type="button"
             onClick={() => handleTypeFilterChange('ALL')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer shadow-card ${
+            className={`border rounded-2xl p-3 flex flex-col justify-between shadow-card transition-all text-left cursor-pointer ${
               typeFilter === 'ALL'
                 ? 'bg-blue-50/40 border-brand-primary/60 ring-2 ring-brand-primary/20'
                 : 'bg-white border-borderDefault/80 hover:border-blue-200'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Total</span>
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
-                <Layers className="w-4 h-4" />
-              </div>
+            <div className="w-7 h-7 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center mb-1.5 shrink-0">
+              <Layers className="w-4 h-4" />
             </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-black text-textDefault tracking-tight">{metrics.total}</p>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100/70 text-brand-primary">
-                All Types
-              </span>
+            <div>
+              <div className="text-xl font-black text-textDefault leading-tight tracking-tight">
+                {isLoading ? '0' : metrics.total}
+              </div>
+              <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mt-0.5 truncate">
+                Total
+              </div>
             </div>
           </button>
 
@@ -248,23 +247,22 @@ export const AdminCategoriesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleTypeFilterChange('EXPENSE')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer shadow-card ${
+            className={`border rounded-2xl p-3 flex flex-col justify-between shadow-card transition-all text-left cursor-pointer ${
               typeFilter === 'EXPENSE'
                 ? 'bg-rose-50/40 border-rose-500/60 ring-2 ring-rose-500/20'
                 : 'bg-white border-borderDefault/80 hover:border-rose-200'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Expense</span>
-              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                <ArrowUpRight className="w-4 h-4" />
-              </div>
+            <div className="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1.5 shrink-0">
+              <ArrowUpRight className="w-4 h-4" />
             </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-black text-textDefault tracking-tight">{metrics.expenses}</p>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100/70 text-rose-700">
-                {metrics.total > 0 ? Math.round((metrics.expenses / metrics.total) * 100) : 0}%
-              </span>
+            <div>
+              <div className="text-xl font-black text-rose-950 leading-tight tracking-tight">
+                {isLoading ? '0' : metrics.expenses}
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
+                Expense
+              </div>
             </div>
           </button>
 
@@ -272,23 +270,22 @@ export const AdminCategoriesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleTypeFilterChange('INCOME')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer shadow-card ${
+            className={`border rounded-2xl p-3 flex flex-col justify-between shadow-card transition-all text-left cursor-pointer ${
               typeFilter === 'INCOME'
                 ? 'bg-emerald-50/40 border-emerald-500/60 ring-2 ring-emerald-500/20'
                 : 'bg-white border-borderDefault/80 hover:border-emerald-200'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Income</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <ArrowDownLeft className="w-4 h-4" />
-              </div>
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 shrink-0">
+              <ArrowDownLeft className="w-4 h-4" />
             </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-black text-textDefault tracking-tight">{metrics.income}</p>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100/70 text-emerald-700">
-                {metrics.total > 0 ? Math.round((metrics.income / metrics.total) * 100) : 0}%
-              </span>
+            <div>
+              <div className="text-xl font-black text-emerald-950 leading-tight tracking-tight">
+                {isLoading ? '0' : metrics.income}
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
+                Income
+              </div>
             </div>
           </button>
 
@@ -296,23 +293,22 @@ export const AdminCategoriesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleTypeFilterChange('INVESTMENT')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer shadow-card ${
+            className={`border rounded-2xl p-3 flex flex-col justify-between shadow-card transition-all text-left cursor-pointer ${
               typeFilter === 'INVESTMENT'
                 ? 'bg-purple-50/40 border-purple-500/60 ring-2 ring-purple-500/20'
                 : 'bg-white border-borderDefault/80 hover:border-purple-200'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">Invest</span>
-              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                <PiggyBank className="w-4 h-4" />
-              </div>
+            <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5 shrink-0">
+              <PiggyBank className="w-4 h-4" />
             </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-black text-textDefault tracking-tight">{metrics.investment}</p>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100/70 text-purple-700">
-                {metrics.total > 0 ? Math.round((metrics.investment / metrics.total) * 100) : 0}%
-              </span>
+            <div>
+              <div className="text-xl font-black text-purple-950 leading-tight tracking-tight">
+                {isLoading ? '0' : metrics.investment}
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">
+                Investment
+              </div>
             </div>
           </button>
         </div>

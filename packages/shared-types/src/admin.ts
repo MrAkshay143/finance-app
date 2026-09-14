@@ -72,6 +72,7 @@ export const AppSettingsSchema = z.object({
   maintenanceMode: z.boolean().default(false),
   maintenanceMessage: z.string().optional().default('Platform is currently undergoing scheduled maintenance. Please try again shortly.'),
   allowUserRegistration: z.boolean().default(true),
+  pwaInstallEnabled: z.boolean().default(true),
 
   // Security Policies
   sessionTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
