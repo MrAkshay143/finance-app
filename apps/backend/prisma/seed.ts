@@ -1,4 +1,9 @@
-import { PrismaClient, TxnType } from '@prisma/client';
+import { PrismaClient, TxnType, UserRole, UserStatus } from '@prisma/client';
+import { DEFAULT_EMAIL_TEMPLATES } from '../src/config/defaultEmailTemplates.js';
+import { DEFAULT_APP_SETTINGS, getDefaultAppSettings } from '../src/config/defaultAppSettings.js';
+import { hashPassword } from '../src/lib/jwt.js';
+
+export { DEFAULT_EMAIL_TEMPLATES, DEFAULT_APP_SETTINGS, getDefaultAppSettings };
 
 export interface SystemCategorySeed {
   name: string;
@@ -31,10 +36,45 @@ export const SYSTEM_CATEGORIES: SystemCategorySeed[] = [
   { name: 'Real Estate', type: TxnType.INVESTMENT, sortOrder: 17 },
 ];
 
-export const DEFAULT_APP_SETTINGS = [
-  { key: 'session_timeout_minutes', value: 15 },
-  { key: 'max_failed_attempts', value: 5 },
-];
+export async function ensureSoleAdminUser(prisma: PrismaClient): Promise<void> {
+  const adminEmail = (process.env.ADMIN_EMAIL || 'contact@imakshay.in').toLowerCase().trim();
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  });
+
+  if (!existingAdmin) {
+    const passwordHash = await hashPassword(process.env.ADMIN_PASSWORD || 'Pass@12345');
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        passwordHash,
+        firstName: 'System',
+        lastName: 'Admin',
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
+      },
+    });
+  } else {
+    await prisma.user.update({
+      where: { id: existingAdmin.id },
+      data: {
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
+      },
+    });
+  }
+
+  // Demote any other admins so sole admin policy is preserved
+  await prisma.user.updateMany({
+    where: {
+      role: UserRole.ADMIN,
+      email: { not: adminEmail },
+    },
+    data: {
+      role: UserRole.USER,
+    },
+  });
+}
 
 export async function seed(prisma: PrismaClient = new PrismaClient()): Promise<void> {
   console.log('Seeding system categories...');
@@ -75,6 +115,32 @@ export async function seed(prisma: PrismaClient = new PrismaClient()): Promise<v
       update: { value: setting.value },
       create: { key: setting.key, value: setting.value },
     });
+  }
+
+  if (prisma.emailTemplate?.upsert) {
+    console.log('Seeding default email templates...');
+    for (const tmpl of DEFAULT_EMAIL_TEMPLATES) {
+      await prisma.emailTemplate.upsert({
+        where: { key: tmpl.key },
+        update: {
+          name: tmpl.name,
+          subject: tmpl.subject,
+          variables: tmpl.variables,
+          htmlContent: tmpl.htmlContent,
+          textContent: tmpl.textContent,
+          isActive: tmpl.isActive,
+        },
+        create: {
+          key: tmpl.key,
+          name: tmpl.name,
+          subject: tmpl.subject,
+          variables: tmpl.variables,
+          htmlContent: tmpl.htmlContent,
+          textContent: tmpl.textContent,
+          isActive: tmpl.isActive,
+        },
+      });
+    }
   }
 
   console.log('Database seed completed successfully.');

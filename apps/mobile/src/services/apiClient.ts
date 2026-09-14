@@ -1,14 +1,6 @@
 import { FinanceApiClient } from '@finance/api-client';
 import { secureStorage } from './secureStorage';
-
-const getBaseUrl = (): string => {
-  // Mobile client endpoint pointing to the backend /api/v1
-  const envUrl = process.env.API_URL || process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl) {
-    return envUrl;
-  }
-  return 'https://finance.imakshay.in/api/v1';
-};
+import { getBaseUrl } from '../config/env';
 
 export const apiClient = new FinanceApiClient({
   baseURL: getBaseUrl(),

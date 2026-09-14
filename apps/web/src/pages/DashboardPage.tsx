@@ -135,8 +135,7 @@ export const DashboardPage: React.FC = () => {
   } = useQuery<DashboardSummaryData>({
     queryKey: ['dashboard'],
     queryFn: async () => {
-      const res = await apiClient.rawAxios.get('/dashboard');
-      return res.data?.data || res.data;
+      return await apiClient.dashboard.get();
     },
     placeholderData: keepPreviousData,
   });

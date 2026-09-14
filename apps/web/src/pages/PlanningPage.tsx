@@ -109,8 +109,8 @@ export const PlanningPage: React.FC = () => {
   } = useQuery<Budget[]>({
     queryKey: ['budgets'],
     queryFn: async () => {
-      const res = await apiClient.rawAxios.get('/budgets');
-      return res.data?.data || [];
+      const res = await apiClient.budgets.list();
+      return res || [];
     },
     placeholderData: keepPreviousData,
   });
@@ -123,8 +123,8 @@ export const PlanningPage: React.FC = () => {
   } = useQuery<Goal[]>({
     queryKey: ['goals'],
     queryFn: async () => {
-      const res = await apiClient.rawAxios.get('/goals');
-      return res.data?.data || [];
+      const res = await apiClient.goals.list();
+      return res || [];
     },
     placeholderData: keepPreviousData,
   });
@@ -147,8 +147,7 @@ export const PlanningPage: React.FC = () => {
   // Mutations for Budgets
   const createBudgetMutation = useMutation({
     mutationFn: async (payload: { categoryId: string; targetAmount: number; name?: string }) => {
-      const res = await apiClient.rawAxios.post('/budgets', payload);
-      return res.data?.data;
+      return await apiClient.budgets.create(payload as any);
     },
     onSuccess: () => {
       syncOnBudgetMutation(queryClient);
@@ -165,8 +164,7 @@ export const PlanningPage: React.FC = () => {
 
   const updateBudgetMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: { categoryId: string; targetAmount: number; name?: string } }) => {
-      const res = await apiClient.rawAxios.put(`/budgets/${id}`, payload);
-      return res.data?.data;
+      return await apiClient.budgets.update(id, payload as any);
     },
     onSuccess: () => {
       syncOnBudgetMutation(queryClient);
@@ -183,8 +181,7 @@ export const PlanningPage: React.FC = () => {
 
   const deleteBudgetMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await apiClient.rawAxios.delete(`/budgets/${id}`);
-      return res.data?.data;
+      return await apiClient.budgets.delete(id);
     },
     onSuccess: () => {
       syncOnBudgetMutation(queryClient);
@@ -199,8 +196,7 @@ export const PlanningPage: React.FC = () => {
   // Mutations for Goals
   const createGoalMutation = useMutation({
     mutationFn: async (payload: { name: string; targetAmount: number; currentAmount: number; targetDate: string }) => {
-      const res = await apiClient.rawAxios.post('/goals', payload);
-      return res.data?.data;
+      return await apiClient.goals.create(payload as any);
     },
     onSuccess: () => {
       syncOnGoalMutation(queryClient);
@@ -217,8 +213,7 @@ export const PlanningPage: React.FC = () => {
 
   const updateGoalMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: { name: string; targetAmount: number; currentAmount: number; targetDate: string } }) => {
-      const res = await apiClient.rawAxios.put(`/goals/${id}`, payload);
-      return res.data?.data;
+      return await apiClient.goals.update(id, payload as any);
     },
     onSuccess: () => {
       syncOnGoalMutation(queryClient);
@@ -235,8 +230,7 @@ export const PlanningPage: React.FC = () => {
 
   const deleteGoalMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await apiClient.rawAxios.delete(`/goals/${id}`);
-      return res.data?.data;
+      return await apiClient.goals.delete(id);
     },
     onSuccess: () => {
       syncOnGoalMutation(queryClient);

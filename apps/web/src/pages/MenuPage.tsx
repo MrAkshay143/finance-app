@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Pencil,
   LifeBuoy,
+  Mail,
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
@@ -238,6 +239,14 @@ export const MenuPage: React.FC = () => {
         icon: <Sliders className="w-5 h-5" />,
         iconBg: 'bg-amber-50',
         iconColor: 'text-amber-600',
+      },
+      {
+        label: 'Email Templates',
+        subtitle: 'Manage outgoing transactional emails',
+        path: '/admin/settings?tab=templates',
+        icon: <Mail className="w-5 h-5" />,
+        iconBg: 'bg-emerald-50',
+        iconColor: 'text-emerald-600',
       },
       {
         label: 'System Audit',

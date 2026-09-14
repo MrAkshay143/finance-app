@@ -37,12 +37,13 @@ describe('Prisma Schema & Model Verification', () => {
       'AuditLog',
       'AppSetting',
       'UserSettings',
+      'EmailOtp',
     ];
 
     for (const model of expectedModels) {
       expect(modelNames).toContain(model);
     }
-    expect(modelNames.length).toBe(17);
+    expect(modelNames.length).toBe(18);
   });
 
   it('exposes all required delegates on PrismaClient instance', () => {

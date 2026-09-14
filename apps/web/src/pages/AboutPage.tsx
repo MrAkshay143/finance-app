@@ -25,8 +25,10 @@ import {
 } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
+import { useConfigStore } from '../store/configStore.js';
 
 export const AboutPage: React.FC = () => {
+  const platformName = useConfigStore((s) => s.platformName);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
   const toggleStep = (stepIndex: number) => {
@@ -175,7 +177,7 @@ export const AboutPage: React.FC = () => {
               </div>
             </div>
 
-            <h2 className="text-xl font-black tracking-tight text-white">Finance Tracker</h2>
+            <h2 className="text-xl font-black tracking-tight text-white">{platformName}</h2>
             <div className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-slate-200">
               Version 1.0
             </div>
@@ -237,7 +239,7 @@ export const AboutPage: React.FC = () => {
           <div className="flex items-center gap-2 px-1">
             <Lightbulb className="w-4 h-4 text-emerald-600" />
             <div>
-              <h3 className="text-xs font-bold text-textDefault">How to use Finance Tracker</h3>
+              <h3 className="text-xs font-bold text-textDefault">{`How to use ${platformName}`}</h3>
               <p className="text-[11px] text-textMuted">New here? Follow these steps to get the most out of the app.</p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { resolveAssetUrl } from '../../config/env.js';
 
 export interface AvatarProgressRingProps {
   initials?: string;
@@ -79,7 +80,7 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
       {/* Inner Avatar Content */}
       {avatarUrl && !imgError ? (
         <img
-          src={avatarUrl}
+          src={resolveAssetUrl(avatarUrl)}
           alt="Profile Avatar"
           onError={() => setImgError(true)}
           className="absolute rounded-full object-cover shadow-inner"

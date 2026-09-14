@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { env } from '../config/env.js';
 import { authRouter } from './auth.routes.js';
 import { profileRouter } from './profile.routes.js';
 import { securityQuestionsRouter } from './securityQuestions.routes.js';
@@ -41,7 +42,7 @@ apiV1Router.get('/', (_req, res) => {
       name: 'Finance Tracker API',
       version: '1.0.0',
       status: 'operational',
-      environment: 'production',
+      environment: env.NODE_ENV,
       endpoints: {
         auth: '/api/v1/auth',
         accounts: '/api/v1/accounts',
@@ -78,8 +79,8 @@ apiV1Router.get('/public/config', async (_req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        platformName: String(map.get('platform_name') ?? 'Finance Tracker'),
-        supportEmail: String(map.get('support_email') ?? 'support@imakshay.in'),
+        platformName: String(map.get('platform_name') ?? (env.PLATFORM_NAME || 'Finance Tracker Pro')),
+        supportEmail: String(map.get('support_email') ?? (env.SUPPORT_EMAIL || 'contact@imakshay.in')),
         allowUserRegistration: map.has('allow_user_registration')
           ? Boolean(map.get('allow_user_registration') === true || map.get('allow_user_registration') === 'true')
           : true,

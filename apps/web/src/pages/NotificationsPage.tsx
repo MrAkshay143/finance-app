@@ -20,11 +20,10 @@ import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { useInfiniteFeed } from '../hooks/useInfiniteFeed.js';
 import { toast } from '../store/toastStore.js';
-import { apiClient, getStoredAccessToken, getFriendlyErrorMessage } from '../services/apiClient.js';
-import { FinanceSocketManager } from '@finance/api-client';
+import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { getSocketManager } from '../services/socketService.js';
 import { useSafeQueryClient } from '../hooks/useSafeQueryClient.js';
 import { useUiStore } from '../store/uiStore.js';
-import { getSocketBaseUrl } from '../hooks/useRealtimeSync.js';
 import { formatRelativeTime } from '../utils/date.js';
 import type { NotificationItem, Reminder } from '@finance/shared-types';
 
@@ -136,11 +135,7 @@ export const NotificationsPage: React.FC = () => {
 
   // Realtime Socket.IO Connection for Notifications
   useEffect(() => {
-    const socketUrl = getSocketBaseUrl();
-    const socketManager = new FinanceSocketManager({
-      url: socketUrl,
-      getAccessToken: () => getStoredAccessToken(),
-    });
+    const socketManager = getSocketManager();
 
     socketManager
       .connectNotifications(
@@ -155,10 +150,6 @@ export const NotificationsPage: React.FC = () => {
       .catch(() => {
         // Socket connection silent failover
       });
-
-    return () => {
-      socketManager.disconnectAll();
-    };
   }, [queryClient, setUnreadCount]);
 
   const items = notificationsResponse?.items || [];

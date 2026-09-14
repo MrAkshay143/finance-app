@@ -21,7 +21,7 @@ import { AppHeader } from '../components/layout/AppHeader.js';
 import { Card } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
 import { useAuthStore } from '../store/authStore.js';
-import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
+import { apiClient, getFriendlyErrorMessage, resolveAssetUrl } from '../services/apiClient.js';
 import { toast } from '../store/toastStore.js';
 import { compressImageToWebP } from '../utils/imageCompressor.js';
 import { useUserCurrency } from '../hooks/useUserCurrency.js';
@@ -218,7 +218,7 @@ export const ProfilePage: React.FC = () => {
                     <span className="text-[10px] font-medium">Uploading...</span>
                   ) : user?.avatarUrl && !avatarImgError ? (
                     <img
-                      src={user.avatarUrl}
+                      src={resolveAssetUrl(user.avatarUrl)}
                       alt={user.fullName || 'User Avatar'}
                       onError={() => setAvatarImgError(true)}
                       className="w-full h-full object-cover"

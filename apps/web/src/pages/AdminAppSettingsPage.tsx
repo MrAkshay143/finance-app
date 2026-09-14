@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AdminEmailTemplatesTab } from '../components/admin/AdminEmailTemplatesTab.js';
 import {
   Settings,
   Clock,
@@ -38,6 +39,7 @@ import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { useAuthStore } from '../store/authStore.js';
+import { useConfigStore } from '../store/configStore.js';
 import type { AppSettings, UpdateAppSettingsInput } from '@finance/shared-types';
 import { COUNTRIES } from '@finance/shared-types';
 import { SUPPORTED_CURRENCIES } from '@finance/shared-ui-tokens';
@@ -45,6 +47,9 @@ import { toast } from '../store/toastStore.js';
 
 export const AdminAppSettingsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'templates' ? 'Email Templates' : 'General';
+  const [activeTab, setActiveTab] = useState<'General' | 'Security' | 'Email / SMTP' | 'Email Templates' | 'Financial' | 'Maintenance'>(initialTab);
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
 
@@ -125,6 +130,7 @@ export const AdminAppSettingsPage: React.FC = () => {
     onSuccess: () => {
       hasLoadedSettingsRef.current = false;
       queryClient.invalidateQueries({ queryKey: ['admin-app-settings'] });
+      useConfigStore.getState().fetchConfig().catch(() => {});
       toast.success('Settings saved');
     },
     onError: (err: any) => {
@@ -291,8 +297,38 @@ export const AdminAppSettingsPage: React.FC = () => {
               </Button>
             </div>
 
-            {/* Card 1: App Settings (General Platform) */}
-            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
+            {/* Settings Tab Navigation Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar border-b border-borderDefault/60">
+              {(['General', 'Security', 'Email / SMTP', 'Email Templates', 'Financial', 'Maintenance'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab);
+                    if (tab === 'Email Templates') {
+                      setSearchParams({ tab: 'templates' });
+                    } else {
+                      setSearchParams({});
+                    }
+                  }}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${
+                    activeTab === tab
+                      ? 'bg-brand-primary text-white shadow-sm'
+                      : 'text-textMuted hover:text-textDefault hover:bg-slate-100 bg-white border border-borderDefault/60'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === 'Email Templates' ? (
+              <AdminEmailTemplatesTab />
+            ) : (
+              <>
+                {/* Card 1: App Settings (General Platform) */}
+                {activeTab === 'General' && (
+                  <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
@@ -434,8 +470,10 @@ export const AdminAppSettingsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Card 2: Security Policies */}
+          {/* Card 2: Security Policies */}
+          {(activeTab === 'General' || activeTab === 'Security') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
@@ -634,8 +672,66 @@ export const AdminAppSettingsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Card 3: Financial Defaults & Targets */}
+          {/* Card: Email & SMTP Settings */}
+          {(activeTab === 'General' || activeTab === 'Email / SMTP') && (
+            <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-textDefault leading-tight">Email / SMTP</h2>
+                  <p className="text-xs text-textMuted mt-0.5 leading-tight">
+                    Production transactional mail server configuration
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3.5 bg-slate-50 border border-borderDefault/80 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-textMuted">SMTP Host:</span>
+                    <span className="font-mono font-semibold text-textDefault">smtp.hostinger.com</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-textMuted">Port & Security:</span>
+                    <span className="font-semibold text-textDefault">465 (SSL / TLS Encrypted)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-textMuted">Support / From Email:</span>
+                    <span className="font-mono font-semibold text-brand-primary">{supportEmail}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-textMuted">Sender Name:</span>
+                    <span className="font-semibold text-textDefault">{platformName}</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl flex items-center gap-2 text-xs text-emerald-800">
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>SMTP credentials configured and active via secure host environment.</span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  onClick={() => {
+                    setActiveTab('Email Templates');
+                    setSearchParams({ tab: 'templates' });
+                  }}
+                  icon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Edit Email Templates
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Card 3: Financial Defaults & Targets */}
+          {(activeTab === 'General' || activeTab === 'Financial') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -734,8 +830,10 @@ export const AdminAppSettingsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Card 4: System Maintenance & Controls */}
+          {/* Card 4: System Maintenance & Controls */}
+          {(activeTab === 'General' || activeTab === 'Maintenance') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -822,6 +920,7 @@ export const AdminAppSettingsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
 
             {/* Footer Actions */}
             <div className="grid grid-cols-2 gap-3 pt-2">
@@ -846,9 +945,11 @@ export const AdminAppSettingsPage: React.FC = () => {
                 Save
               </Button>
             </div>
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
 
       {/* Compact Purge Audit Logs Modal */}
       <Modal

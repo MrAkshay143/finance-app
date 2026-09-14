@@ -22,14 +22,16 @@ describe('Data Seeder & Hostinger SMTP Security Suite', () => {
   });
 
   describe('1. Default Email Templates Verification', () => {
-    it('contains all 5 transactional email templates', () => {
+    it('contains all default transactional email templates', () => {
       const keys = DEFAULT_EMAIL_TEMPLATES.map((t) => t.key);
       expect(keys).toContain('password_reset');
       expect(keys).toContain('welcome');
       expect(keys).toContain('security_alert');
       expect(keys).toContain('account_locked');
       expect(keys).toContain('session_warning');
-      expect(DEFAULT_EMAIL_TEMPLATES.length).toBe(5);
+      expect(keys).toContain('email_verification');
+      expect(keys).toContain('password_reset_otp');
+      expect(DEFAULT_EMAIL_TEMPLATES.length).toBe(7);
     });
 
     it('defines required interpolation variables for each template', () => {

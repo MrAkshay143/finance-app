@@ -1,17 +1,60 @@
-export function getApiBaseUrl(): string {
+import { resolveServiceUrls, resolveAssetUrl as sharedResolveAssetUrl } from '@finance/api-client';
+
+/**
+ * Resolves the root backend server origin (without trailing slash or /api path).
+ * Precedence: window.__FINANCE_API_URL__ -> localStorage -> VITE_API_URL -> window.location.origin
+ */
+export function getBackendOrigin(): string {
   if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
-    return `${(window as any).__FINANCE_API_URL__.replace(/\/$/, '')}/api/v1`;
+    const raw = String((window as any).__FINANCE_API_URL__).trim();
+    if (raw) return raw.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
   }
   if (typeof window !== 'undefined') {
     const customApi = localStorage.getItem('FINANCE_API_URL');
-    if (customApi) {
-      return `${customApi.replace(/\/$/, '')}/api/v1`;
+    if (customApi && customApi.trim()) {
+      return customApi.trim().replace(/\/+$/, '').replace(/\/api\/v1$/, '');
     }
   }
   if (import.meta.env?.VITE_API_URL) {
-    return `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api/v1`;
+    const raw = String(import.meta.env.VITE_API_URL).trim();
+    if (raw) return raw.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
   }
-  return '/api/v1';
+  return typeof window !== 'undefined' ? window.location.origin : 'https://finance.imakshay.in';
+}
+
+/**
+ * Standardized full REST API Base URL with /api/v1 suffix.
+ */
+export function getApiBaseUrl(): string {
+  const origin = getBackendOrigin();
+  return `${origin}/api/v1`;
 }
 
 export const getApiBase = getApiBaseUrl;
+
+/**
+ * Standardized WebSocket Base URL for Socket.IO connections.
+ */
+export function getSocketBaseUrl(): string {
+  if (import.meta.env?.VITE_SOCKET_URL) {
+    const raw = String(import.meta.env.VITE_SOCKET_URL).trim();
+    if (raw) return raw.replace(/\/+$/, '');
+  }
+  return getBackendOrigin();
+}
+
+/**
+ * Resolves uploaded assets (e.g. /uploads/avatars/...) to full valid URLs using the backend origin.
+ */
+export function resolveAssetUrl(relativePathOrUrl: string | null | undefined): string | undefined {
+  return sharedResolveAssetUrl(relativePathOrUrl, getBackendOrigin());
+}
+
+export const APP_ENV = {
+  getBackendOrigin,
+  getApiBaseUrl,
+  getSocketBaseUrl,
+  resolveAssetUrl,
+};
+
+export default APP_ENV;

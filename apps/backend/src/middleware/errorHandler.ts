@@ -91,7 +91,7 @@ export function errorHandler(
       },
       `Unhandled server error: ${err?.message || 'Unknown error'}`
     );
-    message = err?.message || 'Something went wrong. Please try again.';
+    message = 'Something went wrong. Please try again.';
   } else {
     logger.warn(
       {

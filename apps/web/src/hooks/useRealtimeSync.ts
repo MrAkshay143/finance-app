@@ -5,24 +5,8 @@ import { handleSilentSyncEvent, syncAllFinanceData } from '../services/dataSync.
 import { useAuthStore } from '../store/authStore.js';
 import { useSafeQueryClient } from './useSafeQueryClient.js';
 
-export function getSocketBaseUrl(): string | undefined {
-  if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
-    return (window as any).__FINANCE_API_URL__.replace(/\/$/, '');
-  }
-  if (typeof window !== 'undefined') {
-    const customApi = localStorage.getItem('FINANCE_API_URL');
-    if (customApi) {
-      return customApi.replace(/\/$/, '');
-    }
-  }
-  if ((import.meta as any).env?.VITE_SOCKET_URL) {
-    return (import.meta as any).env.VITE_SOCKET_URL.replace(/\/$/, '');
-  }
-  if ((import.meta as any).env?.VITE_API_URL) {
-    return (import.meta as any).env.VITE_API_URL.replace(/\/$/, '');
-  }
-  return typeof window !== 'undefined' ? window.location.origin : undefined;
-}
+export { getSocketBaseUrl } from '../config/env.js';
+import { getSocketManager } from '../services/socketService.js';
 
 /**
  * Custom hook that maintains a real-time connection to the backend /dashboard
@@ -40,13 +24,7 @@ export function useRealtimeSync(): void {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    
-
-    const socketUrl = getSocketBaseUrl();
-    const socketManager = new FinanceSocketManager({
-      url: socketUrl,
-      getAccessToken: () => getStoredAccessToken(),
-    });
+    const socketManager = getSocketManager();
 
     let activeSocket: any = null;
     let isInitialConnect = true; // skip catch-up sync on first connect

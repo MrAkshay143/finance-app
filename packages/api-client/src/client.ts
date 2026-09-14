@@ -75,6 +75,50 @@ import type {
   ResetProfileResponse,
 } from '@finance/shared-types';
 
+export interface ServiceUrlConfig {
+  apiBaseUrl: string;
+  socketUrl: string;
+  uploadsBaseUrl: string;
+  origin: string;
+}
+
+/**
+ * Standardized URL resolver for backend services (REST API, WebSocket, Uploads).
+ * Cleans trailing slashes and handles URLs with or without /api/v1 suffix.
+ */
+export function resolveServiceUrls(rawUrl?: string, fallbackOrigin = 'https://finance.imakshay.in'): ServiceUrlConfig {
+  const target = (rawUrl && rawUrl.trim()) ? rawUrl.trim() : fallbackOrigin;
+  const clean = target.replace(/\/+$/, '');
+  const root = clean.replace(/\/api\/v1$/, '');
+  return {
+    origin: root,
+    apiBaseUrl: `${root}/api/v1`,
+    socketUrl: root,
+    uploadsBaseUrl: `${root}/uploads`,
+  };
+}
+
+/**
+ * Resolves an asset or avatar URL to a full valid URL if it is a relative path.
+ */
+export function resolveAssetUrl(
+  relativePathOrUrl: string | null | undefined,
+  baseUrl = 'https://finance.imakshay.in'
+): string | undefined {
+  if (!relativePathOrUrl) return undefined;
+  if (
+    relativePathOrUrl.startsWith('http://') ||
+    relativePathOrUrl.startsWith('https://') ||
+    relativePathOrUrl.startsWith('data:') ||
+    relativePathOrUrl.startsWith('blob:')
+  ) {
+    return relativePathOrUrl;
+  }
+  const cleanPath = relativePathOrUrl.startsWith('/') ? relativePathOrUrl : `/${relativePathOrUrl}`;
+  const root = baseUrl.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+  return `${root}${cleanPath}`;
+}
+
 export interface ApiClientConfig {
   baseURL?: string;
   timeout?: number;

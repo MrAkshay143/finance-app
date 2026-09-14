@@ -28,17 +28,19 @@ import {
 } from '@finance/shared-types';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
+import { useConfigStore } from '../../store/configStore.js';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
   const { signup, isLoading, error, clearError } = useAuthStore();
+  const { allowUserRegistration, defaultCountry, defaultBaseCurrency, platformName } = useConfigStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
-  const [country, setCountry] = useState<CountryCode>('IN');
-  const [currency, setCurrency] = useState<CurrencyCode>('INR');
+  const [country, setCountry] = useState<CountryCode>((defaultCountry as CountryCode) || 'IN');
+  const [currency, setCurrency] = useState<CurrencyCode>((defaultBaseCurrency as CurrencyCode) || 'INR');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +62,13 @@ export const SignupPage: React.FC = () => {
   useEffect(() => {
     clearError();
   }, [clearError]);
+
+  useEffect(() => {
+    if (allowUserRegistration === false) {
+      toast.error('Account registration is currently disabled.');
+      navigate('/login');
+    }
+  }, [allowUserRegistration, navigate]);
 
   const strengthDetails = useMemo(() => {
     if (!password) {
@@ -165,7 +174,7 @@ export const SignupPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1 sm:mb-1.5 ring-4 ring-white/80">
             <img
               src="/pwa-192x192.png"
-              alt="Finance"
+              alt={platformName}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLElement).style.display = 'none';

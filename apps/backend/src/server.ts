@@ -9,6 +9,7 @@ import { prisma } from './lib/prisma.js';
 import { hashPassword } from './lib/jwt.js';
 import { categoryService } from './services/categoryService.js';
 import { seedInstitutionalData } from './seedData.js';
+import { getDefaultAppSettings } from './config/defaultAppSettings.js';
 
 // Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md Section 11
 initSentry('backend-api');
@@ -274,6 +275,28 @@ async function ensureStandardUser() {
   }
 }
 
+async function ensureDefaultAppSettings() {
+  try {
+    const defaults = getDefaultAppSettings();
+    for (const setting of defaults) {
+      const existing = await prisma.appSetting.findUnique({
+        where: { key: setting.key },
+      });
+      if (!existing) {
+        await prisma.appSetting.create({
+          data: {
+            key: setting.key,
+            value: setting.value,
+          },
+        });
+      }
+    }
+    logger.info('Default app settings verified and seeded.');
+  } catch (err: any) {
+    logger.warn({ err: err?.message }, 'Failed to seed default app settings on startup');
+  }
+}
+
 // Startup bootstrap sequence
 async function bootstrapInitialData() {
   try {
@@ -281,6 +304,7 @@ async function bootstrapInitialData() {
     await categoryService.ensureSystemCategories().catch((err) => {
       logger.warn({ err: err?.message }, 'Failed to auto-provision system categories on startup');
     });
+    await ensureDefaultAppSettings();
     await ensureAdminUser();
     await ensureStandardUser();
   } catch (err: any) {

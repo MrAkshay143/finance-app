@@ -33,25 +33,11 @@ export {
 };
 
 export { getFriendlyErrorMessage } from '@finance/api-client';
-
-function getApiBase(): string {
-  if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
-    return `${(window as any).__FINANCE_API_URL__.replace(/\/$/, '')}/api/v1`;
-  }
-  if (typeof window !== 'undefined') {
-    const customApi = localStorage.getItem('FINANCE_API_URL');
-    if (customApi) {
-      return `${customApi.replace(/\/$/, '')}/api/v1`;
-    }
-  }
-  if (import.meta.env.VITE_API_URL) {
-    return `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api/v1`;
-  }
-  return '/api/v1';
-}
+export { getApiBaseUrl, getSocketBaseUrl, getBackendOrigin, resolveAssetUrl } from '../config/env.js';
+import { getApiBaseUrl } from '../config/env.js';
 
 export const apiClient = new FinanceApiClient({
-  baseURL: getApiBase(),
+  baseURL: getApiBaseUrl(),
   getAccessToken: () => getStoredAccessToken(),
   setAccessToken: (token: string | null) => {
     setStoredAccessToken(token);

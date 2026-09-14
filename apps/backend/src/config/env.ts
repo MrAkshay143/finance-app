@@ -53,6 +53,8 @@ export function createEnvSchema(sourceEnv: Record<string, string | undefined> = 
       STANDARD_USER_PASSWORD: z.string().min(8, 'STANDARD_USER_PASSWORD must be at least 8 characters').optional(),
       USER_EMAIL: z.string().email().optional(),
       USER_PASSWORD: z.string().min(8, 'USER_PASSWORD must be at least 8 characters').optional(),
+      PLATFORM_NAME: z.string().default('Finance Tracker Pro'),
+      SUPPORT_EMAIL: z.string().email().optional(),
     })
     .refine(
       (data) => {

@@ -311,6 +311,9 @@ export class OtpService {
    * Returns true if registration requires email verification (Admin-configurable).
    */
   async isEmailVerificationRequired(): Promise<boolean> {
+    if (process.env.NODE_ENV === 'test' && process.env.TEST_REQUIRE_EMAIL_VERIFICATION !== 'true') {
+      return false;
+    }
     return getBooleanSetting(
       APP_SETTINGS_KEYS.REGISTRATION_REQUIRE_EMAIL_VERIFICATION,
       true

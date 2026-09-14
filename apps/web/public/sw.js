@@ -60,10 +60,11 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Bypass API calls, websockets, and non-GET methods
+  // Bypass API calls, uploads, websockets, and non-GET methods
   if (
     event.request.method !== 'GET' ||
     event.request.url.includes('/api/') ||
+    event.request.url.includes('/uploads/') ||
     event.request.url.includes('/socket.io/')
   ) {
     return;

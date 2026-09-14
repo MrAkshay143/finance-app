@@ -31,24 +31,7 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
   const [lockoutRemaining, setLockoutRemaining] = useState<number | null>(null);
-  const [allowRegistration, setAllowRegistration] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    apiClient.publicConfig
-      ?.get?.()
-      ?.then((res: any) => {
-        if (!mounted) return;
-        const cfg = res?.data || res;
-        if (cfg?.allowUserRegistration === false) {
-          setAllowRegistration(false);
-        }
-      })
-      ?.catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const { allowUserRegistration: allowRegistration, platformName } = useConfigStore();
 
   const searchParams = new URLSearchParams(location.search);
   const isSessionExpired = Boolean(
@@ -184,10 +167,10 @@ export const LoginPage: React.FC = () => {
         {/* Logo and Header */}
         <div className="flex flex-col items-center mb-10 mt-6 relative z-10">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-[14px] overflow-hidden shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700 p-0.5 border border-white/20">
+            <div className="w-12 h-12 rounded-[14px] overflow-hidden shadow-lg bg-gradient-to-br from-[#0B1B3A] to-[#132A5C] p-0.5 border border-white/20">
               <img
                 src="/pwa-192x192.png"
-                alt="Finance Tracker Logo"
+                alt={`${platformName} Logo`}
                 className="w-full h-full object-cover rounded-[12px]"
                 onError={(e) => {
                   (e.currentTarget as HTMLElement).style.display = 'none';
@@ -195,7 +178,7 @@ export const LoginPage: React.FC = () => {
               />
             </div>
             <h1 className="text-lg font-bold tracking-tight text-slate-900 leading-tight">
-              {useConfigStore((s) => s.platformName)}
+              {platformName}
             </h1>
           </div>
           <p className="text-[11px] text-slate-500 mt-0.5 font-normal">
