@@ -31,7 +31,6 @@ import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js
 import { CountrySelector } from '../components/ui/CountrySelector.js';
 import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { DatePicker } from '../components/ui/DatePicker.js';
-import { CustomDropdown } from '../components/ui/CustomDropdown.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
@@ -39,8 +38,6 @@ import { useUserCurrency } from '../hooks/useUserCurrency.js';
 import {
   validateAndNormalizePhone,
   COUNTRY_REGISTRY,
-  DATE_FORMAT_OPTIONS,
-  TIME_FORMAT_OPTIONS,
   type DateFormatType,
   type TimeFormatType,
   type RiskAppetite,
@@ -439,32 +436,6 @@ export const ProfileSettingsPage: React.FC = () => {
                   />
                 );
               })()}
-
-              {/* Date & Time Preferences */}
-              <div className="grid grid-cols-2 gap-3">
-                <CustomDropdown
-                  label="Date Format"
-                  value={dateFormat}
-                  onChange={(val) => setDateFormat(val as DateFormatType)}
-                  options={DATE_FORMAT_OPTIONS.map((opt) => ({
-                    value: opt.value,
-                    label: opt.label,
-                  }))}
-                  disabled={isLoading}
-                  searchable={false}
-                />
-                <CustomDropdown
-                  label="Time Format"
-                  value={timeFormat}
-                  onChange={(val) => setTimeFormat(val as TimeFormatType)}
-                  options={TIME_FORMAT_OPTIONS.map((opt) => ({
-                    value: opt.value,
-                    label: opt.label,
-                  }))}
-                  disabled={isLoading}
-                  searchable={false}
-                />
-              </div>
 
 
               {/* Address */}
