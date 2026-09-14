@@ -200,7 +200,7 @@ export const ProfileScreen: React.FC = () => {
               </Text>
               <View style={styles.planBadge}>
                 <Text style={styles.planBadgeText}>
-                  {authUser?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                  {authUser?.role === 'ADMIN' ? 'Administrator' : 'Standard User'}
                 </Text>
               </View>
             </View>

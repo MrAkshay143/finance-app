@@ -72,7 +72,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
       // User profile card
       expect(html).toContain('Akshay Contact');
       expect(html).toContain('contact@imakshay.in');
-      expect(html).toContain('Standard Member');
+      expect(html).toContain('Standard User');
       expect(html).toContain('Edit Profile');
 
       // 5 grouped sections

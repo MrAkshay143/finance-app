@@ -270,7 +270,7 @@ export const MenuScreen: React.FC = () => {
                 </Text>
                 <View style={styles.planBadge}>
                   <Text style={styles.planBadgeText}>
-                    {user?.role === 'ADMIN' ? 'Administrator' : 'Standard Member'}
+                    {user?.role === 'ADMIN' ? 'Administrator' : 'Standard User'}
                   </Text>
                 </View>
               </View>
