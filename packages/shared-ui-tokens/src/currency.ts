@@ -44,7 +44,7 @@ export const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   },
   CAD: {
     code: 'CAD',
-    symbol: 'CA$',
+    symbol: '$',
     name: 'Canadian Dollar',
     locale: 'en-CA',
     decimalPlaces: 2,
@@ -52,7 +52,7 @@ export const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   },
   AUD: {
     code: 'AUD',
-    symbol: 'A$',
+    symbol: '$',
     name: 'Australian Dollar',
     locale: 'en-AU',
     decimalPlaces: 2,
@@ -60,7 +60,7 @@ export const CURRENCY_CONFIGS: Record<string, CurrencyConfig> = {
   },
   SGD: {
     code: 'SGD',
-    symbol: 'S$',
+    symbol: '$',
     name: 'Singapore Dollar',
     locale: 'en-SG',
     decimalPlaces: 2,

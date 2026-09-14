@@ -36,7 +36,7 @@ import { SUPPORTED_CURRENCIES } from '@finance/shared-ui-tokens';
 
 const CURRENCY_OPTIONS = SUPPORTED_CURRENCIES.map((c) => ({
   value: c.code,
-  label: `${c.code} (${c.symbol}) - ${c.name}`,
+  label: `${c.symbol} ${c.code}`,
 }));
 
 const TIMEZONE_OPTIONS = [
