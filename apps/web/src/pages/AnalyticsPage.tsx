@@ -106,12 +106,32 @@ export const AnalyticsPage: React.FC = () => {
     0,
   ];
 
+  const categoryMonth = React.useMemo(() => {
+    const d = new Date();
+    if (selectedCategoryPeriod === 'Last Month') {
+      d.setDate(1);
+      d.setMonth(d.getMonth() - 1);
+    }
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }, [selectedCategoryPeriod]);
+
+  const { data: categoryAnalyticsData } = useQuery<AnalyticsOverview>({
+    queryKey: ['analytics', categoryMonth, accountId || 'all'],
+    queryFn: async () => {
+      return await apiClient.analytics.get({ month: categoryMonth, accountId });
+    },
+    enabled: categoryMonth !== selectedMonth,
+    placeholderData: keepPreviousData,
+  }, queryClient);
+
+  const effectiveCategoryData = categoryMonth === selectedMonth ? analyticsData : categoryAnalyticsData;
+
   const activeCategoryBreakdown: Array<{ categoryId?: string; categoryName: string; totalAmount: number; percentage: number }> =
     categoryType === 'EXPENSE'
-      ? (analyticsData?.expenseCategoryBreakdown || analyticsData?.categoryBreakdown || [])
+      ? (effectiveCategoryData?.expenseCategoryBreakdown || effectiveCategoryData?.categoryBreakdown || [])
       : categoryType === 'INCOME'
-      ? (analyticsData?.incomeCategoryBreakdown || [])
-      : ((analyticsData as any)?.investmentCategoryBreakdown || []);
+      ? (effectiveCategoryData?.incomeCategoryBreakdown || [])
+      : ((effectiveCategoryData as any)?.investmentCategoryBreakdown || []);
 
   const hasSpendingTrendData = displayedTrends.some((t) => t.spent > 0);
   const hasCategoryData = activeCategoryBreakdown.length > 0;
