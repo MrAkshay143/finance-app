@@ -99,7 +99,6 @@ export const LoginScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Brand Header Banner */}
         <View style={styles.brandContainer}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>FT</Text>
@@ -108,14 +107,12 @@ export const LoginScreen: React.FC = () => {
           <Text style={styles.brandSubtitle}>Personal Finance Management System</Text>
         </View>
 
-        {/* Login Card */}
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>Sign In</Text>
           <Text style={styles.formDescription}>
             Enter your email and password to access your financial records.
           </Text>
 
-          {/* Error Banner */}
           {activeError ? (
             <View style={styles.errorBanner}>
               <AlertCircleIcon size={18} color={colors.danger} />
@@ -123,7 +120,6 @@ export const LoginScreen: React.FC = () => {
             </View>
           ) : null}
 
-          {/* Email Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email Address</Text>
             <View style={styles.inputWrapper}>
@@ -151,7 +147,6 @@ export const LoginScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Password Input */}
           <View style={styles.inputGroup}>
             <View style={styles.passwordLabelRow}>
               <Text style={styles.inputLabel}>Password</Text>
@@ -195,7 +190,6 @@ export const LoginScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Submit Button */}
           <Pressable
             onPress={handleLogin}
             disabled={isLoading}
@@ -219,7 +213,6 @@ export const LoginScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Signup Navigation Link */}
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>Do not have an account yet?</Text>
           <Pressable

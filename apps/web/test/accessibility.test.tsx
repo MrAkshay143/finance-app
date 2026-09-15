@@ -50,9 +50,7 @@ function createTestQueryClient(initialData?: Array<[any[], any]>) {
 }
 
 describe('TASK-6.1: Web Accessibility & Polish Pass Test Suite', () => {
-  /* ======================================================================
-   * 1. UI Primitives Accessibility & Focus Rings
-   * ====================================================================== */
+  
   describe('1. UI Primitives: ARIA attributes and focus-visible rings', () => {
     it('Button renders accessible focus-visible rings and aria-busy when loading', () => {
       const normalHtml = renderToString(
@@ -178,9 +176,7 @@ describe('TASK-6.1: Web Accessibility & Polish Pass Test Suite', () => {
     });
   });
 
-  /* ======================================================================
-   * 2. Semantic Landmarks & Shell Navigation
-   * ====================================================================== */
+  
   describe('2. Semantic Landmarks & Shell Navigation', () => {
     it('AppLayout wraps application content in <main id="main-content" role="main">', () => {
       const layoutHtml = renderToString(
@@ -229,9 +225,7 @@ describe('TASK-6.1: Web Accessibility & Polish Pass Test Suite', () => {
     });
   });
 
-  /* ======================================================================
-   * 3. Screen Polish & Icon-Only Button ARIA Labels
-   * ====================================================================== */
+  
   describe('3. Screen Polish & Icon-Only Button ARIA Labels', () => {
     it('AddTransactionPickerModal renders dialog landmark, accessible close button, and focusable option buttons', () => {
       const pickerHtml = renderToString(

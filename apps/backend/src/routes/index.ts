@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { env } from '../config/env.js';
+import { getPasswordPolicy } from '../services/passwordPolicyService.js';
 import { authRouter } from './auth.routes.js';
 import { profileRouter } from './profile.routes.js';
 import { securityQuestionsRouter } from './securityQuestions.routes.js';
@@ -28,7 +29,7 @@ import { adminRouter } from './admin.routes.js';
 
 export const apiV1Router: Router = Router();
 
-// Version response header per Plan/architecture.md §4
+// Version response header
 apiV1Router.use((_req, res, next) => {
   res.setHeader('X-API-Version', '1');
   next();
@@ -41,8 +42,15 @@ apiV1Router.get('/', (_req, res) => {
     data: {
       name: 'Finance Tracker API',
       version: '1.0.0',
+      buildId: process.env.BUILD_ID || 'development',
+      buildTimestamp: process.env.BUILD_TIMESTAMP || new Date().toISOString(),
       status: 'operational',
       environment: env.NODE_ENV,
+      features: {
+        registrationV2: true,
+        canonicalIdempotency: true,
+        unverifiedLoginGuard: true,
+      },
       endpoints: {
         auth: '/api/v1/auth',
         accounts: '/api/v1/accounts',
@@ -60,21 +68,24 @@ apiV1Router.get('/', (_req, res) => {
 // Public platform config endpoint for client apps
 apiV1Router.get('/public/config', async (_req, res, next) => {
   try {
-    const settings = await prisma.appSetting.findMany({
-      where: {
-        key: {
-          in: [
-            'platform_name',
-            'support_email',
-            'allow_user_registration',
-            'pwa_install_enabled',
-            'maintenance_mode',
-            'default_base_currency',
-            'default_country',
-          ],
+    const [settings, passwordPolicy] = await Promise.all([
+      prisma.appSetting.findMany({
+        where: {
+          key: {
+            in: [
+              'platform_name',
+              'support_email',
+              'allow_user_registration',
+              'pwa_install_enabled',
+              'maintenance_mode',
+              'default_base_currency',
+              'default_country',
+            ],
+          },
         },
-      },
-    });
+      }),
+      getPasswordPolicy(),
+    ]);
     const map = new Map(settings.map((s) => [s.key, s.value]));
     res.status(200).json({
       success: true,
@@ -90,6 +101,7 @@ apiV1Router.get('/public/config', async (_req, res, next) => {
         maintenanceMode: Boolean(map.get('maintenance_mode') === true || map.get('maintenance_mode') === 'true'),
         defaultBaseCurrency: String(map.get('default_base_currency') ?? 'INR'),
         defaultCountry: String(map.get('default_country') ?? 'IN'),
+        passwordPolicy,
       },
     });
   } catch (err) {
@@ -97,7 +109,7 @@ apiV1Router.get('/public/config', async (_req, res, next) => {
   }
 });
 
-// Mount all resource route groups per Plan/backend.md §4
+// Mount all resource route groups
 apiV1Router.use('/auth', authRouter);
 apiV1Router.use('/profile', profileRouter);
 apiV1Router.use('/security-questions', securityQuestionsRouter);

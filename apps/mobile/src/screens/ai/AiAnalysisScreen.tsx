@@ -122,7 +122,6 @@ export const AiAnalysisScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 12 : 20 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -144,7 +143,6 @@ export const AiAnalysisScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Status Chip: Financial Intelligence */}
           <View style={styles.statusChip}>
             <SparklesIcon size={12} color={colors.primary} />
             <Text style={styles.statusChipText}>Financial Intelligence</Text>
@@ -162,7 +160,6 @@ export const AiAnalysisScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Month Selector & Analyse Action Button */}
         <View style={styles.controlCard}>
           <View style={styles.monthSelectorSection}>
             <Pressable
@@ -243,7 +240,6 @@ export const AiAnalysisScreen: React.FC = () => {
           </View>
         ) : (
           <>
-            {/* Monthly Analysis Card */}
             <View style={styles.analysisCard}>
               <View style={styles.analysisCardHeader}>
                 <View style={styles.sparkleBadge}>
@@ -257,9 +253,7 @@ export const AiAnalysisScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* 4 Allocation Metrics: Income, Expenses, Investments, Savings Rate */}
               <View style={styles.allocationGrid}>
-                {/* Income */}
                 <View style={styles.allocationBox}>
                   <Text style={styles.allocationLabel}>Income</Text>
                   <Text style={[styles.allocationValue, { color: colors.success }]}>
@@ -268,7 +262,6 @@ export const AiAnalysisScreen: React.FC = () => {
                   <Text style={styles.allocationSub}>100% Inflow</Text>
                 </View>
 
-                {/* Expenses */}
                 <View style={styles.allocationBox}>
                   <Text style={styles.allocationLabel}>Expenses</Text>
                   <Text style={[styles.allocationValue, { color: colors.danger }]}>
@@ -277,7 +270,6 @@ export const AiAnalysisScreen: React.FC = () => {
                   <Text style={styles.allocationSub}>{Math.round(monthlyAnalysis.needsRatio)}% of earned</Text>
                 </View>
 
-                {/* Investments */}
                 <View style={styles.allocationBox}>
                   <Text style={styles.allocationLabel}>Investments</Text>
                   <Text style={[styles.allocationValue, { color: colors.investment }]}>
@@ -286,7 +278,6 @@ export const AiAnalysisScreen: React.FC = () => {
                   <Text style={styles.allocationSub}>{Math.round(monthlyAnalysis.investmentRatio)}% allocation</Text>
                 </View>
 
-                {/* Savings Rate */}
                 <View style={styles.allocationBox}>
                   <Text style={styles.allocationLabel}>Savings Rate</Text>
                   <Text style={[styles.allocationValue, { color: colors.primary }]}>
@@ -297,7 +288,6 @@ export const AiAnalysisScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Forward Projection Card (3, 6, 12 Month Projections) */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.sectionHeaderLeft}>
@@ -341,7 +331,6 @@ export const AiAnalysisScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Actionable Personalized Suggestions Cards */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <View style={styles.sectionHeaderLeft}>
@@ -399,7 +388,6 @@ export const AiAnalysisScreen: React.FC = () => {
               )}
             </View>
 
-            {/* How It Works Card: 50/30/20 Rule */}
             <View style={styles.howItWorksCard}>
               <View style={styles.howItWorksHeader}>
                 <InfoIcon size={18} color={colors.primary} />

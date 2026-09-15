@@ -169,6 +169,9 @@ export class TransactionService {
 
     // 7. Atomic transaction insertion & balance update inside $transaction
     const txn = await prisma.$transaction(async (tx) => {
+      // 0. Acquire exclusive row lock to prevent race conditions (FIN-01)
+      await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', data.accountId);
+
       const created = await tx.transaction.create({
         data: {
           userId,
@@ -218,9 +221,7 @@ export class TransactionService {
     return formatTransaction(txn);
   }
 
-  /**
-   * Retrieves single transaction by ID after verifying user ownership.
-   */
+  // Retrieves single transaction by ID after verifying user ownership.
   async getTransaction(userId: string, id: string) {
     const txn = await prisma.transaction.findUnique({
       where: { id },
@@ -241,9 +242,7 @@ export class TransactionService {
     return formatTransaction(txn);
   }
 
-  /**
-   * Updates transaction and recalculates account balances inside a single Prisma transaction.
-   */
+  // Updates transaction and recalculates account balances inside a single Prisma transaction.
   async updateTransaction(userId: string, id: string, data: UpdateTransactionData) {
     const existing = await prisma.transaction.findUnique({
       where: { id },
@@ -323,6 +322,15 @@ export class TransactionService {
 
     // Atomic update and balance recalculation inside $transaction
     const updated = await prisma.$transaction(async (tx) => {
+      // 0. Acquire deterministic row locks (FIN-01)
+      const accountIds = targetAccountId !== existing.accountId 
+        ? [existing.accountId, targetAccountId].sort() 
+        : [existing.accountId];
+        
+      for (const id of accountIds) {
+        await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', id);
+      }
+
       const res = await tx.transaction.update({
         where: { id },
         data: {
@@ -376,11 +384,7 @@ export class TransactionService {
     return formatTransaction(updated);
   }
 
-  /**
-   * Soft deletes transaction by setting status = DELETED and reverting account balance inside $transaction.
-   * If the transaction is part of a transfer, delegates to transferService.deleteTransfer() to
-   * atomically delete both transfer legs (FIN-02).
-   */
+  // Soft deletes transaction, reverts balance, and delegates transfers to transferService
   async deleteTransaction(userId: string, id: string) {
     const existing = await prisma.transaction.findUnique({
       where: { id },
@@ -400,8 +404,7 @@ export class TransactionService {
       throw new ValidationError('Transaction is already deleted');
     }
 
-    // FIN-02: If this transaction is a leg of a transfer, cascade deletion through transferService
-    // to ensure both legs (debit + credit) are removed atomically.
+    // Cascade deletion through transferService for atomic multi-leg transfer removal
     const transferId = existing.transferAsDebit?.id || existing.transferAsCredit?.id;
     if (transferId) {
       const ts = await getTransferService();
@@ -410,6 +413,9 @@ export class TransactionService {
 
     // Atomic soft-delete and balance reversion inside $transaction
     await prisma.$transaction(async (tx) => {
+      // 0. Acquire exclusive row lock (FIN-01)
+      await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', existing.accountId);
+
       await tx.transaction.update({
         where: { id },
         data: { status: 'DELETED' },
@@ -441,9 +447,7 @@ export class TransactionService {
     return { message: 'Transaction deleted successfully' };
   }
 
-  /**
-   * Lists transactions with filtering, search, pagination, and clean response formatting.
-   */
+  // Lists transactions with filtering, search, pagination, and clean response formatting.
   async listTransactions(userId: string, filters: ListTransactionsFilters = {}) {
     const page = Math.max(1, Number(filters.page || 1));
     const pageSize = Math.min(100, Math.max(1, Number(filters.pageSize || 20)));

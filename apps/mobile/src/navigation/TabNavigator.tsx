@@ -71,7 +71,7 @@ export const TabNavigator: React.FC = () => {
         }}
       />
 
-      {/* Center Raised FAB Slot (+) */}
+      {/* Center Raised FAB slot */}
       <Tab.Screen
         name="AddPlaceholder"
         component={AddPlaceholderScreen}
@@ -81,7 +81,6 @@ export const TabNavigator: React.FC = () => {
             <TabBarFabButton
               accessibilityLabel="Add transaction"
               onPress={() => {
-                // Navigate to modal presentation stack
                 (navigation as any).navigate('AddTransactionModal');
               }}
             />

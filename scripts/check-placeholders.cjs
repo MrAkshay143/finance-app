@@ -1,17 +1,6 @@
 #!/usr/bin/env node
 
-/**
- * scripts/check-placeholders.cjs
- * Cross-platform Zero-Placeholder & Unicode Emoji Grep Gate
- *
- * Rules:
- * - Scans apps/ and packages/
- * - Excludes node_modules, dist, .git, Plan, UI Snaps, prd.md, binary files, lockfiles
- * - Strictly fails if any banned phrases appear in source code (case-insensitive):
- *   "coming soon", "coming in v2", "beta (v2)", "preview", "TODO", "sample data", "demo data", "lorem ipsum"
- * - Strictly fails if any Unicode emoji characters appear in UI / source code
- * - Reports filename, line number, and matching line content
- */
+// Cross-platform Zero-Placeholder & Unicode Emoji Grep Gate.
 
 const fs = require('fs');
 const path = require('path');

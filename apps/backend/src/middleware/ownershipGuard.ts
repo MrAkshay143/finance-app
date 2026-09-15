@@ -1,25 +1,9 @@
-/**
- * AUTHZ-002: Generic ownership guard middleware.
- *
- * Ensures the requesting user owns the resource being accessed.
- * Usage example:
- *   router.get('/accounts/:id', authenticate, ownershipGuard(prisma.account, 'id'), handler)
- *
- * Admins bypass ownership checks by default (admin can access any resource).
- *
- * Supports:
- *   - ownershipGuard(model, paramName) — checks model.userId === req.user.id
- *   - requireSelf(paramName)           — checks req.params[paramName] === req.user.id (for user-scoped routes)
- */
+// Generic ownership guard middleware ensuring requesting user owns the resource
 import type { Request, Response, NextFunction } from 'express';
 import { ForbiddenError, NotFoundError } from '../utils/errors.js';
 import logger from '../lib/logger.js';
 
-/**
- * Checks that the currently authenticated user owns a Prisma model record.
- * The record is found by `req.params[paramName]` and must have a `userId` field.
- * ADMINS bypass this check.
- */
+// Verifies currently authenticated user owns the resource (admins bypass)
 export function ownershipGuard(
   // Prisma delegate object (e.g. prisma.account)
   model: { findUnique: (args: any) => Promise<any> },
@@ -69,11 +53,7 @@ export function ownershipGuard(
   };
 }
 
-/**
- * Validates that the URL param matches the authenticated user id.
- * Useful for routes like GET /users/:id/profile where users can only access their own.
- * ADMINS bypass this check by default.
- */
+// Validates that the URL param matches the authenticated user id. Useful for routes like GET /users/:id/profile where users can only access their own. ADMINS bypass this check by default.
 export function requireSelf(paramName: string = 'id', allowAdmin: boolean = true) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = req.user;

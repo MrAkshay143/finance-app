@@ -166,7 +166,6 @@ export const FinanceProfileScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {/* Feedback Banners */}
         {saveSuccess ? (
           <View style={styles.successBanner}>
             <CheckIcon size={18} color={colors.success} />
@@ -181,7 +180,6 @@ export const FinanceProfileScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {/* Card 1: Monthly Baseline Targets */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={[styles.headerIconSquare, { backgroundColor: '#EFF4FF' }]}>
@@ -193,7 +191,6 @@ export const FinanceProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Monthly Income Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Expected Monthly Income ({userSymbol})</Text>
             <View style={styles.inputWrapper}>
@@ -213,7 +210,6 @@ export const FinanceProfileScreen: React.FC = () => {
             <Text style={styles.helperText}>Baseline for income grade and capacity benchmark.</Text>
           </View>
 
-          {/* Monthly Expense Budget */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Monthly Expense Budget ({userSymbol})</Text>
             <View style={styles.inputWrapper}>
@@ -233,7 +229,6 @@ export const FinanceProfileScreen: React.FC = () => {
             <Text style={styles.helperText}>Benchmark for 50/30 needs and wants envelope.</Text>
           </View>
 
-          {/* Monthly Investment Target */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Monthly Investment Target ({userSymbol})</Text>
             <View style={styles.inputWrapper}>
@@ -253,7 +248,6 @@ export const FinanceProfileScreen: React.FC = () => {
             <Text style={styles.helperText}>Monthly allocation for mutual funds, equity, and PPF.</Text>
           </View>
 
-          {/* Savings Target Percentage */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Savings Target (%)</Text>
             <View style={styles.inputWrapper}>
@@ -272,7 +266,6 @@ export const FinanceProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Card 2: Financial Preferences & Risk Profile */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={[styles.headerIconSquare, { backgroundColor: '#F4EBFF' }]}>
@@ -284,7 +277,6 @@ export const FinanceProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Risk Appetite Selector */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Risk Tolerance</Text>
             <View style={styles.segmentedControl}>
@@ -322,7 +314,6 @@ export const FinanceProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Investment Horizon Selector */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Investment Horizon</Text>
             <View style={styles.segmentedControl}>
@@ -360,7 +351,6 @@ export const FinanceProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Advisory Notice */}
           <View style={styles.infoCallout}>
             <InfoIcon size={16} color={colors.primary} />
             <Text style={styles.infoCalloutText}>
@@ -369,7 +359,6 @@ export const FinanceProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Save Button */}
         <Pressable
           onPress={handleSave}
           disabled={isSaving}

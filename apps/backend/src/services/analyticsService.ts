@@ -15,13 +15,7 @@ const MONTH_NAMES = [
 ];
 
 export class AnalyticsService {
-  /**
-   * Aggregates spending analytics for a user:
-   * - 6-month historical spending trends: earned, spent, invested, net savings, savings rate
-   * - Category spending breakdown: categoryId, categoryName, totalAmount, amountPaise, percentage, transactionCount
-   * - Income vs Expense comparison
-   * - Dynamic accountId filtering when specified
-   */
+  // Aggregates spending analytics for a user: - 6-month historical spending trends: earned, spent, invested, net savings, savings rate - Category spending breakdown: categoryId, categoryName, totalAmount, amountPaise, percentage, transactionCount - Income vs Expense comparison - Dynamic accountId filtering when specified
   async getAnalytics(userId: string, options?: AnalyticsOptions) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

@@ -74,12 +74,10 @@ export const ExportScreen: React.FC = () => {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom > 0 ? insets.bottom + 20 : 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Format Selector Card */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>SELECT EXPORT FORMAT</Text>
           <View style={styles.card}>
             <View style={styles.formatRow}>
-              {/* Option 1: JSON */}
               <Pressable
                 onPress={() => setFormat('json')}
                 style={[
@@ -109,7 +107,6 @@ export const ExportScreen: React.FC = () => {
                 </Text>
               </Pressable>
 
-              {/* Option 2: CSV */}
               <Pressable
                 onPress={() => setFormat('csv')}
                 style={[
@@ -142,7 +139,6 @@ export const ExportScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Security / Policy Note */}
         <View style={styles.infoBanner}>
           <ShieldCheckIcon size={18} color={colors.primary} />
           <Text style={styles.infoBannerText}>
@@ -150,7 +146,6 @@ export const ExportScreen: React.FC = () => {
           </Text>
         </View>
 
-        {/* Generate Export CTA */}
         <Pressable
           onPress={handleExport}
           disabled={isGenerating}
@@ -174,7 +169,6 @@ export const ExportScreen: React.FC = () => {
           )}
         </Pressable>
 
-        {/* Result Summary */}
         {exportData && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>GENERATED PACKAGE DETAILS</Text>

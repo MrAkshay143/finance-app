@@ -190,7 +190,6 @@ export const ManageUserScreen: React.FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Card */}
         <View style={styles.userHeroCard}>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarText}>{userInitials}</Text>
@@ -233,7 +232,6 @@ export const ManageUserScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 3-Tab Segmented Control */}
         <View style={styles.tabBar}>
           {(['overview', 'permissions', 'security'] as const).map((tab) => {
             const isTabSelected = activeTab === tab;
@@ -273,7 +271,6 @@ export const ManageUserScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Tab 1: Overview */}
         {activeTab === 'overview' && (
           <View style={styles.sectionContainer}>
             <View style={styles.card}>
@@ -345,7 +342,6 @@ export const ManageUserScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Tab 2: Permissions */}
         {activeTab === 'permissions' && (
           <View style={styles.sectionContainer}>
             <View style={styles.card}>
@@ -368,7 +364,6 @@ export const ManageUserScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Tab 3: Security */}
         {activeTab === 'security' && (
           <View style={styles.securityColumn}>
             <View style={styles.card}>
@@ -426,7 +421,6 @@ export const ManageUserScreen: React.FC = () => {
               </Pressable>
             </View>
 
-            {/* Permanent Destruction */}
             <View style={styles.dangerCard}>
               <View style={styles.dangerHeaderRow}>
                 <AlertCircleIcon size={16} color={colors.danger} />
@@ -453,7 +447,6 @@ export const ManageUserScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Delete User Confirmation Modal */}
       <Modal
         visible={isDeleteModalOpen}
         transparent

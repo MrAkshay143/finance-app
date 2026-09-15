@@ -261,7 +261,6 @@ export const PlanningScreen: React.FC = () => {
         }
       />
 
-      {/* Tab Switcher */}
       <View style={styles.tabContainer}>
         <View style={styles.segmentedControl}>
           <Pressable
@@ -323,7 +322,6 @@ export const PlanningScreen: React.FC = () => {
           />
         }
       >
-        {/* Error Banner */}
         {error && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorText}>{error}</Text>
@@ -416,7 +414,6 @@ export const PlanningScreen: React.FC = () => {
                         </Pressable>
                       </View>
 
-                      {/* Amounts Display */}
                       <View style={styles.amountsRow}>
                         <Text style={styles.spentAmountText}>
                           {formatCurrency(b.spent)}{' '}
@@ -429,7 +426,6 @@ export const PlanningScreen: React.FC = () => {
                         </Text>
                       </View>
 
-                      {/* Progress Bar */}
                       <View style={styles.meterTrack}>
                         <View
                           style={[
@@ -442,7 +438,6 @@ export const PlanningScreen: React.FC = () => {
                         />
                       </View>
 
-                      {/* Footer Row */}
                       <View style={styles.itemFooterRow}>
                         <Text
                           style={[
@@ -530,7 +525,6 @@ export const PlanningScreen: React.FC = () => {
                         </Pressable>
                       </View>
 
-                      {/* Amounts Display */}
                       <View style={styles.amountsRow}>
                         <Text style={styles.spentAmountText}>
                           {formatCurrency(g.currentAmount)}{' '}
@@ -545,7 +539,6 @@ export const PlanningScreen: React.FC = () => {
                         </Text>
                       </View>
 
-                      {/* Progress Bar */}
                       <View style={styles.meterTrack}>
                         <View
                           style={[
@@ -558,7 +551,6 @@ export const PlanningScreen: React.FC = () => {
                         />
                       </View>
 
-                      {/* Footer Row */}
                       <View style={styles.itemFooterRow}>
                         <Text style={styles.remainingText}>
                           {formatCurrency(g.remainingAmount)} to target
@@ -576,7 +568,6 @@ export const PlanningScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Add Budget Modal */}
       <Modal
         visible={showAddBudgetModal}
         transparent
@@ -614,7 +605,6 @@ export const PlanningScreen: React.FC = () => {
               )}
 
               <ScrollView style={styles.modalFormScroll} showsVerticalScrollIndicator={false}>
-                {/* Category Picker */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Category *</Text>
                   <ScrollView
@@ -650,7 +640,6 @@ export const PlanningScreen: React.FC = () => {
                   </ScrollView>
                 </View>
 
-                {/* Optional Custom Name */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Budget Name (Optional)</Text>
                   <TextInput
@@ -662,7 +651,6 @@ export const PlanningScreen: React.FC = () => {
                   />
                 </View>
 
-                {/* Spending Limit */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Monthly Spending Limit ({userSymbol}) *</Text>
                   <TextInput
@@ -706,7 +694,6 @@ export const PlanningScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Add Goal Modal */}
       <Modal
         visible={showAddGoalModal}
         transparent
@@ -744,7 +731,6 @@ export const PlanningScreen: React.FC = () => {
               )}
 
               <ScrollView style={styles.modalFormScroll} showsVerticalScrollIndicator={false}>
-                {/* Goal Name */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Goal Name *</Text>
                   <TextInput
@@ -756,7 +742,6 @@ export const PlanningScreen: React.FC = () => {
                   />
                 </View>
 
-                {/* Target Amount */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Target Amount ({userSymbol}) *</Text>
                   <TextInput
@@ -769,7 +754,6 @@ export const PlanningScreen: React.FC = () => {
                   />
                 </View>
 
-                {/* Current Amount */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Currently Saved Amount ({userSymbol})</Text>
                   <TextInput
@@ -782,7 +766,6 @@ export const PlanningScreen: React.FC = () => {
                   />
                 </View>
 
-                {/* Target Date */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Target Completion Date (YYYY-MM-DD)</Text>
                   <TextInput

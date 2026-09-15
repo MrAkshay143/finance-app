@@ -100,7 +100,6 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       }
     >
       <form id="add-category-form" onSubmit={handleSubmit} className="space-y-3">
-        {/* Classification Type */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-textDefault">Category Type</label>
           <div className="grid grid-cols-3 gap-2">
@@ -121,7 +120,6 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           </div>
         </div>
 
-        {/* Category Name */}
         <Input
           label="Category Name"
           required

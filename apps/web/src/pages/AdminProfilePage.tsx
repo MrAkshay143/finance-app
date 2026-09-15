@@ -27,6 +27,7 @@ import { Button } from '../components/ui/Button.js';
 import { Input } from '../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js';
 import { useAuthStore } from '../store/authStore.js';
+import { useConfigStore } from '../store/configStore.js';
 import { apiClient } from '../services/apiClient.js';
 import { getFriendlyErrorMessage } from '@finance/api-client';
 import { toast } from '../store/toastStore.js';
@@ -38,6 +39,7 @@ export const AdminProfilePage: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const checkAuth = useAuthStore((s) => s.checkAuth);
+  const passwordPolicy = useConfigStore((s) => s.passwordPolicy);
 
   // Profile Edit State
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -53,7 +55,7 @@ export const AdminProfilePage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Live password validation
-  const passwordCheck = validatePassword(newPassword);
+  const passwordCheck = validatePassword(newPassword, passwordPolicy);
   const confirmCheck = validateConfirmPassword(newPassword, confirmPassword);
 
   // Password strength calculation matching SignupPage standards
@@ -171,7 +173,6 @@ export const AdminProfilePage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50/50 pb-20">
-      {/* Branded Header */}
       <AppHeader
         variant="nested"
         title="Admin Profile"
@@ -205,7 +206,6 @@ export const AdminProfilePage: React.FC = () => {
       />
 
       <div className="px-4 py-4 space-y-4 max-w-[430px] mx-auto w-full">
-        {/* 1. Admin Identity Hero Card */}
         <div className="p-4 bg-gradient-to-br from-[#0B1B3A] to-[#162D5A] text-white rounded-2xl shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-tr from-brand-primary to-blue-400 text-white font-extrabold text-lg flex items-center justify-center shadow-md border-2 border-white/20 shrink-0">
@@ -228,7 +228,6 @@ export const AdminProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Personal Information Card */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-borderDefault/60">
             <User className="w-4 h-4 text-brand-primary" />
@@ -287,7 +286,6 @@ export const AdminProfilePage: React.FC = () => {
           </form>
         </Card>
 
-        {/* 3. Change Password Card */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-borderDefault/60">
             <KeyRound className="w-4 h-4 text-brand-primary" />
@@ -301,7 +299,6 @@ export const AdminProfilePage: React.FC = () => {
             }}
             className="space-y-3"
           >
-            {/* Current Password */}
             <div className="relative">
               <Input
                 label="Current Password"
@@ -324,7 +321,6 @@ export const AdminProfilePage: React.FC = () => {
               />
             </div>
 
-            {/* New Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="admin-new-password" className="block text-xs font-semibold text-textDefault">
@@ -363,7 +359,6 @@ export const AdminProfilePage: React.FC = () => {
               />
             </div>
 
-            {/* Interactive 4-Segment Strength Meter & 2-Column Criteria Checklist matching SignupPage */}
             {newPassword.length > 0 && (
               <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
@@ -377,7 +372,6 @@ export const AdminProfilePage: React.FC = () => {
                   </span>
                 </div>
 
-                {/* 4-Segment Strength Bar */}
                 <div className="grid grid-cols-4 gap-1.5 h-1.5">
                   {[1, 2, 3, 4].map((seg) => (
                     <div
@@ -391,7 +385,6 @@ export const AdminProfilePage: React.FC = () => {
                   ))}
                 </div>
 
-                {/* 2-Column Criteria Checklist */}
                 <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
                   {passwordCriteriaList.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 min-w-0">
@@ -415,7 +408,6 @@ export const AdminProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Confirm Password */}
             <div className="relative">
               <Input
                 label="Confirm New Password"
@@ -456,7 +448,6 @@ export const AdminProfilePage: React.FC = () => {
           </form>
         </Card>
 
-        {/* 4. Admin Navigation & Quick Links */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-2">
           <div className="flex items-center gap-2 pb-2 border-b border-borderDefault/60">
             <Sliders className="w-4 h-4 text-brand-primary" />
@@ -500,7 +491,6 @@ export const AdminProfilePage: React.FC = () => {
           </button>
         </Card>
 
-        {/* 5. Session Security & Sign Out */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-borderDefault/60">
             <Shield className="w-4 h-4 text-amber-600" />

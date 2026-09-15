@@ -51,3 +51,4 @@ tmp/
 # Deployment artifacts
 finance_deploy/
 *.zip
+scratch/

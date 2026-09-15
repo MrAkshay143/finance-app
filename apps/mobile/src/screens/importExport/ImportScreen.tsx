@@ -111,7 +111,6 @@ export const ImportScreen: React.FC = () => {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom > 0 ? insets.bottom + 20 : 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Account Selector Card */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>DESTINATION ACCOUNT</Text>
           <View style={styles.card}>
@@ -196,7 +195,6 @@ export const ImportScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* CSV Payload Card */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>CSV TRANSACTION PAYLOAD</Text>
@@ -228,7 +226,6 @@ export const ImportScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Import Action CTA */}
         <Pressable
           onPress={handleImport}
           disabled={isImporting}
@@ -250,7 +247,6 @@ export const ImportScreen: React.FC = () => {
           )}
         </Pressable>
 
-        {/* Results Summary Card */}
         {importResult && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>IMPORT EXECUTION SUMMARY</Text>

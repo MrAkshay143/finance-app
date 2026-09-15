@@ -271,7 +271,6 @@ export const MenuPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Subheader */}
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-5 bg-brand-primary rounded-full" />
@@ -280,7 +279,6 @@ export const MenuPage: React.FC = () => {
           <p className="text-xs text-textMuted">Manage your account, data and preferences</p>
         </div>
 
-        {/* User Profile Card */}
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-14 h-14 rounded-full bg-brand-primary text-white text-xl font-bold flex items-center justify-center shrink-0 shadow-sm">
@@ -310,7 +308,6 @@ export const MenuPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Navigation Sections */}
         <div className="space-y-4">
           {renderedSections.map((sec) => (
             <div key={sec.title} className="space-y-1.5">
@@ -349,7 +346,6 @@ export const MenuPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Help & Support Modal */}
       <Modal
         isOpen={isHelpModalOpen}
         onClose={() => setIsHelpModalOpen(false)}

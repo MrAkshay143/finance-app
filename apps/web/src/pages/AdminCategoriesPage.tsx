@@ -198,7 +198,6 @@ export const AdminCategoriesPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* AppHeader matching consumer Categories page */}
       <AppHeader
         variant="nested"
         title="System Categories"
@@ -218,9 +217,7 @@ export const AdminCategoriesPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4 max-w-4xl mx-auto w-full">
-        {/* KPI Metric Cards - Matching Admin Users Page Style */}
         <div className="grid grid-cols-4 gap-2">
-          {/* Total Categories */}
           <button
             type="button"
             onClick={() => handleTypeFilterChange('ALL')}
@@ -243,7 +240,6 @@ export const AdminCategoriesPage: React.FC = () => {
             </div>
           </button>
 
-          {/* Expense Categories */}
           <button
             type="button"
             onClick={() => handleTypeFilterChange('EXPENSE')}
@@ -266,7 +262,6 @@ export const AdminCategoriesPage: React.FC = () => {
             </div>
           </button>
 
-          {/* Income Categories */}
           <button
             type="button"
             onClick={() => handleTypeFilterChange('INCOME')}
@@ -289,7 +284,6 @@ export const AdminCategoriesPage: React.FC = () => {
             </div>
           </button>
 
-          {/* Investment Categories */}
           <button
             type="button"
             onClick={() => handleTypeFilterChange('INVESTMENT')}
@@ -313,9 +307,7 @@ export const AdminCategoriesPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Search & Filter Toolbar */}
         <div className="space-y-2.5">
-          {/* Search Bar */}
           <div className="relative flex items-center">
             <Search className="w-4 h-4 text-textMuted absolute left-3 pointer-events-none" />
             <input
@@ -337,7 +329,6 @@ export const AdminCategoriesPage: React.FC = () => {
             )}
           </div>
 
-          {/* Filter Pill Tabs */}
           <div
             role="tablist"
             aria-label="Category type filter"
@@ -372,7 +363,6 @@ export const AdminCategoriesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* List & States */}
         {isLoading ? (
           <div className="space-y-2.5">
             <MetricCardSkeleton />
@@ -478,7 +468,6 @@ export const AdminCategoriesPage: React.FC = () => {
               );
             })}
 
-            {/* Centralized Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -491,7 +480,6 @@ export const AdminCategoriesPage: React.FC = () => {
         )}
       </div>
 
-      {/* Add / Edit Category Modal */}
       <Modal
         isOpen={isCatModalOpen}
         onClose={() => setIsCatModalOpen(false)}
@@ -555,7 +543,6 @@ export const AdminCategoriesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Delete Category Confirmation Modal */}
       <Modal
         isOpen={Boolean(deletingCategory)}
         onClose={() => setDeletingCategory(null)}

@@ -96,5 +96,4 @@ export async function optionalAuthenticate(
   next();
 }
 
-
 export default authenticate;

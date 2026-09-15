@@ -241,7 +241,6 @@ export const AccountsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Branded Dark Navy Header */}
       <AppHeader
         variant="nested"
         title="Accounts"
@@ -259,13 +258,10 @@ export const AccountsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Total Balance Hero Card */}
         <Card className="bg-gradient-to-tr from-[#0B1B3A] via-[#0F224A] to-[#132A5C] text-white p-5 space-y-3 border-0 shadow-xl rounded-card relative overflow-hidden">
-          {/* Subtle animated ambient floating light gradients */}
           <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-blue-500/20 blur-3xl pointer-events-none opacity-20 animate-ambient-glow" />
           <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
 
-          {/* Subtle background glow & icons */}
           <div className="absolute -right-4 -bottom-4 opacity-10 text-white pointer-events-none">
             <Landmark className="w-28 h-28" />
           </div>
@@ -294,7 +290,6 @@ export const AccountsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Add Account Launcher Banner */}
         <div className="flex items-center justify-between px-1 pt-1">
           <h2 className="text-xs font-bold text-textMuted uppercase tracking-wider">
             {`Connected Institutions (${accounts.length})`}
@@ -309,7 +304,6 @@ export const AccountsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Error State Banner if Query Failed */}
         {isError && (
           <div className="p-3.5 bg-semantic-danger-bg text-semantic-danger text-xs rounded-xl border border-semantic-danger/30 flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -317,15 +311,13 @@ export const AccountsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Loading Skeletons */}
         {isLoading ? (
           <div className="space-y-3">
             <CardSkeleton rows={2} />
             <CardSkeleton rows={2} />
           </div>
         ) : accounts.length === 0 ? (
-          /* Empty State when 0 accounts exist */
-          <EmptyState
+                    <EmptyState
             icon={<Landmark className="w-7 h-7 stroke-[1.8]" />}
             title="No accounts yet"
             description="Add your first bank, card, or cash wallet to get started."
@@ -334,8 +326,7 @@ export const AccountsPage: React.FC = () => {
             onAction={handleOpenAdd}
           />
         ) : (
-          /* Account Cards List */
-          <div className="space-y-3">
+                    <div className="space-y-3">
             {accounts.map((acc) => {
               const isActive = acc.status === 'ACTIVE';
               const typeLabel = getAccountTypeLabel(acc.type || (acc as any).accountType);
@@ -382,7 +373,6 @@ export const AccountsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Balance Display */}
                   <div className="flex items-baseline justify-between pt-1">
                     <span className="text-xs text-textMuted font-medium">Current Balance</span>
                     <span className="text-lg font-extrabold text-textDefault tracking-tight">
@@ -390,7 +380,6 @@ export const AccountsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Per-card Quick-Action Button Row */}
                   <div className="pt-2.5 border-t border-borderDefault flex items-center justify-between text-xs font-semibold text-brand-primary">
                     <button
                       type="button"
@@ -424,13 +413,11 @@ export const AccountsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Add Account Modal */}
       <AddAccountModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />
 
-      {/* Edit Account Modal */}
       <Modal
         isOpen={editingAccount !== null}
         onClose={() => setEditingAccount(null)}
@@ -519,7 +506,6 @@ export const AccountsPage: React.FC = () => {
             />
           </div>
 
-          {/* Account Status Toggle Section */}
           {editingAccount && (
             <div className="pt-3 border-t border-borderDefault">
               <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-borderDefault">
@@ -545,7 +531,6 @@ export const AccountsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Delete Account Modal */}
       {(() => {
         const isCurrentlyActive = statusConfirmAccount?.status === 'ACTIVE';
         const dialogDef = CONFIRM_DIALOGS.accounts.toggleStatus(

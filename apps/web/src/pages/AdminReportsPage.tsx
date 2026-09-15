@@ -105,7 +105,6 @@ export const AdminReportsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-[#F3F6FC] pb-12">
-      {/* 1. Branded Admin Header */}
       <AppHeader
         variant="nested"
         title="Platform Reports"
@@ -155,9 +154,7 @@ export const AdminReportsPage: React.FC = () => {
       />
 
       <div className="px-4 py-3 space-y-4 max-w-[430px] mx-auto w-full">
-        {/* Compact Toolbar: Timeframe Selector + Compact CSV Export */}
         <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-borderDefault rounded-2xl shadow-card">
-          {/* Timeframe Buttons */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-none">
             {(['7d', '30d', '90d', '1y'] as const).map((tf) => (
               <button
@@ -175,7 +172,6 @@ export const AdminReportsPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Compact Export CSV Button */}
           <Button
             type="button"
             variant="outline"
@@ -190,9 +186,7 @@ export const AdminReportsPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* 2. Platform KPI Metrics */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Total Users */}
           <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
@@ -224,7 +218,6 @@ export const AdminReportsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Platform GTV */}
           <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
@@ -251,7 +244,6 @@ export const AdminReportsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Managed Balances */}
           <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
@@ -278,7 +270,6 @@ export const AdminReportsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Activity Index */}
           <div className="p-3.5 rounded-2xl border border-borderDefault/80 bg-white shadow-card transition-all">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-textMuted uppercase tracking-wider">
@@ -306,7 +297,6 @@ export const AdminReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Transaction Breakdown by Type */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
@@ -379,9 +369,7 @@ export const AdminReportsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 4. Top Spending Categories & Liquidity Breakdown */}
         <div className="grid grid-cols-1 gap-3">
-          {/* Top Spending Categories */}
           <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
@@ -421,7 +409,6 @@ export const AdminReportsPage: React.FC = () => {
             )}
           </Card>
 
-          {/* System Liquidity by Account Type */}
           <Card className="p-3 sm:p-4 bg-white border border-borderDefault shadow-card rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
               <div className="flex items-center gap-2">
@@ -468,7 +455,6 @@ export const AdminReportsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 5. Onboarding & Security Funnel */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div>
@@ -488,7 +474,6 @@ export const AdminReportsPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Step 1: Registered */}
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700">
                   <span>1. Registered Users</span>
@@ -499,7 +484,6 @@ export const AdminReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Step 2: Onboarded */}
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700">
                   <span>2. Profile Onboarded</span>
@@ -515,7 +499,6 @@ export const AdminReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Step 3: KBA Secured */}
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700">
                   <span>3. Security Questions</span>
@@ -531,7 +514,6 @@ export const AdminReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Step 4: Accounts Linked */}
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700">
                   <span>4. Accounts Linked</span>
@@ -550,7 +532,6 @@ export const AdminReportsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 6. System Health & Telemetry */}
         <Card className="p-4 bg-white border border-borderDefault shadow-card rounded-2xl">
           <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">

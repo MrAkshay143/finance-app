@@ -126,7 +126,6 @@ export const HomeScreen: React.FC = () => {
           />
         }
       >
-        {/* Error State Banner */}
         {error && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorText}>{error}</Text>
@@ -143,7 +142,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         )}
 
-        {/* 1. Security Reminder Banner (if KBA questions < 3) */}
         {security?.showSecurityReminder && (
           <View style={styles.securityBanner}>
             <View style={styles.securityBannerHeader}>
@@ -173,7 +171,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         )}
 
-        {/* 2. FAM Score Overview Card */}
         <View style={styles.card}>
           <View style={styles.famCardHeader}>
             <View style={styles.famDetailsCol}>
@@ -212,7 +209,6 @@ export const HomeScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* 3 Area Status Chips */}
           <View style={styles.famChipsRow}>
             <View style={[styles.areaChip, styles.incomeChipBg]}>
               <View style={[styles.chipDot, { backgroundColor: colors.success }]} />
@@ -246,12 +242,10 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 3. Targets Overview Cards: Income, Expense, Investment */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>MONTHLY ALLOCATIONS</Text>
         </View>
 
-        {/* Income Card */}
         <View style={styles.targetCard}>
           <View style={styles.targetCardHeader}>
             <View style={[styles.targetIconBox, { backgroundColor: colors.successBg }]}>
@@ -293,7 +287,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Expense Card */}
         <View style={styles.targetCard}>
           <View style={styles.targetCardHeader}>
             <View style={[styles.targetIconBox, { backgroundColor: colors.dangerBg }]}>
@@ -335,7 +328,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Investment Card */}
         <View style={styles.targetCard}>
           <View style={styles.targetCardHeader}>
             <View style={[styles.targetIconBox, { backgroundColor: colors.investmentBg }]}>
@@ -377,7 +369,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 4. Category Breakdown Summary */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>
             {breakdownView === 'EXPENSE' ? 'EXPENSE BREAKDOWN' : 'INCOME BREAKDOWN'}
@@ -498,7 +489,6 @@ export const HomeScreen: React.FC = () => {
           )}
         </View>
 
-        {/* 5. Account Summary Card */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>ACCOUNTS & NET WORTH</Text>
         </View>
@@ -533,7 +523,6 @@ export const HomeScreen: React.FC = () => {
           </View>
         </Pressable>
 
-        {/* 6. Recent Transactions Card */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeading}>RECENT ACTIVITY</Text>
         </View>

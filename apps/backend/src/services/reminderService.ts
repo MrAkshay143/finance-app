@@ -56,9 +56,7 @@ export class ReminderService {
     return formatReminder(reminder);
   }
 
-  /**
-   * Creates a new reminder configuration.
-   */
+  // Creates a new reminder configuration.
   async createReminder(userId: string, data: CreateReminderData) {
     const reminder = await prisma.reminder.create({
       data: {
@@ -72,9 +70,7 @@ export class ReminderService {
     return formatReminder(reminder);
   }
 
-  /**
-   * Updates an existing reminder configuration.
-   */
+  // Updates an existing reminder configuration.
   async updateReminder(userId: string, id: string, data: UpdateReminderData) {
     const existing = await prisma.reminder.findUnique({
       where: { id },
@@ -96,9 +92,7 @@ export class ReminderService {
     return formatReminder(updated);
   }
 
-  /**
-   * Deletes a reminder.
-   */
+  // Deletes a reminder.
   async deleteReminder(userId: string, id: string) {
     const existing = await prisma.reminder.findUnique({
       where: { id },
@@ -115,9 +109,7 @@ export class ReminderService {
     return { message: 'Reminder deleted successfully' };
   }
 
-  /**
-   * Toggles reminder enabled state.
-   */
+  // Toggles reminder enabled state.
   async toggleStatus(userId: string, id: string, enabled?: boolean) {
     const existing = await prisma.reminder.findUnique({
       where: { id },
@@ -137,10 +129,7 @@ export class ReminderService {
     return formatReminder(updated);
   }
 
-  /**
-   * Due-date check logic that inspects upcoming recurring transactions and month-end dates,
-   * creating Notifications when due.
-   */
+  // Due-date check logic that inspects upcoming recurring transactions and month-end dates, creating Notifications when due.
   async checkDueReminders(asOfDate: Date = new Date()) {
     const activeReminders = await prisma.reminder.findMany({
       where: { enabled: true },

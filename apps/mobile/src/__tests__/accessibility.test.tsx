@@ -4,10 +4,7 @@ import path from 'path';
 import ts from 'typescript';
 import { colors } from '@finance/shared-ui-tokens';
 
-/**
- * Calculates relative luminance for an sRGB color per WCAG 2.1 specifications.
- * Formula: https://www.w3.org/WAI/GL/wiki/Relative_luminance
- */
+// Calculates relative luminance for an sRGB color per WCAG 2.1 specifications.
 function getRelativeLuminance(hexColor: string): number {
   const cleanHex = hexColor.replace('#', '');
   const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
@@ -25,10 +22,7 @@ function getRelativeLuminance(hexColor: string): number {
   return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
 }
 
-/**
- * Calculates the WCAG 2.1 contrast ratio between two hex colors.
- * Contrast ratio = (L1 + 0.05) / (L2 + 0.05) where L1 is the lighter color.
- */
+// Calculates WCAG 2.1 contrast ratio between two hex colors: (L1 + 0.05) / (L2 + 0.05).
 function getContrastRatio(hex1: string, hex2: string): number {
   const lum1 = getRelativeLuminance(hex1);
   const lum2 = getRelativeLuminance(hex2);
@@ -37,9 +31,7 @@ function getContrastRatio(hex1: string, hex2: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-/**
- * Recursively retrieves all .tsx files in a directory.
- */
+// Recursively retrieves all .tsx files in a directory.
 function getTsxFiles(dir: string): string[] {
   let results: string[] = [];
   if (!fs.existsSync(dir)) return results;

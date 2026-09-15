@@ -281,7 +281,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           });
         }
       } else {
-        // Edit mode
         if (!initialData?.id) {
           throw new Error('Transaction identifier is missing.');
         }
@@ -318,7 +317,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
         style={styles.backdrop}
       >
         <View style={[styles.sheet, { paddingBottom: insets.bottom > 0 ? insets.bottom + 12 : 20 }]}>
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <View style={[styles.headerIconBox, { backgroundColor: meta.bgColor }]}>
@@ -340,7 +338,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
             </Pressable>
           </View>
 
-          {/* Type Selector (Add mode only) */}
           {mode === 'add' && (
             <View style={styles.typeSelectorRow}>
               {(['income', 'expense', 'investment', 'transfer'] as TransactionFormType[]).map(
@@ -382,7 +379,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           )}
 
           <ScrollView style={styles.formScroll} showsVerticalScrollIndicator={false}>
-            {/* Amount */}
             <View style={styles.formGroup}>
               {(() => {
                 const selectedAcc = accounts.find((a) => a.id === (selectedType === 'transfer' ? sourceAccountId : accountId));
@@ -401,7 +397,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               />
             </View>
 
-            {/* Account Selector(s) */}
             {selectedType === 'transfer' ? (
               <>
                 <View style={styles.formGroup}>
@@ -499,7 +494,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               </View>
             )}
 
-            {/* Category Selector (for non-transfer) */}
             {selectedType !== 'transfer' && (
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Category</Text>
@@ -533,7 +527,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               </View>
             )}
 
-            {/* Description */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Description</Text>
               <TextInput
@@ -545,7 +538,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               />
             </View>
 
-            {/* Merchant (optional, non-transfer) */}
             {selectedType !== 'transfer' && (
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Merchant / Payee (Optional)</Text>
@@ -559,7 +551,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               </View>
             )}
 
-            {/* Date */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Date (YYYY-MM-DD)</Text>
               <TextInput
@@ -571,7 +562,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
               />
             </View>
 
-            {/* Notes */}
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Notes (Optional)</Text>
               <TextInput
@@ -585,7 +575,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
             </View>
           </ScrollView>
 
-          {/* Footer */}
           <View style={styles.footer}>
             <Pressable
               onPress={onClose}

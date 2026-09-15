@@ -215,16 +215,13 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50/50">
-      {/* 1. Centralized Branded Dark Navy Header (Preserved exactly as requested) */}
       <AppHeader
         variant="root"
         
         subtitle="Financial Assessment & Wealth Hub"
       />
 
-      {/* Main Dashboard Content Area */}
       <div className="p-4 space-y-4 max-w-lg mx-auto w-full pb-20">
-        {/* Loading Skeleton State */}
         {isLoading ? (
           <div className="space-y-4" data-testid="dashboard-loading">
             <MetricCardSkeleton />
@@ -240,8 +237,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
         ) : isError ? (
-          /* Error Fallback State */
-          <Card className="p-5 text-center space-y-3">
+                    <Card className="p-5 text-center space-y-3">
             <div className="w-10 h-10 rounded-full bg-semantic-danger-bg text-semantic-danger mx-auto flex items-center justify-center">
               <ShieldAlert className="w-5 h-5" />
             </div>
@@ -260,7 +256,6 @@ export const DashboardPage: React.FC = () => {
           </Card>
         ) : (
           <>
-            {/* 2. Security Reminder Banner (Dynamic KBA verification) */}
             {securityBanner?.showSecurityReminder && (
               <div
                 className="bg-amber-50/95 border border-amber-200/90 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-xs"
@@ -289,14 +284,11 @@ export const DashboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* Section 1: Financial Health Hero Card */}
             {!famIsAvailable ? (
-              /* Dedicated Empty State Hero Card */
-              <div
+                            <div
                 className="bg-gradient-to-br from-[#1E40AF] via-[#2563EB] to-[#3B82F6] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
                 data-testid="fam-score-card"
               >
-                {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
                 <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-25 animate-ambient-glow" />
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
                 <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
@@ -330,7 +322,6 @@ export const DashboardPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Modern Glassmorphic Badge Accent */}
                   <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-inner text-white/90">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center shadow-xs">
                       <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.2]" />
@@ -339,12 +330,10 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Non-empty State: Refined, modern executive financial health card (no button) */
-              <div
+                            <div
                 className="bg-gradient-to-br from-[#1E3A8A] via-[#2563EB] to-[#1D4ED8] rounded-3xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden border border-blue-400/30"
                 data-testid="fam-score-card"
               >
-                {/* Subtle floating ambient glow orbs and micro-mesh overlay */}
                 <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-white/20 blur-2xl pointer-events-none opacity-25 animate-ambient-glow" />
                 <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-indigo-300/30 blur-2xl pointer-events-none opacity-20 animate-ambient-glow" style={{ animationDelay: '-3s' }} />
                 <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-20" />
@@ -352,7 +341,6 @@ export const DashboardPage: React.FC = () => {
                 <h2 className="sr-only">Financial Assessment Matrix</h2>
 
                 <div className="relative z-10 flex items-center justify-between gap-3">
-                  {/* Left Column: Info & Metrics */}
                   <div className="flex-1 min-w-0 pr-1">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
                       <span className={`w-1.5 h-1.5 rounded-full ${famScore >= 85 ? 'bg-emerald-400' : famGrade === 'C' ? 'bg-rose-400' : 'bg-emerald-300'} animate-pulse`} />
@@ -368,21 +356,18 @@ export const DashboardPage: React.FC = () => {
                       <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0 inline" />
                     </div>
 
-                    {/* Friendly context description: natural wrap, no truncate, no ellipsis '...' */}
                     <p className="text-white/90 text-xs leading-relaxed mt-1.5">
                       {famScore >= 75
                         ? "You're on track to reach your monthly financial goals."
                         : 'Review expenses to optimize your financial score.'}
                     </p>
 
-                    {/* Refined Health Indicator Capsule */}
                     <div className="mt-3 inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] text-white/95 font-medium shadow-2xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                       <span>Grade {famGrade} • Core targets balanced</span>
                     </div>
                   </div>
 
-                  {/* Right Column: Score Donut */}
                   <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full -rotate-90 filter drop-shadow-sm" viewBox="0 0 100 100">
                       <circle
@@ -414,7 +399,6 @@ export const DashboardPage: React.FC = () => {
                       />
                     </svg>
 
-                    {/* Inner White Center Card */}
                     <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center shadow-lg border border-white/60 p-1">
                       <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500 text-white shadow-xs leading-none">
                         {famGrade}
@@ -431,9 +415,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* Section 2: Month Selector */}
             <div className="bg-white rounded-2xl p-2 shadow-sm border border-slate-100 grid grid-cols-3 divide-x divide-slate-100">
-              {/* Expenses Pill */}
               <div className="flex items-center gap-1.5 px-1 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center shrink-0">
                   <ArrowDown className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -448,7 +430,6 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Investments Pill */}
               <div className="flex items-center gap-1.5 px-1.5 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                   <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -463,7 +444,6 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Income Pill */}
               <div className="flex items-center gap-1.5 px-1.5 py-0.5 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -479,7 +459,6 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Section 3: Key Financial Targets Overview */}
             <div className="space-y-2.5" data-testid="target-overview-cards">
               <div className="flex items-center justify-between px-1">
                 <h3 className="text-sm font-bold text-slate-900">Target Overview</h3>
@@ -494,7 +473,6 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                {/* 1. Income Card */}
                 <div
                   className="bg-gradient-to-b from-[#F0FDF4]/70 to-white border border-emerald-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="income-overview-card"
@@ -538,7 +516,6 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. Expense Card */}
                 <div
                   className="bg-gradient-to-b from-[#FEF2F2]/70 to-white border border-rose-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="expense-overview-card"
@@ -579,7 +556,6 @@ export const DashboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 3. Invest Card */}
                 <div
                   className="bg-gradient-to-b from-[#FAF5FF]/70 to-white border border-purple-100/90 rounded-2xl p-2 shadow-xs flex flex-col justify-between"
                   data-testid="investment-overview-card"
@@ -622,13 +598,11 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Section 4: Expense Breakdown */}
             {showDonutSection && hasAnyBreakdownData && activeBreakdown.length > 0 && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
               data-testid="expense-overview-donut-card"
             >
-              {/* Header */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-lg text-white flex items-center justify-center shrink-0 ${
@@ -646,7 +620,6 @@ export const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* Segmented Pill Toggle */}
                   <div className="flex items-center rounded-full bg-slate-100 p-0.5 border border-slate-200/60">
                     {showExpenseDonut && (
                       <button
@@ -689,7 +662,6 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Total Amount in Header */}
                   <div className="text-right">
                     <div className="text-sm font-black text-slate-900">
                       {formatCurrency(totalBreakdownAmount, userCurrency)}
@@ -705,7 +677,6 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Body: Donut + Legend */}
               {activeBreakdown.length === 0 ? (
                 <EmptyState
                   icon={<PieChartIcon className="w-7 h-7 stroke-[1.8]" />}
@@ -739,7 +710,6 @@ export const DashboardPage: React.FC = () => {
                 />
               ) : (
                 <div className="flex items-center justify-between gap-4 pt-1 pb-2">
-                  {/* Left: SVG Multi-segment Donut with 1.5px gaps and interactive highlights */}
                   <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
                     <svg
                       className="w-full h-full -rotate-90 outline-none focus:outline-none"
@@ -805,7 +775,6 @@ export const DashboardPage: React.FC = () => {
                       })()}
                     </svg>
 
-                    {/* Center Readout: Default count or selected slice details */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-1">
                       {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] ? (
                         <>
@@ -828,7 +797,6 @@ export const DashboardPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Floating Compact Detail Badge directly below the pie chart as an overlay */}
                     {hoveredSliceIndex !== null && activeBreakdown[hoveredSliceIndex] && (
                       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 text-white shadow-xl backdrop-blur-md px-2.5 py-0.5 rounded-xl text-[10px] font-semibold flex items-center gap-1.5 whitespace-nowrap animate-in fade-in zoom-in-95 pointer-events-none border border-white/10">
                         <span
@@ -846,7 +814,6 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Right: Category Legend List with two-way hover sync */}
                   <div className="flex-1 space-y-1.5 min-w-0 max-h-52 overflow-y-auto pr-1">
                     {activeBreakdown.map((item, index) => {
                       const bulletColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
@@ -893,7 +860,6 @@ export const DashboardPage: React.FC = () => {
             </div>
             )}
 
-            {/* Section 5: Connected Accounts */}
             {(accountSummary.activeCount > 0 || (accountSummary.accounts && accountSummary.accounts.length > 0)) && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
@@ -928,7 +894,6 @@ export const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col items-end gap-2.5">
-                  {/* Visual Account Badge Circles */}
                   <div className="flex items-center -space-x-1.5">
                     {accountSummary.accounts && accountSummary.accounts.length > 0 ? (
                       accountSummary.accounts.slice(0, 3).map((acc, idx) => {
@@ -963,7 +928,6 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* View Accounts Action Button */}
                   <button
                     type="button"
                     onClick={() => navigate('/accounts')}
@@ -977,7 +941,6 @@ export const DashboardPage: React.FC = () => {
             </div>
             )}
 
-            {/* Section 6: Recent Transactions */}
             {recentTransactions.length > 0 && (
             <div
               className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3"
@@ -1094,7 +1057,6 @@ export const DashboardPage: React.FC = () => {
           </>
         )}
       </div>
-      {/* Floating Quick-Add Button */}
       {showQuickAdd && (
         <button
           type="button"
@@ -1107,7 +1069,6 @@ export const DashboardPage: React.FC = () => {
         </button>
       )}
 
-      {/* Add Account Modal */}
       <AddAccountModal
         isOpen={isAddAccountOpen}
         onClose={() => setIsAddAccountOpen(false)}

@@ -121,7 +121,6 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Dark Navy Branded App Header */}
       <BrandedHeader
         variant="root"
         title="Finance Tracker"
@@ -147,7 +146,6 @@ export const ProfileScreen: React.FC = () => {
           />
         }
       >
-        {/* Profile Section Title Bar */}
         <View style={styles.titleRow}>
           <View style={styles.titleWithAccent}>
             <View style={styles.accentBar} />
@@ -177,10 +175,8 @@ export const ProfileScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {/* User Hero Card */}
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
-            {/* Avatar with Camera badge */}
             <View style={styles.avatarContainer}>
               <View style={styles.avatarCircle}>
                 <Text style={styles.avatarLetter}>{initialLetter}</Text>
@@ -190,7 +186,6 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* User Meta Information */}
             <View style={styles.userMeta}>
               <Text style={styles.userName} numberOfLines={1}>
                 {displayName}
@@ -205,7 +200,6 @@ export const ProfileScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* FAM Score Widget */}
             <View style={styles.famScoreBox}>
               <View style={styles.famScoreLabelRow}>
                 <Text style={styles.famScoreLabel}>FAM Score</Text>
@@ -218,7 +212,6 @@ export const ProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Profile Completion Metric or Compact One-Line Completed */}
           {completionPercentage >= 100 ? (
             <View style={styles.completionCompletedRow}>
               <View style={styles.completionCompletedLeft}>
@@ -269,11 +262,9 @@ export const ProfileScreen: React.FC = () => {
           )}
         </View>
 
-        {/* SECTION: PROFILE */}
         <View style={styles.groupContainer}>
           <Text style={styles.groupHeader}>PROFILE</Text>
           <View style={styles.cardList}>
-            {/* Basic Profile */}
             <Pressable
               onPress={() => navigation.navigate('BasicProfile')}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -293,7 +284,6 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.itemDivider} />
 
-            {/* Finance Profile */}
             <Pressable
               onPress={() => navigation.navigate('FinanceProfile')}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -313,11 +303,9 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* SECTION: FINANCE */}
         <View style={styles.groupContainer}>
           <Text style={styles.groupHeader}>FINANCE</Text>
           <View style={styles.cardList}>
-            {/* Accounts */}
             <Pressable
               onPress={() => navigation.navigate('Accounts')}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -337,7 +325,6 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.itemDivider} />
 
-            {/* Categories */}
             <Pressable
               onPress={() => navigation.navigate('Categories')}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -357,7 +344,6 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.itemDivider} />
 
-            {/* Merchants */}
             <Pressable
               onPress={() => navigation.navigate('MainTabs', { screen: 'Transactions' })}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -377,11 +363,9 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* SECTION: MORE */}
         <View style={styles.groupContainer}>
           <Text style={styles.groupHeader}>MORE</Text>
           <View style={styles.cardList}>
-            {/* Integrations */}
             <Pressable
               onPress={() => navigation.navigate('MainTabs', { screen: 'More' })}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -401,7 +385,6 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.itemDivider} />
 
-            {/* Security Questions KBA */}
             <Pressable
               onPress={() => navigation.navigate('SecurityQuestions')}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}
@@ -425,7 +408,6 @@ export const ProfileScreen: React.FC = () => {
 
             <View style={styles.itemDivider} />
 
-            {/* Sign Out */}
             <Pressable
               onPress={handleLogout}
               style={({ pressed }) => [styles.listItem, pressed && styles.itemPressed]}

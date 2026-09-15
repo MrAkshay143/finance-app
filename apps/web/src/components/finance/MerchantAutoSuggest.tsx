@@ -160,7 +160,6 @@ export const MerchantAutoSuggest: React.FC<MerchantAutoSuggestProps> = ({
         )}
       </div>
 
-      {/* Floating Auto-Suggest Popover */}
       {isOpen && matchingMerchants.length > 0 && (
         <div
           role="listbox"

@@ -220,7 +220,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Advisory Box matching snapshot */}
         <View style={styles.advisoryCard}>
           <View style={styles.advisoryIconSquare}>
             <ShieldCheckIcon size={24} color="#2554EE" />
@@ -233,10 +232,8 @@ export const SecurityQuestionsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Stepper Progress Bar */}
         <View style={styles.stepperContainer}>
           <View style={styles.stepperRow}>
-            {/* Step 1 */}
             <View style={styles.stepItem}>
               <View
                 style={[
@@ -260,7 +257,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
 
             <View style={[styles.stepLine, currentStep >= 2 && styles.stepLineActive]} />
 
-            {/* Step 2 */}
             <View style={styles.stepItem}>
               <View
                 style={[
@@ -284,7 +280,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
 
             <View style={[styles.stepLine, currentStep >= 3 && styles.stepLineActive]} />
 
-            {/* Step 3 */}
             <View style={styles.stepItem}>
               <View
                 style={[
@@ -308,7 +303,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Feedback Banners */}
         {setupComplete ? (
           <View style={styles.successCard}>
             <View style={styles.successIconCircle}>
@@ -343,7 +337,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
               </View>
             ) : null}
 
-            {/* Question Dropdown Selector */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 Security Question <Text style={styles.requiredAsterisk}>*</Text>
@@ -365,7 +358,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
               </Pressable>
             </View>
 
-            {/* Answer Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 Your Answer <Text style={styles.requiredAsterisk}>*</Text>
@@ -404,7 +396,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Advice Box */}
             <View style={styles.adviceCallout}>
               <InfoIcon size={16} color={colors.primary} />
               <Text style={styles.adviceText}>
@@ -414,7 +405,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Action Button */}
         {!setupComplete ? (
           <Pressable
             onPress={handleNextOrSubmit}
@@ -442,7 +432,6 @@ export const SecurityQuestionsScreen: React.FC = () => {
         ) : null}
       </ScrollView>
 
-      {/* Question Selection Modal */}
       <Modal
         visible={modalVisible}
         transparent

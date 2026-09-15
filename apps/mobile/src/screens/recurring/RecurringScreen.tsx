@@ -194,7 +194,6 @@ export const RecurringScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 12 : 20 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -230,7 +229,6 @@ export const RecurringScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Frequency Filter Chips */}
         <View style={styles.freqPillsRow}>
           {(['ALL', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as FrequencyFilter[]).map((freq) => {
             const isSelected = selectedFreq === freq;
@@ -355,7 +353,6 @@ export const RecurringScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Add Recurring Modal */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -376,7 +373,6 @@ export const RecurringScreen: React.FC = () => {
             </View>
 
             <ScrollView contentContainerStyle={styles.modalForm}>
-              {/* Type Selector */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>TRANSACTION TYPE</Text>
                 <View style={styles.typeSelectorRow}>
@@ -405,7 +401,6 @@ export const RecurringScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Amount */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>AMOUNT ({userSymbol})</Text>
                 <TextInput
@@ -418,7 +413,6 @@ export const RecurringScreen: React.FC = () => {
                 />
               </View>
 
-              {/* Description */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>DESCRIPTION</Text>
                 <TextInput
@@ -430,7 +424,6 @@ export const RecurringScreen: React.FC = () => {
                 />
               </View>
 
-              {/* Frequency */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>FREQUENCY</Text>
                 <View style={styles.freqSelectorRow}>
@@ -459,7 +452,6 @@ export const RecurringScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Next Due Date */}
               <View style={styles.formSection}>
                 <Text style={styles.formLabel}>NEXT DUE DATE (YYYY-MM-DD)</Text>
                 <TextInput
@@ -471,7 +463,6 @@ export const RecurringScreen: React.FC = () => {
                 />
               </View>
 
-              {/* Account Selection */}
               {accounts.length > 0 && (
                 <View style={styles.formSection}>
                   <Text style={styles.formLabel}>ACCOUNT</Text>
@@ -502,7 +493,6 @@ export const RecurringScreen: React.FC = () => {
                 </View>
               )}
 
-              {/* Action Buttons */}
               <View style={styles.modalActions}>
                 <Pressable
                   onPress={() => setIsModalVisible(false)}

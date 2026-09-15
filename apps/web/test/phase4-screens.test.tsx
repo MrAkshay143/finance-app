@@ -43,9 +43,7 @@ function createTestQueryClient(initialData?: Record<string, any>) {
 }
 
 describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', () => {
-  /* ======================================================================
-   * 1. TASK-4.5: ReportsPage Verification
-   * ====================================================================== */
+  
   describe('1. ReportsPage (Screen #4)', () => {
     it('renders branded dark navy header (#0B1B3A -> #132A5C) and page subheader with Export PDF', () => {
       const qc = createTestQueryClient();
@@ -175,9 +173,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
     });
   });
 
-  /* ======================================================================
-   * 2. TASK-4.5: AnalyticsPage Verification
-   * ====================================================================== */
+  
   describe('2. AnalyticsPage (Screen #5)', () => {
     it('renders branded dark navy header (#0B1B3A -> #132A5C) and Analytics title row with calendar date range', () => {
       const qc = createTestQueryClient();
@@ -245,9 +241,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
     });
   });
 
-  /* ======================================================================
-   * 3. TASK-4.6: NotificationsPage Verification
-   * ====================================================================== */
+  
   describe('3. NotificationsPage (Screen #10)', () => {
     it('renders branded dark navy header (#0B1B3A -> #132A5C) with Notifications title and subtitle', () => {
       const qc = createTestQueryClient();
@@ -326,9 +320,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
     });
   });
 
-  /* ======================================================================
-   * 4. TASK-4.7: InvestmentsPage & RecurringTransactionsPage Verification
-   * ====================================================================== */
+  
   describe('4. InvestmentsPage & RecurringTransactionsPage', () => {
     it('InvestmentsPage renders portfolio hero card, target progress, asset allocation, and Add button', () => {
       const qc = createTestQueryClient();
@@ -368,9 +360,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
     });
   });
 
-  /* ======================================================================
-   * 5. TASK-4.8: AiAnalysisPage Verification (Full V1 & Zero Placeholders)
-   * ====================================================================== */
+  
   describe('5. AiAnalysisPage (Screen #20 - Full V1 Financial Intelligence)', () => {
     it('renders branded dark navy header, back button, and Financial Intelligence status chip', () => {
       const qc = createTestQueryClient();

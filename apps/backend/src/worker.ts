@@ -6,7 +6,7 @@ import { initSentry } from './lib/sentry.js';
 import { initRedis, closeRedis } from './lib/redis.js';
 import { env } from './config/env.js';
 
-// Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md §11
+// Initialize Sentry error tracking
 initSentry('worker');
 
 logger.info('Finance Tracker BullMQ worker starting...');

@@ -291,7 +291,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* User Card */}
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-4 shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="relative shrink-0">
@@ -336,7 +335,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* 6-Tab Sub Navigation */}
         <div className="overflow-x-auto pb-1 scrollbar-none">
           <SegmentedControl
             options={[
@@ -354,10 +352,8 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           />
         </div>
 
-        {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
-            {/* Account Details Card */}
             <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
               <div className="p-3.5 bg-slate-50/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -409,7 +405,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Account Actions Section */}
             <div className="space-y-1.5">
               <h3 className="text-xs font-bold text-textDefault">Account Actions</h3>
               <p className="text-[11px] text-textMuted">Manage this user&apos;s access and security.</p>
@@ -501,7 +496,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Delete Account Card */}
             <Card padding="none" className="bg-rose-50/40 border border-rose-200/60 shadow-card overflow-hidden">
               <button
                 type="button"
@@ -523,7 +517,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: ACCOUNTS */}
         {activeTab === 'accounts' && (
           <div className="space-y-3">
             {isAccountsLoading ? (
@@ -590,7 +583,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: TRANSACTIONS */}
         {activeTab === 'transactions' && (
           <div className="space-y-3">
             {isTxnsLoading ? (
@@ -652,7 +644,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: PERMISSIONS */}
         {activeTab === 'permissions' && (
           <div className="space-y-4">
             <Card padding="sm" className="bg-white border border-borderDefault shadow-card space-y-3">
@@ -708,7 +699,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: SECURITY */}
         {activeTab === 'security' && (
           <div className="space-y-4">
             <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
@@ -789,7 +779,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Active Sessions List */}
             <div className="space-y-2.5 pt-2">
               <div className="flex items-center justify-between px-1">
                 <h4 className="text-xs font-bold text-textDefault">
@@ -856,7 +845,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 6: AUDIT TRAIL */}
         {activeTab === 'audit' && (
           <div className="space-y-3">
             {userDetails?.recentAuditLogs && userDetails.recentAuditLogs.length > 0 ? (
@@ -902,7 +890,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Temp Password Generated Modal */}
       <Modal
         isOpen={!!tempPasswordModal}
         onClose={() => setTempPasswordModal(null)}
@@ -937,7 +924,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Revoke Sessions Modal */}
       <Modal
         isOpen={isRevokeModalOpen}
         onClose={() => setIsRevokeModalOpen(false)}
@@ -967,7 +953,6 @@ export const ManageUserDetailTabsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Delete User Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.admin.softDeleteUser(user.email);
         return (

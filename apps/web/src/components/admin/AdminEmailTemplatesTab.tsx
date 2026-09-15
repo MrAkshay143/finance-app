@@ -129,7 +129,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Header Info Card */}
       <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -167,7 +166,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Template Selector Horizontal Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
           {templates.map((t) => {
             const isSelected = t.key === selectedKey;
@@ -200,9 +198,7 @@ export const AdminEmailTemplatesTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Template Editor Main Card */}
       <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
-        {/* Template Meta and Active Status */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-borderDefault">
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-textMuted">Template Key</span>
@@ -240,7 +236,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Subject Line */}
         <div>
           <label className="text-xs font-semibold text-textDefault flex items-center justify-between">
             <span>Email Subject</span>
@@ -255,7 +250,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
           />
         </div>
 
-        {/* Dynamic Variable Chips */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-xs font-semibold text-textDefault flex items-center gap-1.5">
@@ -281,7 +275,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Editor vs Preview Mode Switcher */}
         <div className="pt-2 border-t border-borderDefault">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center p-1 bg-slate-100 rounded-xl">
@@ -328,7 +321,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
             </span>
           </div>
 
-          {/* HTML Editor Tab */}
           {editorMode === 'html' && (
             <div className="space-y-1">
               <textarea
@@ -344,7 +336,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
             </div>
           )}
 
-          {/* Plain Text Editor Tab */}
           {editorMode === 'text' && (
             <div className="space-y-1">
               <textarea
@@ -360,7 +351,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
             </div>
           )}
 
-          {/* Live Preview Mode Tab */}
           {editorMode === 'preview' && (
             <div className="border border-borderDefault rounded-xl overflow-hidden bg-slate-50 p-4">
               <div className="bg-white rounded-lg border border-slate-200 p-3 mb-3 shadow-xs">
@@ -385,7 +375,6 @@ export const AdminEmailTemplatesTab: React.FC = () => {
           )}
         </div>
 
-        {/* Bottom Save Action */}
         <div className="pt-3 border-t border-borderDefault flex items-center justify-end gap-2">
           <Button
             variant="outline"

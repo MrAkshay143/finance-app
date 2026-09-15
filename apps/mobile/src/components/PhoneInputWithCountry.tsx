@@ -87,7 +87,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
 
   return (
     <View style={styles.phoneInputRow}>
-      {/* Country Calling Code Picker Button */}
       <Pressable
         style={styles.countryCodeBadge}
         onPress={() => !disabled && setIsPickerOpen(true)}
@@ -100,7 +99,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
         <Text style={styles.countryCodeText}>{selectedCountry.callingCode}</Text>
       </Pressable>
 
-      {/* National Phone Number Input */}
       <View style={[styles.inputWrapper, styles.phoneInputWrapper, disabled && styles.disabledInputWrapper]}>
         <TextInput
           style={[styles.textInput, disabled && styles.disabledTextInput]}
@@ -116,7 +114,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
         />
       </View>
 
-      {/* Modal for Country Selection */}
       <CountryPickerModal
         visible={isPickerOpen}
         onClose={() => setIsPickerOpen(false)}

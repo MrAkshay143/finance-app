@@ -4,7 +4,6 @@ import { NotFoundError, ValidationError } from '../utils/errors.js';
 import { getCurrencyByCode } from '@finance/shared-types';
 import { escapeCsvField } from '../utils/csv.js';
 
-
 const FULL_MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -207,14 +206,12 @@ export class ReportService {
         userId,
         status: 'ACTIVE',
         txnDate: { gte: period.start, lt: period.end },
-        // exclude transfer legs — they are INCOME/EXPENSE rows but represent
-        // an internal account-to-account movement, not real income or spending
+        // Exclude transfer legs representing internal account movements
         transferAsDebit: null,
         transferAsCredit: null,
       },
       include: { category: true },
     });
-
 
     const categorySummaryMap = new Map<
       string,
@@ -366,9 +363,7 @@ export class ReportService {
     };
   }
 
-  /**
-   * Generates downloadable report export in JSON or CSV format.
-   */
+  // Generates downloadable report export in JSON or CSV format.
   async exportReport(userId: string, month: string, format: 'json' | 'csv' = 'json') {
     const report = await this.getMonthlyReport(userId, month);
 
@@ -419,7 +414,6 @@ export class ReportService {
       );
     }
 
-
     const csvData = lines.join('\n');
 
     return {
@@ -430,9 +424,7 @@ export class ReportService {
     };
   }
 
-  /**
-   * Generates annual financial report aggregating months 1-12 for the specified year.
-   */
+  // Generates annual financial report aggregating months 1-12 for the specified year.
   async getAnnualReport(userId: string, yearNum: number) {
     const year = isNaN(yearNum) ? new Date().getFullYear() : yearNum;
 
@@ -449,7 +441,6 @@ export class ReportService {
       },
       include: { category: true },
     });
-
 
     let totalIncomePaise = 0;
     let totalExpensePaise = 0;
@@ -566,9 +557,7 @@ export class ReportService {
     };
   }
 
-  /**
-   * Generates custom date range financial report between startDate and endDate.
-   */
+  // Generates custom date range financial report between startDate and endDate.
   async getCustomRangeReport(userId: string, startDateStr: string, endDateStr: string) {
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);
@@ -595,7 +584,6 @@ export class ReportService {
       include: { category: true },
       orderBy: { txnDate: 'asc' },
     });
-
 
     let totalIncomePaise = 0;
     let totalExpensePaise = 0;

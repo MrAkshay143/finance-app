@@ -179,7 +179,6 @@ describe('Mobile Dashboard, Planning & Categories Suite (TASK-3.6)', () => {
       expect(fam.progress).toBe(88);
       expect(['A+', 'B', 'C', 'NA', 'N/A']).toContain(fam.grade);
 
-      // 3 area status chips
       expect(fam.areas.income.statusLabel).toBe('Excellent');
       expect(fam.areas.expense.statusLabel).toBe('Good');
       expect(fam.areas.investment.statusLabel).toBe('Good');
@@ -192,19 +191,16 @@ describe('Mobile Dashboard, Planning & Categories Suite (TASK-3.6)', () => {
     it('verifies Target Overview calculations: Income, Expense, and Investment', () => {
       const targets = mockDashboardData.targets;
 
-      // Income target overview
       expect(targets.income.target).toBe(100000);
       expect(targets.income.actual).toBe(95000);
       expect(targets.income.remaining).toBe(5000);
       expect(targets.income.percent).toBe(95);
 
-      // Expense target overview
       expect(targets.expense.target).toBe(50000);
       expect(targets.expense.actual).toBe(32500);
       expect(targets.expense.remaining).toBe(17500);
       expect(targets.expense.percent).toBe(65);
 
-      // Investment target overview
       expect(targets.investment.target).toBe(25000);
       expect(targets.investment.actual).toBe(20000);
       expect(targets.investment.remaining).toBe(5000);

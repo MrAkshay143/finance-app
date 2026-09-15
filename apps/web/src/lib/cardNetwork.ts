@@ -9,16 +9,7 @@ export const CARD_NETWORK_NAMES: Record<CardNetwork, string> = {
   discover: 'Discover',
 };
 
-/**
- * Detect card network from prefix or mask.
- * Uses BIN regex rules:
- * - Visa: /^4/
- * - Mastercard: /^5[1-5]/ or /^2[2-7]/
- * - RuPay: /^(60|65|81|82|508)/
- * - Amex: /^3[47]/
- * - Diners Club: /^(36|38|30[0-5])/
- * - Discover: /^(6011|65)/
- */
+// Detect card network from prefix or mask using BIN regex rules.
 export function detectCardNetwork(cardNumberPrefix?: string | null): CardNetwork | null {
   if (!cardNumberPrefix || typeof cardNumberPrefix !== 'string') {
     return null;

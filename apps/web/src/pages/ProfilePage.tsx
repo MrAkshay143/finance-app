@@ -160,7 +160,6 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-6">
-      {/* Branded Root Header */}
       <AppHeader
         variant="root"
         
@@ -168,7 +167,6 @@ export const ProfilePage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Page Title & Edit Profile Action */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-brand-primary rounded-full" />
@@ -192,12 +190,9 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
 
-        {/* User Hero & Profile Completion Card */}
         <Card className="p-4 space-y-4 shadow-card">
-          {/* Avatar and Identity Row */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
-              {/* Circular Avatar with Camera Badge */}
               <div className="relative">
                 <input
                   ref={fileInputRef}
@@ -265,11 +260,21 @@ export const ProfilePage: React.FC = () => {
                       <span>{userCountryMeta.code}</span>
                     </span>
                   )}
+                  {user?.emailVerified ? (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      <span>Verified</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold flex items-center gap-1">
+                      <span>⚠</span>
+                      <span>Unverified</span>
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* FAM Score Mini Cardlet */}
             <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl flex flex-col items-center justify-center min-w-[76px] shadow-sm">
               <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
                 <span>FAM Score</span>
@@ -284,7 +289,6 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Profile Completion Status */}
           {completionPercentage >= 100 ? (
             <div className="pt-2.5 border-t border-borderDefault flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-semibold">
@@ -331,13 +335,11 @@ export const ProfilePage: React.FC = () => {
           )}
         </Card>
 
-        {/* Section: PROFILE */}
         <div className="space-y-1.5">
           <h3 className="text-xs font-bold text-textMuted uppercase tracking-wider px-1">
             Profile
           </h3>
           <Card padding="none" className="divide-y divide-borderDefault overflow-hidden shadow-card">
-            {/* Basic Profile */}
             <button
               type="button"
               onClick={() => navigate('/profile/settings?tab=basic')}
@@ -357,7 +359,6 @@ export const ProfilePage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
             </button>
 
-            {/* Finance Profile */}
             <button
               type="button"
               onClick={() => navigate('/profile/settings?tab=finance')}
@@ -379,13 +380,11 @@ export const ProfilePage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Section: FINANCE */}
         <div className="space-y-1.5">
           <h3 className="text-xs font-bold text-textMuted uppercase tracking-wider px-1">
             Finance
           </h3>
           <Card padding="none" className="divide-y divide-borderDefault overflow-hidden shadow-card">
-            {/* Accounts */}
             <button
               type="button"
               onClick={() => navigate('/accounts')}
@@ -405,7 +404,6 @@ export const ProfilePage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
             </button>
 
-            {/* Categories */}
             <button
               type="button"
               onClick={() => navigate('/categories')}
@@ -425,7 +423,6 @@ export const ProfilePage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
             </button>
 
-            {/* Merchants */}
             <button
               type="button"
               onClick={() => navigate('/merchants')}
@@ -447,13 +444,11 @@ export const ProfilePage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Section: MORE */}
         <div className="space-y-1.5">
           <h3 className="text-xs font-bold text-textMuted uppercase tracking-wider px-1">
             More
           </h3>
           <Card padding="none" className="divide-y divide-borderDefault overflow-hidden shadow-card">
-            {/* Preferences & Security */}
             <button
               type="button"
               onClick={() => navigate('/settings')}
@@ -475,7 +470,6 @@ export const ProfilePage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Sign Out Button */}
         <div className="pt-2">
           <button
             type="button"

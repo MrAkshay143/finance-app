@@ -79,6 +79,12 @@ export class TransferService {
 
     // Execute atomic dual-leg transfer inside Prisma $transaction
     const transfer = await prisma.$transaction(async (tx) => {
+      // 0. Acquire deterministic row locks to prevent deadlocks (FIN-01)
+      const accountIds = [data.sourceAccountId, data.destinationAccountId].sort();
+      for (const id of accountIds) {
+        await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', id);
+      }
+
       // 1. Debit leg on source account
       const debitTxn = await tx.transaction.create({
         data: {
@@ -158,9 +164,7 @@ export class TransferService {
     return formatTransfer(transfer);
   }
 
-  /**
-   * Retrieves a transfer by ID.
-   */
+  // Retrieves a transfer by ID.
   async getTransfer(userId: string, id: string) {
     const transfer = await prisma.transfer.findUnique({
       where: { id },
@@ -180,9 +184,7 @@ export class TransferService {
     return formatTransfer(transfer);
   }
 
-  /**
-   * Soft deletes both debit & credit transactions, removes transfer link, and reverts both account balances.
-   */
+  // Soft deletes debit/credit transactions, removes transfer link, and reverts account balances
   async deleteTransfer(userId: string, id: string) {
     const transfer = await prisma.transfer.findUnique({
       where: { id },
@@ -196,6 +198,12 @@ export class TransferService {
     }
 
     await prisma.$transaction(async (tx) => {
+      // 0. Acquire deterministic row locks to prevent deadlocks (FIN-01)
+      const accountIds = [transfer.sourceAccountId, transfer.destinationAccountId].sort();
+      for (const id of accountIds) {
+        await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', id);
+      }
+
       // Mark debit and credit transactions as DELETED
       await tx.transaction.updateMany({
         where: {
@@ -244,9 +252,7 @@ export class TransferService {
     return { message: 'Transfer deleted successfully' };
   }
 
-  /**
-   * Lists transfers for a user.
-   */
+  // Lists transfers for a user.
   async listTransfers(userId: string) {
     const transfers = await prisma.transfer.findMany({
       where: { userId },

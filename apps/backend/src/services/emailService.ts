@@ -1,20 +1,12 @@
-/**
- * EMAIL-001: Core email service — fully config-driven SMTP via AppSetting.
- * EMAIL-002: Template engine — variable substitution with HTML escaping.
- * EMAIL-011/012: XSS prevention — all template variables are HTML-escaped.
- * EMAIL-014: SMTP password never returned in API responses.
- * EMAIL-015: SMTP password never logged.
- * EMAIL-017: Per-user rate limiting enforced via Redis.
- */
+// Core email service providing SMTP configuration, template rendering, and delivery
 import nodemailer from 'nodemailer';
 import type { Transporter, SendMailOptions } from 'nodemailer';
 import { APP_SETTINGS_KEYS } from '@finance/shared-types';
 import { prisma } from '../lib/prisma.js';
 import { getRedisClient } from '../lib/redis.js';
 import { decryptSmtpPassword } from '../lib/smtpCrypto.js';
+import { DEFAULT_EMAIL_TEMPLATES } from '../config/defaultEmailTemplates.js';
 import logger from '../lib/logger.js';
-
-// ─── Template variable escaping (EMAIL-011/012) ────────────────────────────
 
 export function escapeHtml(value: string): string {
   return value
@@ -32,8 +24,6 @@ export function renderTemplate(template: string, variables: Record<string, strin
     return escapeHtml(String(value));
   });
 }
-
-// ─── SMTP Config ────────────────────────────────────────────────────────────
 
 interface SmtpConfig {
   host: string; port: number; secure: boolean; requireTls: boolean;
@@ -75,8 +65,6 @@ async function loadSmtpConfig(): Promise<SmtpConfig | null> {
   return { host, port, secure, requireTls, auth: { user: username, pass: password }, senderEmail, senderName, enabled: true };
 }
 
-// ─── Transporter Cache ───────────────────────────────────────────────────────
-
 let _transporter: Transporter | null = null;
 let _transporterConfigKey = '';
 
@@ -99,8 +87,6 @@ export function invalidateSmtpTransporter(): void {
   _transporter = null; _transporterConfigKey = '';
 }
 
-// ─── Rate Limiting (EMAIL-017) ───────────────────────────────────────────────
-
 const EMAIL_RATE_WINDOW_SECONDS = 3600;
 const EMAIL_RATE_MAX = 20;
 
@@ -115,32 +101,11 @@ async function checkEmailRateLimit(userId: string): Promise<boolean> {
   } catch { return true; }
 }
 
-// ─── Delivery Logging (EMAIL-018) ────────────────────────────────────────────
-
-// type DeliveryStatus = 'QUEUED' | 'SENT' | 'FAILED';
-
 async function logDelivery(params: {
   userId?: string; templateKey?: string; recipientEmail: string;
   subject: string; status: any; errorMessage?: string;
 }): Promise<void> {
-  // try {
-  //   await prisma.emailDeliveryLog.create({
-  //     data: {
-  //       userId: params.userId ?? null,
-  //       templateKey: params.templateKey ?? null,
-  //       recipientEmail: params.recipientEmail,
-  //       subject: params.subject,
-  //       status: params.status,
-  //       errorMessage: params.errorMessage ?? null,
-  //       sentAt: params.status === 'SENT' ? new Date() : null,
-  //     },
-  //   });
-  // } catch (err: any) {
-  //   logger.warn({ err: err?.message }, 'Failed to log email delivery');
-  // }
 }
-
-// ─── Main Send Function ──────────────────────────────────────────────────────
 
 export interface SendEmailOptions {
   to: string; subject: string; html: string; text?: string;
@@ -173,18 +138,57 @@ export async function sendEmail(opts: SendEmailOptions): Promise<boolean> {
   }
 }
 
-// ─── Template Loader (EMAIL-002) ─────────────────────────────────────────────
-
 export async function sendTemplatedEmail(params: {
-  templateKey: string; to: string; variables: Record<string, string>;
-  userId?: string; subjectOverride?: string;
+  templateKey: string;
+  to: string;
+  variables: Record<string, string>;
+  userId?: string;
+  subjectOverride?: string;
 }): Promise<boolean> {
-  // const template = await prisma.emailTemplate.findFirst({ where: { key: params.templateKey, isActive: true } });
-  // if (!template) { logger.warn({ templateKey: params.templateKey }, 'Email template not found or inactive'); return false; }
-  const html = renderTemplate('<p>Fallback template</p>', params.variables);
-  const text = undefined;
-  const subject = params.subjectOverride ?? 'Notification';
-  return sendEmail({ to: params.to, subject, html, text, userId: params.userId, templateKey: params.templateKey });
+  let template = DEFAULT_EMAIL_TEMPLATES.find((t) => t.key === params.templateKey);
+  try {
+    const customSetting = await prisma.appSetting.findUnique({
+      where: { key: `email_template:${params.templateKey}` },
+    });
+    if (customSetting?.value) {
+      const parsed = typeof customSetting.value === 'string' ? JSON.parse(customSetting.value) : customSetting.value;
+      if (parsed && parsed.isActive === false) {
+        logger.info({ templateKey: params.templateKey, to: params.to }, 'Template is deactivated, skipping email delivery');
+        return false;
+      }
+      if (parsed) {
+        template = {
+          key: params.templateKey,
+          name: parsed.name ?? template?.name ?? params.templateKey,
+          variables: parsed.variables ?? template?.variables ?? [],
+          subject: parsed.subject ?? template?.subject ?? 'Notification',
+          htmlContent: parsed.htmlContent ?? template?.htmlContent ?? '<p>{{message}}</p>',
+          textContent: parsed.textContent ?? template?.textContent,
+          isActive: true,
+        };
+      }
+    }
+  } catch {
+    // Fallback to default template on any lookup error
+  }
+
+  const htmlTemplate = template?.htmlContent || '<p>{{message}}</p>';
+  const html = renderTemplate(htmlTemplate, params.variables);
+  const text = template?.textContent
+    ? renderTemplate(template.textContent, params.variables)
+    : undefined;
+  const subject =
+    params.subjectOverride ??
+    (template ? renderTemplate(template.subject, params.variables) : 'Notification');
+
+  return sendEmail({
+    to: params.to,
+    subject,
+    html,
+    text,
+    userId: params.userId,
+    templateKey: params.templateKey,
+  });
 }
 
 export async function testSmtpConnection(recipientEmail: string): Promise<{ success: boolean; message: string }> {
@@ -199,8 +203,6 @@ export async function testSmtpConnection(recipientEmail: string): Promise<{ succ
     return { success: false, message: `SMTP test failed: ${err?.message ?? 'Unknown error'}` };
   }
 }
-
-// ─── Built-in email senders ──────────────────────────────────────────────────
 
 export async function sendPasswordResetEmail(opts: { to: string; firstName: string; resetLink: string; userId: string }): Promise<boolean> {
   return sendTemplatedEmail({ templateKey: 'password_reset', to: opts.to, userId: opts.userId, variables: { firstName: opts.firstName, resetLink: opts.resetLink, appName: 'Finance App' } });

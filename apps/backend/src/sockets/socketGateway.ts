@@ -82,7 +82,7 @@ export function initSocketGateway(io: SocketIOServer): void {
     });
   });
 
-  // /notifications namespace per Plan/architecture.md §6
+  // /notifications namespace
   const notificationsNs = io.of('/notifications');
   notificationsNs.use(socketAuthMiddleware);
   notificationsNs.on('connection', (socket) => {
@@ -98,7 +98,7 @@ export function initSocketGateway(io: SocketIOServer): void {
     });
   });
 
-  // /dashboard namespace per Plan/architecture.md §6
+  // /dashboard namespace
   const dashboardNs = io.of('/dashboard');
   dashboardNs.use(socketAuthMiddleware);
   dashboardNs.on('connection', (socket) => {
@@ -203,6 +203,4 @@ export function emitDashboardRefresh(userId: string, data: any = { refreshedAt: 
     logger.warn({ err: err?.message, userId }, 'Failed to emit dashboard refresh via Socket.IO');
   }
 }
-
-
 

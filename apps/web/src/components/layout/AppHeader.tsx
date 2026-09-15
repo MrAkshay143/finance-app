@@ -75,10 +75,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-6 pb-5 px-5 rounded-b-[24px] shadow-header sticky top-0 z-30 transition-all">
       <div className="flex items-center justify-between gap-3">
-        {/* Left Section */}
         {variant === 'root' ? (
           <div className="flex items-center gap-3 min-w-0">
-            {/* Square rounded AI-generated premium app icon */}
             <button
               type="button"
               onClick={handleAppIconClick}
@@ -108,7 +106,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
         ) : (
           <div className="flex items-center gap-2.5 min-w-0">
-            {/* Back Button */}
             <button
               type="button"
               onClick={handleBack}
@@ -130,7 +127,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
         )}
 
-        {/* Right Section */}
         <div className="flex items-center gap-2 shrink-0">
           {rightAction ? (
             rightAction

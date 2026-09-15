@@ -194,11 +194,9 @@ export const SettingsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* General Preferences Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>GENERAL PREFERENCES</Text>
           <View style={styles.card}>
-            {/* Currency selector */}
             <Pressable
               onPress={() => setPickerModalType('currency')}
               style={[styles.row, styles.rowBorder]}
@@ -215,7 +213,6 @@ export const SettingsScreen: React.FC = () => {
               <ChevronRightIcon size={18} color="#98A2B3" />
             </Pressable>
 
-            {/* Timezone selector */}
             <Pressable
               onPress={() => setPickerModalType('timezone')}
               style={[styles.row, styles.rowBorder]}
@@ -232,7 +229,6 @@ export const SettingsScreen: React.FC = () => {
               <ChevronRightIcon size={18} color="#98A2B3" />
             </Pressable>
 
-            {/* Cycle start day selector */}
             <Pressable
               onPress={() => setPickerModalType('cycle')}
               style={styles.row}
@@ -252,7 +248,6 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Notifications & Reminders Navigation Link */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>NOTIFICATIONS & REMINDERS</Text>
           <View style={styles.card}>
@@ -279,11 +274,9 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Dashboard Experience Toggles */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>DASHBOARD EXPERIENCE</Text>
           <View style={styles.card}>
-            {/* Quick-Add */}
             <View style={[styles.toggleRow, styles.rowBorder]}>
               <View style={styles.rowTextColumn}>
                 <Text style={styles.rowLabel}>Quick-Add Transaction Bar</Text>
@@ -302,7 +295,6 @@ export const SettingsScreen: React.FC = () => {
               />
             </View>
 
-            {/* Expense Donut */}
             <View style={[styles.toggleRow, styles.rowBorder]}>
               <View style={styles.rowTextColumn}>
                 <Text style={styles.rowLabel}>Expense Overview Donut</Text>
@@ -321,7 +313,6 @@ export const SettingsScreen: React.FC = () => {
               />
             </View>
 
-            {/* FAM Assessment Donut */}
             <View style={styles.toggleRow}>
               <View style={styles.rowTextColumn}>
                 <Text style={styles.rowLabel}>FAM Assessment Donut</Text>
@@ -342,7 +333,6 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Feature Modules Toggles */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>FEATURE MODULES</Text>
           <View style={styles.card}>
@@ -384,7 +374,6 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Security Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>SECURITY & AUTHENTICATION</Text>
           <View style={styles.card}>
@@ -411,7 +400,6 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Danger Zone Section */}
         <View style={styles.sectionContainer}>
           <View style={styles.dangerHeaderRow}>
             <AlertCircleIcon size={16} color={colors.danger} />
@@ -471,7 +459,6 @@ export const SettingsScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Dropdown Options Modal */}
       <Modal
         visible={pickerModalType !== null}
         transparent
@@ -605,7 +592,6 @@ export const SettingsScreen: React.FC = () => {
         </Pressable>
       </Modal>
 
-      {/* Reset Profile Modal */}
       <Modal
         visible={isResetModalOpen}
         transparent
@@ -652,7 +638,6 @@ export const SettingsScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Delete Account Modal */}
       <Modal
         visible={isDeleteModalOpen}
         transparent

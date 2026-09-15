@@ -20,6 +20,7 @@ import { Input } from '../../components/ui/Input.js';
 import { PhoneInputWithCountry } from '../../components/ui/PhoneInputWithCountry.js';
 import { CountrySelector } from '../../components/ui/CountrySelector.js';
 import { CurrencySelector } from '../../components/ui/CurrencySelector.js';
+import { OtpVerificationModal } from '../../components/ui/OtpVerificationModal.js';
 import {
   validateAndNormalizePhone,
   CountryCode,
@@ -29,11 +30,12 @@ import {
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 import { toast } from '../../store/toastStore.js';
 import { useConfigStore } from '../../store/configStore.js';
+import { apiClient } from '../../services/apiClient.js';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signup, isLoading, error, clearError } = useAuthStore();
-  const { allowUserRegistration, defaultCountry, defaultBaseCurrency, platformName } = useConfigStore();
+  const { signup, completeSignup, isLoading, error, clearError } = useAuthStore();
+  const { allowUserRegistration, defaultCountry, defaultBaseCurrency, platformName, passwordPolicy } = useConfigStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -46,6 +48,8 @@ export const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   const handleCountryChange = (newCountry: CountryCode) => {
     setCountry(newCountry);
@@ -56,7 +60,7 @@ export const SignupPage: React.FC = () => {
   };
 
   const emailResult = validateEmail(email);
-  const passwordResult = validatePassword(password);
+  const passwordResult = validatePassword(password, passwordPolicy);
   const confirmResult = validateConfirmPassword(password, confirmPassword);
 
   useEffect(() => {
@@ -88,14 +92,15 @@ export const SignupPage: React.FC = () => {
   }, [password, passwordResult.strengthLabel]);
 
   const passwordCriteriaList = useMemo(() => {
-    return [
-      { label: '8+ characters', met: passwordResult.criteria.minLength },
-      { label: 'Uppercase (A-Z)', met: passwordResult.criteria.hasUpper },
-      { label: 'Lowercase (a-z)', met: passwordResult.criteria.hasLower },
-      { label: 'One number (0-9)', met: passwordResult.criteria.hasNumber },
-      { label: 'Special symbol (!@#$) (optional)', met: passwordResult.criteria.hasSpecial },
+    const items = [
+      { label: `${passwordPolicy.minLength}+ characters`, met: passwordResult.criteria.minLength, show: true },
+      { label: 'Uppercase (A-Z)', met: passwordResult.criteria.hasUpper, show: passwordPolicy.requireUppercase },
+      { label: 'Lowercase (a-z)', met: passwordResult.criteria.hasLower, show: passwordPolicy.requireLowercase },
+      { label: 'One number (0-9)', met: passwordResult.criteria.hasNumber, show: passwordPolicy.requireDigit },
+      { label: 'Special symbol (!@#$)', met: passwordResult.criteria.hasSpecial, show: passwordPolicy.requireSpecial },
     ];
-  }, [passwordResult.criteria]);
+    return items.filter((i) => i.show);
+  }, [passwordResult.criteria, passwordPolicy]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -141,35 +146,68 @@ export const SignupPage: React.FC = () => {
     }
 
     try {
-      await signup({
-        firstName: firstName.trim(),
-        lastName: lastName.trim() || undefined,
-        fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
-        email: email.trim().toLowerCase(),
-        mobileNumber: mobileNumber.trim() || undefined,
-        country,
-        currency,
-        password,
-      });
-
-      toast.success('Account created successfully! Welcome!');
-      // New users go to Onboarding Wizard
-      navigate('/onboarding', { replace: true });
+      const normalizedEmail = email.trim().toLowerCase();
+      // Phase 1: Initiate registration (zero users row created)
+      const res = await apiClient.auth.initiateRegistration({ email: normalizedEmail });
+      setSignupEmail(normalizedEmail);
+      setShowOtpModal(true);
+      toast.success(res?.message || 'Verification code sent to your email!');
     } catch (err: any) {
-      const msg = useAuthStore.getState().error || err?.message || 'Failed to create account. Please try again.';
+      const msg = err?.response?.data?.error?.message || err?.message || 'Failed to initiate registration. Please try again.';
       toast.error(msg);
     }
   };
 
+  const handleOtpVerify = async (otp: string) => {
+    if (!signupEmail) return;
+    try {
+      // Phase 2: Verify OTP and obtain signed registrationToken (zero users row created)
+      const verifyRes = await apiClient.auth.verifyRegistrationEmail({ email: signupEmail, otp });
+      const regToken = verifyRes.registrationToken;
+      if (!regToken) {
+        throw new Error('Registration token not received');
+      }
+
+      // Phase 3: Complete registration by submitting account details with token
+      const authRes = await apiClient.auth.completeRegistration({
+        registrationToken: regToken,
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
+        fullName: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        country,
+        currency,
+        mobileNumber: mobileNumber.trim() || undefined,
+      });
+
+      const data = (authRes as any)?.data ?? authRes;
+      if (data?.user && data?.tokens) {
+        completeSignup(data.user, data.tokens);
+        setShowOtpModal(false);
+        toast.success('Account created successfully! Welcome!');
+        navigate('/onboarding', { replace: true });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.message || err?.message || 'Verification failed. Please try again.';
+      toast.error(msg);
+      throw err;
+    }
+  };
+
+  const handleOtpResend = async () => {
+    if (!signupEmail) return;
+    await apiClient.auth.initiateRegistration({ email: signupEmail });
+    toast.success('Verification code resent!');
+  };
+
   return (
+    <>
     <div className="h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none relative bg-slate-50 flex flex-col items-center justify-center p-2.5 sm:p-4">
-      {/* Modern ambient glow orbs & fine geometric dot grid */}
       <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
 
       <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center my-auto">
-        {/* Compact Brand Header */}
         <div className="text-center mb-1.5 sm:mb-2">
           <div className="inline-flex items-center justify-center w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1 sm:mb-1.5 ring-4 ring-white/80">
             <img
@@ -189,10 +227,8 @@ export const SignupPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Card Container */}
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-3.5 sm:p-5 shadow-xl border border-slate-200/80 space-y-2 sm:space-y-2.5">
           <form onSubmit={handleSubmit} className="space-y-2.5" noValidate>
-            {/* Name Row (2 columns) */}
             <div className="grid grid-cols-2 gap-2.5">
               <Input
                 label="First Name"
@@ -222,7 +258,6 @@ export const SignupPage: React.FC = () => {
               />
             </div>
 
-            {/* Email Address */}
             <Input
               label="Email Address"
               type="email"
@@ -243,7 +278,6 @@ export const SignupPage: React.FC = () => {
               autoComplete="email"
             />
 
-            {/* Country and Currency Selectors (Placed ABOVE Mobile Number) */}
             <div className="grid grid-cols-2 gap-2.5">
               <CountrySelector
                 label="Country"
@@ -261,7 +295,6 @@ export const SignupPage: React.FC = () => {
               />
             </div>
 
-            {/* Mobile Number */}
             <PhoneInputWithCountry
               label="Mobile Number"
               defaultCountry={country}
@@ -276,7 +309,6 @@ export const SignupPage: React.FC = () => {
               error={validationErrors.mobileNumber}
             />
 
-            {/* Row 1: Full-width Password Field with clean eye toggle */}
             <div className="space-y-2">
               <Input
                 label="Password"
@@ -306,7 +338,6 @@ export const SignupPage: React.FC = () => {
                 autoComplete="new-password"
               />
 
-              {/* Below Row 1: Interactive 4-Segment Strength Meter & 2-Column Criteria Checklist */}
               {password.length > 0 && (
                 <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-2.5 space-y-2">
                   <div className="flex items-center justify-between text-xs">
@@ -320,7 +351,6 @@ export const SignupPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* 4-Segment Strength Bar */}
                   <div className="grid grid-cols-4 gap-1.5 h-1.5">
                     {[1, 2, 3, 4].map((seg) => (
                       <div
@@ -334,7 +364,6 @@ export const SignupPage: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* 2-Column Criteria Checklist */}
                   <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-0.5 text-[11px]">
                     {passwordCriteriaList.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 min-w-0">
@@ -359,7 +388,6 @@ export const SignupPage: React.FC = () => {
               )}
             </div>
 
-            {/* Row 2: Full-width Confirm Password Field with real-time matching feedback */}
             <div>
               <Input
                 label="Confirm Password"
@@ -406,7 +434,6 @@ export const SignupPage: React.FC = () => {
               />
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               variant="primary"
@@ -419,13 +446,11 @@ export const SignupPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Privacy Security Callout */}
           <div className="py-1.5 px-2.5 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
             <span>Bank-grade encrypted registration and credential security.</span>
           </div>
 
-          {/* Link to Login */}
           <div className="text-center pt-0.5">
             <p className="text-xs text-textMuted">
               Already have an account?{' '}
@@ -440,6 +465,19 @@ export const SignupPage: React.FC = () => {
         </div>
       </div>
     </div>
+
+    {showOtpModal && (
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        email={signupEmail}
+        onVerify={handleOtpVerify}
+        onResend={handleOtpResend}
+        onClose={() => setShowOtpModal(false)}
+        title="Verify Your Email"
+        description={`We sent a 6-digit code to ${signupEmail}. Enter it below to complete your registration.`}
+      />
+    )}
+    </>
   );
 };
 

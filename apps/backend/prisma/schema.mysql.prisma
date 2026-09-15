@@ -80,6 +80,7 @@ model User {
   refreshTokens       RefreshToken[]
   auditLogsAsActor    AuditLog[] @relation("ActorAuditLogs")
   auditLogsAsTarget   AuditLog[] @relation("TargetAuditLogs")
+  idempotencyRecords  IdempotencyRecord[]
 
   @@map("users")
 }
@@ -371,7 +372,6 @@ model UserSettings {
   @@map("user_settings")
 }
 
-
 enum OtpPurpose {
   EMAIL_VERIFICATION
   PASSWORD_RESET
@@ -391,4 +391,21 @@ model EmailOtp {
   @@index([purpose])
   @@index([expiresAt])
   @@map("email_otps")
+}
+
+model IdempotencyRecord {
+  id           String    @id @default(uuid())
+  userId       String
+  key          String    @db.VarChar(255)
+  statusCode   Int?
+  responseBody String?   @db.LongText
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key], map: "idempotency_userId_key_unique")
+  @@index([userId], map: "idempotency_userId_idx")
+  @@index([expiresAt], map: "idempotency_expiresAt_idx")
+  @@map("idempotency_records")
 }

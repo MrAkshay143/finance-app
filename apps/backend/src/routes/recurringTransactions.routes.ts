@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { recurringController } from '../controllers/recurringController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 
 export const recurringTransactionsRouter: Router = Router();
 
@@ -12,12 +13,12 @@ recurringTransactionsRouter.get('/', (req, res, next) => {
 });
 
 // POST /api/v1/recurring-transactions - Create recurring transaction
-recurringTransactionsRouter.post('/', (req, res, next) => {
+recurringTransactionsRouter.post('/', idempotencyMiddleware, (req, res, next) => {
   recurringController.create(req, res, next);
 });
 
 // POST /api/v1/recurring-transactions/materialize - Materialize due transactions
-recurringTransactionsRouter.post('/materialize', (req, res, next) => {
+recurringTransactionsRouter.post('/materialize', idempotencyMiddleware, (req, res, next) => {
   recurringController.materialize(req, res, next);
 });
 
@@ -27,22 +28,22 @@ recurringTransactionsRouter.get('/:id', (req, res, next) => {
 });
 
 // PUT /api/v1/recurring-transactions/:id - Update recurring transaction
-recurringTransactionsRouter.put('/:id', (req, res, next) => {
+recurringTransactionsRouter.put('/:id', idempotencyMiddleware, (req, res, next) => {
   recurringController.update(req, res, next);
 });
 
 // PATCH /api/v1/recurring-transactions/:id - Update recurring transaction (alias)
-recurringTransactionsRouter.patch('/:id', (req, res, next) => {
+recurringTransactionsRouter.patch('/:id', idempotencyMiddleware, (req, res, next) => {
   recurringController.update(req, res, next);
 });
 
 // DELETE /api/v1/recurring-transactions/:id - Soft-delete recurring transaction
-recurringTransactionsRouter.delete('/:id', (req, res, next) => {
+recurringTransactionsRouter.delete('/:id', idempotencyMiddleware, (req, res, next) => {
   recurringController.delete(req, res, next);
 });
 
 // PATCH /api/v1/recurring-transactions/:id/status - Toggle/patch status
-recurringTransactionsRouter.patch('/:id/status', (req, res, next) => {
+recurringTransactionsRouter.patch('/:id/status', idempotencyMiddleware, (req, res, next) => {
   recurringController.toggleStatus(req, res, next);
 });
 

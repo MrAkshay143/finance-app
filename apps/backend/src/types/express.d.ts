@@ -7,7 +7,6 @@ export interface AuthenticatedUser {
   sessionId?: string; // RefreshToken.id embedded in JWT — present only for tokens issued after B3 fix
 }
 
-
 declare global {
   namespace Express {
     interface Request {

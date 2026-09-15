@@ -113,7 +113,6 @@ export const AnalyticsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 12 : 20 }]}>
         <View style={styles.headerRow}>
           {navigation.canGoBack() && (
@@ -145,7 +144,6 @@ export const AnalyticsScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Blue Vertical Bar Accent & Date Range Header */}
         <View style={styles.dateRangeCard}>
           <View style={styles.dateRangeLeft}>
             <View style={styles.blueBarAccent} />
@@ -155,7 +153,6 @@ export const AnalyticsScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Period Selector */}
           <View style={styles.periodTabsContainer}>
             {PERIOD_TABS.map((tab) => {
               const isSelected = selectedPeriod === tab.id;
@@ -182,7 +179,6 @@ export const AnalyticsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Profile Completion Prompt Banner */}
         {!user?.onboardingCompleted && (
           <View style={styles.profileBanner}>
           <View style={styles.profileBannerContent}>
@@ -220,9 +216,7 @@ export const AnalyticsScreen: React.FC = () => {
           </View>
         ) : (
           <>
-            {/* 3 Stat Cards: Income, Expenses, Saved */}
             <View style={styles.statCardsRow}>
-              {/* Income */}
               <View style={[styles.statCard, styles.statCardIncome]}>
                 <View style={styles.statCardHeader}>
                   <Text style={styles.statCardLabel}>Income</Text>
@@ -234,7 +228,6 @@ export const AnalyticsScreen: React.FC = () => {
                 <Text style={styles.statCardSub}>Monthly aggregate</Text>
               </View>
 
-              {/* Expenses */}
               <View style={[styles.statCard, styles.statCardExpense]}>
                 <View style={styles.statCardHeader}>
                   <Text style={styles.statCardLabel}>Expenses</Text>
@@ -246,7 +239,6 @@ export const AnalyticsScreen: React.FC = () => {
                 <Text style={styles.statCardSub}>Total outgoing</Text>
               </View>
 
-              {/* Saved */}
               <View style={[styles.statCard, styles.statCardSaved]}>
                 <View style={styles.statCardHeader}>
                   <Text style={styles.statCardLabel}>Saved</Text>
@@ -259,7 +251,6 @@ export const AnalyticsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Savings Rate Card */}
             <View style={styles.savingsRateCard}>
               <View style={styles.savingsRateHeader}>
                 <View>
@@ -295,7 +286,6 @@ export const AnalyticsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* 6-Month Spending Trend Bars */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionHeading}>6-MONTH SPENDING TREND</Text>
@@ -338,7 +328,6 @@ export const AnalyticsScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Category Breakdown List */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <View>
@@ -347,7 +336,6 @@ export const AnalyticsScreen: React.FC = () => {
                     {categoryType === 'EXPENSE' ? 'Expense Distribution' : 'Income Distribution'}
                   </Text>
                 </View>
-                {/* Segmented Expense / Income Toggle */}
                 <View style={styles.catToggleContainer}>
                   <Pressable
                     onPress={() => setCategoryType('EXPENSE')}

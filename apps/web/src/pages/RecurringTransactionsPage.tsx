@@ -287,7 +287,6 @@ export const RecurringTransactionsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Dark Navy Header */}
       <AppHeader
         variant="nested"
         title="Recurring Transactions"
@@ -305,7 +304,6 @@ export const RecurringTransactionsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Materialize Due Shortcut Banner */}
         <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0">
@@ -330,7 +328,6 @@ export const RecurringTransactionsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter Pills */}
         <div
           role="tablist"
           aria-label="Filter recurring transactions"
@@ -366,7 +363,6 @@ export const RecurringTransactionsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Recurring Items List */}
         {isLoading ? (
           <div className="space-y-3">
             <div className="h-28 bg-slate-100 animate-pulse rounded-2xl" />
@@ -416,7 +412,6 @@ export const RecurringTransactionsPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {/* Toggle status switch */}
                       <button
                         type="button"
                         onClick={() =>
@@ -436,7 +431,6 @@ export const RecurringTransactionsPage: React.FC = () => {
                         <span>{isActive ? 'Pause' : 'Activate'}</span>
                       </button>
 
-                      {/* Edit button */}
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(item)}
@@ -446,7 +440,6 @@ export const RecurringTransactionsPage: React.FC = () => {
                         <Edit2 className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
 
-                      {/* Delete button */}
                       <button
                         type="button"
                         onClick={() => setDeleteTarget(item)}
@@ -473,7 +466,6 @@ export const RecurringTransactionsPage: React.FC = () => {
         )}
       </div>
 
-      {/* 1. Add Recurring Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -481,7 +473,6 @@ export const RecurringTransactionsPage: React.FC = () => {
         subtitle="Set up automated periodic payments or income"
       >
         <form onSubmit={handleSaveAdd} className="space-y-4">
-          {/* Type Selector */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Transaction Type
@@ -504,7 +495,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Description
@@ -517,7 +507,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Amount in Rupees */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Amount ({currencySymbol})
@@ -533,7 +522,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Account */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700">
@@ -571,7 +559,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Category */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700">
@@ -598,7 +585,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Frequency & Next Due Date */}
           <div className="grid grid-cols-2 gap-3 items-start">
             <Select
               label="Frequency"
@@ -641,7 +627,6 @@ export const RecurringTransactionsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 2. Edit Recurring Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -649,7 +634,6 @@ export const RecurringTransactionsPage: React.FC = () => {
         subtitle="Modify recurrence schedule, amount, or classification"
       >
         <form onSubmit={handleSaveEdit} className="space-y-4">
-          {/* Type Selector */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Transaction Type
@@ -672,7 +656,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Description
@@ -685,7 +668,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Amount in Rupees */}
           <div>
             <label className="text-xs font-semibold text-slate-700 block mb-1">
               Amount ({currencySymbol})
@@ -701,7 +683,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Account */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700">
@@ -739,7 +720,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Category */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700">
@@ -766,7 +746,6 @@ export const RecurringTransactionsPage: React.FC = () => {
             />
           </div>
 
-          {/* Frequency & Next Due Date */}
           <div className="grid grid-cols-2 gap-3 items-start">
             <Select
               label="Frequency"
@@ -809,7 +788,6 @@ export const RecurringTransactionsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.recurring.delete(
           deleteTarget?.description || deleteTarget?.type

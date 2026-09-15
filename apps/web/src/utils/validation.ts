@@ -59,8 +59,26 @@ export function validateEmail(email: string): ValidationResult {
   };
 }
 
-// Real-time password rules and strength validator
-export function validatePassword(password: string): PasswordValidationResult {
+export interface PasswordPolicy {
+  minLength: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireDigit: boolean;
+  requireSpecial: boolean;
+}
+
+const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
+  minLength: 8,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireDigit: true,
+  requireSpecial: false,
+};
+
+// Real-time password rules and strength validator with dynamic policy fallback.
+export function validatePassword(password: string, policy?: PasswordPolicy): PasswordValidationResult {
+  const p = policy ?? DEFAULT_PASSWORD_POLICY;
+
   if (!password) {
     return {
       isValid: false,
@@ -78,19 +96,19 @@ export function validatePassword(password: string): PasswordValidationResult {
   }
 
   const criteria: PasswordCriteria = {
-    minLength: password.length >= 8,
-    hasUpper: /[A-Z]/.test(password),
-    hasLower: /[a-z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
-    hasSpecial: /[^A-Za-z0-9]/.test(password),
+    minLength: password.length >= p.minLength,
+    hasUpper: p.requireUppercase ? /[A-Z]/.test(password) : true,
+    hasLower: p.requireLowercase ? /[a-z]/.test(password) : true,
+    hasNumber: p.requireDigit ? /[0-9]/.test(password) : true,
+    hasSpecial: p.requireSpecial ? /[^A-Za-z0-9]/.test(password) : true,
   };
 
   const score = Object.values(criteria).filter(Boolean).length;
-  const isValid = criteria.minLength && score >= 4;
+  const isValid = Object.values(criteria).every(Boolean);
 
   let strengthLabel: 'Weak' | 'Fair' | 'Good' | 'Strong' = 'Weak';
-  if (score >= 5 && password.length >= 10) strengthLabel = 'Strong';
-  else if (score >= 4) strengthLabel = 'Good';
+  if (isValid && password.length >= p.minLength + 4) strengthLabel = 'Strong';
+  else if (isValid) strengthLabel = 'Good';
   else if (score >= 3) strengthLabel = 'Fair';
 
   const status: FieldValidationStatus = isValid
@@ -99,11 +117,14 @@ export function validatePassword(password: string): PasswordValidationResult {
     ? 'warning'
     : 'invalid';
 
-  const message = isValid
-    ? `${strengthLabel} password`
-    : !criteria.minLength
-    ? '8+ characters required'
-    : 'Include upper, lower, number & symbol';
+  let failReason = '';
+  if (!criteria.minLength) failReason = `${p.minLength}+ characters required`;
+  else if (!criteria.hasUpper) failReason = 'Add an uppercase letter';
+  else if (!criteria.hasLower) failReason = 'Add a lowercase letter';
+  else if (!criteria.hasNumber) failReason = 'Add a number';
+  else if (!criteria.hasSpecial) failReason = 'Add a special character';
+
+  const message = isValid ? `${strengthLabel} password` : failReason;
 
   return {
     isValid,

@@ -3,7 +3,6 @@ import { NotFoundError, ForbiddenError, ValidationError } from '../utils/errors.
 import { logAuditEvent } from './auditService.js';
 import { emitSyncEvent } from '../sockets/socketGateway.js';
 
-
 export interface CreateMerchantData {
   name: string;
 }
@@ -130,9 +129,7 @@ export class MerchantService {
     };
   }
 
-  /**
-   * Creates a merchant for the user. If a merchant with the same name exists, returns it.
-   */
+  // Creates a merchant for the user. If a merchant with the same name exists, returns it.
   async createMerchant(userId: string, data: CreateMerchantData) {
     const name = data.name?.trim();
     if (!name) {
@@ -194,9 +191,7 @@ export class MerchantService {
     };
   }
 
-  /**
-   * Updates a merchant name.
-   */
+  // Updates a merchant name.
   async updateMerchant(userId: string, id: string, data: UpdateMerchantData) {
     const existing = await prisma.merchant.findUnique({
       where: { id },
@@ -237,9 +232,7 @@ export class MerchantService {
     };
   }
 
-  /**
-   * Deletes a merchant if not linked to any transactions.
-   */
+  // Deletes a merchant if not linked to any transactions.
   async deleteMerchant(userId: string, id: string) {
     const existing = await prisma.merchant.findUnique({
       where: { id },

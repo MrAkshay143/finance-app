@@ -32,9 +32,9 @@ export interface AuthState {
   error: string | null;
   lockoutUntil: number | null; // Timestamp in ms when lockout ends
 
-  // Actions
   login: (credentials: LoginInput, rememberMe?: boolean) => Promise<AuthResponse>;
   signup: (input: SignupInput) => Promise<AuthResponse>;
+  completeSignup: (user: AuthUser, tokens: AuthTokens) => void;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -120,27 +120,9 @@ export const authStore = createStore<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const res = await apiClient.auth.signup(input);
-      const user = res.user;
-      const tokens = res.tokens;
 
-      if (tokens?.accessToken) {
-        setStoredAccessToken(tokens.accessToken, true);
-      }
-      if (tokens?.refreshToken) {
-        setStoredRefreshToken(tokens.refreshToken, true);
-      }
-      saveUserCache(user, true);
-
-      set({
-        user,
-        tokens: tokens || null,
-        isAuthenticated: true,
-        onboardingCompleted: Boolean(user.onboardingCompleted),
-        kbaConfigured: false,
-        isLoading: false,
-        error: null,
-        lockoutUntil: null,
-      });
+      // Phase-1 signup returns 202 requiring email verification before authentication
+      set({ isLoading: false, error: null });
 
       return res;
     } catch (err: any) {
@@ -158,12 +140,28 @@ export const authStore = createStore<AuthState>((set, get) => ({
     }
   },
 
+  completeSignup: (user: AuthUser, tokens: AuthTokens) => {
+    setStoredAccessToken(tokens.accessToken, true);
+    if (tokens.refreshToken) {
+      setStoredRefreshToken(tokens.refreshToken, true);
+    }
+    saveUserCache(user, true);
+    set({
+      user,
+      tokens,
+      isAuthenticated: true,
+      onboardingCompleted: Boolean(user.onboardingCompleted),
+      kbaConfigured: false,
+      isLoading: false,
+      error: null,
+      lockoutUntil: null,
+    });
+  },
+
   logout: async () => {
     try {
       await apiClient.auth.logout();
-    } catch {
-      // Ignore network errors on logout
-    } finally {
+    } catch {} finally {
       queryClient.clear(); // evict all cached data to prevent cross-user data leakage
       clearStoredTokens();
       saveUserCache(null);
@@ -201,9 +199,7 @@ export const authStore = createStore<AuthState>((set, get) => ({
           onboardingCompleted: onboarded,
         }));
       }
-    } catch {
-      // Silent catch on background profile fetch
-    }
+    } catch {}
   },
 
   checkAuth: async () => {

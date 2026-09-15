@@ -45,19 +45,15 @@ export const MaintenanceScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-[#0B1528] to-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background ambient glow effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none animate-ambient-glow" />
       <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main card */}
       <div className="w-full max-w-md bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative z-10 flex flex-col items-center">
-        {/* Status Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-xs font-semibold mb-6">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           <span>System Update in Progress</span>
         </div>
 
-        {/* Branded Icon Container */}
         <div className="relative mb-6">
           <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-brand-primary/20 via-blue-500/10 to-amber-500/20 border border-white/10 flex items-center justify-center shadow-inner">
             <ShieldAlert className="w-10 h-10 text-amber-400" />
@@ -67,7 +63,6 @@ export const MaintenanceScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Title & Message */}
         <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
           System Update in Progress
         </h1>
@@ -76,14 +71,12 @@ export const MaintenanceScreen: React.FC = () => {
           {message || "We're performing a quick system update. Your accounts and data are completely safe."}
         </p>
 
-        {/* Status check response feedback */}
         {statusMessage && (
           <div className="mt-4 px-3.5 py-2 rounded-xl bg-slate-800/80 border border-white/10 text-xs text-amber-200 leading-tight">
             {statusMessage}
           </div>
         )}
 
-        {/* Retry Button */}
         <button
           type="button"
           onClick={handleRetry}
@@ -94,7 +87,6 @@ export const MaintenanceScreen: React.FC = () => {
           <span>{isChecking ? 'Checking status...' : 'Check Again'}</span>
         </button>
 
-        {/* Support & Details */}
         <div className="mt-6 pt-6 border-t border-white/10 w-full flex flex-col items-center gap-3">
           <a
             href="mailto:support@imakshay.in"

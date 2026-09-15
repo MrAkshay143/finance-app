@@ -8,14 +8,7 @@ import { useSafeQueryClient } from './useSafeQueryClient.js';
 export { getSocketBaseUrl } from '../config/env.js';
 import { getSocketManager } from '../services/socketService.js';
 
-/**
- * Custom hook that maintains a real-time connection to the backend /dashboard
- * Socket.IO namespace and synchronizes affected TanStack queries on mutation signals.
- *
- * F3 fix: On reconnect after a drop, we trigger a full sync so any mutations missed
- * during the disconnect window are caught up. The first connect is skipped via the
- * isInitialConnect flag to avoid duplicating the connect-time sync.
- */
+// Maintains real-time Socket.IO sync for TanStack queries with reconnect catch-up.
 export function useRealtimeSync(): void {
   const queryClient = useSafeQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -60,9 +53,7 @@ export function useRealtimeSync(): void {
         // Mark initial connect as done after we attach the listener
         isInitialConnect = false;
       })
-      .catch(() => {
-        // Socket connection silent failover
-      });
+      .catch(() => {});
 
     return () => {
       if (debounceTimerRef.current) {

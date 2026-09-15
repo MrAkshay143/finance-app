@@ -69,7 +69,6 @@ export const InvestmentsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Dark Navy Header */}
       <AppHeader
         variant="nested"
         title="Investments"
@@ -87,7 +86,6 @@ export const InvestmentsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Total Invested Hero Card */}
         <div className="bg-gradient-to-tr from-[#1E1B4B] via-[#2E1065] to-[#4338CA] text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -110,7 +108,6 @@ export const InvestmentsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Current Month Investment vs Target Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -161,7 +158,6 @@ export const InvestmentsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Category Breakdown Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -207,7 +203,6 @@ export const InvestmentsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Recent Investments Section */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">

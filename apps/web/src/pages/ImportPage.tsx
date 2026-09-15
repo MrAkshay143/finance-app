@@ -153,7 +153,6 @@ export const ImportPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Header Summary */}
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-5 bg-brand-primary rounded-full" />
@@ -164,7 +163,6 @@ export const ImportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Target Account Selector */}
         <Card padding="sm" className="bg-white border border-borderDefault shadow-xs space-y-2">
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-brand-primary" />
@@ -188,7 +186,6 @@ export const ImportPage: React.FC = () => {
           />
         </Card>
 
-        {/* CSV Dropzone */}
         <div
           role="button"
           tabIndex={0}
@@ -245,7 +242,6 @@ export const ImportPage: React.FC = () => {
           )}
         </div>
 
-        {/* Success Banner */}
         {importResult && (
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-3">
             <div className="flex items-center gap-2.5 text-emerald-900">
@@ -293,7 +289,6 @@ export const ImportPage: React.FC = () => {
           </div>
         )}
 
-        {/* Submit Action Button */}
         {!importResult && (
           <Button
             variant="primary"
@@ -308,7 +303,6 @@ export const ImportPage: React.FC = () => {
           </Button>
         )}
 
-        {/* Format Guide & Sample Structure */}
         <Card padding="sm" className="bg-white border border-borderDefault shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

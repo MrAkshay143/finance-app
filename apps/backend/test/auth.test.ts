@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import { prismaTestAdapter } from './fixtures/prismaTestAdapter.js';
 
@@ -10,9 +10,10 @@ vi.mock('../src/lib/prisma.js', async () => {
   };
 });
 
-// Import app after mocking prisma
 import { createApp } from '../src/app.js';
 import { clearMemoryDenylist } from '../src/lib/tokenDenylist.js';
+import * as emailService from '../src/services/emailService.js';
+import { clearOtpCooldowns } from '../src/services/otpService.js';
 
 describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => {
   const app = createApp();
@@ -341,6 +342,139 @@ describe('TASK-1.1: Authentication & Session Strategy Integration Tests', () => 
       expect(res.body.data.email).toBe('me.test@example.com');
       expect(res.body.data.fullName).toBe('Me Test');
       expect(res.body.data.kbaConfigured).toBe(false);
+    });
+  });
+
+  describe('Registration Email OTP Verification Flow (Production Path)', () => {
+    let capturedOtp = '';
+    let emailSpy: any;
+
+    beforeEach(() => {
+      process.env.TEST_REQUIRE_EMAIL_VERIFICATION = 'true';
+      capturedOtp = '';
+      emailSpy = vi.spyOn(emailService, 'sendVerificationEmail').mockImplementation(async (opts: any) => {
+        capturedOtp = opts.otp;
+        return true;
+      });
+    });
+
+    afterEach(() => {
+      delete process.env.TEST_REQUIRE_EMAIL_VERIFICATION;
+      if (emailSpy) emailSpy.mockRestore();
+    });
+
+    it('initiates registration, generates OTP in email_otps, and does NOT create a user row', async () => {
+      const res = await request(app).post('/api/v1/auth/registration/initiate').send({
+        email: 'otp.user@example.com',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.message).toContain('verification code has been sent');
+
+      // Ensure user is NOT created in users table yet
+      expect(prismaTestAdapter._state.users.has('otp.user@example.com')).toBe(false);
+
+      // Verify emailOtp record was created and email was sent with OTP
+      expect(capturedOtp).toHaveLength(6);
+      const otpRecord = Array.from((prismaTestAdapter._state as any).emailOtp.values())[0] as any;
+      expect(otpRecord).toBeDefined();
+      expect(otpRecord.email).toBe('otp.user@example.com');
+      expect(otpRecord.purpose).toBe('EMAIL_VERIFICATION');
+    });
+
+    it('rejects invalid OTP on /api/v1/auth/registration/verify-email', async () => {
+      await request(app).post('/api/v1/auth/registration/initiate').send({
+        email: 'otp.verify@example.com',
+      });
+
+      const verifyRes = await request(app).post('/api/v1/auth/registration/verify-email').send({
+        email: 'otp.verify@example.com',
+        otp: '000000',
+      });
+
+      expect(verifyRes.status).toBe(401);
+      expect(verifyRes.body.success).toBe(false);
+      expect(verifyRes.body.error.message).toContain('Incorrect OTP');
+    });
+
+    it('completes 3-phase registration: verifies email, creates user with emailVerified=true, and rejects token replay', async () => {
+      const email = 'otp.success@example.com';
+      await request(app).post('/api/v1/auth/registration/initiate').send({
+        email,
+      });
+      expect(capturedOtp).toHaveLength(6);
+
+      // Phase 2: Verify email and receive registrationToken
+      const verifyRes = await request(app).post('/api/v1/auth/registration/verify-email').send({
+        email,
+        otp: capturedOtp,
+      });
+
+      expect(verifyRes.status).toBe(200);
+      expect(verifyRes.body.success).toBe(true);
+      expect(verifyRes.body.data).toHaveProperty('registrationToken');
+      const registrationToken = verifyRes.body.data.registrationToken;
+
+      // Phase 3: Complete registration
+      const completeRes = await request(app).post('/api/v1/auth/registration/complete').send({
+        registrationToken,
+        password: 'Password123!',
+        fullName: 'OTP Success',
+        mobileNumber: '+919876543298',
+      });
+
+      expect(completeRes.status).toBe(201);
+      expect(completeRes.body.success).toBe(true);
+      expect(completeRes.body.data.user).toMatchObject({
+        email,
+        firstName: 'OTP',
+        lastName: 'Success',
+        emailVerified: true,
+        status: 'ACTIVE',
+      });
+      expect(completeRes.body.data.tokens).toHaveProperty('accessToken');
+      expect(completeRes.body.data.tokens).toHaveProperty('refreshToken');
+
+      // Verify cookies set
+      const cookies = completeRes.headers['set-cookie'];
+      expect(cookies).toBeDefined();
+      expect(cookies[0]).toContain('refreshToken=');
+
+      // Replay attempt with same registrationToken must fail (atomic token denylist)
+      const replayRes = await request(app).post('/api/v1/auth/registration/complete').send({
+        registrationToken,
+        password: 'Password123!',
+        fullName: 'OTP Replay',
+      });
+      expect(replayRes.status).toBe(401);
+      expect(replayRes.body.error.message).toContain('already been used');
+    });
+
+    it('enforces cooldown on immediate resend and allows resend after cooldown', async () => {
+      const email = 'otp.resend@example.com';
+      await request(app).post('/api/v1/auth/registration/initiate').send({
+        email,
+      });
+
+      // Immediate resend must fail with 422 cooldown error
+      const cooldownRes = await request(app).post('/api/v1/auth/registration/initiate').send({
+        email,
+      });
+      expect(cooldownRes.status).toBe(422);
+      expect(cooldownRes.body.error.message).toContain('Please wait');
+
+      // Clear cooldown memory (simulating cooldown expiry)
+      clearOtpCooldowns();
+
+      // Resend should now succeed
+      const resendRes = await request(app).post('/api/v1/auth/registration/initiate').send({
+        email,
+      });
+
+      expect(resendRes.status).toBe(200);
+      expect(resendRes.body.success).toBe(true);
+      expect(capturedOtp).toHaveLength(6);
     });
   });
 });

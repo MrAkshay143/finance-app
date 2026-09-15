@@ -6,23 +6,23 @@ import { ValidationError, UnauthorizedError } from '../utils/errors.js';
 import { logAuditEvent } from './auditService.js';
 import { APP_SETTINGS_KEYS } from '@finance/shared-types';
 
-// ── Constants (defaults overridden by AdminSettings) ─────────────────────────
 const DEFAULT_OTP_EXPIRY_MINUTES = 10;
 const DEFAULT_OTP_MAX_ATTEMPTS = 5;
 const DEFAULT_OTP_RESEND_COOLDOWN_SECONDS = 60;
 const DEFAULT_OTP_MAX_RESENDS_PER_HOUR = 5;
 
-// ── In-memory fallback maps for when Redis is unavailable ────────────────────
+// In-memory fallback maps for when Redis is unavailable
 const resendCooldownMemory = new Map<string, number>(); // key → expiryMs
 const resendCountMemory = new Map<string, { count: number; resetAt: number }>();
 
+export function clearOtpCooldowns(): void {
+  resendCooldownMemory.clear();
+  resendCountMemory.clear();
+}
+
 export type OtpPurpose = 'EMAIL_VERIFICATION' | 'PASSWORD_RESET';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/**
- * Reads a numeric setting from AppSettings DB, returning default if absent.
- */
+// Reads numeric setting from AppSettings DB with fallback
 async function getNumericSetting(key: string, defaultValue: number): Promise<number> {
   try {
     const row = await prisma.appSetting.findUnique({ where: { key } });
@@ -42,16 +42,16 @@ async function getBooleanSetting(key: string, defaultValue: boolean): Promise<bo
     if (row?.value !== undefined && row.value !== null) {
       return row.value === true || row.value === 'true' || row.value === 1;
     }
-  } catch { /* fall through */ }
+  } catch {}
   return defaultValue;
 }
 
-/** Hash a 6-digit OTP with SHA-256. Never store or log plaintext OTPs. */
+// Hash a 6-digit OTP with SHA-256. Never store or log plaintext OTPs.
 function hashOtp(otp: string): string {
   return crypto.createHash('sha256').update(otp.trim()).digest('hex');
 }
 
-/** Generate a cryptographically random 6-digit numeric OTP. */
+// Generate a cryptographically random 6-digit numeric OTP.
 function generateOtpValue(): string {
   // Use crypto.randomInt for unbiased numeric OTP
   const value = crypto.randomInt(0, 1_000_000);
@@ -63,18 +63,8 @@ const resendCooldownRedisKey = (email: string, purpose: OtpPurpose) =>
 const resendCountRedisKey = (email: string, purpose: OtpPurpose) =>
   `otp_resend_count:${purpose}:${email.toLowerCase()}`;
 
-// ── Core OTP Service ──────────────────────────────────────────────────────────
-
 export class OtpService {
-
-  /**
-   * Generates a new 6-digit OTP for the given email + purpose.
-   * - Enforces resend cooldown (server-side, Redis/in-memory)
-   * - Enforces hourly resend limit
-   * - Invalidates any previous active OTP for same email+purpose
-   * - Stores SHA-256 hash in DB — never the plaintext OTP
-   * - Returns the plaintext OTP (caller must send it via email — never log it)
-   */
+  // Generates 6-digit OTP enforcing cooldown, hourly limits, and SHA-256 hash storage
   async generateOtp(email: string, purpose: OtpPurpose): Promise<{ otp: string; otpId: string }> {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -186,13 +176,7 @@ export class OtpService {
     return { otp, otpId: record.id };
   }
 
-  /**
-   * Verifies a 6-digit OTP submitted by a user.
-   * - Finds the most recent active (unexpired, unused) OTP
-   * - Enforces per-OTP attempt limit
-   * - On success: marks as used (one-time use)
-   * - On failure: increments attempt counter and throws
-   */
+  // Verifies a 6-digit OTP submitted by a user. - Finds the most recent active (unexpired, unused) OTP - Enforces per-OTP attempt limit - On success: marks as used (one-time use) - On failure: increments attempt counter and throws
   async verifyOtp(email: string, purpose: OtpPurpose, candidate: string): Promise<{ verified: true; otpId: string }> {
     const normalizedEmail = email.toLowerCase().trim();
     const normalizedCandidate = (candidate || '').trim();
@@ -252,11 +236,22 @@ export class OtpService {
       );
     }
 
-    // Correct — mark as used (one-time only)
-    await prisma.emailOtp.update({
-      where: { id: record.id },
-      data: { usedAt: new Date() },
+    // Atomically mark OTP used with row-level conditional guard to prevent race conditions
+    const consumeResult = await prisma.emailOtp.updateMany({
+      where: {
+        id: record.id,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+        attempts: { lte: maxAttempts },
+      },
+      data: {
+        usedAt: new Date(),
+      },
     });
+
+    if (consumeResult.count !== 1) {
+      throw new UnauthorizedError('OTP has already been used or expired. Please request a new OTP.');
+    }
 
     await logAuditEvent({
       action: 'OTP_VERIFIED',
@@ -266,10 +261,7 @@ export class OtpService {
     return { verified: true, otpId: record.id };
   }
 
-  /**
-   * Returns resend cooldown seconds remaining and resends remaining in current window.
-   * Used by frontend to show countdown timers.
-   */
+  // Returns resend cooldown seconds remaining and resends remaining in current window. Used by frontend to show countdown timers.
   async getRateLimitStatus(
     email: string,
     purpose: OtpPurpose
@@ -292,7 +284,7 @@ export class OtpService {
         cooldownSeconds = ttl > 0 ? Math.ceil(ttl / 1000) : 0;
         const countRaw = await redis.get(countKey);
         currentCount = countRaw ? parseInt(countRaw, 10) : 0;
-      } catch { /* fall through */ }
+      } catch {}
     } else {
       const now = Date.now();
       const expiry = resendCooldownMemory.get(cooldownKey);
@@ -307,9 +299,7 @@ export class OtpService {
     };
   }
 
-  /**
-   * Returns true if registration requires email verification (Admin-configurable).
-   */
+  // Returns true if registration requires email verification (Admin-configurable).
   async isEmailVerificationRequired(): Promise<boolean> {
     if (process.env.NODE_ENV === 'test' && process.env.TEST_REQUIRE_EMAIL_VERIFICATION !== 'true') {
       return false;

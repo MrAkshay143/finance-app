@@ -110,7 +110,6 @@ export const AuditLogScreen: React.FC = () => {
         onBackPress={() => navigation.goBack()}
       />
 
-      {/* Search Bar */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <SearchIcon size={18} color={colors.textMuted} />
@@ -135,7 +134,6 @@ export const AuditLogScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Category Filter Pills */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -169,7 +167,6 @@ export const AuditLogScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Activity Timeline List */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -268,7 +265,6 @@ export const AuditLogScreen: React.FC = () => {
         </ScrollView>
       )}
 
-      {/* Event Details Modal */}
       <Modal
         visible={selectedLog !== null}
         transparent

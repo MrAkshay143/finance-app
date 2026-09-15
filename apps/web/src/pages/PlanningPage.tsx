@@ -423,7 +423,6 @@ export const PlanningPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* 1. Branded Navy Header with title "Planning" and subtitle "Budgets & Goals" */}
       <AppHeader
         variant="nested"
         title="Planning"
@@ -441,7 +440,6 @@ export const PlanningPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* 2. Segmented Control */}
         <div>
           <SegmentedControl
             options={[
@@ -461,7 +459,6 @@ export const PlanningPage: React.FC = () => {
           />
         </div>
 
-        {/* 3. Monthly Budgets Section */}
         {activeTab === 'budgets' && (
           <div className="space-y-3" data-testid="monthly-budgets-section">
             <div className="flex items-center justify-between px-1">
@@ -519,7 +516,6 @@ export const PlanningPage: React.FC = () => {
                       className="space-y-3 hover:border-blue-200 transition-colors"
                       data-testid={`budget-card-${budget.id}`}
                     >
-                      {/* Card Header: Category name & icon, Edit & Delete buttons */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
@@ -548,7 +544,6 @@ export const PlanningPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Action buttons */}
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
@@ -575,7 +570,6 @@ export const PlanningPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Amounts Row */}
                       <div className="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl text-center">
                         <div>
                           <div className="text-[10px] font-medium text-textMuted uppercase">
@@ -611,7 +605,6 @@ export const PlanningPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Progress Bar & Percentage */}
                       <div className="space-y-1">
                         <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                           <div
@@ -646,7 +639,6 @@ export const PlanningPage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. Financial Goals Section */}
         {activeTab === 'goals' && (
           <div className="space-y-3" data-testid="financial-goals-section">
             <div className="flex items-center justify-between px-1">
@@ -696,7 +688,6 @@ export const PlanningPage: React.FC = () => {
                       className="space-y-3 hover:border-blue-200 transition-colors"
                       data-testid={`goal-card-${goal.id}`}
                     >
-                      {/* Goal Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
@@ -726,7 +717,6 @@ export const PlanningPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Action buttons */}
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
@@ -753,7 +743,6 @@ export const PlanningPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Amounts Row */}
                       <div className="grid grid-cols-2 gap-2 p-2 bg-gray-50 rounded-xl text-center">
                         <div>
                           <div className="text-[10px] font-medium text-textMuted uppercase">
@@ -773,7 +762,6 @@ export const PlanningPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Progress Bar & Percentage */}
                       <div className="space-y-1">
                         <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                           <div
@@ -799,7 +787,6 @@ export const PlanningPage: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Separate Modal: Add Budget ("Add Budget" / "Save Budget") */}
       <Modal
         isOpen={isAddBudgetOpen}
         onClose={() => setIsAddBudgetOpen(false)}
@@ -884,7 +871,6 @@ export const PlanningPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 6. Separate Modal: Edit Budget ("Edit Budget" / "Update Budget") */}
       <Modal
         isOpen={isEditBudgetOpen}
         onClose={() => setIsEditBudgetOpen(false)}
@@ -969,7 +955,6 @@ export const PlanningPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 7. Separate Modal: Add Goal ("Add Goal" / "Save Goal") */}
       <Modal
         isOpen={isAddGoalOpen}
         onClose={() => setIsAddGoalOpen(false)}
@@ -1063,7 +1048,6 @@ export const PlanningPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 8. Separate Modal: Edit Goal ("Edit Goal" / "Update Goal") */}
       <Modal
         isOpen={isEditGoalOpen}
         onClose={() => setIsEditGoalOpen(false)}
@@ -1157,7 +1141,6 @@ export const PlanningPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 9. Delete Confirmation Modal */}
       {(() => {
         const dialogDef = deleteConfirm?.type === 'budget'
           ? CONFIRM_DIALOGS.planning.deleteBudget(deleteConfirm?.name)

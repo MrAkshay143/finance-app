@@ -17,11 +17,7 @@ export interface UseInfiniteFeedResult<T> {
   visibleCount: number;
 }
 
-/**
- * Mobile-app-style infinite scrolling hook.
- * Progressively renders items in batches as the user scrolls near the bottom.
- * Guarantees zero duplicate items and preserves scroll position.
- */
+// Mobile-app-style infinite scrolling hook progressively rendering items in batches.
 export function useInfiniteFeed<T extends { id?: string | number }>({
   items,
   pageSize = 15,

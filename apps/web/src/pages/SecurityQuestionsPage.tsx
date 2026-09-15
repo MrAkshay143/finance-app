@@ -302,7 +302,6 @@ export const SecurityQuestionsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-6">
-      {/* Streamlined Branded Header */}
       <AppHeader
         variant="nested"
         title="Security Questions"
@@ -331,10 +330,8 @@ export const SecurityQuestionsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* VIEW MODE: Questions Already Configured */}
         {mode === 'VIEW' && (
           <div className="space-y-4">
-            {/* Status Card */}
             <div className="p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
@@ -352,7 +349,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* List of 3 Configured Questions */}
             <Card className="p-4 space-y-3.5 shadow-sm border border-slate-200">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -383,7 +379,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Actions Card */}
             <div className="grid grid-cols-2 gap-2.5 pt-1">
               <Button
                 type="button"
@@ -411,10 +406,8 @@ export const SecurityQuestionsPage: React.FC = () => {
           </div>
         )}
 
-        {/* EDIT / SETUP MODE: 3-Step Progressive Wizard */}
         {mode === 'EDIT' && (
           <div className="space-y-4">
-            {/* Security Banner */}
             <div className="p-3 bg-blue-50/80 border border-blue-200/70 rounded-2xl flex items-start gap-2.5">
               <Shield className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
               <div>
@@ -425,7 +418,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Streamlined Stepper */}
             <div className="px-3 py-1">
               <div className="flex items-center justify-between relative">
                 <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 -z-0" />
@@ -465,7 +457,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Question Card */}
             <Card className="p-4 space-y-3.5 shadow-card">
               <div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -476,7 +467,6 @@ export const SecurityQuestionsPage: React.FC = () => {
                 </h3>
               </div>
 
-              {/* Question Dropdown */}
               <CustomDropdown
                 label="Choose a security question"
                 value={currentAnswerData.key}
@@ -489,7 +479,6 @@ export const SecurityQuestionsPage: React.FC = () => {
                 searchable={false}
               />
 
-              {/* Secret Answer */}
               <div className="space-y-1">
                 <label className="block text-xs font-semibold text-slate-700">
                   Your Answer
@@ -527,7 +516,6 @@ export const SecurityQuestionsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Stepper Navigation Buttons */}
             <div className="pt-1">
               {currentStep < 3 ? (
                 <div className="grid grid-cols-2 gap-2.5">
@@ -582,7 +570,6 @@ export const SecurityQuestionsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Verify Test Modal */}
       <Modal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}

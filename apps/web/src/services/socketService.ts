@@ -4,9 +4,7 @@ import { getStoredAccessToken } from '../utils/tokenStorage.js';
 
 let sharedSocketManager: FinanceSocketManager | null = null;
 
-/**
- * Returns the singleton FinanceSocketManager configured with the centralized socket URL.
- */
+// Returns singleton FinanceSocketManager configured with centralized socket URL.
 export function getSocketManager(): FinanceSocketManager {
   if (!sharedSocketManager) {
     sharedSocketManager = new FinanceSocketManager({
@@ -17,9 +15,7 @@ export function getSocketManager(): FinanceSocketManager {
   return sharedSocketManager;
 }
 
-/**
- * Disconnects and resets the shared socket manager (e.g. on logout).
- */
+// Disconnects and resets shared socket manager on logout.
 export function resetSocketManager(): void {
   if (sharedSocketManager) {
     sharedSocketManager.disconnectAll();

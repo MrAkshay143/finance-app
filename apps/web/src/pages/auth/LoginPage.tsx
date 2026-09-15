@@ -158,13 +158,11 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none relative bg-slate-50 flex flex-col items-center justify-center p-3 sm:p-4">
-      {/* Modern ambient glow orbs & fine geometric dot grid */}
       <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
 
       <div className="relative z-10 w-full max-w-[400px] flex flex-col justify-center my-auto">
-        {/* Logo and Header */}
         <div className="flex flex-col items-center mb-10 mt-6 relative z-10">
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-[14px] overflow-hidden shadow-lg bg-gradient-to-br from-[#0B1B3A] to-[#132A5C] p-0.5 border border-white/20">
@@ -186,13 +184,11 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Card Container */}
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-slate-200/80 space-y-3">
           <div className="mb-0.5">
             <h2 className="text-sm font-bold text-slate-900">Sign In to Your Account</h2>
           </div>
 
-          {/* Session Expired Alert Banner */}
           {isSessionExpired && !isLocked && (
             <div
               role="alert"
@@ -203,7 +199,6 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
-          {/* Account Lockout Alert Banner */}
           {isLocked && (
             <div
               role="alert"
@@ -222,7 +217,6 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
-          {/* Friendly API Error Display */}
           {error && !isLocked && (
             <div
               role="alert"
@@ -234,7 +228,6 @@ export const LoginPage: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3" noValidate>
-            {/* Email Input */}
             <Input
               label="Email Address"
               type="email"
@@ -255,7 +248,6 @@ export const LoginPage: React.FC = () => {
               autoComplete="email"
             />
 
-            {/* Password Input */}
             <div className="relative">
               <Input
                 label="Password"
@@ -288,7 +280,6 @@ export const LoginPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Remember Session & Forgot Link */}
             <div className="flex items-center justify-between pt-0.5 text-xs">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -309,7 +300,6 @@ export const LoginPage: React.FC = () => {
               </Link>
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               variant="primary"
@@ -322,13 +312,11 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Security Notice */}
           <div className="py-2 px-3 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
             <span>End-to-end encrypted session with SHA-256 credentials.</span>
           </div>
 
-          {/* Link to Signup */}
           {allowRegistration && (
             <div className="text-center pt-1">
               <p className="text-xs text-textMuted">

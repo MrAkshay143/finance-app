@@ -92,7 +92,6 @@ export const AiAnalysisPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Nested Header */}
       <AppHeader
         variant="nested"
         title="AI Analysis"
@@ -108,7 +107,6 @@ export const AiAnalysisPage: React.FC = () => {
 
       <div className="p-4 space-y-4">
 
-        {/* Month Selector Card + Analyse Action Button */}
         <Card padding="sm" className="bg-white border-slate-200 shadow-sm p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 space-y-1">
@@ -138,7 +136,6 @@ export const AiAnalysisPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Monthly Analysis Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -154,7 +151,6 @@ export const AiAnalysisPage: React.FC = () => {
             </Badge>
           </div>
 
-          {/* Allocation Breakdown 4-Metric Grid */}
           <div className="grid grid-cols-4 gap-2 pt-1 text-center">
             <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
               <span className="text-[10px] text-slate-500 font-medium block">Fixed Needs</span>
@@ -178,7 +174,6 @@ export const AiAnalysisPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Detailed Financial Breakdown & Ratio Evaluation */}
           <div className="border-t border-slate-100 pt-3 space-y-2 text-xs text-slate-600 leading-relaxed">
             <p className="font-semibold text-slate-800">
               {aiData?.summaryNote ||
@@ -204,7 +199,6 @@ export const AiAnalysisPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Forward Projection Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -224,7 +218,6 @@ export const AiAnalysisPage: React.FC = () => {
             Projections based on monthly surplus and {forwardProjections[0]?.assumedAnnualReturnRate ? `${forwardProjections[0].assumedAnnualReturnRate * 100}%` : '8%'} annual return.
           </p>
 
-          {/* 3-Column Projection Horizon Cards or Clean Empty State */}
           {forwardProjections.length === 0 ? (
             <div className="py-6 text-center text-xs text-slate-400">
               Insufficient transaction history to calculate forward wealth projections. Record savings or investments to generate AI forecasts.
@@ -268,7 +261,6 @@ export const AiAnalysisPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Suggestions Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -328,7 +320,6 @@ export const AiAnalysisPage: React.FC = () => {
           )}
         </Card>
 
-        {/* How it works? Card */}
         <Card padding="md" className="bg-blue-50/40 border-blue-200/60 shadow-sm space-y-2.5">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center text-brand-primary">

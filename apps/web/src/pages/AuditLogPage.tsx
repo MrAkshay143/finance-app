@@ -165,7 +165,6 @@ export const AuditLogPage: React.FC = () => {
 
       <div className="p-4 space-y-4">
 
-        {/* Search Bar + Filter Icon */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -197,7 +196,6 @@ export const AuditLogPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
@@ -218,7 +216,6 @@ export const AuditLogPage: React.FC = () => {
           })}
         </div>
 
-        {/* Audit Log Stream */}
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-4 w-32 rounded-md" />
@@ -321,7 +318,6 @@ export const AuditLogPage: React.FC = () => {
               </div>
             ))}
 
-            {/* Mobile-app-style subtle loading sentinel */}
             {isError ? (
               <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
                 <span>Failed to load</span>
@@ -344,8 +340,7 @@ export const AuditLogPage: React.FC = () => {
                 <div className="w-4 h-4 border-2 border-slate-200 border-t-brand-primary rounded-full animate-spin" />
               </div>
             ) : (
-              /* End of Feed Illustration */
-              <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-2">
+                            <div className="pt-4 pb-2 flex flex-col items-center justify-center text-center space-y-2">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shadow-xs">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
@@ -361,7 +356,6 @@ export const AuditLogPage: React.FC = () => {
         )}
       </div>
 
-      {/* Details Modal */}
       <Modal
         isOpen={!!inspectRecord}
         onClose={() => setInspectRecord(null)}

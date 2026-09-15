@@ -270,7 +270,6 @@ export const AdminAppSettingsPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Admin Profile Hero Card */}
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-4 sm:p-5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-11 h-11 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
@@ -297,7 +296,6 @@ export const AdminAppSettingsPage: React.FC = () => {
               </Button>
             </div>
 
-            {/* Settings Tab Navigation Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar border-b border-borderDefault/60">
               {(['General', 'Security', 'Email / SMTP', 'Email Templates', 'Financial', 'Maintenance'] as const).map((tab) => (
                 <button
@@ -326,7 +324,6 @@ export const AdminAppSettingsPage: React.FC = () => {
               <AdminEmailTemplatesTab />
             ) : (
               <>
-                {/* Card 1: App Settings (General Platform) */}
                 {activeTab === 'General' && (
                   <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-start justify-between">
@@ -353,7 +350,6 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3.5">
-                {/* Platform Name */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-textDefault">Platform Name</label>
                   <input
@@ -365,7 +361,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Support Email */}
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-textDefault">Support Email</label>
                   <input
@@ -377,7 +372,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Allow User Registration Toggle */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-textDefault">Allow User Registration</h3>
@@ -400,7 +394,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Enable PWA & Device Installation Toggle */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div className="flex items-start gap-2.5">
                     <Download className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
@@ -426,7 +419,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Maintenance Mode Toggle */}
                 <div className="flex items-center justify-between p-3 bg-rose-50/60 border border-rose-200/60 rounded-2xl">
                   <div className="flex items-start gap-2.5">
                     <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
@@ -454,7 +446,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Custom Maintenance Notice */}
                 <div className="space-y-1 pt-1">
                   <label className="text-xs font-semibold text-textDefault">Custom Maintenance Notice</label>
                   <textarea
@@ -472,7 +463,6 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Card 2: Security Policies */}
           {(activeTab === 'General' || activeTab === 'Security') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
@@ -488,7 +478,6 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3.5">
-                {/* Session Timeout */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <Clock className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
@@ -528,7 +517,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Max Failed Attempts */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <Lock className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
@@ -568,7 +556,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Lockout Duration */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -605,7 +592,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Password Min Length */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-2.5">
                   <div className="flex items-start gap-2.5">
                     <KeyRound className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
@@ -642,7 +628,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Require Security Questions Toggle */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-textDefault">Require Security Questions for Sensitive Actions</h3>
@@ -665,7 +650,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Info Banner */}
                 <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2.5 text-xs text-brand-primary">
                   <Info className="w-4 h-4 shrink-0" />
                   <span className="font-medium">These settings apply to all users in the system.</span>
@@ -674,7 +658,6 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Card: Email & SMTP Settings */}
           {(activeTab === 'General' || activeTab === 'Email / SMTP') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
@@ -730,7 +713,6 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Card 3: Financial Defaults & Targets */}
           {(activeTab === 'General' || activeTab === 'Financial') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
@@ -746,21 +728,18 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3.5">
-                {/* System Default Country */}
                 <CountrySelector
                   label="System Default Country"
                   value={defaultCountry}
                   onChange={(val) => setDefaultCountry(val)}
                 />
 
-                {/* Default Currency */}
                 <CurrencySelector
                   label="System Base Currency"
                   value={defaultCurrency}
                   onChange={(val) => setDefaultCurrency(val)}
                 />
 
-                {/* Default Budget Period */}
                 <CustomDropdown
                   label="Default Budgeting Period"
                   value={defaultBudgetPeriod}
@@ -774,7 +753,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   searchable={false}
                 />
 
-                {/* FAM Thresholds */}
                 <div className="bg-slate-50 border border-borderDefault/80 rounded-2xl p-3.5 space-y-3">
                   <div className="flex items-start gap-2.5">
                     <BarChart3 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
@@ -832,7 +810,6 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Card 4: System Maintenance & Controls */}
           {(activeTab === 'General' || activeTab === 'Maintenance') && (
             <div className="bg-white border border-borderDefault rounded-2xl shadow-card p-5 space-y-4">
               <div className="flex items-center gap-3">
@@ -848,7 +825,6 @@ export const AdminAppSettingsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {/* Clear Cache */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-textDefault">Clear System Cache</h3>
@@ -866,7 +842,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Run Recurring Materialization */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-textDefault">Process Scheduled Transactions</h3>
@@ -884,7 +859,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Export Audit Logs CSV */}
                 <div className="flex items-center justify-between p-3 bg-slate-50 border border-borderDefault/80 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-textDefault">Export Audit Logs</h3>
@@ -902,7 +876,6 @@ export const AdminAppSettingsPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Purge Audit Logs */}
                 <div className="flex items-center justify-between p-3 bg-rose-50/50 border border-rose-100 rounded-2xl">
                   <div>
                     <h3 className="text-xs font-bold text-rose-950">Clear Old Audit Logs</h3>
@@ -922,7 +895,6 @@ export const AdminAppSettingsPage: React.FC = () => {
             </div>
           )}
 
-            {/* Footer Actions */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <Button
                 variant="outline"
@@ -951,7 +923,6 @@ export const AdminAppSettingsPage: React.FC = () => {
       )}
     </div>
 
-      {/* Compact Purge Audit Logs Modal */}
       <Modal
         isOpen={isPurgeModalOpen}
         onClose={() => setIsPurgeModalOpen(false)}

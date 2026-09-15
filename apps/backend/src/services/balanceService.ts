@@ -7,6 +7,9 @@ export class BalanceService {
     tx: Prisma.TransactionClient,
     accountId: string
   ): Promise<bigint> {
+    // 1. Acquire exclusive row lock to prevent race conditions (FIN-01)
+    await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', accountId);
+
     const account = await tx.account.findUnique({
       where: { id: accountId },
       select: { id: true, openingBalance: true },
@@ -55,6 +58,9 @@ export class BalanceService {
     amount: bigint,
     isReversal = false
   ): Promise<bigint> {
+    // 1. Acquire exclusive row lock
+    await tx.$queryRawUnsafe('SELECT id FROM accounts WHERE id = ? FOR UPDATE', accountId);
+
     // Verify account exists
     const exists = await tx.account.findUnique({
       where: { id: accountId },

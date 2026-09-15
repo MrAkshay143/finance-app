@@ -10,7 +10,6 @@ export interface ExportDataResult {
   contentType: string;
 }
 
-
 export class ExportService {
   // Export user financial records to JSON or CSV and record audit log
   async exportUserData(

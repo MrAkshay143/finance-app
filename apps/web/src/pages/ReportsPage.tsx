@@ -414,7 +414,6 @@ export const ReportsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Branded Nested Header */}
       <AppHeader
         variant="nested"
         title="Reports"
@@ -436,7 +435,6 @@ export const ReportsPage: React.FC = () => {
 
       <div className="p-4 space-y-4">
 
-        {/* Segmented Pill Tabs: Monthly (default), Year in Review, Custom Range */}
         <div role="tablist" aria-label="Report period" className="flex items-center bg-slate-100 p-1 rounded-2xl">
           <button
             type="button"
@@ -479,10 +477,8 @@ export const ReportsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Report Filter Bar */}
         {activeTab === 'monthly' && (
           <div className="space-y-4">
-            {/* Report Month Picker/Selector: Dynamic Year & Month */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 pl-1">
                 Report period
@@ -504,9 +500,7 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 3 Summary Cards Side-by-Side */}
             <div className="grid grid-cols-3 gap-2.5">
-              {/* 1. FAM Score Card */}
               <div className="bg-[#EEF4FF] border border-blue-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-brand-primary">
@@ -537,7 +531,6 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. Total Income Card */}
               <div className="bg-[#ECFDF5] border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
@@ -566,7 +559,6 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 3. Total Expenses Card */}
               <div className="bg-[#FEF2F2] border border-rose-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
@@ -596,9 +588,7 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Dual Chart Layout: Actual vs Projected & Expense Breakdown */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Left Chart Card: Actual vs Projected */}
               <Card padding="sm" className="p-3 bg-white border-slate-200 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -608,7 +598,6 @@ export const ReportsPage: React.FC = () => {
                     </h3>
                   </div>
 
-                  {/* Legend */}
                   <div className="flex items-center gap-3 mt-2 text-[10px]">
                     <div className="flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-brand-primary" />
@@ -621,13 +610,10 @@ export const ReportsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Dynamic Vertical Bar Chart */}
                 <div className="pt-3">
                   <div className="h-40 flex items-end justify-between gap-3 border-b border-slate-200 pb-2 px-1">
-                    {/* Income Column */}
                     <div className="flex-1 flex flex-col items-center justify-end h-full">
                       <div className="w-full flex items-end justify-center gap-1.5 h-32">
-                        {/* Actual Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Income Actual: ${formatCurrency(earnedActual, userCurrency)}`}
@@ -640,7 +626,6 @@ export const ReportsPage: React.FC = () => {
                             style={{ height: `${Math.max(4, Math.round((earnedActual / maxChartVal) * MAX_BAR_HEIGHT_PX))}px` }}
                           />
                         </div>
-                        {/* Target Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Income Target: ${formatCurrency(earnedProjected, userCurrency)}`}
@@ -657,10 +642,8 @@ export const ReportsPage: React.FC = () => {
                       <span className="text-[10px] text-slate-700 font-semibold mt-1 select-none">Income</span>
                     </div>
 
-                    {/* Expenses Column */}
                     <div className="flex-1 flex flex-col items-center justify-end h-full">
                       <div className="w-full flex items-end justify-center gap-1.5 h-32">
-                        {/* Actual Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Expenses Actual: ${formatCurrency(expenseActual, userCurrency)}`}
@@ -673,7 +656,6 @@ export const ReportsPage: React.FC = () => {
                             style={{ height: `${Math.max(4, Math.round((expenseActual / maxChartVal) * MAX_BAR_HEIGHT_PX))}px` }}
                           />
                         </div>
-                        {/* Target Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Expenses Budget: ${formatCurrency(expenseProjected, userCurrency)}`}
@@ -690,10 +672,8 @@ export const ReportsPage: React.FC = () => {
                       <span className="text-[10px] text-slate-700 font-semibold mt-1 select-none">Expenses</span>
                     </div>
 
-                    {/* Investments Column */}
                     <div className="flex-1 flex flex-col items-center justify-end h-full">
                       <div className="w-full flex items-end justify-center gap-1.5 h-32">
-                        {/* Actual Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Investments Actual: ${formatCurrency(investmentActual, userCurrency)}`}
@@ -706,7 +686,6 @@ export const ReportsPage: React.FC = () => {
                             style={{ height: `${Math.max(4, Math.round((investmentActual / maxChartVal) * MAX_BAR_HEIGHT_PX))}px` }}
                           />
                         </div>
-                        {/* Target Bar */}
                         <div
                           className="flex flex-col items-center justify-end h-full group cursor-pointer"
                           title={`Investments Target: ${formatCurrency(investmentProjected, userCurrency)}`}
@@ -726,7 +705,6 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </Card>
 
-              {/* Right Chart Card: Expense Breakdown */}
               <Card padding="sm" className="p-3 bg-white border-slate-200 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -736,7 +714,6 @@ export const ReportsPage: React.FC = () => {
                     </h3>
                   </div>
 
-                  {/* Donut Chart with Center Total */}
                   <div className="py-2 flex items-center justify-center">
                     <div className="relative w-24 h-24 flex items-center justify-center">
                       <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
@@ -774,7 +751,6 @@ export const ReportsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Category Breakdown Legend */}
                 {categoryBreakdown.length > 0 ? (
                   <div className="space-y-1 pt-1 border-t border-slate-100 text-[10px]">
                     {categoryBreakdown.map((cat) => (
@@ -798,7 +774,6 @@ export const ReportsPage: React.FC = () => {
               </Card>
             </div>
 
-            {/* Category Summary Card with Table */}
             <Card padding="none" className="bg-white border-slate-200 overflow-hidden shadow-sm">
               <div className="p-3 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -829,7 +804,6 @@ export const ReportsPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {/* Row 1: Income */}
                     <tr>
                       <td className="py-2.5 flex items-center gap-1.5 font-medium text-slate-800">
                         <span className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -848,7 +822,6 @@ export const ReportsPage: React.FC = () => {
                       </td>
                     </tr>
 
-                    {/* Row 2: Expenses */}
                     <tr>
                       <td className="py-2.5 flex items-center gap-1.5 font-medium text-slate-800">
                         <span className="w-5 h-5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -867,7 +840,6 @@ export const ReportsPage: React.FC = () => {
                       </td>
                     </tr>
 
-                    {/* Row 3: Investments */}
                     <tr>
                       <td className="py-2.5 flex items-center gap-1.5 font-medium text-slate-800">
                         <span className="w-5 h-5 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
@@ -890,7 +862,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Callout Banner */}
             {reportData?.callouts && reportData.callouts.length > 0 && (
               <div className="bg-[#ECFDF5] border border-emerald-200 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
@@ -909,10 +880,8 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Target vs Actual Comparison */}
         {activeTab === 'year' && (
           <div className="space-y-4">
-            {/* Year Selector (Inline) */}
             <div className="flex items-center gap-3 pl-1">
               <label className="text-xs font-semibold text-slate-600 whitespace-nowrap">
                 Select Year
@@ -928,7 +897,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 3 Annual Metrics Cards */}
             <div className="grid grid-cols-3 gap-2.5">
               <div className="bg-[#ECFDF5] border border-emerald-100 rounded-2xl p-3 shadow-sm">
                 <span className="text-[11px] font-semibold text-slate-700">Annual Income</span>
@@ -961,7 +929,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 12-Month Bar Chart */}
             <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1011,7 +978,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Top Categories Card */}
             <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <PieChart className="w-4 h-4 text-brand-primary" />
@@ -1042,10 +1008,8 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Category Spending Breakdown */}
         {activeTab === 'custom' && (
           <div className="space-y-4">
-            {/* Date Pickers */}
             <Card padding="sm" className="p-3 bg-white border-slate-200 space-y-3">
               <h3 className="text-xs font-bold text-slate-900">Select Date Range</h3>
               <div className="grid grid-cols-2 gap-2.5">
@@ -1068,7 +1032,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* 3 Summary Cards */}
             <div className="grid grid-cols-3 gap-2.5">
               <div className="bg-[#ECFDF5] border border-emerald-100 rounded-2xl p-3 shadow-sm">
                 <span className="text-[11px] font-semibold text-slate-700">Income</span>
@@ -1092,7 +1055,6 @@ export const ReportsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Breakdown Table */}
             <Card padding="none" className="bg-white border-slate-200 overflow-hidden shadow-sm">
               <div className="p-3 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-900">Period Category Breakdown</h3>
@@ -1132,7 +1094,6 @@ export const ReportsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Export Options Modal */}
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

@@ -43,7 +43,6 @@ export const AddTransactionModalScreen: React.FC = () => {
   return (
     <View style={styles.backdrop}>
       <View style={[styles.sheetContainer, { paddingBottom: insets.bottom > 0 ? insets.bottom + 20 : 40 }]}>
-        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>Add Transaction</Text>
@@ -61,7 +60,6 @@ export const AddTransactionModalScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* 4 Classification Cards */}
         <View style={styles.optionsList}>
           {TRANSACTION_TYPES.map((item) => (
             <Pressable

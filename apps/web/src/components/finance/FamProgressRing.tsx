@@ -9,10 +9,7 @@ export interface AvatarProgressRingProps {
   onClick?: () => void;
 }
 
-/**
- * Avatar with two-tone green (#1F9D55) / blue (#2554EE) progress ring
- * per Plan/frontend.md §2 specifications.
- */
+// Avatar with two-tone green (#1F9D55) / blue (#2554EE) progress ring per Plan/frontend.md §2 specifications.
 export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
   initials = 'FT',
   avatarUrl,
@@ -43,7 +40,6 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
         className="w-full h-full -rotate-90"
         viewBox={`0 0 ${size} ${size}`}
       >
-        {/* Background track */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -52,7 +48,6 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
           stroke="#132A5C"
           strokeWidth={strokeWidth}
         />
-        {/* Green segment (top half) */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -64,7 +59,6 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
           strokeDashoffset="0"
           strokeLinecap="round"
         />
-        {/* Blue segment (bottom half) */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -77,7 +71,6 @@ export const AvatarProgressRing: React.FC<AvatarProgressRingProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      {/* Inner Avatar Content */}
       {avatarUrl && !imgError ? (
         <img
           src={resolveAssetUrl(avatarUrl)}
@@ -115,10 +108,7 @@ export interface FamDonutRingProps {
   className?: string;
 }
 
-/**
- * 3-segment FAM donut ring (Income green, Expense red, Investment purple)
- * per Plan/frontend.md §2 & §3.
- */
+// 3-segment FAM donut ring (Income green, Expense red, Investment purple) per Plan/frontend.md §2 & §3.
 export const FamDonutRing: React.FC<FamDonutRingProps> = ({
   score,
   grade = 'N/A',
@@ -160,7 +150,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
         className="w-full h-full -rotate-90"
         viewBox={`0 0 ${size} ${size}`}
       >
-        {/* Track */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -169,7 +158,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           stroke="#E7ECF5"
           strokeWidth={strokeWidth}
         />
-        {/* 1. Income Segment - Green (#1F9D55) */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -181,7 +169,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           strokeDashoffset="0"
           strokeLinecap="round"
         />
-        {/* 2. Expense Segment - Red (#E23D3D) */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -193,7 +180,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           strokeDashoffset={-(segmentLength + 6)}
           strokeLinecap="round"
         />
-        {/* 3. Investment Segment - Purple (#7C4DE0) */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -206,7 +192,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      {/* Center Grade Badge, Label, and Progress Percentage */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
         <span
           className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded-md text-[11px] font-extrabold border leading-none ${gradeColor}`}

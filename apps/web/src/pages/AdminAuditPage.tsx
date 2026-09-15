@@ -202,7 +202,6 @@ export const AdminAuditPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Search Input + Filter button */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -234,7 +233,6 @@ export const AdminAuditPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {categories.map((cat) => {
             const isActive = filterCategory === cat;
@@ -255,7 +253,6 @@ export const AdminAuditPage: React.FC = () => {
           })}
         </div>
 
-        {/* Activity Header with Sort & Export */}
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-textDefault">
             Activity ({logs.length})
@@ -291,7 +288,6 @@ export const AdminAuditPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Activity Stream */}
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-24 w-full rounded-2xl" />
@@ -391,7 +387,6 @@ export const AdminAuditPage: React.FC = () => {
               );
             })}
 
-            {/* Centralized Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -404,7 +399,6 @@ export const AdminAuditPage: React.FC = () => {
         )}
       </div>
 
-      {/* Audit Detail Modal */}
       <Modal
         isOpen={!!inspectRecord}
         onClose={() => setInspectRecord(null)}

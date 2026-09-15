@@ -270,7 +270,6 @@ export const OnboardingWizard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#EDF2F9] flex justify-center py-0">
       <div className="w-full max-w-[430px] min-h-screen bg-[#F3F6FC] relative flex flex-col shadow-2xl border-x border-[#E2E8F0] overflow-x-clip">
-        {/* Dark Navy Header */}
         <header className="bg-gradient-to-b from-[#0B1B3A] to-[#132A5C] text-white pt-6 pb-6 px-5 rounded-b-[24px] shadow-header sticky top-0 z-30 text-center">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-blue-300">
@@ -285,7 +284,6 @@ export const OnboardingWizard: React.FC = () => {
             Set your baselines for FAM scores and insights.
           </p>
 
-          {/* Stepper Progress Bar */}
           <div className="flex items-center justify-center gap-2 mt-4">
             <div
               className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
@@ -305,9 +303,7 @@ export const OnboardingWizard: React.FC = () => {
           </div>
         </header>
 
-        {/* Wizard Main Content */}
         <main className="flex-1 p-5 space-y-4">
-          {/* Step 1: Personal Details */}
           {currentStep === 1 && (
             <form onSubmit={handleStep1Next} className="space-y-4">
               <Card className="p-5 space-y-4">
@@ -382,7 +378,6 @@ export const OnboardingWizard: React.FC = () => {
             </form>
           )}
 
-          {/* Step 2: Monthly Targets */}
           {currentStep === 2 && (
             <form onSubmit={handleStep2Next} className="space-y-4">
               <Card className="p-5 space-y-4">
@@ -446,7 +441,6 @@ export const OnboardingWizard: React.FC = () => {
                   />
                 </div>
 
-                {/* Summary Cardlet */}
                 <div className="p-3 bg-blue-50/70 rounded-xl space-y-1.5 text-xs border border-blue-100">
                   <div className="flex justify-between font-medium text-slate-700">
                     <span>Monthly Income:</span>
@@ -492,7 +486,6 @@ export const OnboardingWizard: React.FC = () => {
             </form>
           )}
 
-          {/* Step 3: Financial Profile */}
           {currentStep === 3 && (
             <form onSubmit={handleFinalSubmit} className="space-y-4">
               <Card className="p-5 space-y-4">

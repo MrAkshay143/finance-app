@@ -259,7 +259,6 @@ export const AccountsScreen: React.FC = () => {
           />
         }
       >
-        {/* Error Notification */}
         {error && (
           <View style={styles.errorBanner}>
             <AlertCircleIcon size={18} color={colors.danger} />
@@ -276,7 +275,6 @@ export const AccountsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Total Balance Hero Card */}
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
@@ -290,20 +288,17 @@ export const AccountsScreen: React.FC = () => {
           <Text style={styles.heroSubtext}>Aggregated across all connected balances</Text>
         </View>
 
-        {/* Section Heading */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>CONNECTED INSTITUTIONS</Text>
           <Text style={styles.sectionCount}>{accounts.length} Total</Text>
         </View>
 
-        {/* Loading Spinner */}
         {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         )}
 
-        {/* Empty State */}
         {!isLoading && accounts.length === 0 && (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIconContainer}>
@@ -326,13 +321,11 @@ export const AccountsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Accounts List */}
         {!isLoading &&
           accounts.map((account) => {
             const isActive = account.status === 'ACTIVE';
             return (
               <View key={account.id} style={styles.accountCard}>
-                {/* Header Row */}
                 <View style={styles.cardHeaderRow}>
                   <View style={styles.accountIdentityRow}>
                     <View style={styles.accountIconBox}>
@@ -376,7 +369,6 @@ export const AccountsScreen: React.FC = () => {
                   </Pressable>
                 </View>
 
-                {/* Balance Row */}
                 <View style={styles.balanceRow}>
                   <Text style={styles.balanceLabel}>
                     {account.type.replace('_', ' ')} Balance
@@ -386,7 +378,6 @@ export const AccountsScreen: React.FC = () => {
                   </Text>
                 </View>
 
-                {/* Quick Action Buttons Row */}
                 <View style={styles.quickActionsRow}>
                   <Pressable
                     onPress={() => navigation.navigate('MainTabs', { screen: 'Transactions' })}
@@ -428,7 +419,6 @@ export const AccountsScreen: React.FC = () => {
           })}
       </ScrollView>
 
-      {/* Add Account Modal */}
       <Modal
         visible={isAddModalOpen}
         transparent
@@ -598,7 +588,6 @@ export const AccountsScreen: React.FC = () => {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Edit Account Modal */}
       <Modal
         visible={editingAccount !== null}
         transparent

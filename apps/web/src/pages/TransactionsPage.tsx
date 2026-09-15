@@ -395,7 +395,6 @@ export const TransactionsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Branded Dark Navy Header with Total Count */}
       <AppHeader
         variant="nested"
         title="Transactions"
@@ -413,7 +412,6 @@ export const TransactionsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-3.5">
-        {/* Debounced Search Bar */}
         <div>
           <Input
             placeholder="Search merchant, category, note..."
@@ -435,7 +433,6 @@ export const TransactionsPage: React.FC = () => {
           />
         </div>
 
-        {/* Account Filter Chip if accountIdParam is present */}
         {accountIdParam && (
           <div className="flex items-center justify-between px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-brand-primary">
             <span className="font-semibold truncate">
@@ -455,7 +452,6 @@ export const TransactionsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Pill Filter Tabs */}
         <div>
           <SegmentedControl
             options={filterOptions}
@@ -466,7 +462,6 @@ export const TransactionsPage: React.FC = () => {
           />
         </div>
 
-        {/* Error Notice if Query Failed */}
         {isTxnError && (
           <div className="p-3.5 bg-semantic-danger-bg text-semantic-danger text-xs rounded-xl border border-semantic-danger/30 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -474,7 +469,6 @@ export const TransactionsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Transactions List or Skeletons or Empty State */}
         <section aria-label="Transactions list" className="pt-1">
           {isLoading ? (
             <div className="space-y-2.5">
@@ -504,7 +498,6 @@ export const TransactionsPage: React.FC = () => {
                     key={item.id}
                     className="bg-surface rounded-2xl border border-borderDefault shadow-sm hover:shadow-md transition-shadow"
                   >
-                    {/* Card Row — click to toggle expand */}
                     <div
                       className="p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none"
                       onClick={() => toggleExpanded(item.id)}
@@ -519,7 +512,6 @@ export const TransactionsPage: React.FC = () => {
                       aria-expanded={isExpanded}
                       aria-label={`${isExpanded ? 'Collapse' : 'Expand'} transaction ${item.title}`}
                     >
-                      {/* Left: Icon and Details */}
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {getTransactionIcon(item.type)}
                         <div className="min-w-0 flex-1">
@@ -534,7 +526,6 @@ export const TransactionsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Right: Amount Chip & Chevron */}
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="text-right flex flex-col items-end">
                           {getSemanticChip(item.type, item.amount)}
@@ -551,34 +542,29 @@ export const TransactionsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Expanded Details Section */}
                     <div
                       className={`overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-96' : 'max-h-0'}`}
                     >
                       <div className="px-3.5 pb-3.5 pt-0">
                         <div className="border-t border-borderDefault pt-3 space-y-1.5">
-                          {/* Description */}
                           {item.description && item.description !== 'Account Transfer' && (
                             <div className="flex items-start gap-2 text-xs">
                               <span className="text-textMuted w-20 shrink-0">Note</span>
                               <span className="text-textDefault font-medium">{item.description}</span>
                             </div>
                           )}
-                          {/* Category */}
                           {item.categoryName && (
                             <div className="flex items-start gap-2 text-xs">
                               <span className="text-textMuted w-20 shrink-0">Category</span>
                               <span className="text-textDefault font-medium">{item.categoryName}</span>
                             </div>
                           )}
-                          {/* Merchant */}
                           {item.merchant && (
                             <div className="flex items-start gap-2 text-xs">
                               <span className="text-textMuted w-20 shrink-0">Merchant</span>
                               <span className="text-textDefault font-medium">{item.merchant}</span>
                             </div>
                           )}
-                          {/* Transfer accounts */}
                           {item.isTransfer ? (
                             <div className="flex items-start gap-2 text-xs">
                               <span className="text-textMuted w-20 shrink-0">Transfer</span>
@@ -592,13 +578,11 @@ export const TransactionsPage: React.FC = () => {
                               <span className="text-textDefault font-medium">{item.accountName}</span>
                             </div>
                           )}
-                          {/* Date */}
                           <div className="flex items-start gap-2 text-xs">
                             <span className="text-textMuted w-20 shrink-0">Date</span>
                             <span className="text-textDefault font-medium">{formatDate(item.date)}</span>
                           </div>
 
-                          {/* Action Buttons */}
                           <div className="flex items-center gap-2 pt-2">
                             <button
                               type="button"
@@ -626,7 +610,6 @@ export const TransactionsPage: React.FC = () => {
                 );
               })}
 
-              {/* Mobile-app-style subtle loading sentinel */}
               {isTxnError ? (
                 <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
                   <span>Failed to load</span>
@@ -651,7 +634,6 @@ export const TransactionsPage: React.FC = () => {
         </section>
       </div>
 
-      {/* Soft Delete Confirmation Dialog */}
       {(() => {
         const dialogDef = deletingItem?.isTransfer
           ? CONFIRM_DIALOGS.transactions.deleteTransfer()

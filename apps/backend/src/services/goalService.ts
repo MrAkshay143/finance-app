@@ -68,9 +68,7 @@ export class GoalService {
     return goals.map(formatGoal);
   }
 
-  /**
-   * Retrieves single goal by ID.
-   */
+  // Retrieves single goal by ID.
   async getGoal(userId: string, id: string) {
     const goal = await prisma.goal.findUnique({
       where: { id },
@@ -86,9 +84,7 @@ export class GoalService {
     return formatGoal(goal);
   }
 
-  /**
-   * Creates a goal converting targetAmount and currentAmount to BigInt paise.
-   */
+  // Creates a goal converting targetAmount and currentAmount to BigInt paise.
   async createGoal(userId: string, data: CreateGoalData) {
     if (!data.name?.trim()) {
       throw new ValidationError('Goal name is required');
@@ -126,9 +122,7 @@ export class GoalService {
     return formatGoal(goal);
   }
 
-  /**
-   * Updates an existing goal.
-   */
+  // Updates an existing goal.
   async updateGoal(userId: string, id: string, data: UpdateGoalData) {
     const existing = await prisma.goal.findUnique({
       where: { id },
@@ -185,9 +179,7 @@ export class GoalService {
     return formatGoal(updated);
   }
 
-  /**
-   * Soft deletes a goal by setting status = DELETED.
-   */
+  // Soft deletes a goal by setting status = DELETED.
   async deleteGoal(userId: string, id: string) {
     const existing = await prisma.goal.findUnique({
       where: { id },

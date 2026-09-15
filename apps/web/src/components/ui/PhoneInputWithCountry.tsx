@@ -127,7 +127,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
       )}
 
       <div className="relative flex items-center gap-2" ref={dropdownRef}>
-        {/* Calling Code / Country Selector Button */}
         <button
           type="button"
           disabled={disabled}
@@ -145,7 +144,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
           <ChevronDown className="w-3 h-3 text-slate-400" />
         </button>
 
-        {/* Local National Number Input */}
         <div className="relative flex-1">
           <input
             ref={inputRef}
@@ -166,10 +164,8 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
           )}
         </div>
 
-        {/* Dropdown Popover */}
         {isOpen && (
           <div className="absolute top-full left-0 mt-1.5 w-64 max-h-64 bg-white border border-borderDefault rounded-xl shadow-modal z-50 overflow-hidden flex flex-col">
-            {/* Search filter input */}
             <div className="p-2 border-b border-borderDefault bg-slate-50 flex items-center gap-1.5">
               <Search className="w-3.5 h-3.5 text-textMuted shrink-0" />
               <input
@@ -182,7 +178,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
               />
             </div>
 
-            {/* Country List */}
             <div className="overflow-y-auto flex-1 divide-y divide-slate-100" role="listbox">
               {filteredCountries.map((c) => {
                 const isSelected = c.code === selectedCountryCode;

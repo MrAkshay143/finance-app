@@ -42,12 +42,15 @@ import {
   TIME_FORMAT_OPTIONS,
 } from '@finance/shared-types';
 import { toast } from '../store/toastStore.js';
+import { useConfigStore } from '../store/configStore.js';
+import { validatePassword } from '../utils/validation.js';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { syncOnSettingsMutation } from '../services/dataSync.js';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const passwordPolicy = useConfigStore((s) => s.passwordPolicy);
   const { logout, user } = useAuthStore();
   const isAdmin = user?.role === 'ADMIN';
   const { isInstallable, isInstalled, installApp } = usePwaInstall();
@@ -270,9 +273,11 @@ export const SettingsPage: React.FC = () => {
       toast.error('Current password is required');
       return;
     }
-    if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters long');
-      toast.error('New password must be at least 8 characters long');
+    const valResult = validatePassword(newPassword, passwordPolicy);
+    if (!valResult.isValid) {
+      const msg = valResult.message || `Password must be at least ${passwordPolicy.minLength} characters`;
+      setPasswordError(msg);
+      toast.error(msg);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -293,7 +298,6 @@ export const SettingsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Subheader with right badge */}
         <div className="flex items-start justify-between gap-2">
           <div>
             <h2 className="text-xl font-bold text-textDefault">Settings</h2>
@@ -311,7 +315,6 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 1. Preferences Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <Settings className="w-4 h-4 text-brand-primary" />
@@ -322,7 +325,6 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
-            {/* Currency */}
             <button
               type="button"
               onClick={() => setPrefModal('currency')}
@@ -343,7 +345,6 @@ export const SettingsPage: React.FC = () => {
               </div>
             </button>
 
-            {/* Timezone */}
             <button
               type="button"
               onClick={() => setPrefModal('timezone')}
@@ -364,7 +365,6 @@ export const SettingsPage: React.FC = () => {
               </div>
             </button>
 
-            {/* Financial Month Start */}
             <button
               type="button"
               onClick={() => setPrefModal('startDay')}
@@ -385,7 +385,6 @@ export const SettingsPage: React.FC = () => {
               </div>
             </button>
 
-            {/* Date Format */}
             <button
               type="button"
               onClick={() => setPrefModal('dateFormat')}
@@ -406,7 +405,6 @@ export const SettingsPage: React.FC = () => {
               </div>
             </button>
 
-            {/* Time Format */}
             <button
               type="button"
               onClick={() => setPrefModal('timeFormat')}
@@ -429,7 +427,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 2. Notifications Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <Bell className="w-4 h-4 text-brand-primary" />
@@ -476,7 +473,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 3. Quick Actions Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <Zap className="w-4 h-4 text-brand-primary" />
@@ -521,7 +517,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 4. Dashboard Donuts Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <PieChart className="w-4 h-4 text-brand-primary" />
@@ -532,7 +527,6 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
-            {/* Income Donut */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -556,7 +550,6 @@ export const SettingsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Expense Donut */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -580,7 +573,6 @@ export const SettingsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Investment Donut */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -606,7 +598,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 5. Features Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <Grid className="w-4 h-4 text-brand-primary" />
@@ -617,7 +608,6 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
-            {/* Investments */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -646,7 +636,6 @@ export const SettingsPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Recurring Transactions */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center">
@@ -677,7 +666,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 6. Security Section */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <Shield className="w-4 h-4 text-brand-primary" />
@@ -722,7 +710,6 @@ export const SettingsPage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>
 
-            {/* Active Sessions */}
             <div className="p-3.5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center">
@@ -755,7 +742,6 @@ export const SettingsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 7. App & Device Section */}
         {showAppDeviceSection && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between px-1">
@@ -827,7 +813,6 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* 8. Danger Zone */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <AlertTriangle className="w-4 h-4 text-rose-600" />
@@ -839,7 +824,6 @@ export const SettingsPage: React.FC = () => {
 
           <div className="space-y-2">
             <Card padding="none" className="bg-white border border-borderDefault shadow-xs divide-y divide-borderDefault overflow-hidden">
-              {/* Reset Profile */}
               <button
                 type="button"
                 onClick={() => setIsResetModalOpen(true)}
@@ -857,7 +841,6 @@ export const SettingsPage: React.FC = () => {
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </button>
 
-              {/* Delete My Account */}
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(true)}
@@ -876,7 +859,6 @@ export const SettingsPage: React.FC = () => {
               </button>
             </Card>
 
-            {/* Log Out Row */}
             <Card padding="none" className="bg-rose-50/40 border border-rose-200/60 shadow-xs overflow-hidden">
               <button
                 type="button"
@@ -899,8 +881,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Preferences Modals */}
-      {/* 1. Currency Modal */}
       <Modal
         isOpen={prefModal === 'currency'}
         onClose={() => setPrefModal(null)}
@@ -932,7 +912,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* 2. Timezone Modal */}
       <Modal
         isOpen={prefModal === 'timezone'}
         onClose={() => setPrefModal(null)}
@@ -970,7 +949,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* 3. Start Day Modal */}
       <Modal
         isOpen={prefModal === 'startDay'}
         onClose={() => setPrefModal(null)}
@@ -1004,7 +982,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* 4. Date Format Modal */}
       <Modal
         isOpen={prefModal === 'dateFormat'}
         onClose={() => setPrefModal(null)}
@@ -1038,7 +1015,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* 5. Time Format Modal */}
       <Modal
         isOpen={prefModal === 'timeFormat'}
         onClose={() => setPrefModal(null)}
@@ -1072,7 +1048,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Change Password Modal */}
       <Modal
         isOpen={isPasswordModalOpen}
         onClose={() => {
@@ -1122,8 +1097,8 @@ export const SettingsPage: React.FC = () => {
               setNewPassword(e.target.value);
               if (passwordError) setPasswordError(null);
             }}
-            error={passwordError?.includes('8 characters') ? passwordError : undefined}
-            helperText={passwordError?.includes('8 characters') ? undefined : 'Minimum 8 characters'}
+            error={passwordError && !passwordError.includes('Current') && !passwordError.includes('match') ? passwordError : undefined}
+            helperText={passwordError && !passwordError.includes('Current') && !passwordError.includes('match') ? undefined : `Minimum ${passwordPolicy.minLength} characters`}
             required
           />
           <Input
@@ -1140,7 +1115,6 @@ export const SettingsPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Reset Profile Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.settings.resetTargets();
         return (
@@ -1177,7 +1151,6 @@ export const SettingsPage: React.FC = () => {
         );
       })()}
 
-      {/* Delete Account Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.settings.deleteAccount();
         return (

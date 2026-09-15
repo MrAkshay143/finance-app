@@ -1,17 +1,4 @@
-/**
- * AUTHZ-004: CSRF protection using the double-submit cookie pattern.
- * Uses the csrf-csrf package (HMAC-signed token).
- *
- * Exempt routes (read-only or non-browser flows):
- *  - GET, HEAD, OPTIONS (safe methods)
- *  - POST /api/v1/auth/refresh  (token-based, HttpOnly cookie — no CSRF exposure)
- *  - POST /api/v1/auth/logout   (logout can't cause harm via CSRF)
- *  - POST /api/v1/metrics        (Prometheus scraping — internal only)
- *
- * The CSRF token is returned in:
- *  - Cookie: __Host-csrf (SameSite=Strict, HttpOnly=false so JS can read it)
- *  - Response header: X-CSRF-Token on GET /api/v1/auth/csrf-token
- */
+// CSRF protection using double-submit cookie pattern with HMAC-signed token
 import type { Request, Response, NextFunction } from 'express';
 import { env } from '../config/env.js';
 import logger from '../lib/logger.js';
@@ -90,10 +77,7 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction):
   next();
 }
 
-/**
- * Handler for GET /api/v1/auth/csrf-token — issues a CSRF token.
- * The frontend should call this on app load and include the token in subsequent requests.
- */
+// Handler for GET /api/v1/auth/csrf-token — issues a CSRF token. The frontend should call this on app load and include the token in subsequent requests.
 export function getCsrfToken(req: Request, res: Response): void {
   const sessionId = (req as any).user?.id ?? req.ip ?? 'anonymous';
   const token = generateCsrfToken(sessionId);

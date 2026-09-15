@@ -17,6 +17,7 @@ import { Input } from '../../components/ui/Input.js';
 import { apiClient, getFriendlyErrorMessage } from '../../services/apiClient.js';
 import { toast } from '../../store/toastStore.js';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../utils/validation.js';
+import { useConfigStore } from '../../store/configStore.js';
 
 interface SecurityQuestionPrompt {
   questionKey: string;
@@ -25,6 +26,7 @@ interface SecurityQuestionPrompt {
 
 export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
+  const { passwordPolicy } = useConfigStore();
 
   // Multi-step: 1 = Email, 2 = Security Questions, 3 = New Password, 4 = Success
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -45,7 +47,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const emailValidation = validateEmail(email);
-  const passwordValidation = validatePassword(newPassword);
+  const passwordValidation = validatePassword(newPassword, passwordPolicy);
   const confirmValidation = validateConfirmPassword(newPassword, confirmPassword);
 
   // Step 1: Submit Email to fetch KBA Questions
@@ -185,13 +187,11 @@ export const ForgotPasswordPage: React.FC = () => {
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none relative bg-slate-50 flex flex-col items-center justify-center p-3 sm:p-4">
-      {/* Modern ambient glow orbs & fine geometric dot grid */}
       <div className="absolute top-0 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 translate-y-1/2 w-96 h-96 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none opacity-50" />
 
       <div className="relative z-10 w-full max-w-[420px] flex flex-col justify-center my-auto">
-        {/* Brand Header */}
         <div className="text-center mb-2.5">
           <div className="inline-flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-[#132A5C] border border-[#0B1B3A]/20 shadow-md mb-1.5 ring-4 ring-white/80">
             <KeyRound className="w-6 h-6 text-blue-300" />
@@ -207,9 +207,7 @@ export const ForgotPasswordPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Main Card */}
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-slate-200/80 space-y-3">
-          {/* Step 1: Email Form */}
           {step === 1 && (
             <form onSubmit={handleInitiate} className="space-y-3.5" noValidate>
               <Input
@@ -242,7 +240,6 @@ export const ForgotPasswordPage: React.FC = () => {
             </form>
           )}
 
-          {/* Step 2: KBA Questions Form */}
           {step === 2 && (
             <form onSubmit={handleVerifyQuestions} className="space-y-3" noValidate>
               <div className="space-y-2.5 max-h-[260px] overflow-y-auto pr-1 scrollbar-thin">
@@ -301,7 +298,6 @@ export const ForgotPasswordPage: React.FC = () => {
             </form>
           )}
 
-          {/* Step 3: New Password Form */}
           {step === 3 && (
             <form onSubmit={handleResetPassword} className="space-y-3" noValidate>
               <div className="relative">
@@ -355,7 +351,6 @@ export const ForgotPasswordPage: React.FC = () => {
             </form>
           )}
 
-          {/* Step 4: Success State */}
           {step === 4 && (
             <div className="text-center py-4 space-y-3">
               <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
@@ -376,13 +371,11 @@ export const ForgotPasswordPage: React.FC = () => {
             </div>
           )}
 
-          {/* Security Notice */}
           <div className="py-2 px-3 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-2 text-[11px] text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0" />
             <span>Protected by end-to-end encrypted security verification.</span>
           </div>
 
-          {/* Back to Login Link */}
           <div className="text-center pt-1">
             <Link
               to="/login"

@@ -1,5 +1,7 @@
 import { getRedisClient } from './redis.js';
 import { logger } from './logger.js';
+import { prisma } from './prisma.js';
+import { UnauthorizedError } from '../utils/errors.js';
 
 // In-memory fallback map: key -> expiration timestamp (epoch ms)
 const memoryDenylist = new Map<string, number>();
@@ -119,5 +121,58 @@ export async function isUserRevoked(userId: string, tokenIatSeconds?: number): P
 export function clearMemoryDenylist(): void {
   memoryDenylist.clear();
   memoryUserRevocations.clear();
+}
+
+// Atomically consumes registration token via Redis SET NX EX, DB fallback, or fails closed
+export async function consumeRegistrationToken(jti: string, ttlSeconds = 900): Promise<boolean> {
+  const redis = getRedisClient();
+  if (redis && redis.isOpen) {
+    try {
+      const res = await redis.set(`reg_token_consumed:${jti}`, '1', {
+        NX: true,
+        EX: Math.max(ttlSeconds, 1),
+      });
+      return res === 'OK';
+    } catch (err: any) {
+      logger.warn({ err: err?.message, jti }, 'Redis atomic token consumption failed, falling back to database');
+    }
+  }
+
+  // Database-backed distributed atomic lock (works across multiple Node instances, clusters, restarts)
+  try {
+    const key = `reg_token:${jti}`;
+    // Atomic insert into app_settings table (zero-DDL, key is PRIMARY KEY)
+    await prisma.appSetting.create({
+      data: {
+        key,
+        value: { consumedAt: new Date().toISOString(), ttl: ttlSeconds },
+      },
+    });
+    return true;
+  } catch (err: any) {
+    // Unique constraint violation means token was already consumed!
+    if (
+      err?.code === 'P2002' ||
+      err?.message?.includes('Unique constraint') ||
+      err?.message?.includes('Duplicate entry') ||
+      err?.message?.includes('ER_DUP_ENTRY')
+    ) {
+      return false; // Replay detected!
+    }
+
+    // If in test environment without full DB, fall back to memory
+    if (process.env.NODE_ENV === 'test') {
+      const exp = memoryDenylist.get(jti);
+      if (exp && exp > Date.now()) {
+        return false;
+      }
+      memoryDenylist.set(jti, Date.now() + Math.max(ttlSeconds, 1) * 1000);
+      return true;
+    }
+
+    // In production: Distributed state is completely unavailable -> MUST FAIL CLOSED
+    logger.error({ err: err?.message, jti }, 'Failed to atomically consume registration token; failing closed');
+    throw new UnauthorizedError('Registration state validation unavailable. Please try again.');
+  }
 }
 

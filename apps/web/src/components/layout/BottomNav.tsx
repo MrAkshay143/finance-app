@@ -112,7 +112,6 @@ export const BottomNav: React.FC = () => {
       aria-label="Bottom Navigation"
       className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-[430px] bg-white border-t border-borderDefault px-2 py-2 flex items-center justify-around z-40 shadow-lg"
     >
-      {/* 1. Home */}
       <NavLink
         to="/dashboard"
         aria-label="Home"
@@ -124,7 +123,6 @@ export const BottomNav: React.FC = () => {
         <span className="text-[11px] mt-1 tracking-tight">Home</span>
       </NavLink>
 
-      {/* 2. Transactions */}
       <NavLink
         to="/transactions"
         aria-label="Transactions"
@@ -136,7 +134,6 @@ export const BottomNav: React.FC = () => {
         <span className="text-[11px] mt-1 tracking-tight">Transactions</span>
       </NavLink>
 
-      {/* 3. Raised Center FAB (+) */}
       <div className="-mt-7 flex flex-col items-center">
         <button
           type="button"
@@ -148,7 +145,6 @@ export const BottomNav: React.FC = () => {
         </button>
       </div>
 
-      {/* 4. Reports / Analytics (Shared slot) */}
       <NavLink
         to={reportsTo}
         aria-label={reportsLabel}
@@ -162,7 +158,6 @@ export const BottomNav: React.FC = () => {
         <span className="text-[11px] mt-1 tracking-tight">{reportsLabel}</span>
       </NavLink>
 
-      {/* 5. More */}
       <NavLink
         to="/more"
         aria-label="More"

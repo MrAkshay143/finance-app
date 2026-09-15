@@ -190,7 +190,6 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           : `absolute top-full ${isRightAligned ? 'right-0' : 'left-0'} mt-1.5 w-full z-[9999]`
       } bg-white border border-borderDefault rounded-xl shadow-modal overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100`}
     >
-      {/* Search option only where needed */}
       {searchable && (
         <div className="p-2 border-b border-borderDefault bg-slate-50 flex items-center gap-1.5 shrink-0">
           <Search className="w-3.5 h-3.5 text-textMuted shrink-0" />
@@ -205,7 +204,6 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
         </div>
       )}
 
-      {/* Options List */}
       <div className="overflow-y-auto flex-1 divide-y divide-slate-100 py-1" role="listbox">
         {filteredOptions.map((opt) => {
           const isSelected = opt.value === value;
@@ -253,7 +251,6 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
       )}
 
       <div className="relative">
-        {/* Trigger Button */}
         <button
           ref={buttonRef}
           type="button"
@@ -284,12 +281,10 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
           />
         </button>
 
-        {/* Dropdown Overlay Backdrop & Popover */}
         {isOpen && (
           isClient ? (
             createPortal(
               <>
-                {/* Backdrop overlay for dismissing dropdown on click outside */}
                 <div
                   className="fixed inset-0 z-[9998] bg-black/[0.04] transition-opacity"
                   aria-hidden="true"

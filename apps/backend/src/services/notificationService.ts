@@ -55,18 +55,14 @@ export class NotificationService {
     };
   }
 
-  /**
-   * Returns current count of unread notifications for a user.
-   */
+  // Returns current count of unread notifications for a user.
   async getUnreadCount(userId: string): Promise<number> {
     return prisma.notification.count({
       where: { userId, read: false },
     });
   }
 
-  /**
-   * Marks a single notification as read and updates connected socket clients.
-   */
+  // Marks a single notification as read and updates connected socket clients.
   async markAsRead(userId: string, id: string) {
     const existing = await prisma.notification.findUnique({
       where: { id },
@@ -87,9 +83,7 @@ export class NotificationService {
     return formatNotification(updated);
   }
 
-  /**
-   * Marks all notifications for a user as read.
-   */
+  // Marks all notifications for a user as read.
   async markAllAsRead(userId: string) {
     await prisma.notification.updateMany({
       where: { userId, read: false },

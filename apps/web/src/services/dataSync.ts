@@ -1,10 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../queries/queryKeys.js';
 
-// Realtime Socket.IO synchronization service for active web sessions
-// Using { refetchType: 'active' } guarantees silent background sync:
-// only active components currently on screen refetch immediately,
-// while inactive caches are marked stale and revalidate silently upon navigation.
+// Socket.IO sync service invalidating active queries while inactive caches revalidate on navigation.
 
 const activeOnly = { refetchType: 'active' as const };
 

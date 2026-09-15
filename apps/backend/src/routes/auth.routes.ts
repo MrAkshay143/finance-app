@@ -12,6 +12,9 @@ import {
   ResetPasswordInputSchema,
   SendRegistrationOtpInputSchema,
   VerifyRegistrationOtpInputSchema,
+  InitiateRegistrationInputSchema,
+  VerifyRegistrationEmailInputSchema,
+  CompleteRegistrationInputSchema,
 } from '@finance/shared-types';
 
 export const authRouter: Router = Router();
@@ -37,6 +40,20 @@ const forgotPasswordRateLimiter = createRateLimiter({
   message: 'Too many password reset requests. Please wait a minute before trying again.',
 });
 
+// 3-Phase Cryptographic Registration Endpoints
+authRouter.post('/registration/initiate', signupRateLimiter, validateBody(InitiateRegistrationInputSchema), (req, res, next) => {
+  authController.initiateRegistration(req, res, next);
+});
+
+authRouter.post('/registration/verify-email', signupRateLimiter, validateBody(VerifyRegistrationEmailInputSchema), (req, res, next) => {
+  authController.verifyRegistrationEmail(req, res, next);
+});
+
+authRouter.post('/registration/complete', signupRateLimiter, validateBody(CompleteRegistrationInputSchema), (req, res, next) => {
+  authController.completeRegistration(req, res, next);
+});
+
+// Legacy / Compatible Signup Endpoints
 authRouter.post('/signup', signupRateLimiter, validateBody(SignupInputSchema), (req, res, next) => {
   authController.signup(req, res, next);
 });

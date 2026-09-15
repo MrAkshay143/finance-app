@@ -400,7 +400,6 @@ export const CategoriesPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* 1. Branded Navy Header with title "Categories" */}
       <AppHeader
         variant="nested"
         title={mainView === 'categories' ? 'Categories' : 'Merchants'}
@@ -433,7 +432,6 @@ export const CategoriesPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* View Switcher: Categories vs Merchants */}
         <SegmentedControl
           options={[
             {
@@ -451,10 +449,8 @@ export const CategoriesPage: React.FC = () => {
           onChange={(val) => handleMainViewChange(val as 'categories' | 'merchants')}
         />
 
-        {/* Categories View */}
         {mainView === 'categories' && (
           <div className="space-y-4" data-testid="categories-container">
-            {/* Filter Pill Tabs: All, Expense, Income, Investment */}
             <div role="tablist" aria-label="Category type filter" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
               {(
                 [
@@ -484,7 +480,6 @@ export const CategoriesPage: React.FC = () => {
               })}
             </div>
 
-            {/* Category List */}
             {isCategoriesLoading ? (
               <div className="space-y-2.5">
                 <MetricCardSkeleton />
@@ -527,9 +522,7 @@ export const CategoriesPage: React.FC = () => {
                       className="flex items-center justify-between gap-2.5 hover:border-blue-200 transition-colors"
                       data-testid={`category-item-${cat.id}`}
                     >
-                      {/* Left: Reorder affordance, icon chip, category name, type */}
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Reorder Affordance (Up/Down buttons + Grip handle) */}
                         <div className="flex flex-col items-center -space-y-1">
                           <button
                             type="button"
@@ -555,7 +548,6 @@ export const CategoriesPage: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Icon Chip */}
                         <div
                           className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${chipBg}`}
                         >
@@ -564,7 +556,6 @@ export const CategoriesPage: React.FC = () => {
                           {isInvest && <PiggyBank className="w-4 h-4" />}
                         </div>
 
-                        {/* Name, Type & Dynamic Metrics */}
                         <div className="min-w-0">
                           <h4 className="text-sm font-bold text-textDefault truncate">
                             {cat.name}
@@ -621,11 +612,9 @@ export const CategoriesPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Right: System Lock Badge or Custom Badge with Edit/Delete Actions */}
                       <div className="flex items-center gap-1.5 shrink-0">
                         {cat.isSystem ? (
-                          /* System category lock badge (cannot be edited or deleted) */
-                          <span
+                                                    <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-textMuted border border-gray-200"
                             data-testid={`system-badge-${cat.id}`}
                           >
@@ -633,8 +622,7 @@ export const CategoriesPage: React.FC = () => {
                             <span>System</span>
                           </span>
                         ) : (
-                          /* Custom category badge and Edit & Delete action buttons */
-                          <>
+                                                    <>
                             <span
                               className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary-soft text-brand-primary border border-blue-200"
                               data-testid={`custom-badge-${cat.id}`}
@@ -669,7 +657,6 @@ export const CategoriesPage: React.FC = () => {
                   );
                 })}
 
-                {/* Categories Pagination */}
                 <Pagination
                   currentPage={categoryPage}
                   totalPages={totalCategoryPages}
@@ -683,7 +670,6 @@ export const CategoriesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Merchants View */}
         {mainView === 'merchants' && (
           <div className="space-y-3" data-testid="merchants-container">
             <div className="flex items-center justify-between px-1">
@@ -807,7 +793,6 @@ export const CategoriesPage: React.FC = () => {
                   </Card>
                 ))}
 
-                {/* Merchants Pagination */}
                 <Pagination
                   currentPage={merchantPage}
                   totalPages={totalMerchantPages}
@@ -822,7 +807,6 @@ export const CategoriesPage: React.FC = () => {
         )}
       </div>
 
-      {/* 2. Separate Modal: Add Category ("Add Category" / "Save Category") */}
       <Modal
         isOpen={isAddCategoryOpen}
         onClose={() => setIsAddCategoryOpen(false)}
@@ -883,7 +867,6 @@ export const CategoriesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 3. Separate Modal: Edit Category ("Edit Category" / "Update Category") */}
       <Modal
         isOpen={isEditCategoryOpen}
         onClose={() => setIsEditCategoryOpen(false)}
@@ -944,7 +927,6 @@ export const CategoriesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 4. Delete Category Confirmation Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.categories.delete(deleteConfirm?.name);
         return (
@@ -986,7 +968,6 @@ export const CategoriesPage: React.FC = () => {
         );
       })()}
 
-      {/* 4b. Delete Merchant Confirmation Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.merchants.delete(deleteMerchantConfirm?.name);
         return (
@@ -1028,7 +1009,6 @@ export const CategoriesPage: React.FC = () => {
         );
       })()}
 
-      {/* 5. Separate Modal: Add Merchant ("Add Merchant" / "Save Merchant") */}
       <Modal
         isOpen={isAddMerchantOpen}
         onClose={() => setIsAddMerchantOpen(false)}
@@ -1075,7 +1055,6 @@ export const CategoriesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 6. Separate Modal: Edit Merchant ("Edit Merchant" / "Update Merchant") */}
       <Modal
         isOpen={isEditMerchantOpen}
         onClose={() => setIsEditMerchantOpen(false)}

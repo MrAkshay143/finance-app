@@ -40,9 +40,7 @@ function createTestQueryClient(initialData?: Array<[any[], any]> | Record<string
 }
 
 describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
-  /* ======================================================================
-   * 1. TASK-5.4: MenuPage & AboutPage
-   * ====================================================================== */
+  
   describe('1. TASK-5.4: Menu / More Dashboard & About Screen', () => {
     it('renders MenuPage with user profile card, 5 grouped sections, and membership badge', () => {
       useAuthStore.setState({
@@ -172,9 +170,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
     });
   });
 
-  /* ======================================================================
-   * 2. TASK-5.5: SettingsPage & AuditLogPage
-   * ====================================================================== */
+  
   describe('2. TASK-5.5: Settings Screen & User Audit Log', () => {
     it('renders SettingsPage with preferences, toggles, and danger zone', () => {
       const qc = createTestQueryClient({
@@ -266,9 +262,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
     });
   });
 
-  /* ======================================================================
-   * 3. TASK-5.6: Admin Management Suite Screens
-   * ====================================================================== */
+  
   describe('3. TASK-5.6: Admin Suite Screens', () => {
     it('renders AdminDashboardPage with 4 metrics cards and search filters', () => {
       const qc = createTestQueryClient([
@@ -473,9 +467,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
     });
   });
 
-  /* ======================================================================
-   * 4. TASK-5.7: ImportPage & ExportPage
-   * ====================================================================== */
+  
   describe('4. TASK-5.7: CSV Import & Data Export Interfaces', () => {
     it('renders ImportPage with account picker, dropzone, and column format guide', () => {
       const qc = createTestQueryClient({
@@ -530,9 +522,7 @@ describe('Phase 5 Screens Test Suite (TASK-5.4, 5.5, 5.6, 5.7)', () => {
     });
   });
 
-  /* ======================================================================
-   * 5. Zero Banned Phrases and Emojis across all Phase 5 Screens
-   * ====================================================================== */
+  
   describe('5. Zero Banned Placeholders & Zero Emojis in Phase 5 Screens', () => {
     const screens = [
       { name: 'MenuPage', component: <MenuPage /> },

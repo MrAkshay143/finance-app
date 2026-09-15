@@ -163,14 +163,12 @@ export const AboutPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Hero Block */}
         <div className="bg-gradient-to-b from-slate-900 to-[#102347] rounded-2xl p-6 text-white text-center shadow-lg relative overflow-hidden">
           <div className="absolute right-2 top-2 opacity-10 pointer-events-none">
             <TrendingUp className="w-32 h-32" />
           </div>
 
           <div className="relative z-10 flex flex-col items-center">
-            {/* Logo Badge */}
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 p-0.5 shadow-md flex items-center justify-center mb-3">
               <div className="w-full h-full bg-[#0B1B3A] rounded-[14px] flex items-center justify-center">
                 <Layers className="w-8 h-8 text-amber-400" />
@@ -187,7 +185,6 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3 Trust Badges */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-white border border-borderDefault rounded-xl p-2.5 flex flex-col items-center text-center shadow-xs">
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-brand-primary flex items-center justify-center mb-1.5">
@@ -217,7 +214,6 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Card: About the Application */}
         <Card className="p-4 space-y-2.5 bg-white border border-borderDefault shadow-xs">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
@@ -234,7 +230,6 @@ export const AboutPage: React.FC = () => {
           </p>
         </Card>
 
-        {/* Card: How to use Finance Tracker (6-Step Interactive Guide) */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <Lightbulb className="w-4 h-4 text-emerald-600" />
@@ -286,12 +281,10 @@ export const AboutPage: React.FC = () => {
                     </div>
                   </button>
 
-                  {/* Expanded Guide Content */}
                   {isExpanded && (
                     <div id={`step-content-${s.num}`} role="region" aria-labelledby={`step-header-${s.num}`} className="px-4 pb-4 pt-1 border-t border-borderDefault/60 bg-slate-50/50 space-y-3">
                       <p className="text-xs text-textMuted leading-relaxed">{s.desc}</p>
 
-                      {/* FAM Scoring Rules Table */}
                       {s.famRules && (
                         <div className="space-y-1.5 pt-1">
                           <h5 className="text-[11px] font-bold text-textDefault uppercase tracking-wider">
@@ -322,7 +315,6 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Comprehensive V1 Deliverables List */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <CheckCircle2 className="w-4 h-4 text-brand-primary" />

@@ -156,7 +156,6 @@ describe('Phase 4 Mobile Screens Suite (TASK-4.9)', () => {
     it('fetches monthly report on mount for the selected month', async () => {
       const getSpy = vi.spyOn(apiClient.reports, 'getMonthly').mockResolvedValue(mockReport);
 
-      // Render component
       const element = React.createElement(ReportsScreen);
       expect(element).toBeDefined();
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { goalController } from '../controllers/goalController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { validateBody } from '../middleware/validate.js';
 import { CreateGoalInputSchema, UpdateGoalInputSchema } from '@finance/shared-types';
 
@@ -15,7 +16,7 @@ goalsRouter.get('/', (req, res, next) => {
 });
 
 // POST /api/v1/goals - Create a goal
-goalsRouter.post('/', validateBody(CreateGoalInputSchema), (req, res, next) => {
+goalsRouter.post('/', validateBody(CreateGoalInputSchema), idempotencyMiddleware, (req, res, next) => {
   goalController.createGoal(req, res, next);
 });
 
@@ -25,17 +26,17 @@ goalsRouter.get('/:id', (req, res, next) => {
 });
 
 // PUT /api/v1/goals/:id - Update goal
-goalsRouter.put('/:id', validateBody(UpdateGoalInputSchema), (req, res, next) => {
+goalsRouter.put('/:id', validateBody(UpdateGoalInputSchema), idempotencyMiddleware, (req, res, next) => {
   goalController.updateGoal(req, res, next);
 });
 
 // PATCH /api/v1/goals/:id - Update goal (alias)
-goalsRouter.patch('/:id', validateBody(UpdateGoalInputSchema), (req, res, next) => {
+goalsRouter.patch('/:id', validateBody(UpdateGoalInputSchema), idempotencyMiddleware, (req, res, next) => {
   goalController.updateGoal(req, res, next);
 });
 
 // DELETE /api/v1/goals/:id - Soft-delete goal
-goalsRouter.delete('/:id', (req, res, next) => {
+goalsRouter.delete('/:id', idempotencyMiddleware, (req, res, next) => {
   goalController.deleteGoal(req, res, next);
 });
 

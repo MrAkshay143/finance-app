@@ -23,13 +23,11 @@ export * from './aiAnalysis.js';
 export * from './countries.js';
 export * from './currencies.js';
 
-// Standard pagination constants
 export const DEFAULT_PAGE_SIZE = 15;
 export const MAX_PAGE_SIZE = 100;
 export const PAGE_SIZE_TABLE = 10;
 export const PAGE_SIZE_GRID = 12;
 
-// Default user settings
 export const DEFAULT_USER_SETTINGS = {
   currency: 'INR',
   timezone: 'Asia/Kolkata',

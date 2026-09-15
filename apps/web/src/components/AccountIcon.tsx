@@ -20,10 +20,7 @@ export interface AccountIconProps {
   showNetworkBadge?: boolean;
 }
 
-/**
- * Clean React SVG icon component for each network.
- * Renders crisp vector graphics with no external image fetches or innerHTML.
- */
+// Clean React SVG icon component for each network.
 export const CardNetworkBadgeIcon: React.FC<{ network: CardNetwork; className?: string }> = ({
   network,
   className = 'w-full h-full',
@@ -132,10 +129,7 @@ export const CardNetworkBadgeIcon: React.FC<{ network: CardNetwork; className?: 
   }
 };
 
-/**
- * Custom hook wrapping resolveInstitutionIcon with a 300ms debounce
- * for smooth live-typing preview without excessive probing or re-renders.
- */
+// Wraps resolveInstitutionIcon with debounce for smooth live-typing preview.
 export function useInstitutionIcon(
   institution?: string | null,
   debounceMs = 300
@@ -187,11 +181,7 @@ export interface AccountTypeTheme {
   label: string;
 }
 
-/**
- * Returns crisp semantic Lucide vector icon, container styling, and label for each account type.
- * When an institution logo is unavailable or errors out (e.g. 404 on Google Favicon / DuckDuckGo),
- * this dynamic real icon is displayed as the primary fallback.
- */
+// Returns semantic vector icon, container styling, and label for each account type.
 export function getAccountTypeTheme(
   type?: string,
   iconClassName = 'w-1/2 h-1/2 stroke-[2.2]'
@@ -253,13 +243,7 @@ export function getAccountTypeTheme(
   }
 }
 
-/**
- * AccountIcon component
- * 
- * Dynamically resolves and renders high-res bank / institution logos.
- * If any logo error occurs (e.g. 404 on Google Favicon / DuckDuckGo, broken image, or missing logo),
- * it immediately renders the dynamic real icon as per the account type.
- */
+// Dynamically resolves and renders bank logos with fallback to account type icons.
 export const AccountIcon: React.FC<AccountIconProps> = ({
   institution,
   accountType = 'BANK',
@@ -370,7 +354,6 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
       className={`relative inline-flex items-center justify-center shrink-0 select-none ${sizeClasses.container} ${className}`}
       data-testid="account-icon"
     >
-      {/* 1. Dynamic Real Logo Image when valid & successfully loaded */}
       {canShowLogo ? (
         <div className="w-full h-full rounded-[inherit] overflow-hidden bg-white border border-borderDefault/80 shadow-2xs flex items-center justify-center p-1">
           <img
@@ -385,7 +368,6 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
           />
         </div>
       ) : (
-        /* 2. Dynamic Real Icon Fallback as per Account Type */
         <div
           className={`w-full h-full rounded-[inherit] flex items-center justify-center ${typeTheme.containerClass}`}
           title={institution || typeTheme.label}
@@ -395,7 +377,6 @@ export const AccountIcon: React.FC<AccountIconProps> = ({
         </div>
       )}
 
-      {/* 3. Card Network Overlay Badge for Credit Cards */}
       {showNetworkBadge && cardNetwork && (
         <div
           className={`absolute ${sizeClasses.badge} rounded bg-white shadow-xs border border-borderDefault/90 p-[1px] flex items-center justify-center overflow-hidden z-10`}

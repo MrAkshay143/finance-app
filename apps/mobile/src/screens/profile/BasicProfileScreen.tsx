@@ -199,7 +199,6 @@ export const BasicProfileScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {/* Feedback Banners */}
         {saveSuccess ? (
           <View style={styles.successBanner}>
             <CheckIcon size={16} color={colors.success} />
@@ -214,7 +213,6 @@ export const BasicProfileScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {/* Card 1: Personal Details */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={[styles.headerIconSquare, { backgroundColor: '#EFF4FF' }]}>
@@ -226,7 +224,6 @@ export const BasicProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* First & Last Name Fields */}
           <View style={styles.nameRow}>
             <View style={styles.halfInputGroup}>
               <Text style={styles.inputLabel}>
@@ -267,7 +264,6 @@ export const BasicProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Mobile Number */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
               Mobile Number <Text style={styles.requiredAsterisk}>*</Text>
@@ -279,7 +275,6 @@ export const BasicProfileScreen: React.FC = () => {
             />
           </View>
 
-          {/* Email Address */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
               Email Address <Text style={styles.requiredAsterisk}>*</Text>
@@ -299,7 +294,6 @@ export const BasicProfileScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Date of Birth */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
               Date of Birth <Text style={styles.requiredAsterisk}>*</Text>
@@ -322,7 +316,6 @@ export const BasicProfileScreen: React.FC = () => {
             </Text>
           </View>
 
-          {/* Address */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Address</Text>
             <View style={styles.textAreaWrapper}>
@@ -347,7 +340,6 @@ export const BasicProfileScreen: React.FC = () => {
             <Text style={styles.counterText}>{address.length}/200</Text>
           </View>
 
-          {/* Guidance Callout */}
           <View style={styles.infoCallout}>
             <InfoIcon size={16} color={colors.primary} />
             <Text style={styles.infoCalloutText}>
@@ -356,7 +348,6 @@ export const BasicProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Card 2: Security */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={[styles.headerIconSquare, { backgroundColor: '#FEF0C7' }]}>
@@ -390,7 +381,6 @@ export const BasicProfileScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Save Profile Button */}
         <Pressable
           onPress={handleSave}
           disabled={isSaving}

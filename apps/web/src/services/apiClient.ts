@@ -55,9 +55,7 @@ export const apiClient = new FinanceApiClient({
         localStorage.removeItem('finance-auth-storage');
         localStorage.removeItem('finance_user_cache');
         sessionStorage.removeItem('finance_user_cache');
-      } catch {
-        // Ignore storage access errors
-      }
+      } catch {}
       const currentPath = window.location.pathname;
       if (
         !currentPath.startsWith('/login') &&
@@ -84,9 +82,7 @@ apiClient.rawAxios.interceptors.response.use(
           const msg = error.response?.data?.error?.message;
           useMaintenanceStore.getState().setMaintenance(true, msg);
         }
-      } catch {
-        // Ignore store access errors
-      }
+      } catch {}
     }
     return Promise.reject(error);
   }

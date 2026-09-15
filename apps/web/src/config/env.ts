@@ -1,9 +1,6 @@
 import { resolveServiceUrls, resolveAssetUrl as sharedResolveAssetUrl } from '@finance/api-client';
 
-/**
- * Resolves the root backend server origin (without trailing slash or /api path).
- * Precedence: window.__FINANCE_API_URL__ -> localStorage -> VITE_API_URL -> window.location.origin
- */
+// Resolves backend origin with precedence: __FINANCE_API_URL__ -> localStorage -> VITE_API_URL -> window.location.origin
 export function getBackendOrigin(): string {
   if (typeof window !== 'undefined' && (window as any).__FINANCE_API_URL__) {
     const raw = String((window as any).__FINANCE_API_URL__).trim();
@@ -22,9 +19,7 @@ export function getBackendOrigin(): string {
   return typeof window !== 'undefined' ? window.location.origin : 'https://finance.imakshay.in';
 }
 
-/**
- * Standardized full REST API Base URL with /api/v1 suffix.
- */
+// Standardized full REST API Base URL with /api/v1 suffix.
 export function getApiBaseUrl(): string {
   const origin = getBackendOrigin();
   return `${origin}/api/v1`;
@@ -32,9 +27,7 @@ export function getApiBaseUrl(): string {
 
 export const getApiBase = getApiBaseUrl;
 
-/**
- * Standardized WebSocket Base URL for Socket.IO connections.
- */
+// Standardized WebSocket Base URL for Socket.IO connections.
 export function getSocketBaseUrl(): string {
   if (import.meta.env?.VITE_SOCKET_URL) {
     const raw = String(import.meta.env.VITE_SOCKET_URL).trim();
@@ -43,9 +36,7 @@ export function getSocketBaseUrl(): string {
   return getBackendOrigin();
 }
 
-/**
- * Resolves uploaded assets (e.g. /uploads/avatars/...) to full valid URLs using the backend origin.
- */
+// Resolves uploaded assets to full valid URLs using the backend origin.
 export function resolveAssetUrl(relativePathOrUrl: string | null | undefined): string | undefined {
   return sharedResolveAssetUrl(relativePathOrUrl, getBackendOrigin());
 }

@@ -19,6 +19,10 @@ export function createMockPrisma() {
   const recurringTransactions = new Map<string, any>();
   const notifications = new Map<string, any>();
   const reminders = new Map<string, any>();
+  const idempotencyRecord = new Map<string, any>();
+  const idempotencyKey = idempotencyRecord;
+  const pendingRegistrations = new Map<string, any>();
+  const emailOtps = new Map<string, any>();
 
   function seedSystemCategories() {
     const defaultCategories = [
@@ -77,6 +81,9 @@ export function createMockPrisma() {
     recurringTransactions.clear();
     notifications.clear();
     reminders.clear();
+    idempotencyRecord.clear();
+    pendingRegistrations.clear();
+    emailOtps.clear();
     appSettings.set('max_failed_attempts', { key: 'max_failed_attempts', value: 5 });
     appSettings.set('lockout_duration_minutes', { key: 'lockout_duration_minutes', value: 15 });
     seedSystemCategories();
@@ -102,6 +109,10 @@ export function createMockPrisma() {
       recurringTransactions,
       notifications,
       reminders,
+      idempotencyRecord,
+      idempotencyKey: idempotencyRecord,
+      pendingRegistration: pendingRegistrations,
+      emailOtp: emailOtps,
     },
     user: {
       findUnique: vi.fn(async ({ where, include }: any) => {
@@ -143,11 +154,14 @@ export function createMockPrisma() {
           firstName: data.firstName,
           lastName: data.lastName,
           mobileNumber: data.mobileNumber || '',
+          country: data.country || 'IN',
           role: data.role || 'USER',
           status: data.status || 'ACTIVE',
+          emailVerified: data.emailVerified ?? true,
           failedLoginAttempts: data.failedLoginAttempts ?? 0,
           lockedUntil: data.lockedUntil || null,
           onboardingCompleted: data.onboardingCompleted ?? false,
+          avatarUrl: data.avatarUrl || null,
           lastLoginAt: data.lastLoginAt || null,
           createdAt: now,
           updatedAt: now,
@@ -1571,6 +1585,17 @@ export function createMockPrisma() {
         appSettings.set(where.key, updated);
         return updated;
       }),
+
+      create: vi.fn(async ({ data }: any) => {
+        if (appSettings.has(data.key)) {
+          const err: any = new Error('Unique constraint failed on the fields: (`key`)');
+          err.code = 'P2002';
+          throw err;
+        }
+        const created = { ...data, updatedAt: new Date() };
+        appSettings.set(data.key, created);
+        return created;
+      }),
     },
 
     auditLog: {
@@ -1745,11 +1770,221 @@ export function createMockPrisma() {
       }),
     },
 
+    idempotencyRecord: {
+      create: vi.fn(async ({ data }: any) => {
+        const id = data.id || crypto.randomUUID();
+        const key = `${data.userId}_${data.key}`;
+        if (idempotencyRecord.has(key)) {
+          const err = new Error('Unique constraint failed');
+          (err as any).code = 'P2002';
+          throw err;
+        }
+        const record = {
+          ...data,
+          id,
+          statusCode: data.statusCode ?? null,
+          responseBody: data.responseBody ?? null,
+          createdAt: data.createdAt || new Date(),
+        };
+        idempotencyRecord.set(key, record);
+        return { ...record };
+      }),
+      findUnique: vi.fn(async ({ where }: any) => {
+        const key = `${where.userId_key.userId}_${where.userId_key.key}`;
+        return idempotencyRecord.get(key) || null;
+      }),
+      update: vi.fn(async ({ where, data }: any) => {
+        const key = `${where.userId_key.userId}_${where.userId_key.key}`;
+        const existing = idempotencyRecord.get(key);
+        if (!existing) throw new Error('Not found');
+        const updated = { ...existing, ...data };
+        idempotencyRecord.set(key, updated);
+        return { ...updated };
+      }),
+      delete: vi.fn(async ({ where }: any) => {
+        const key = `${where.userId_key.userId}_${where.userId_key.key}`;
+        const existing = idempotencyRecord.get(key);
+        if (existing) idempotencyRecord.delete(key);
+        return existing || null;
+      }),
+    },
+
+    idempotencyKey: {
+      create: vi.fn(async ({ data }: any) => {
+        const id = data.id || crypto.randomUUID();
+        const key = `${data.userId}_${data.idempotencyKey || data.key}`;
+        if (idempotencyRecord.has(key)) {
+          const err = new Error('Unique constraint failed');
+          (err as any).code = 'P2002';
+          throw err;
+        }
+        const record = { ...data, id, responseStatus: null, responseBody: null, createdAt: new Date() };
+        idempotencyRecord.set(key, record);
+        return { ...record };
+      }),
+      findUnique: vi.fn(async ({ where }: any) => {
+        const uId = where.userId_idempotencyKey?.userId || where.userId_key?.userId;
+        const k = where.userId_idempotencyKey?.idempotencyKey || where.userId_key?.key;
+        const key = `${uId}_${k}`;
+        return idempotencyRecord.get(key) || null;
+      }),
+      update: vi.fn(async ({ where, data }: any) => {
+        const uId = where.userId_idempotencyKey?.userId || where.userId_key?.userId;
+        const k = where.userId_idempotencyKey?.idempotencyKey || where.userId_key?.key;
+        const key = `${uId}_${k}`;
+        const existing = idempotencyRecord.get(key);
+        if (!existing) throw new Error('Not found');
+        const updated = { ...existing, ...data };
+        idempotencyRecord.set(key, updated);
+        return { ...updated };
+      }),
+      delete: vi.fn(async ({ where }: any) => {
+        const uId = where.userId_idempotencyKey?.userId || where.userId_key?.userId;
+        const k = where.userId_idempotencyKey?.idempotencyKey || where.userId_key?.key;
+        const key = `${uId}_${k}`;
+        const existing = idempotencyRecord.get(key);
+        if (existing) idempotencyRecord.delete(key);
+        return existing || null;
+      }),
+    },
+
+    pendingRegistration: {
+      create: vi.fn(async ({ data }: any) => {
+        const id = data.id || crypto.randomUUID();
+        const record = { ...data, id, createdAt: new Date() };
+        pendingRegistrations.set(id, record);
+        return { ...record };
+      }),
+      findUnique: vi.fn(async ({ where }: any) => {
+        if (where.id) return pendingRegistrations.get(where.id) || null;
+        if (where.email) {
+          const norm = where.email.toLowerCase().trim();
+          for (const item of pendingRegistrations.values()) {
+            if (item.email?.toLowerCase().trim() === norm) return item;
+          }
+        }
+        return null;
+      }),
+      update: vi.fn(async ({ where, data }: any) => {
+        let existing: any = null;
+        let existingId: string | null = null;
+        if (where.id) {
+          existing = pendingRegistrations.get(where.id);
+          existingId = where.id;
+        } else if (where.email) {
+          const norm = where.email.toLowerCase().trim();
+          for (const [k, v] of pendingRegistrations.entries()) {
+            if (v.email?.toLowerCase().trim() === norm) {
+              existing = v;
+              existingId = k;
+              break;
+            }
+          }
+        }
+        if (!existing || !existingId) throw new Error('Not found');
+        const updated = { ...existing, ...data };
+        if (data.attempts?.increment) {
+          updated.attempts = (existing.attempts || 0) + data.attempts.increment;
+        }
+        pendingRegistrations.set(existingId, updated);
+        return { ...updated };
+      }),
+      delete: vi.fn(async ({ where }: any) => {
+        let existing: any = null;
+        let existingId: string | null = null;
+        if (where.id) {
+          existing = pendingRegistrations.get(where.id);
+          existingId = where.id;
+        } else if (where.email) {
+          const norm = where.email.toLowerCase().trim();
+          for (const [k, v] of pendingRegistrations.entries()) {
+            if (v.email?.toLowerCase().trim() === norm) {
+              existing = v;
+              existingId = k;
+              break;
+            }
+          }
+        }
+        if (existingId) pendingRegistrations.delete(existingId);
+        return existing || null;
+      }),
+    },
+
+    emailOtp: {
+      create: vi.fn(async ({ data }: any) => {
+        const id = data.id || crypto.randomUUID();
+        const record = {
+          ...data,
+          id,
+          attempts: data.attempts ?? 0,
+          usedAt: null,
+          createdAt: new Date(),
+        };
+        emailOtps.set(id, record);
+        return { ...record };
+      }),
+      findFirst: vi.fn(async ({ where, orderBy }: any) => {
+        let candidates = Array.from(emailOtps.values());
+        if (where?.email) {
+          const norm = where.email.toLowerCase().trim();
+          candidates = candidates.filter((o) => o.email?.toLowerCase().trim() === norm);
+        }
+        if (where?.purpose) {
+          candidates = candidates.filter((o) => o.purpose === where.purpose);
+        }
+        if (where?.usedAt === null) {
+          candidates = candidates.filter((o) => o.usedAt === null || o.usedAt === undefined);
+        }
+        if (where?.expiresAt?.gt) {
+          candidates = candidates.filter((o) => o.expiresAt > where.expiresAt.gt);
+        }
+        if (orderBy?.createdAt === 'desc') {
+          candidates.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        }
+        return candidates[0] || null;
+      }),
+      update: vi.fn(async ({ where, data }: any) => {
+        const existing = emailOtps.get(where.id);
+        if (!existing) throw new Error('Not found');
+        const updated = { ...existing, ...data };
+        if (data.attempts?.increment) {
+          updated.attempts = (existing.attempts || 0) + data.attempts.increment;
+        }
+        emailOtps.set(where.id, updated);
+        return { ...updated };
+      }),
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        let count = 0;
+        for (const [k, v] of emailOtps.entries()) {
+          let match = true;
+          if (where?.id && v.id !== where.id) match = false;
+          if (where?.email && v.email?.toLowerCase().trim() !== where.email.toLowerCase().trim()) match = false;
+          if (where?.purpose && v.purpose !== where.purpose) match = false;
+          if (where?.usedAt === null && v.usedAt !== null && v.usedAt !== undefined) match = false;
+          if (where?.expiresAt?.gt && !(v.expiresAt > where.expiresAt.gt)) match = false;
+          if (where?.attempts?.lte !== undefined && (v.attempts || 0) > where.attempts.lte) match = false;
+          if (match) {
+            emailOtps.set(k, { ...v, ...data });
+            count++;
+          }
+        }
+        return { count };
+      }),
+    },
+
     $transaction: vi.fn(async (cbOrPromises: any) => {
       if (typeof cbOrPromises === 'function') {
         return cbOrPromises(mockPrisma);
       }
       return Promise.all(cbOrPromises);
+    }),
+
+    $queryRawUnsafe: vi.fn(async (...args: any[]) => {
+      return [];
+    }),
+
+    $executeRawUnsafe: vi.fn(async (...args: any[]) => {
+      return 0;
     }),
   };
 

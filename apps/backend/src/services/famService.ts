@@ -147,10 +147,7 @@ export function calculateFamScore({
   const invested = Number(investedPaise) / 100;
   const earned = Number(earnedPaise) / 100;
 
-  // Not Available check:
-  // 1. Basic profile incomplete
-  // 2. Targets are 0 / unset
-  // 3. 0 transactions exist this month
+  // FAM score unavailable if profile incomplete, targets unset, or no monthly transactions
   const targetsSet =
     expenseTargetPaise > BigInt(0) &&
     investmentTargetPaise > BigInt(0) &&
@@ -360,10 +357,7 @@ export function calculateFamScore({
 }
 
 export class FamService {
-  /**
-   * Fetches user profile, settings, and actual transaction totals for current financial month,
-   * then computes the complete FAM score.
-   */
+  // Fetches user profile, settings, and actual transaction totals for current financial month, then computes the complete FAM score.
   async getFamScore(
     userId: string,
     options?: { month?: number; year?: number; refDate?: Date }
@@ -440,7 +434,6 @@ export class FamService {
         },
       }),
     ]);
-
 
     const spentPaise = spentAgg?._sum?.amount ?? BigInt(0);
     const investedPaise = investedAgg?._sum?.amount ?? BigInt(0);

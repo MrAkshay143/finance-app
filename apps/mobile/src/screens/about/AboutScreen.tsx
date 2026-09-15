@@ -138,7 +138,6 @@ export const AboutScreen: React.FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Block */}
         <View style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroIconSquare}>
@@ -159,7 +158,6 @@ export const AboutScreen: React.FC = () => {
           </Text>
         </View>
 
-        {/* 3 Trust Badges */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>CORE ARCHITECTURAL PILLARS</Text>
           <View style={styles.badgesColumn}>
@@ -175,7 +173,6 @@ export const AboutScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 6-Step Interactive Guide */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeaderRow}>
             <BookOpenIcon size={18} color={colors.primary} />
@@ -242,7 +239,6 @@ export const AboutScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* FAM Score Methodology */}
         <View style={styles.famCard}>
           <View style={styles.famHeaderRow}>
             <AwardIcon size={20} color={colors.primary} />
@@ -253,7 +249,6 @@ export const AboutScreen: React.FC = () => {
           </Text>
 
           <View style={styles.famRulesList}>
-            {/* Expense rule */}
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>1. Expense Grade (Lower is Better)</Text>
               <Text style={styles.ruleFormula}>Ratio = actual living expenses ÷ expense target</Text>
@@ -270,7 +265,6 @@ export const AboutScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Investment rule */}
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>2. Investment Grade (Higher is Better)</Text>
               <Text style={styles.ruleFormula}>Ratio = actual invested amount ÷ investment target</Text>
@@ -287,7 +281,6 @@ export const AboutScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Income rule */}
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>3. Income Grade (Higher is Better)</Text>
               <Text style={styles.ruleFormula}>Ratio = actual earned income ÷ income target</Text>
@@ -314,7 +307,6 @@ export const AboutScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Full V1 Deliverables List */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>WHAT FINANCE TRACKER DELIVERS IN V1</Text>
           <View style={styles.card}>

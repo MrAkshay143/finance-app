@@ -73,7 +73,7 @@ export function createApp(): Express {
   // 7. Rate limiter (Redis-backed with in-memory fallback)
   app.use(rateLimiter);
 
-  // Prometheus metrics endpoint per Plan/architecture.md Section 10
+  // Prometheus metrics endpoint
   app.get('/metrics', optionalAuthenticate, async (req: Request, res: Response) => {
     // Basic IP restriction or auth for metrics
     if (
@@ -118,7 +118,7 @@ export function createApp(): Express {
     });
   });
 
-  // Health and readiness endpoints per Plan/architecture.md Section 10
+  // Health and readiness endpoints
   app.get(['/health', '/healthz'], (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok' });
   });
@@ -195,7 +195,6 @@ export function createApp(): Express {
   // Catch-all 404 handler for unknown routes
   app.use(notFoundHandler);
 
-  // 8. Standard Error Handler (converts to envelope, never leaks stack traces)
   app.use(errorHandler);
 
   return app;

@@ -148,7 +148,6 @@ export class DashboardService {
       },
     });
 
-
     let totalExpensePaise = BigInt(0);
     const categoryTotals = new Map<
       string,
@@ -205,7 +204,6 @@ export class DashboardService {
         category: true,
       },
     });
-
 
     let totalIncomePaise = BigInt(0);
     const incomeCategoryTotals = new Map<

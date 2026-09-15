@@ -5,12 +5,14 @@ import { CurrencyCodeSchema, type CurrencyCode } from './currencies.js';
 
 export const PASSWORD_REQUIREMENTS_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
+// PasswordSchema is a structural/sanity guard only — minimum 8 characters.
+// Actual complexity rules (uppercase, lowercase, digit, special) are enforced
+// dynamically by the backend passwordPolicyService, which reads admin-configured
+// settings. Do NOT add hardcoded regex checks here as they would conflict with
+// admin-configurable policy.
 export const PasswordSchema = z
   .string()
-  .min(8, 'Password must be at least 8 characters')
-  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number');
+  .min(8, 'Password must be at least 8 characters');
 
 export const AVAILABLE_SECURITY_QUESTIONS = [
   { key: 'first_pet', question: 'What was the name of your first pet?', text: 'What was the name of your first pet?' },
@@ -65,6 +67,7 @@ export const AuthUserSchema = z.object({
   status: UserStatusSchema,
   avatarUrl: z.string().nullable().optional(),
   onboardingCompleted: z.boolean().optional(),
+  emailVerified: z.boolean().optional(),
 });
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 
@@ -159,7 +162,31 @@ export const SendRegistrationOtpInputSchema = z.object({
 export type SendRegistrationOtpInput = z.infer<typeof SendRegistrationOtpInputSchema>;
 
 export const VerifyRegistrationOtpInputSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').optional(),
+  pendingRegistrationId: z.string().optional(),
   otp: z.string().min(6, 'OTP must be 6 characters').max(6, 'OTP must be 6 characters'),
 });
 export type VerifyRegistrationOtpInput = z.infer<typeof VerifyRegistrationOtpInputSchema>;
+
+export const InitiateRegistrationInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+export type InitiateRegistrationInput = z.infer<typeof InitiateRegistrationInputSchema>;
+
+export const VerifyRegistrationEmailInputSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  otp: z.string().min(6, 'OTP must be 6 characters').max(6, 'OTP must be 6 characters'),
+});
+export type VerifyRegistrationEmailInput = z.infer<typeof VerifyRegistrationEmailInputSchema>;
+
+export const CompleteRegistrationInputSchema = z.object({
+  registrationToken: z.string().min(1, 'Registration token is required'),
+  password: PasswordSchema,
+  fullName: z.string().min(1, 'Full name is required'),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  country: z.string().optional(),
+  currency: z.string().optional(),
+  mobileNumber: z.string().optional(),
+});
+export type CompleteRegistrationInput = z.infer<typeof CompleteRegistrationInputSchema>;

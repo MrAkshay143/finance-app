@@ -109,7 +109,6 @@ export const ExportPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Header summary */}
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-5 bg-brand-primary rounded-full" />
@@ -120,7 +119,6 @@ export const ExportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Compact Format Selector */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-textDefault px-1">Select File Format</label>
           <div className="grid grid-cols-2 gap-2">
@@ -170,7 +168,6 @@ export const ExportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Included Data Scope */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 px-1">
             <ShieldCheck className="w-4 h-4 text-brand-primary" />
@@ -196,7 +193,6 @@ export const ExportPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Download Button */}
         <Button
           variant="primary"
           size="md"

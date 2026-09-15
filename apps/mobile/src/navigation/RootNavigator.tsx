@@ -76,17 +76,13 @@ export const RootNavigator: React.FC = () => {
           headerShown: false,
         }}
       >
-        {/* Auth Stack */}
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
 
-        {/* Onboarding Stack */}
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
 
-        {/* Main 5-item App Shell */}
         <Stack.Screen name="MainTabs" component={TabNavigator} />
 
-        {/* Accounts, Planning & Categories Detail Screens */}
         <Stack.Screen name="Accounts" component={AccountsScreen} />
         <Stack.Screen name="Planning" component={PlanningScreen} />
         <Stack.Screen name="Categories" component={CategoriesScreen} />
@@ -94,10 +90,8 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="BasicProfile" component={BasicProfileScreen} />
         <Stack.Screen name="FinanceProfile" component={FinanceProfileScreen} />
 
-        {/* Security Stack */}
         <Stack.Screen name="SecurityQuestions" component={SecurityQuestionsScreen} />
 
-        {/* Phase 4 Analytics, Reports, Notifications, Investments, Recurring & AI Screens */}
         <Stack.Screen name="Reports" component={ReportsScreen} />
         <Stack.Screen name="Analytics" component={AnalyticsScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
@@ -105,7 +99,6 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="Recurring" component={RecurringScreen} />
         <Stack.Screen name="AiAnalysis" component={AiAnalysisScreen} />
 
-        {/* Phase 5 Settings, Admin, Audit, About & Import/Export Screens */}
         <Stack.Screen name="Menu" component={MenuScreen} />
         <Stack.Screen name="About" component={AboutScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
@@ -117,7 +110,6 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="Import" component={ImportScreen} />
         <Stack.Screen name="Export" component={ExportScreen} />
 
-        {/* Modal Presentation */}
         <Stack.Screen
           name="AddTransactionModal"
           component={AddTransactionModalScreen}

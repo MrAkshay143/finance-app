@@ -1,7 +1,4 @@
-/**
- * Stopwords to filter out during institution name normalization.
- * Stripping these leaves the core distinctive token (e.g. "HDFC Salary Account" -> "hdfc").
- */
+// Common corporate words ignored during banking name similarity matching.
 export const INSTITUTION_STOPWORDS: string[] = [
   'bank',
   'banking',

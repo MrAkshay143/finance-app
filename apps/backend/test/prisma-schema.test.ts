@@ -38,12 +38,13 @@ describe('Prisma Schema & Model Verification', () => {
       'AppSetting',
       'UserSettings',
       'EmailOtp',
+      'IdempotencyRecord',
     ];
 
     for (const model of expectedModels) {
       expect(modelNames).toContain(model);
     }
-    expect(modelNames.length).toBe(18);
+    expect(modelNames.length).toBe(19);
   });
 
   it('exposes all required delegates on PrismaClient instance', () => {
@@ -65,6 +66,7 @@ describe('Prisma Schema & Model Verification', () => {
     expect(typeof client.auditLog).toBe('object');
     expect(typeof client.appSetting).toBe('object');
     expect(typeof client.userSettings).toBe('object');
+    expect(typeof (client as any).idempotencyRecord).toBe('object');
   });
 
   it('verifies all specified enum values', () => {

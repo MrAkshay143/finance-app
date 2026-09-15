@@ -146,7 +146,6 @@ export const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Dark Navy Header */}
       <AppHeader
         variant="root"
         
@@ -154,17 +153,14 @@ export const AnalyticsPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* Title row with blue vertical bar accent, date range indicator, and period dropdown */}
         <div className="flex items-center justify-between gap-2 pt-1">
           <div className="min-w-0">
             <div className="flex items-center">
-              {/* Blue vertical accent bar */}
               <div className="w-1 h-6 bg-brand-primary rounded-full mr-2 shrink-0" />
               <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">
                 Analytics
               </h1>
             </div>
-            {/* Calendar date range indicator */}
             <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1 pl-3 font-medium">
               <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span className="truncate">{dateRangeLabel}</span>
@@ -172,7 +168,6 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Period Dropdown */}
           <div className="relative shrink-0 w-32 sm:w-36">
             <CustomDropdown
               size="sm"
@@ -200,7 +195,6 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Account Filter Chips */}
         {accounts.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
@@ -243,7 +237,6 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Selected Account Context Banner */}
         {selectedAccount && (
           <div className="flex items-center justify-between p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -279,10 +272,8 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Dismissible Insight Banner */}
         {!isBannerDismissed && !onboardingCompleted && (
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-100/90 via-blue-50/70 to-indigo-50/80 border border-blue-200/80 p-4 shadow-sm">
-            {/* Dismiss Button */}
             <button
               type="button"
               onClick={() => setIsBannerDismissed(true)}
@@ -316,28 +307,24 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Vector Document Illustration with Progress Ring */}
               <div className="relative shrink-0 pr-2">
                 <div className="w-24 h-28 bg-white/90 rounded-xl border border-blue-200 shadow-sm p-2 flex flex-col justify-between">
                   <div className="space-y-1.5">
                     <div className="w-8 h-1 bg-slate-200 rounded" />
                     <div className="w-12 h-1 bg-slate-200 rounded" />
                   </div>
-                  {/* Mini Bars */}
                   <div className="flex items-end gap-1 h-8 px-1">
                     <div className="w-2 bg-brand-primary rounded-t" style={{ height: '50%' }} />
                     <div className="w-2 bg-brand-primary rounded-t" style={{ height: '80%' }} />
                     <div className="w-2 bg-blue-300 rounded-t" style={{ height: '65%' }} />
                     <div className="w-2 bg-blue-400 rounded-t" style={{ height: '95%' }} />
                   </div>
-                  {/* Donut Badge */}
                   <div className="flex justify-center">
                     <div className="w-9 h-9 rounded-full border-4 border-emerald-400 border-t-brand-primary flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-brand-primary" />
                     </div>
                   </div>
                 </div>
-                {/* Handwritten note decoration */}
                 <div className="absolute -top-1 -right-3 rotate-12 text-[9px] font-bold text-brand-primary leading-tight">
                   Know<br />your money<br />Better!
                 </div>
@@ -346,9 +333,7 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         )}
 
-        {/* 3 Stat Cards Side-by-Side: Income, Expenses, Saved */}
         <div className="grid grid-cols-3 gap-2.5">
-          {/* 1. Income Card */}
           <div className="bg-[#ECFDF5] border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
@@ -366,7 +351,6 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Expenses Card */}
           <div className="bg-[#FEF2F2] border border-rose-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
@@ -384,7 +368,6 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 3. Saved Card */}
           <div className="bg-[#EEF4FF] border border-blue-100 rounded-2xl p-3 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-1.5">
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-brand-primary">
@@ -404,10 +387,8 @@ export const AnalyticsPage: React.FC = () => {
 
         </div>
 
-        {/* Savings Rate Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm">
           <div className="flex items-center divide-x divide-slate-100">
-            {/* Left side: Percentage & Progress Bar */}
             <div className="flex-1 pr-4 space-y-2">
               <div className="flex items-center gap-1 text-xs font-bold text-slate-800">
                 <span>Savings Rate</span>
@@ -431,7 +412,6 @@ export const AnalyticsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right side: Plant vector badge + Callout */}
             <div className="flex-1 pl-4 flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
                 <Sprout className="w-6 h-6 stroke-[2.2]" />
@@ -445,7 +425,6 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* 6-Month Spending Trend Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -471,10 +450,8 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Trend Chart with Dynamic Y-Axis lines based on real max ceiling */}
           <div className="pt-2">
             <div className="relative h-44 flex flex-col justify-between text-[10px] text-slate-400">
-              {/* Dynamic Horizontal Grid lines */}
               {gridSteps.map((stepVal, idx) => (
                 <div
                   key={idx}
@@ -488,7 +465,6 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
               ))}
 
-              {/* Data Bars or Empty State */}
               {hasSpendingTrendData ? (
                 <div className="absolute inset-0 pl-10 pr-2 pt-2 flex items-end justify-between gap-3">
                   {displayedTrends.map((trend) => {
@@ -519,7 +495,6 @@ export const AnalyticsPage: React.FC = () => {
               )}
             </div>
 
-            {/* X-axis labels if empty state */}
             {!hasSpendingTrendData && (
               <div className="flex justify-between text-[10px] text-slate-500 pt-2 px-3">
                 {emptyTrendMonths.map((m, idx) => (
@@ -530,10 +505,8 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Category Breakdown Card */}
         <Card padding="md" className="bg-white border-slate-200 shadow-sm space-y-3">
           <div className="space-y-2.5">
-            {/* Row 1: Title (left) & Month Dropdown (right) */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center text-brand-primary">
@@ -558,7 +531,6 @@ export const AnalyticsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 2: Full-width Segmented Expenses / Income / Investment Toggle */}
             <div className="flex w-full rounded-lg bg-slate-100 p-0.5 border border-slate-200/60">
               <button
                 type="button"
@@ -596,7 +568,6 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Category Content: Chart + List or Empty State */}
           {hasCategoryData ? (
             <div className="space-y-3 pt-1">
               {activeCategoryBreakdown.map((cat, idx) => {
@@ -626,7 +597,6 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center justify-between py-4 px-2">
-              {/* Circular placeholder half-ring */}
               <div className="relative w-24 h-24 flex items-center justify-center">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                   <circle
@@ -641,7 +611,6 @@ export const AnalyticsPage: React.FC = () => {
                 </svg>
               </div>
 
-              {/* Text Callout */}
               <div className="flex-1 pl-6 space-y-1">
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 mb-1">
                   <FileText className="w-4 h-4" />

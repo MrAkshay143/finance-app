@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { apiClient } from '../services/apiClient.js';
 
+export interface PasswordPolicy {
+  minLength: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireDigit: boolean;
+  requireSpecial: boolean;
+}
+
 export interface PublicAppConfig {
   platformName: string;
   supportEmail: string;
@@ -9,7 +17,16 @@ export interface PublicAppConfig {
   maintenanceMode: boolean;
   defaultBaseCurrency: string;
   defaultCountry: string;
+  passwordPolicy: PasswordPolicy;
 }
+
+const defaultPasswordPolicy: PasswordPolicy = {
+  minLength: 8,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireDigit: true,
+  requireSpecial: false,
+};
 
 interface ConfigState extends PublicAppConfig {
   isLoaded: boolean;
@@ -24,6 +41,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   maintenanceMode: false,
   defaultBaseCurrency: 'INR',
   defaultCountry: 'IN',
+  passwordPolicy: defaultPasswordPolicy,
   isLoaded: false,
   fetchConfig: async () => {
     try {
@@ -39,6 +57,18 @@ export const useConfigStore = create<ConfigState>((set) => ({
         const defaultBaseCurrency = cfg.defaultBaseCurrency || 'INR';
         const defaultCountry = cfg.defaultCountry || 'IN';
 
+        // Merge server policy with safe defaults — server wins on any truthy override
+        const rawPolicy = cfg.passwordPolicy;
+        const passwordPolicy: PasswordPolicy = rawPolicy && typeof rawPolicy === 'object'
+          ? {
+              minLength: typeof rawPolicy.minLength === 'number' ? rawPolicy.minLength : defaultPasswordPolicy.minLength,
+              requireUppercase: rawPolicy.requireUppercase ?? defaultPasswordPolicy.requireUppercase,
+              requireLowercase: rawPolicy.requireLowercase ?? defaultPasswordPolicy.requireLowercase,
+              requireDigit: rawPolicy.requireDigit ?? defaultPasswordPolicy.requireDigit,
+              requireSpecial: rawPolicy.requireSpecial ?? defaultPasswordPolicy.requireSpecial,
+            }
+          : defaultPasswordPolicy;
+
         set({
           platformName,
           supportEmail,
@@ -47,10 +77,10 @@ export const useConfigStore = create<ConfigState>((set) => ({
           maintenanceMode,
           defaultBaseCurrency,
           defaultCountry,
+          passwordPolicy,
           isLoaded: true,
         });
 
-        // Update document title dynamically
         if (typeof document !== 'undefined' && platformName) {
           document.title = platformName;
         }
@@ -61,9 +91,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   },
 }));
 
-/**
- * Convenience hook for accessing centralized platform config anywhere in React.
- */
+// Convenience hook for accessing centralized platform config.
 export function useAppConfig(): ConfigState {
   return useConfigStore();
 }

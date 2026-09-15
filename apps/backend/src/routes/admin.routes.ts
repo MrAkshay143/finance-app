@@ -80,4 +80,8 @@ adminRouter.put('/categories/:id', (req, res, next) => adminController.updateSys
 adminRouter.patch('/categories/:id', (req, res, next) => adminController.updateSystemCategory(req, res, next));
 adminRouter.delete('/categories/:id', (req, res, next) => adminController.deleteSystemCategory(req, res, next));
 
+// Email Templates Management
+adminRouter.get('/email-templates', (req, res, next) => adminController.getEmailTemplates(req, res, next));
+adminRouter.put('/email-templates/:key', (req, res, next) => adminController.updateEmailTemplate(req, res, next));
+
 export default adminRouter;

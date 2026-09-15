@@ -238,7 +238,6 @@ export const ManageUserOverviewPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* User Profile Card */}
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-blue-50/70 border border-blue-100 rounded-2xl p-5 shadow-card flex items-center justify-between gap-3">
           <div className="flex items-center gap-4 min-w-0">
             <div className="relative shrink-0">
@@ -283,9 +282,7 @@ export const ManageUserOverviewPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Metadata Details Card */}
         <Card padding="none" className="bg-white border border-borderDefault shadow-card divide-y divide-borderDefault overflow-hidden">
-          {/* Email */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
@@ -310,7 +307,6 @@ export const ManageUserOverviewPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Joined Date */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
@@ -325,7 +321,6 @@ export const ManageUserOverviewPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Last Login */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -340,7 +335,6 @@ export const ManageUserOverviewPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Onboarding */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -364,7 +358,6 @@ export const ManageUserOverviewPage: React.FC = () => {
             </span>
           </div>
 
-          {/* User ID */}
           <div className="p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
@@ -392,13 +385,11 @@ export const ManageUserOverviewPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Account Actions (2x2 grid) */}
         <div className="space-y-1.5">
           <h3 className="text-xs font-bold text-textDefault">Account Actions</h3>
           <p className="text-[11px] text-textMuted">Manage this user&apos;s access, role and security.</p>
 
           <div className="grid grid-cols-2 gap-2.5 pt-1">
-            {/* Disable / Enable User */}
             <button
               type="button"
               onClick={() =>
@@ -424,7 +415,6 @@ export const ManageUserOverviewPage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
             </button>
 
-            {/* Make / Remove Admin */}
             <button
               type="button"
               onClick={() =>
@@ -446,7 +436,6 @@ export const ManageUserOverviewPage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
             </button>
 
-            {/* Reset Password */}
             <button
               type="button"
               onClick={() => resetPasswordMutation.mutate()}
@@ -466,7 +455,6 @@ export const ManageUserOverviewPage: React.FC = () => {
               <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
             </button>
 
-            {/* Reset KBA */}
             <button
               type="button"
               onClick={() => resetKbaMutation.mutate()}
@@ -488,7 +476,6 @@ export const ManageUserOverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Danger Zone */}
         <div className="space-y-1.5">
           <div className="p-4 bg-rose-50/50 border border-rose-200/70 rounded-2xl space-y-3">
             <div className="flex items-center gap-2 text-rose-700">
@@ -516,7 +503,6 @@ export const ManageUserOverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigate to 3 Tabs Page */}
         <Button
           variant="outline"
           size="md"
@@ -528,7 +514,6 @@ export const ManageUserOverviewPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Edit User Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -590,7 +575,6 @@ export const ManageUserOverviewPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Temp Password Generated Modal */}
       <Modal
         isOpen={!!tempPasswordModal}
         onClose={() => setTempPasswordModal(null)}
@@ -625,7 +609,6 @@ export const ManageUserOverviewPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Delete User Modal */}
       {(() => {
         const dialogDef = CONFIRM_DIALOGS.admin.softDeleteUser(user.email);
         return (

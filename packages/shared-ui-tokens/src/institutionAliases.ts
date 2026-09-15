@@ -1,12 +1,6 @@
-/**
- * Canonical domain -> array of lowercase aliases for institutions.
- * Covers Indian public sector banks, private banks, payments/SFBs, global banks,
- * NBFCs, and investment platforms.
- */
+// Catalog of verified institutions and search alias mappings.
 export const INSTITUTION_ALIASES: Record<string, string[]> = {
-  // --------------------------------------------------------------------------
   // Indian Public Sector Banks
-  // --------------------------------------------------------------------------
   'sbi.co.in': [
     'sbi',
     'state bank of india',
@@ -86,9 +80,7 @@ export const INSTITUTION_ALIASES: Record<string, string[]> = {
     'punjab and sind',
   ],
 
-  // --------------------------------------------------------------------------
   // Indian Private Banks
-  // --------------------------------------------------------------------------
   'hdfcbank.com': [
     'hdfc',
     'hdfc bank',
@@ -178,9 +170,7 @@ export const INSTITUTION_ALIASES: Record<string, string[]> = {
     'tamilnad mercantile',
   ],
 
-  // --------------------------------------------------------------------------
   // Small Finance & Payments Banks
-  // --------------------------------------------------------------------------
   'aubank.in': [
     'au',
     'au bank',
@@ -249,9 +239,7 @@ export const INSTITUTION_ALIASES: Record<string, string[]> = {
     'jio payment bank',
   ],
 
-  // --------------------------------------------------------------------------
   // Global Banks
-  // --------------------------------------------------------------------------
   'chase.com': [
     'chase',
     'jp morgan',
@@ -304,9 +292,7 @@ export const INSTITUTION_ALIASES: Record<string, string[]> = {
     'transferwise',
   ],
 
-  // --------------------------------------------------------------------------
   // NBFCs
-  // --------------------------------------------------------------------------
   'bajajfinserv.in': [
     'bajaj finance',
     'bajaj finserv',
@@ -355,9 +341,7 @@ export const INSTITUTION_ALIASES: Record<string, string[]> = {
     'poonawala',
   ],
 
-  // --------------------------------------------------------------------------
   // Investment Platforms
-  // --------------------------------------------------------------------------
   'zerodha.com': [
     'zerodha',
     'kite',

@@ -179,9 +179,7 @@ export const CategoriesScreen: React.FC = () => {
         }
       />
 
-      {/* Filter Tabs & Search Header */}
       <View style={styles.topControlContainer}>
-        {/* Search Bar */}
         <View style={styles.searchBar}>
           <SearchIcon size={16} color={colors.textMuted} />
           <TextInput
@@ -193,7 +191,6 @@ export const CategoriesScreen: React.FC = () => {
           />
         </View>
 
-        {/* Filter Pills */}
         <View style={styles.filterPillsRow}>
           {(['ALL', 'EXPENSE', 'INCOME', 'INVESTMENT'] as CategoryFilterType[]).map((tab) => {
             const isSelected = filter === tab;
@@ -243,7 +240,6 @@ export const CategoriesScreen: React.FC = () => {
           />
         }
       >
-        {/* Error Banner */}
         {error && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorText}>{error}</Text>
@@ -309,17 +305,14 @@ export const CategoriesScreen: React.FC = () => {
               return (
                 <View key={cat.id} style={styles.categoryCard}>
                   <View style={styles.cardLeft}>
-                    {/* Drag Reorder Affordance */}
                     <View style={styles.dragHandle}>
                       <GripVerticalIcon size={16} color="#98A2B3" />
                     </View>
 
-                    {/* Tag Icon Box */}
                     <View style={[styles.tagIconBox, { backgroundColor: tagBg }]}>
                       <TagIcon size={16} color={tagColor} />
                     </View>
 
-                    {/* Name & Type */}
                     <View style={styles.catInfoCol}>
                       <Text style={styles.catName} numberOfLines={1}>
                         {cat.name}
@@ -328,7 +321,6 @@ export const CategoriesScreen: React.FC = () => {
                     </View>
                   </View>
 
-                  {/* Right Actions / System Badge */}
                   <View style={styles.cardRight}>
                     {cat.isSystem ? (
                       <View style={styles.systemBadge}>
@@ -368,7 +360,6 @@ export const CategoriesScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* Add / Edit Category Modal */}
       <Modal
         visible={showModal}
         transparent
@@ -410,7 +401,6 @@ export const CategoriesScreen: React.FC = () => {
               )}
 
               <View style={styles.modalForm}>
-                {/* Category Name */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Category Name *</Text>
                   <TextInput
@@ -422,7 +412,6 @@ export const CategoriesScreen: React.FC = () => {
                   />
                 </View>
 
-                {/* Category Type */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Transaction Classification Type *</Text>
                   <View style={styles.typeSelectorRow}>

@@ -75,7 +75,6 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
           </View>
         ) : (
           <View style={styles.rootLeftContainer}>
-            {/* Square rounded app icon */}
             <View style={styles.appIconSquare}>
               <Text style={styles.appIconText}>FT</Text>
             </View>
@@ -90,10 +89,8 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
           </View>
         )}
 
-        {/* Right side controls */}
         {variant === 'root' ? (
           <View style={styles.rootRightControls}>
-            {/* Notification Bell with unread badge */}
             <Pressable
               onPress={onNotificationPress}
               accessible={true}
@@ -112,7 +109,6 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
               )}
             </Pressable>
 
-            {/* Circular avatar with two-tone green/blue progress ring */}
             <Pressable
               onPress={onAvatarPress}
               accessible={true}

@@ -115,7 +115,6 @@ describe('Mobile Auth, Profile & Security Suite (TASK-1.4)', () => {
     });
 
     it('logs out, clears secure storage tokens, and resets session state', async () => {
-      // Set initial session
       await secureStorage.saveTokens({
         accessToken: 'active-token',
         refreshToken: 'active-refresh',

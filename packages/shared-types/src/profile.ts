@@ -14,6 +14,7 @@ export const UserProfileSchema = z.object({
   avatarUrl: z.string().nullable().optional(),
   onboardingCompleted: z.boolean(),
   kbaConfigured: z.boolean(),
+  emailVerified: z.boolean().optional(),
   createdAt: z.string(),
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;

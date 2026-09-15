@@ -7,7 +7,6 @@ export interface FormattedAuditAction {
 }
 
 const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: string; description?: string }> = {
-  // Authentication & Session
   AUTH_LOGIN: {
     title: 'User Sign In',
     category: 'Auth',
@@ -87,7 +86,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Password reset procedure finished successfully',
   },
 
-  // Security Questions (KBA)
   SECURITY_QUESTIONS_CONFIGURED: {
     title: 'Security Questions Set Up',
     category: 'Security',
@@ -131,7 +129,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Security questions locked due to repeated failures',
   },
 
-  // Profile & User Settings
   PROFILE_AVATAR_UPDATE: {
     title: 'Profile Photo Updated',
     category: 'Profile',
@@ -157,7 +154,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'User application preferences saved',
   },
 
-  // Financial Accounts
   ACCOUNT_CREATE: {
     title: 'Financial Account Added',
     category: 'Accounts',
@@ -189,7 +185,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Financial account permanently closed',
   },
 
-  // Transactions & Transfers
   TRANSACTION_CREATE: {
     title: 'Transaction Recorded',
     category: 'Transactions',
@@ -221,7 +216,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Account transfer record deleted',
   },
 
-  // Categories
   CATEGORY_CREATE: {
     title: 'Category Created',
     category: 'Categories',
@@ -247,7 +241,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Display order of categories modified',
   },
 
-  // Merchants
   MERCHANT_CREATE: {
     title: 'Merchant Added',
     category: 'Merchants',
@@ -267,7 +260,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Merchant removed from directory',
   },
 
-  // Budgets
   BUDGET_CREATE: {
     title: 'Budget Established',
     category: 'Budgets',
@@ -287,7 +279,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Budget limit deleted',
   },
 
-  // Goals
   GOAL_CREATE: {
     title: 'Savings Goal Created',
     category: 'Goals',
@@ -307,7 +298,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Savings goal removed',
   },
 
-  // Recurring Transactions
   RECURRING_TRANSACTION_CREATE: {
     title: 'Recurring Schedule Added',
     category: 'Transactions',
@@ -321,7 +311,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Scheduled transaction posted to account',
   },
 
-  // Administration
   ADMIN_USER_UPDATE: {
     title: 'User Details Updated',
     category: 'Admin',
@@ -425,7 +414,6 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     description: 'Historical audit logs cleared',
   },
 
-  // Data Import / Export
   DATA_EXPORT: {
     title: 'Data Archive Exported',
     category: 'Data',
@@ -456,9 +444,7 @@ export function getAuditBadgeClasses(badgeColor: string): string {
   return BADGE_COLOR_CLASSES[badgeColor] || BADGE_COLOR_CLASSES.slate;
 }
 
-/**
- * Fallback Title-case generator: ACTION_NAME -> Action Name
- */
+// Fallback Title-case generator: ACTION_NAME -> Action Name
 function toTitleCase(action: string): string {
   if (!action) return 'System Event';
   return action
@@ -468,10 +454,7 @@ function toTitleCase(action: string): string {
     .join(' ');
 }
 
-/**
- * Maps raw backend uppercase action strings into polished human-readable titles,
- * categories, badge colors, and descriptions.
- */
+// Maps raw backend uppercase action strings into titles, categories, badge colors, and descriptions.
 export function formatAuditAction(action: string): {
   title: string;
   category: string;
@@ -522,16 +505,12 @@ export function formatAuditAction(action: string): {
   };
 }
 
-/**
- * Convenience helper returning just the human-readable action label.
- */
+// Convenience helper returning just the human-readable action label.
 export function formatAuditActionLabel(action: string): string {
   return formatAuditAction(action).title;
 }
 
-/**
- * Returns badge styling for an audit category.
- */
+// Returns badge styling for an audit category.
 export function getAuditCategoryBadge(category?: string): {
   label: string;
   className: string;

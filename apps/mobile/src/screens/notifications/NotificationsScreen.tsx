@@ -239,7 +239,6 @@ export const NotificationsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 12 : 20 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -278,7 +277,6 @@ export const NotificationsScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Filter Pills */}
         <View style={styles.filterPillsRow}>
           {(['all', 'unread', 'read'] as NotificationFilter[]).map((tab) => {
             const isSelected = filter === tab;
@@ -321,7 +319,6 @@ export const NotificationsScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Due-Date Reminders Card */}
         <View style={styles.reminderCard}>
           <View style={styles.reminderCardHeader}>
             <View style={styles.reminderTitleWrap}>
@@ -380,7 +377,6 @@ export const NotificationsScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Notifications List Header */}
         <View style={styles.listHeaderRow}>
           <Text style={styles.listHeading}>ALERTS & NOTIFICATIONS</Text>
           <Text style={styles.listCountText}>
@@ -420,10 +416,8 @@ export const NotificationsScreen: React.FC = () => {
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title}, ${item.read ? 'read' : 'unread'}`}
               >
-                {/* Unread indicator dot */}
                 {!item.read && <View style={styles.unreadDot} />}
 
-                {/* Category Icon */}
                 <View
                   style={[
                     styles.notifIconContainer,
@@ -433,7 +427,6 @@ export const NotificationsScreen: React.FC = () => {
                   {getNotificationIcon(item.type)}
                 </View>
 
-                {/* Content */}
                 <View style={styles.notifContent}>
                   <View style={styles.notifHeaderRow}>
                     <Text

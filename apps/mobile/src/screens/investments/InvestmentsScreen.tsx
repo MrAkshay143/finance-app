@@ -86,7 +86,6 @@ export const InvestmentsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 12 : 20 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -141,7 +140,6 @@ export const InvestmentsScreen: React.FC = () => {
           </View>
         ) : (
           <>
-            {/* Total Invested Card */}
             <View style={styles.totalInvestedCard}>
               <View style={styles.totalInvestedTop}>
                 <View style={styles.briefcaseIconWrap}>
@@ -170,7 +168,6 @@ export const InvestmentsScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Monthly Target Progress Bar */}
               <View style={styles.targetProgressSection}>
                 <View style={styles.targetProgressHeader}>
                   <Text style={styles.targetProgressLabel}>Monthly Target Progress</Text>
@@ -199,7 +196,6 @@ export const InvestmentsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Category Breakdown */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionHeading}>ASSET ALLOCATION</Text>
@@ -251,7 +247,6 @@ export const InvestmentsScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Recent Investments List */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionHeading}>RECENT INVESTMENTS</Text>

@@ -190,7 +190,6 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-20">
-      {/* Branded Nested Header */}
       <AppHeader
         variant="nested"
         title="Notifications"
@@ -200,7 +199,6 @@ export const NotificationsPage: React.FC = () => {
 
       <div className="p-4 space-y-4">
 
-        {/* Compact Due-Date Reminders Card */}
         <Card padding="sm" className="bg-white border-slate-200 shadow-sm flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0">
@@ -232,7 +230,6 @@ export const NotificationsPage: React.FC = () => {
           </Button>
         </Card>
 
-        {/* Filter Segmented Control: All, Unread, Read */}
         <div className="flex items-center bg-slate-100 p-1 rounded-full">
           <button
             type="button"
@@ -269,7 +266,6 @@ export const NotificationsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Action row: N unread notification(s) & Mark all as read button */}
         <div className="flex items-center justify-between px-1 text-xs">
           <span className="font-medium text-slate-600">
             {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
@@ -284,7 +280,6 @@ export const NotificationsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Notification Item Cards List */}
         {isNotificationsLoading && !notificationsResponse ? (
           <div className="space-y-2.5">
             <Skeleton className="h-16 w-full rounded-2xl" />
@@ -309,17 +304,14 @@ export const NotificationsPage: React.FC = () => {
                     : 'bg-white border-blue-200 shadow-sm'
                 }`}
               >
-                {/* Unread blue dot indicator */}
                 {!item.read && (
                   <div className="w-2 h-2 rounded-full bg-brand-primary shrink-0 mt-3" />
                 )}
 
-                {/* Icon badge in soft-blue square */}
                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                   {getNotificationIcon(item.type)}
                 </div>
 
-                {/* Text content */}
                 <div className="flex-1 min-w-0 pr-1">
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="text-xs font-bold text-slate-900 leading-snug truncate">
@@ -334,12 +326,10 @@ export const NotificationsPage: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Right chevron */}
                 <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 self-center" />
               </div>
             ))}
 
-            {/* Mobile-app-style subtle loading sentinel */}
             {isNotificationsError ? (
               <div className="py-4 flex items-center justify-center gap-2 text-xs text-rose-500 font-medium">
                 <span>Failed to load</span>
@@ -363,7 +353,6 @@ export const NotificationsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Due-Date Reminder Settings Modal */}
       <Modal
         isOpen={isReminderModalOpen}
         onClose={() => setIsReminderModalOpen(false)}
@@ -455,7 +444,6 @@ export const NotificationsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Compact Notification Detail Modal */}
       {selectedNotification && (
         <Modal
           isOpen={true}
@@ -464,7 +452,6 @@ export const NotificationsPage: React.FC = () => {
           maxWidth="max-w-[380px]"
         >
           <div className="space-y-4">
-            {/* Header / Type / Time */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-blue-50 text-brand-primary flex items-center justify-center shrink-0 border border-blue-100/60 shadow-sm">
                 {getNotificationIcon(selectedNotification.type)}
@@ -479,7 +466,6 @@ export const NotificationsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Title & Body */}
             <div className="space-y-1.5 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100">
               <h3 className="text-sm font-bold text-slate-900 leading-snug">
                 {selectedNotification.title}
@@ -489,7 +475,6 @@ export const NotificationsPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Modal Actions */}
             <div className="pt-2 flex items-center gap-2">
               {(selectedNotification.type.includes('SECURITY') ||
                 selectedNotification.title.toLowerCase().includes('security') ||

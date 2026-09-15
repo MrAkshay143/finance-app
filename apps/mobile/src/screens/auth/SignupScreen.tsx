@@ -126,7 +126,6 @@ export const SignupScreen: React.FC = () => {
         password,
       });
 
-      // Navigate to Onboarding stack upon account creation
       navigation.reset({
         index: 0,
         routes: [{ name: 'Onboarding' }],
@@ -154,7 +153,6 @@ export const SignupScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Brand Header Banner */}
         <View style={styles.brandContainer}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>FT</Text>
@@ -163,14 +161,12 @@ export const SignupScreen: React.FC = () => {
           <Text style={styles.brandSubtitle}>Create your personal account</Text>
         </View>
 
-        {/* Signup Form Card */}
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>Register Account</Text>
           <Text style={styles.formDescription}>
             Create your profile to start tracking your finances.
           </Text>
 
-          {/* Error Banner */}
           {activeError ? (
             <View style={styles.errorBanner}>
               <AlertCircleIcon size={18} color={colors.danger} />
@@ -178,7 +174,6 @@ export const SignupScreen: React.FC = () => {
             </View>
           ) : null}
 
-          {/* Full Name Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Full Name</Text>
             <View style={styles.inputWrapper}>
@@ -205,7 +200,6 @@ export const SignupScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Email Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email Address</Text>
             <View style={styles.inputWrapper}>
@@ -233,7 +227,6 @@ export const SignupScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Mobile Number Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Mobile Number</Text>
             <PhoneInputWithCountry
@@ -250,7 +243,6 @@ export const SignupScreen: React.FC = () => {
             />
           </View>
 
-          {/* Password Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Password</Text>
             <View style={styles.inputWrapper}>
@@ -292,7 +284,6 @@ export const SignupScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Confirm Password Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Confirm Password</Text>
             <View style={styles.inputWrapper}>
@@ -334,7 +325,6 @@ export const SignupScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Submit Button */}
           <Pressable
             onPress={handleSignup}
             disabled={isLoading}
@@ -358,7 +348,6 @@ export const SignupScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Login Navigation Link */}
         <View style={styles.footerContainer}>
           <Text style={styles.footerText}>Already registered?</Text>
           <Pressable

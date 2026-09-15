@@ -20,7 +20,7 @@ async function getKbaAttemptCount(userId: string): Promise<number> {
     try {
       const val = await redis.get(key);
       return val ? parseInt(val, 10) : 0;
-    } catch { /* fall through */ }
+    } catch {}
   }
   const entry = kbaAttemptMemory.get(key);
   if (!entry || Date.now() > entry.resetAt) return 0;
@@ -35,7 +35,7 @@ async function incrementKbaAttempt(userId: string): Promise<number> {
       const count = await redis.incr(key);
       if (count === 1) await redis.expire(key, KBA_LOCKOUT_SECONDS);
       return count;
-    } catch { /* fall through */ }
+    } catch {}
   }
   const now = Date.now();
   const entry = kbaAttemptMemory.get(key);
@@ -51,11 +51,10 @@ async function resetKbaAttempts(userId: string): Promise<void> {
   const key = `kba_attempts:${userId}`;
   const redis = getRedisClient();
   if (redis?.isOpen) {
-    try { await redis.del(key); return; } catch { /* fall through */ }
+    try { await redis.del(key); return; } catch {}
   }
   kbaAttemptMemory.delete(key);
 }
-
 
 export interface SecurityQuestionSetupItem {
   questionKey?: string;
@@ -81,9 +80,7 @@ async function verifyAnswerHash(candidate: string, hash: string): Promise<boolea
 }
 
 export class KbaService {
-  /**
-   * Returns list of predefined available security questions with prompts.
-   */
+  // Returns list of predefined available security questions with prompts.
   getAvailableQuestions() {
     return AVAILABLE_SECURITY_QUESTIONS.map((q) => ({
       key: q.key,
@@ -91,10 +88,7 @@ export class KbaService {
     }));
   }
 
-  /**
-   * Returns configured security questions for the user.
-   * Strips answer hashes completely - NEVER exposes answers or hashes.
-   */
+  // Returns configured security questions for the user. Strips answer hashes completely - NEVER exposes answers or hashes.
   async getSecurityQuestions(userId: string) {
     const configured = await prisma.securityQuestion.findMany({
       where: { userId },
@@ -117,10 +111,7 @@ export class KbaService {
     });
   }
 
-  /**
-   * Sets up or replaces exactly 3 security questions.
-   * Enforces distinct keys and hashes answers with bcrypt.
-   */
+  // Sets up or replaces exactly 3 security questions. Enforces distinct keys and hashes answers with bcrypt.
   async setupSecurityQuestions(
     userId: string,
     questions: SecurityQuestionSetupItem[]
@@ -188,9 +179,7 @@ export class KbaService {
     };
   }
 
-  /**
-   * Verifies provided answers against stored hashes for account recovery or sensitive action approval.
-   */
+  // Verifies provided answers against stored hashes for account recovery or sensitive action approval.
   async verifySecurityQuestions(
     identifier: { userId?: string; email?: string },
     answers: SecurityQuestionVerifyItem[]

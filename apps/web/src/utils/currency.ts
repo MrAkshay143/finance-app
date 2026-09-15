@@ -17,9 +17,7 @@ export type { CurrencyConfig, FormatCurrencyOptions } from '@finance/shared-ui-t
 
 import { DEFAULT_CURRENCY, formatCurrency, getCurrencySymbol } from '@finance/shared-ui-tokens';
 
-/**
- * Returns formatted annual income range bracket options for selects/radios.
- */
+// Returns formatted annual income range bracket options for selects/radios.
 export function getIncomeBracketOptions(currencyCode = DEFAULT_CURRENCY): { value: string; label: string }[] {
   if (currencyCode === 'INR') {
     const b1 = formatCurrency(300000, 'INR', { maximumFractionDigits: 0 });
@@ -44,9 +42,7 @@ export function getIncomeBracketOptions(currencyCode = DEFAULT_CURRENCY): { valu
   ];
 }
 
-/**
- * Automatically computes appropriate income bracket string from monthly income.
- */
+// Automatically computes appropriate income bracket string from monthly income.
 export function computeIncomeBracket(
   monthlyIncome: number | string,
   currency = DEFAULT_CURRENCY

@@ -121,6 +121,7 @@ export class ProfileService {
         role: user.role,
         status: user.status,
         onboardingCompleted: user.onboardingCompleted,
+        emailVerified: user.emailVerified ?? false,
         kbaConfigured,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -133,9 +134,7 @@ export class ProfileService {
     };
   }
 
-  /**
-   * Updates basic profile details across User and FinanceProfile.
-   */
+  // Updates basic profile details across User and FinanceProfile.
   async updateBasicProfile(userId: string, data: UpdateBasicProfileData) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -254,11 +253,7 @@ export class ProfileService {
     return this.getProfile(userId);
   }
 
-  /**
-   * Updates financial targets and risk profiling.
-   * Converts all rupee inputs to BigInt paise (Math.round(val * 100)) for storage.
-   * Marks onboardingCompleted = true on User if required onboarding parameters are provided.
-   */
+  // Updates financial targets and risk profiling. Converts all rupee inputs to BigInt paise (Math.round(val * 100)) for storage. Marks onboardingCompleted = true on User if required onboarding parameters are provided.
   async updateFinanceProfile(userId: string, data: UpdateFinanceProfileData) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -355,8 +350,7 @@ export class ProfileService {
       },
     });
 
-    // Check onboarding completion condition
-    // User is considered onboarded when basic profile is present and financial monthly targets are configured
+    // Mark onboarding completed when basic profile and monthly targets are present
     const effectiveIncome =
       monthlyIncomePaise ?? user.financeProfile?.monthlyIncome ?? BigInt(0);
     const effectiveExpense =
@@ -388,9 +382,7 @@ export class ProfileService {
     return this.getProfile(userId);
   }
 
-  /**
-   * Safely deletes an existing uploaded avatar file from disk with path-traversal safeguards.
-   */
+  // Safely deletes an existing uploaded avatar file from disk with path-traversal safeguards.
   private async deleteOldAvatarFile(oldAvatarUrl?: string | null) {
     if (!oldAvatarUrl || typeof oldAvatarUrl !== 'string') return;
     if (!oldAvatarUrl.startsWith('/uploads/avatars/')) return;
@@ -407,9 +399,7 @@ export class ProfileService {
     }
   }
 
-  /**
-   * Updates user avatar: compresses/saves to disk under uploads/avatars/ and deletes old file.
-   */
+  // Updates user avatar: compresses/saves to disk under uploads/avatars/ and deletes old file.
   async uploadAvatar(userId: string, avatarData: string) {
     if (!avatarData || typeof avatarData !== 'string') {
       throw new ValidationError('Avatar image data is required');
@@ -481,9 +471,7 @@ export class ProfileService {
     return { avatarUrl: updated.avatarUrl };
   }
 
-  /**
-   * Removes user avatar, unlinks disk file, and sets avatarUrl to null.
-   */
+  // Removes user avatar, unlinks disk file, and sets avatarUrl to null.
   async deleteAvatar(userId: string) {
     const existingUser = await prisma.user.findUnique({
       where: { id: userId },

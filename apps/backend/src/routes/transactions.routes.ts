@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { transactionController } from '../controllers/transactionController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
 import {
   CreateTransactionInputSchema,
@@ -19,7 +20,7 @@ transactionsRouter.get('/', validateQuery(TransactionFilterQuerySchema), (req, r
 });
 
 // POST /api/v1/transactions - Create a transaction
-transactionsRouter.post('/', validateBody(CreateTransactionInputSchema), (req, res, next) => {
+transactionsRouter.post('/', validateBody(CreateTransactionInputSchema), idempotencyMiddleware, (req, res, next) => {
   transactionController.createTransaction(req, res, next);
 });
 
@@ -29,17 +30,17 @@ transactionsRouter.get('/:id', (req, res, next) => {
 });
 
 // PUT /api/v1/transactions/:id - Update transaction
-transactionsRouter.put('/:id', validateBody(UpdateTransactionInputSchema), (req, res, next) => {
+transactionsRouter.put('/:id', validateBody(UpdateTransactionInputSchema), idempotencyMiddleware, (req, res, next) => {
   transactionController.updateTransaction(req, res, next);
 });
 
 // PATCH /api/v1/transactions/:id - Update transaction (alias)
-transactionsRouter.patch('/:id', validateBody(UpdateTransactionInputSchema), (req, res, next) => {
+transactionsRouter.patch('/:id', validateBody(UpdateTransactionInputSchema), idempotencyMiddleware, (req, res, next) => {
   transactionController.updateTransaction(req, res, next);
 });
 
 // DELETE /api/v1/transactions/:id - Soft-delete transaction
-transactionsRouter.delete('/:id', (req, res, next) => {
+transactionsRouter.delete('/:id', idempotencyMiddleware, (req, res, next) => {
   transactionController.deleteTransaction(req, res, next);
 });
 

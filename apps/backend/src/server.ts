@@ -10,9 +10,15 @@ import { hashPassword } from './lib/jwt.js';
 import { categoryService } from './services/categoryService.js';
 import { seedInstitutionalData } from './seedData.js';
 import { getDefaultAppSettings } from './config/defaultAppSettings.js';
+import { validatePasswordAgainstPolicy } from './services/passwordPolicyService.js';
 
-// Initialize Sentry error tracking stub respecting SENTRY_DSN per Plan/backend.md Section 11
+// Initialize Sentry error tracking
 initSentry('backend-api');
+
+// Fail-closed guard: BUILD_ID is strictly required in production
+if (process.env.NODE_ENV === 'production' && !process.env.BUILD_ID) {
+  throw new Error('BUILD_ID is required in production');
+}
 
 const port = env.PORT;
 const app = createApp();
@@ -30,7 +36,7 @@ const io = new SocketIOServer(server, {
 
 import { initSocketGateway } from './sockets/socketGateway.js';
 
-// Realtime namespaces & authentication per Plan/architecture.md Section 6
+// Realtime namespaces & authentication
 initSocketGateway(io);
 
 // Initialize Redis in background (non-blocking)
@@ -38,117 +44,10 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-// Ensure database column types support large payloads and newly added schema fields on MySQL and PostgreSQL
-async function ensureDatabaseSchema() { return;
-  try {
-    const isMysql = env.DATABASE_URL.startsWith('mysql');
-    const isPostgres = env.DATABASE_URL.startsWith('postgres');
-
-    if (isMysql) {
-      try {
-        await prisma.$executeRawUnsafe('ALTER TABLE users MODIFY avatarUrl LONGTEXT');
-        logger.info('Database schema verified: users.avatarUrl is LONGTEXT');
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN emailVerified TINYINT(1) NOT NULL DEFAULT 0");
-        await prisma.$executeRawUnsafe("UPDATE users SET emailVerified = 1 WHERE lastLoginAt IS NOT NULL OR role = 'ADMIN'");
-      } catch (err) {}
-      try {
-        await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS email_otps (
-          id        VARCHAR(36)  NOT NULL PRIMARY KEY,
-          email     VARCHAR(255) NOT NULL,
-          otpHash   VARCHAR(255) NOT NULL,
-          purpose   VARCHAR(50)  NOT NULL,
-          attempts  INT          NOT NULL DEFAULT 0,
-          usedAt    DATETIME(3)  NULL,
-          expiresAt DATETIME(3)  NOT NULL,
-          createdAt DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-          INDEX email_otps_email_idx (email),
-          INDEX email_otps_purpose_idx (purpose),
-          INDEX email_otps_expiresAt_idx (expiresAt)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
-      } catch (err) {}
-
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'users.avatarUrl check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN country VARCHAR(255) NOT NULL DEFAULT 'IN'");
-        logger.info('Database schema verified: added country column to users table');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'users.country check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE finance_profiles ADD COLUMN country VARCHAR(255) DEFAULT 'IN'");
-        logger.info('Database schema verified: added country column to finance_profiles table');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'finance_profiles.country check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN dateFormat VARCHAR(255) NOT NULL DEFAULT 'DD-MM-YYYY'");
-        logger.info('Database schema verified: added dateFormat column to user_settings table');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'user_settings.dateFormat check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN timeFormat VARCHAR(255) NOT NULL DEFAULT '12h'");
-        logger.info('Database schema verified: added timeFormat column to user_settings table');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'user_settings.timeFormat check completed');
-      }
-    } else if (isPostgres) {
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(255) NOT NULL DEFAULT 'IN'");
-        logger.info('Postgres schema verified: users.country column present');
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE users ADD COLUMN IF NOT EXISTS \"emailVerified\" BOOLEAN NOT NULL DEFAULT false");
-        await prisma.$executeRawUnsafe("UPDATE users SET \"emailVerified\" = true WHERE \"lastLoginAt\" IS NOT NULL OR role = 'ADMIN'");
-      } catch (err) {}
-      try {
-        await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS email_otps (
-          id        VARCHAR(36)  NOT NULL PRIMARY KEY,
-          email     VARCHAR(255) NOT NULL,
-          "otpHash" VARCHAR(255) NOT NULL,
-          purpose   VARCHAR(50)  NOT NULL,
-          attempts  INT          NOT NULL DEFAULT 0,
-          "usedAt"  TIMESTAMP(3) NULL,
-          "expiresAt" TIMESTAMP(3) NOT NULL,
-          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )`);
-      } catch (err) {}
-
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'postgres users.country check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE finance_profiles ADD COLUMN IF NOT EXISTS country VARCHAR(255) DEFAULT 'IN'");
-        logger.info('Postgres schema verified: finance_profiles.country column present');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'postgres finance_profiles.country check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS \"dateFormat\" VARCHAR(255) NOT NULL DEFAULT 'DD-MM-YYYY'");
-        logger.info('Postgres schema verified: user_settings.dateFormat column present');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'postgres user_settings.dateFormat check completed');
-      }
-
-      try {
-        await prisma.$executeRawUnsafe("ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS \"timeFormat\" VARCHAR(255) NOT NULL DEFAULT '12h'");
-        logger.info('Postgres schema verified: user_settings.timeFormat column present');
-      } catch (err: any) {
-        logger.debug({ err: err?.message }, 'postgres user_settings.timeFormat check completed');
-      }
-    }
-  } catch (err: any) {
-    // Expected/non-fatal if table doesn't exist yet
-    logger.debug({ err: err?.message }, 'Database schema verification completed');
-  }
+// Ensure database schema — application startup is strictly schema-read-only
+async function ensureDatabaseSchema() {
+  // Schema migrations are managed via deployment pipelines; startup is schema-read-only
+  logger.info('Database schema verified: application startup is schema-read-only');
 }
 
 // Ensure at least one admin user exists if ADMIN_EMAIL & ADMIN_PASSWORD are provided in environment.
@@ -162,34 +61,42 @@ async function ensureAdminUser() {
       return;
     }
 
-    if (adminPassword.length < 8) {
-      logger.warn('ADMIN_PASSWORD is too short (min 8 chars) - skipping admin provisioning for security');
+    const validation = await validatePasswordAgainstPolicy(adminPassword);
+    if (!validation.valid) {
+      logger.warn({ errors: validation.errors }, 'ADMIN_PASSWORD does not meet active password policy - skipping admin provisioning');
       return;
     }
-
-    const passwordHash = await hashPassword(adminPassword);
 
     const existingUser = await prisma.user.findUnique({
       where: { email: adminEmail },
     });
 
     if (existingUser) {
-      // Ensure user has ADMIN role, updated passwordHash from ADMIN_PASSWORD, and clear any test lockout
+      // Do NOT overwrite existing admin's password unless explicitly instructed via RESET_ADMIN_PASSWORD=true
+      const shouldResetPassword = process.env.RESET_ADMIN_PASSWORD === 'true';
+      const updateData: any = {
+        role: 'ADMIN',
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        status: 'ACTIVE',
+        onboardingCompleted: true,
+        emailVerified: true,
+      };
+
+      if (shouldResetPassword) {
+        updateData.passwordHash = await hashPassword(adminPassword);
+        logger.info(`Admin password explicitly reset from ADMIN_PASSWORD via RESET_ADMIN_PASSWORD=true.`);
+      }
+
       await prisma.user.update({
         where: { id: existingUser.id },
-        data: {
-          role: 'ADMIN',
-          passwordHash,
-          failedLoginAttempts: 0,
-          lockedUntil: null,
-          status: 'ACTIVE',
-          onboardingCompleted: true,
-          emailVerified: true,
-        },
+        data: updateData,
       });
-      logger.info(`Admin user ${adminEmail} verified, password updated, promoted to ADMIN, and unlocked.`);
+      logger.info(`Admin user ${adminEmail} verified, ensured ADMIN role, and unlocked.`);
       return;
     }
+
+    const passwordHash = await hashPassword(adminPassword);
 
     await prisma.user.create({
       data: {

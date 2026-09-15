@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { transferController } from '../controllers/transferController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { validateBody } from '../middleware/validate.js';
 import { CreateTransferInputSchema } from '@finance/shared-types';
 
@@ -15,7 +16,7 @@ transfersRouter.get('/', (req, res, next) => {
 });
 
 // POST /api/v1/transfers - Create an atomic transfer between two accounts
-transfersRouter.post('/', validateBody(CreateTransferInputSchema), (req, res, next) => {
+transfersRouter.post('/', validateBody(CreateTransferInputSchema), idempotencyMiddleware, (req, res, next) => {
   transferController.createTransfer(req, res, next);
 });
 
@@ -25,7 +26,7 @@ transfersRouter.get('/:id', (req, res, next) => {
 });
 
 // DELETE /api/v1/transfers/:id - Delete transfer and revert account balances
-transfersRouter.delete('/:id', (req, res, next) => {
+transfersRouter.delete('/:id', idempotencyMiddleware, (req, res, next) => {
   transferController.deleteTransfer(req, res, next);
 });
 

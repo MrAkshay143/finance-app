@@ -303,7 +303,6 @@ export const ProfileSettingsPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col pb-6">
-      {/* Branded Nested Header */}
       <AppHeader
         variant="nested"
         title={activeTab === 'basic' ? 'Basic Profile' : 'Finance Profile'}
@@ -323,7 +322,6 @@ export const ProfileSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Toggle Navigation */}
         <div className="flex bg-slate-200/80 p-1 rounded-2xl">
           <button
             type="button"
@@ -349,10 +347,8 @@ export const ProfileSettingsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* BASIC PROFILE TAB */}
         {activeTab === 'basic' && (
           <form onSubmit={handleSaveBasic} className="space-y-4">
-            {/* Personal Details Card */}
             <Card className="p-5 space-y-4 shadow-card">
               <div className="flex items-center gap-3 pb-2 border-b border-borderDefault">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-brand-primary shrink-0">
@@ -381,7 +377,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Country & Currency (Placed ABOVE Mobile Number) */}
               <div className="grid grid-cols-2 gap-3">
                 <CountrySelector
                   label="Country"
@@ -399,7 +394,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Mobile Number */}
               <PhoneInputWithCountry
                 label="Mobile Number"
                 required
@@ -408,7 +402,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 onChange={(val) => setMobileNumber(val)}
               />
 
-              {/* Email Address (Read-only) */}
               <Input
                 label="Email Address"
                 type="email"
@@ -418,7 +411,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
               />
 
-              {/* Date of Birth with Year 2000 jump and 120-year validation */}
               {(() => {
                 const maxDobDate = new Date();
                 maxDobDate.setFullYear(maxDobDate.getFullYear() - 16);
@@ -438,7 +430,6 @@ export const ProfileSettingsPage: React.FC = () => {
               })()}
 
 
-              {/* Address */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-textDefault">
                   Address
@@ -461,14 +452,12 @@ export const ProfileSettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Info Notice */}
               <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-start gap-2.5 text-xs text-slate-600">
                 <Info className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
                 <span>Keep your details updated for accurate insights.</span>
               </div>
             </Card>
 
-            {/* Security Questions Status Card */}
             <Card className="p-4 space-y-3 bg-amber-50/40 border border-amber-200/60 shadow-card">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
@@ -504,7 +493,6 @@ export const ProfileSettingsPage: React.FC = () => {
               </button>
             </Card>
 
-            {/* Save Profile Button */}
             <Button
               type="submit"
               variant="primary"
@@ -518,10 +506,8 @@ export const ProfileSettingsPage: React.FC = () => {
           </form>
         )}
 
-        {/* FINANCE PROFILE TAB */}
         {activeTab === 'finance' && (
           <form onSubmit={handleSaveFinance} className="space-y-4">
-            {/* Monthly Baseline Targets Card */}
             <Card className="p-5 space-y-4 shadow-card">
               <div className="flex items-center gap-3 pb-2 border-b border-borderDefault">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-semantic-success shrink-0">
@@ -565,7 +551,6 @@ export const ProfileSettingsPage: React.FC = () => {
                 icon={<TrendingUp className="w-4 h-4 text-slate-400" />}
               />
 
-              {/* Summary Breakdown */}
               <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-700">
                   <span>Monthly Income:</span>
@@ -588,7 +573,6 @@ export const ProfileSettingsPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Investment Parameters Card */}
             <Card className="p-5 space-y-4 shadow-card">
               <div className="flex items-center gap-3 pb-2 border-b border-borderDefault">
                 <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-semantic-investment shrink-0">
@@ -652,7 +636,6 @@ export const ProfileSettingsPage: React.FC = () => {
               />
             </Card>
 
-            {/* Save Finance Profile Button */}
             <Button
               type="submit"
               variant="primary"

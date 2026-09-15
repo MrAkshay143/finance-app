@@ -22,22 +22,15 @@ export interface ResolveOptions {
   customProbe?: (domain: string) => Promise<boolean>;
 }
 
-/**
- * In-memory session cache keyed by raw institution input string.
- * Cleared on page reload. Never written to DB or localStorage.
- */
+// In-memory session cache keyed by raw institution input string. Cleared on page reload. Never written to DB or localStorage.
 const sessionIconCache = new Map<string, IconResult>();
 
-/**
- * Clears the session cache (primarily for unit testing).
- */
+// Clears the session cache (primarily for unit testing).
 export function clearInstitutionIconCache(): void {
   sessionIconCache.clear();
 }
 
-/**
- * Normalizes input string: lowercase, replace & with 'and', strip punctuation, collapse whitespace.
- */
+// Normalizes input string: lowercase, replace & with 'and', strip punctuation, collapse whitespace.
 export function normalizeInstitutionName(input: string): string {
   if (!input) return '';
   return input
@@ -49,10 +42,7 @@ export function normalizeInstitutionName(input: string): string {
     .trim();
 }
 
-/**
- * Strips stopwords, leaving the core distinctive token(s).
- * If all words are stopwords, returns the normalized string.
- */
+// Strips stopwords, leaving the core distinctive token(s). If all words are stopwords, returns the normalized string.
 export function extractCoreTokens(normalized: string): string {
   if (!normalized) return '';
   const words = normalized.split(' ').filter(Boolean);
@@ -63,9 +53,7 @@ export function extractCoreTokens(normalized: string): string {
   return normalized;
 }
 
-/**
- * Levenshtein distance between two strings.
- */
+// Levenshtein distance between two strings.
 export function levenshteinDistance(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
@@ -89,9 +77,7 @@ export function levenshteinDistance(a: string, b: string): number {
   return dp[m][n];
 }
 
-/**
- * Calculate similarity between 0 and 1 using Levenshtein distance and token overlap.
- */
+// Calculate similarity between 0 and 1 using Levenshtein distance and token overlap.
 export function calculateSimilarity(s1: string, s2: string): number {
   if (s1 === s2) return 1.0;
   const maxLen = Math.max(s1.length, s2.length);
@@ -119,11 +105,7 @@ export function calculateSimilarity(s1: string, s2: string): number {
   return Math.max(levSim, jaccard, containsSim);
 }
 
-/**
- * Keywords that signal a legitimate financial, banking, or wealth institution.
- * Dynamic domain guessing is strictly guarded to inputs containing at least one
- * financial marker to prevent guessing random non-financial websites (e.g. "love" -> "love.com").
- */
+// Keywords that signal a legitimate financial, banking, or wealth institution. Dynamic domain guessing is strictly guarded to inputs containing at least one financial marker to prevent guessing random non-financial websites (e.g. "love" -> "love.com").
 export const FINANCIAL_KEYWORDS = new Set([
   'bank',
   'banking',
@@ -157,9 +139,7 @@ export const FINANCIAL_KEYWORDS = new Set([
   'demat',
 ]);
 
-/**
- * Checks whether an institution name contains an indicator of a financial entity.
- */
+// Checks whether an institution name contains an indicator of a financial entity.
 export function hasFinancialIndicator(input?: string | null): boolean {
   if (!input) return false;
   const normalized = normalizeInstitutionName(input);
@@ -167,9 +147,7 @@ export function hasFinancialIndicator(input?: string | null): boolean {
   return words.some((w) => FINANCIAL_KEYWORDS.has(w));
 }
 
-/**
- * Pre-computes exact alias -> domain lookup table for fast O(1) matching.
- */
+// Pre-computes exact alias -> domain lookup table for fast O(1) matching.
 const aliasToDomainMap = new Map<string, string>();
 for (const [domain, aliases] of Object.entries(INSTITUTION_ALIASES)) {
   aliasToDomainMap.set(domain.toLowerCase(), domain);
@@ -181,11 +159,7 @@ for (const [domain, aliases] of Object.entries(INSTITUTION_ALIASES)) {
   }
 }
 
-/**
- * Curated high-fidelity vector/raster logos for institutions whose primary corporate
- * domain returns 404 on public favicon services or blocks scraping.
- * Guarantees zero-latency, offline availability, and 100% resolution.
- */
+// Curated high-fidelity vector/raster logos for institutions whose primary corporate domain returns 404 on public favicon services or blocks scraping. Guarantees zero-latency, offline availability, and 100% resolution.
 export const CURATED_INSTITUTION_LOGOS: Record<string, string> = {
   'sbi.co.in': `data:image/svg+xml;utf8,${encodeURIComponent(
     '<svg id="sbi.co.in" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><path fill="#0072bc" d="m234,499a249,249 0 1,1 32,0V295a45,45 0 1,0-32,0"/></svg>'
@@ -198,10 +172,7 @@ export const CURATED_INSTITUTION_LOGOS: Record<string, string> = {
   )}`,
 };
 
-/**
- * Secondary/subsidiary domain mappings for institutions whose corporate base domain
- * blocks third-party favicon scrapers (e.g. Google Favicons returning 404).
- */
+// Secondary/subsidiary domain mappings for institutions whose corporate base domain blocks third-party favicon scrapers (e.g. Google Favicons returning 404).
 export const DOMAIN_FALLBACKS: Record<string, string[]> = {
   'sbi.co.in': ['onlinesbi.sbi', 'sbicard.com'],
   'onlinesbi.sbi': ['sbicard.com', 'sbi.co.in'],
@@ -216,13 +187,7 @@ export const DOMAIN_FALLBACKS: Record<string, string[]> = {
   'bandhanbank.com': ['bandhanmutual.com'],
 };
 
-/**
- * Ordered fallback chain of icon URLs for a domain:
- * 1. Curated vector logo if available (instant 0ms, 100% reliable)
- * 2. Google Favicons (high-res 128px) for primary domain
- * 3. Fallback domains for Google Favicons (e.g. onlinesbi.sbi for sbi.co.in)
- * 4. DuckDuckGo Icons (standard ico) for primary and fallback domains
- */
+// Ordered fallback chain of icon URLs for a domain: 1. Curated vector logo if available (instant 0ms, 100% reliable) 2. Google Favicons (high-res 128px) for primary domain 3. Fallback domains for Google Favicons (e.g. onlinesbi.sbi for sbi.co.in) 4. DuckDuckGo Icons (standard ico) for primary and fallback domains
 export function buildIconUrls(domain: string): string[] {
   const urls: string[] = [];
   const normalized = domain.toLowerCase();
@@ -259,9 +224,7 @@ export function buildIconUrls(domain: string): string[] {
   return urls;
 }
 
-/**
- * Deterministic HSL color based on string hash.
- */
+// Deterministic HSL color based on string hash.
 export function getDeterministicColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -271,9 +234,7 @@ export function getDeterministicColor(str: string): string {
   return `hsl(${h}, 65%, 40%)`;
 }
 
-/**
- * Extracts 1-2 uppercase letters for initials avatar.
- */
+// Extracts 1-2 uppercase letters for initials avatar.
 export function getInitials(name: string): string {
   const clean = name.replace(/[^\w\s]/g, '').trim();
   const parts = clean.split(/\s+/).filter(Boolean);
@@ -289,9 +250,7 @@ export function getInitials(name: string): string {
   return 'AC';
 }
 
-/**
- * In-browser favicon probe helper. Uses DuckDuckGo endpoint which returns 404 for nonexistent domains.
- */
+// In-browser favicon probe helper. Uses DuckDuckGo endpoint which returns 404 for nonexistent domains.
 async function probeFavicon(domain: string, timeout = 1200): Promise<boolean> {
   if (typeof window === 'undefined' || typeof Image === 'undefined') {
     return false;
@@ -327,18 +286,7 @@ async function probeFavicon(domain: string, timeout = 1200): Promise<boolean> {
   });
 }
 
-/**
- * Resolve institution icon from raw institution name.
- * 
- * Pipeline:
- * 1. Cache check
- * 2. Normalization
- * 3. Stopwords stripping -> Core token
- * 4. Exact alias match
- * 5. Fuzzy match (Levenshtein + token overlap >= 0.75)
- * 6. Dynamic domain guessing (.com, .in, .co.in probe)
- * 7. Fallback initials avatar with deterministic HSL background
- */
+// Resolve institution icon from raw institution name. Pipeline: 1. Cache check 2. Normalization 3. Stopwords stripping -> Core token 4. Exact alias match 5. Fuzzy match (Levenshtein + token overlap >= 0.75) 6. Dynamic domain guessing (.com, .in, .co.in probe) 7. Fallback initials avatar with deterministic HSL background
 export async function resolveInstitutionIcon(
   rawInstitutionName?: string | null,
   options: ResolveOptions = {}

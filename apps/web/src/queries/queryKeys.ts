@@ -1,8 +1,4 @@
-/**
- * Canonical Query Key Factory
- * Centralizes all TanStack Query cache keys to eliminate typos, duplicate keys,
- * and inconsistent cache entries across pages, components, and socket handlers.
- */
+// Canonical Query Key Factory centralizing TanStack Query cache keys.
 
 export const queryKeys = {
   dashboard: ['dashboard'] as const,

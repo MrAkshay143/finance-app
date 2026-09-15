@@ -257,7 +257,6 @@ export const MenuScreen: React.FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Profile Hero Card */}
         <View style={styles.profileCard}>
           <View style={styles.profileRow}>
             <View style={styles.avatarCircle}>
@@ -294,7 +293,6 @@ export const MenuScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Grouped Navigation Sections */}
         {sections.map((section) => (
           <View key={section.title} style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>{section.title}</Text>

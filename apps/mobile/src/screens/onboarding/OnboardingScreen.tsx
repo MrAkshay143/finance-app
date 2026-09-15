@@ -102,7 +102,6 @@ export const OnboardingScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header Badge */}
         <View style={styles.headerBlock}>
           <View style={styles.badgePill}>
             <Text style={styles.badgePillText}>GETTING STARTED</Text>

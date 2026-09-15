@@ -171,9 +171,7 @@ export const AdminDashboardScreen: React.FC = () => {
           />
         }
       >
-        {/* 4 Summary Metric Cards */}
         <View style={styles.metricsGrid}>
-          {/* Card 1: Total Users */}
           <View style={styles.metricCard}>
             <View style={styles.metricHeaderRow}>
               <Text style={styles.metricLabel}>TOTAL USERS</Text>
@@ -185,7 +183,6 @@ export const AdminDashboardScreen: React.FC = () => {
             <Text style={styles.metricSubMuted}>Total registered</Text>
           </View>
 
-          {/* Card 2: Active Users */}
           <View style={styles.metricCard}>
             <View style={styles.metricHeaderRow}>
               <Text style={styles.metricLabel}>ACTIVE USERS</Text>
@@ -197,7 +194,6 @@ export const AdminDashboardScreen: React.FC = () => {
             <Text style={styles.metricSubSuccess}>Active accounts</Text>
           </View>
 
-          {/* Card 3: Suspended Users */}
           <View style={styles.metricCard}>
             <View style={styles.metricHeaderRow}>
               <Text style={styles.metricLabel}>SUSPENDED</Text>
@@ -209,7 +205,6 @@ export const AdminDashboardScreen: React.FC = () => {
             <Text style={styles.metricSubDanger}>Access restricted</Text>
           </View>
 
-          {/* Card 4: Admins */}
           <View style={styles.metricCard}>
             <View style={styles.metricHeaderRow}>
               <Text style={styles.metricLabel}>ADMINS</Text>
@@ -222,7 +217,6 @@ export const AdminDashboardScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Search Input */}
         <View style={styles.searchBar}>
           <SearchIcon size={18} color={colors.textMuted} />
           <TextInput
@@ -246,7 +240,6 @@ export const AdminDashboardScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Filter Pills */}
         <View style={styles.filterPillsRow}>
           {FILTER_OPTIONS.map((opt) => {
             const isSelected = filter === opt.id;
@@ -275,7 +268,6 @@ export const AdminDashboardScreen: React.FC = () => {
           })}
         </View>
 
-        {/* User Directory List */}
         <View style={styles.sectionContainer}>
           <View style={styles.listHeaderRow}>
             <Text style={styles.sectionTitle}>USER DIRECTORY</Text>

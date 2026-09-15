@@ -154,7 +154,6 @@ export const ReportsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : 48 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -197,7 +196,6 @@ export const ReportsScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Segmented Pills */}
         <View style={styles.segmentedContainer}>
           {(['Monthly', 'Year in Review', 'Custom Range'] as ReportSegment[]).map((seg) => {
             const isSelected = selectedSegment === seg;
@@ -236,7 +234,6 @@ export const ReportsScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Period Selector Card */}
         {selectedSegment === 'Monthly' && (
           <View style={styles.monthSelectorCard}>
             <Pressable
@@ -392,9 +389,7 @@ export const ReportsScreen: React.FC = () => {
           </View>
         ) : (
           <>
-            {/* 3 Summary Cards: FAM Score, Total Income, Total Expenses */}
             <View style={styles.summaryCardsRow}>
-              {/* FAM Score Card */}
               <View style={[styles.summaryCard, styles.summaryCardFam]}>
                 <Text style={styles.summaryCardLabel}>FAM SCORE</Text>
                 <View style={styles.famScoreCenter}>
@@ -413,7 +408,6 @@ export const ReportsScreen: React.FC = () => {
               </View>
 
 
-              {/* Total Income Card */}
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryCardLabel}>TOTAL INCOME</Text>
                 <Text style={styles.summaryCardValue} numberOfLines={1} adjustsFontSizeToFit>
@@ -427,7 +421,6 @@ export const ReportsScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Total Expenses Card */}
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryCardLabel}>TOTAL EXPENSES</Text>
                 <Text style={styles.summaryCardValue} numberOfLines={1} adjustsFontSizeToFit>
@@ -442,7 +435,6 @@ export const ReportsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Dynamic Callout Cards */}
             {reportData?.callouts && reportData.callouts.length > 0 ? (
               reportData.callouts.map((c) => (
                 <View key={c.id} style={styles.calloutCard}>
@@ -485,7 +477,6 @@ export const ReportsScreen: React.FC = () => {
               </View>
             )}
 
-            {/* Actual vs Projected Comparison Bars */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionHeading}>ACTUAL VS PROJECTED</Text>
@@ -553,7 +544,6 @@ export const ReportsScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Expense Breakdown Category List */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeaderRow}>
                 <Text style={styles.sectionHeading}>EXPENSE BREAKDOWN</Text>
@@ -597,7 +587,6 @@ export const ReportsScreen: React.FC = () => {
               )}
             </View>
 
-            {/* Category Summary Table */}
             <View style={styles.sectionCard}>
               <Text style={styles.sectionHeading}>CATEGORY SUMMARY</Text>
 
@@ -608,7 +597,6 @@ export const ReportsScreen: React.FC = () => {
                 <Text style={[styles.tableCol, styles.tableColNumber]}>Diff</Text>
               </View>
 
-              {/* Income Row */}
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableColName, { fontWeight: '600' }]}>
                   Income
@@ -624,7 +612,6 @@ export const ReportsScreen: React.FC = () => {
                 </Text>
               </View>
 
-              {/* Expense Row */}
               <View style={styles.tableRow}>
                 <Text style={[styles.tableCell, styles.tableColName, { fontWeight: '600' }]}>
                   Expenses
@@ -640,7 +627,6 @@ export const ReportsScreen: React.FC = () => {
                 </Text>
               </View>
 
-              {/* Investment Row */}
               <View style={[styles.tableRow, styles.tableRowLast]}>
                 <Text style={[styles.tableCell, styles.tableColName, { fontWeight: '600' }]}>
                   Investments

@@ -64,9 +64,7 @@ export function formatRecurringTransaction(rec: any) {
   };
 }
 
-/**
- * Calculates next occurrence date based on frequency and interval.
- */
+// Calculates next occurrence date based on frequency and interval.
 export function calculateNextOccurrence(
   baseDate: Date,
   freq: string,
@@ -137,9 +135,7 @@ export class RecurringService {
     return items.map(formatRecurringTransaction);
   }
 
-  /**
-   * Retrieves single recurring transaction with ownership check.
-   */
+  // Retrieves single recurring transaction with ownership check.
   async getRecurring(userId: string, id: string) {
     const rec = await prisma.recurringTransaction.findUnique({
       where: { id },
@@ -156,9 +152,7 @@ export class RecurringService {
     return formatRecurringTransaction(rec);
   }
 
-  /**
-   * Creates a new recurring transaction schedule.
-   */
+  // Creates a new recurring transaction schedule.
   async createRecurring(userId: string, data: CreateRecurringData) {
     // 1. Verify account ownership
     const account = await prisma.account.findUnique({
@@ -230,9 +224,7 @@ export class RecurringService {
     return formatRecurringTransaction(created);
   }
 
-  /**
-   * Updates recurring transaction properties.
-   */
+  // Updates recurring transaction properties.
   async updateRecurring(userId: string, id: string, data: UpdateRecurringData) {
     const existing = await prisma.recurringTransaction.findUnique({
       where: { id },
@@ -293,9 +285,7 @@ export class RecurringService {
     return formatRecurringTransaction(updated);
   }
 
-  /**
-   * Soft-deletes recurring transaction.
-   */
+  // Soft-deletes recurring transaction.
   async deleteRecurring(userId: string, id: string) {
     const existing = await prisma.recurringTransaction.findUnique({
       where: { id },
@@ -314,9 +304,7 @@ export class RecurringService {
     return { message: 'Recurring transaction deleted' };
   }
 
-  /**
-   * Toggles recurring status between ACTIVE and PAUSED.
-   */
+  // Toggles recurring status between ACTIVE and PAUSED.
   async toggleStatus(userId: string, id: string, status?: RecurringStatus) {
     const existing = await prisma.recurringTransaction.findUnique({
       where: { id },

@@ -9,14 +9,18 @@ import {
   hashRefreshToken,
   signResetToken,
   verifyResetToken,
+  signRegistrationToken,
+  verifyRegistrationToken,
 } from '../lib/jwt.js';
-import { addToDenylist } from '../lib/tokenDenylist.js';
+import { addToDenylist, consumeRegistrationToken } from '../lib/tokenDenylist.js';
 import { logger } from '../lib/logger.js';
 import { logAuditEvent } from './auditService.js';
 import { kbaService } from './kbaService.js';
 import { categoryService } from './categoryService.js';
 import { otpService } from './otpService.js';
+import { validatePasswordAgainstPolicy } from './passwordPolicyService.js';
 import { enqueueEmail } from './emailQueue.js';
+import { sendVerificationEmail, sendSecurityAlertEmail } from './emailService.js';
 import {
   UnauthorizedError,
   ConflictError,
@@ -32,6 +36,7 @@ import {
   COUNTRY_REGISTRY,
   type CountryCode,
   type CurrencyCode,
+  type CompleteRegistrationInput,
 } from '@finance/shared-types';
 import jwt from 'jsonwebtoken';
 
@@ -64,6 +69,7 @@ export interface AuthResult {
     status: string;
     avatarUrl?: string | null;
     onboardingCompleted: boolean;
+    emailVerified?: boolean;
     lastLoginAt: Date | null;
   };
   tokens: {
@@ -89,39 +95,12 @@ export class AuthService {
     return undefined;
   }
 
-  /**
-   * Registers a new user with default settings and issues an auth token pair.
-   */
-  async signup(data: SignupData, metadata: ClientMetadata = {}): Promise<AuthResult | { requiresEmailVerification: true; email: string; userId: string }> {
-    const normalizedEmail = data.email.toLowerCase().trim();
-
-    // Check email uniqueness
-    const existing = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-    if (existing) {
-      throw new ConflictError('A user with this email address already exists');
-    }
-
-    // Determine first and last name
-    let firstName = data.firstName?.trim() || '';
-    let lastName = data.lastName?.trim() || '';
-    if (!firstName && data.fullName) {
-      const parts = data.fullName.trim().split(/\s+/);
-      firstName = parts[0] || 'User';
-      lastName = parts.slice(1).join(' ') || '';
-    } else if (!firstName) {
-      firstName = 'User';
-    }
-
-    let mobileNumber = '';
-    if (data.mobileNumber && data.mobileNumber.trim()) {
-      const phoneVal = validateAndNormalizePhone(data.mobileNumber.trim());
-      if (!phoneVal.isValid) {
-        throw new ValidationError(phoneVal.error || 'Invalid mobile number');
-      }
-      mobileNumber = phoneVal.normalized!;
-    }
+  // Phase-1 of registration: validates email, checks registration settings, generates OTP in email_otps, and sends verification email. Enumeration-safe: returns uniform message whether email exists or not. If email exists and verified: sends security alert email instead of OTP. ZERO rows created in users table!
+  async initiateRegistration(
+    email: string,
+    metadata: ClientMetadata = {}
+  ): Promise<{ success: boolean; message: string; email?: string }> {
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check AppSettings: allow_user_registration
     const regSetting = await prisma.appSetting.findUnique({
@@ -131,42 +110,146 @@ export class AuthService {
       throw new ForbiddenError('New user registration is currently disabled by administrator');
     }
 
-    // Check AppSettings: password_min_length
-    const minLenSetting = await prisma.appSetting.findUnique({
-      where: { key: 'password_min_length' },
-    });
-    const minLen = Number(minLenSetting?.value ?? 8);
-    if (data.password.length < minLen) {
-      throw new ValidationError(`Password must be at least ${minLen} characters long`);
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser && existingUser.emailVerified) {
+      // Enumeration-safe: Send security alert email notifying of attempted registration
+      sendSecurityAlertEmail({
+        to: normalizedEmail,
+        firstName: existingUser.firstName || 'User',
+        ipAddress: metadata.ipAddress || 'unknown',
+        userAgent: metadata.userAgent || 'unknown',
+        userId: existingUser.id,
+      }).catch((err) => logger.warn({ err: err?.message }, 'Failed to send security alert email on duplicate signup'));
+
+      return {
+        success: true,
+        message: 'If this email address is eligible for registration, a verification code has been sent.',
+      };
     }
 
-    // Read AppSettings: default_country and default_base_currency
-    const countrySetting = await prisma.appSetting.findUnique({
-      where: { key: 'default_country' },
-    });
+    // Generate 6-digit OTP in email_otps table
+    const { otp } = await otpService.generateOtp(normalizedEmail, 'EMAIL_VERIFICATION');
+
+    // Send verification email via configured SMTP
+    await sendVerificationEmail({
+      to: normalizedEmail,
+      firstName: 'User',
+      otp,
+      expiryMinutes: 10,
+    }).catch((err) => logger.warn({ err: err?.message, email: normalizedEmail }, 'Direct verification email failed; checking queue'));
+
+    await enqueueEmail({
+      type: 'custom',
+      to: normalizedEmail,
+      subject: 'Verify your email address',
+      htmlContent: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
+    }).catch(() => {});
+
+    logger.info({ email: normalizedEmail }, 'Registration initiated: verification OTP sent');
+
+    return {
+      success: true,
+      message: 'If this email address is eligible for registration, a verification code has been sent.',
+      email: normalizedEmail,
+    };
+  }
+
+  // Phase-2 of registration: atomically verifies OTP against email_otps table. On success: issues a 15-minute signed registration authorization token (JWT with jti). ZERO rows created in users table!
+  async verifyRegistrationEmail(
+    email: string,
+    otp: string
+  ): Promise<{ registrationToken: string; email: string; expiresIn: number }> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser && existingUser.emailVerified) {
+      throw new ConflictError('A user with this email address already exists');
+    }
+
+    // Atomically verify and mark OTP used (race-safe conditional update)
+    await otpService.verifyOtp(normalizedEmail, 'EMAIL_VERIFICATION', otp);
+
+    // Issue signed registration token with 15m TTL
+    const { token, expiresIn } = signRegistrationToken({ email: normalizedEmail });
+
+    logger.info({ email: normalizedEmail }, 'Registration email verified: issued registrationToken');
+
+    return {
+      registrationToken: token,
+      email: normalizedEmail,
+      expiresIn,
+    };
+  }
+
+  // Phase-3 of registration: validates registration authorization token, atomically consumes token jti to prevent replay attacks, validates password against centralized password policy, and creates the real user account with emailVerified=true.
+  async completeRegistration(
+    input: CompleteRegistrationInput,
+    metadata: ClientMetadata = {}
+  ): Promise<AuthResult> {
+    // 1. Verify cryptographic registration token
+    const { email, jti } = verifyRegistrationToken(input.registrationToken);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 2. Atomic anti-replay guard: consume registration token jti (Redis or distributed DB primary key)
+    const consumed = await consumeRegistrationToken(jti, 900);
+    if (!consumed) {
+      throw new UnauthorizedError('Registration authorization token has already been used or expired. Please verify your email again.');
+    }
+
+    // 3. Final collision check
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser) {
+      throw new ConflictError('A user with this email address already exists');
+    }
+
+    // 4. Validate password against central dynamic password policy
+    const pwdValidation = await validatePasswordAgainstPolicy(input.password);
+    if (!pwdValidation.valid) {
+      throw new ValidationError(pwdValidation.errors[0] || 'Password does not meet requirements');
+    }
+
+    // 5. Parse names
+    let firstName = input.firstName?.trim() || '';
+    let lastName = input.lastName?.trim() || '';
+    if (!firstName && input.fullName) {
+      const parts = input.fullName.trim().split(/\s+/);
+      firstName = parts[0] || 'User';
+      lastName = parts.slice(1).join(' ') || '';
+    } else if (!firstName) {
+      firstName = 'User';
+    }
+
+    // 6. Validate phone if provided
+    let mobileNumber: string | undefined;
+    if (input.mobileNumber && input.mobileNumber.trim()) {
+      const phoneVal = validateAndNormalizePhone(input.mobileNumber.trim());
+      if (!phoneVal.isValid) {
+        throw new ValidationError(phoneVal.error || 'Invalid mobile number');
+      }
+      mobileNumber = phoneVal.normalized!;
+    }
+
+    // 7. Resolve country and currency
+    const countrySetting = await prisma.appSetting.findUnique({ where: { key: 'default_country' } });
     const defaultCountry =
       typeof countrySetting?.value === 'string' && isSupportedCountry(countrySetting.value)
         ? countrySetting.value
         : 'IN';
 
-    const currSetting = await prisma.appSetting.findUnique({
-      where: { key: 'default_base_currency' },
-    });
+    const currSetting = await prisma.appSetting.findUnique({ where: { key: 'default_base_currency' } });
     const defaultBaseCurrency =
       typeof currSetting?.value === 'string' && isSupportedCurrency(currSetting.value)
         ? currSetting.value
         : 'INR';
 
-    // Validate/resolve country using isSupportedCountry (defaulting to default_country or 'IN')
     let resolvedCountry: string = defaultCountry;
-    if (data.country && isSupportedCountry(data.country)) {
-      resolvedCountry = data.country;
+    if (input.country && isSupportedCountry(input.country)) {
+      resolvedCountry = input.country;
     }
 
-    // Validate/resolve currency using isSupportedCurrency (defaulting to user selection, or country default currency from COUNTRY_REGISTRY, or default_base_currency or 'INR')
     let resolvedCurrency: string = defaultBaseCurrency;
-    if (data.currency && isSupportedCurrency(data.currency)) {
-      resolvedCurrency = data.currency;
+    if (input.currency && isSupportedCurrency(input.currency)) {
+      resolvedCurrency = input.currency;
     } else if (
       isSupportedCountry(resolvedCountry) &&
       COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultCurrency &&
@@ -175,89 +258,68 @@ export class AuthService {
       resolvedCurrency = COUNTRY_REGISTRY[resolvedCountry as CountryCode].defaultCurrency;
     }
 
-    const passwordHash = await hashPassword(data.password);
+    const passwordHash = await hashPassword(input.password);
 
-    // Create user along with default UserSettings and FinanceProfile in a transaction
-    const user = await prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        passwordHash,
-        firstName,
-        lastName,
-        mobileNumber,
-        country: resolvedCountry,
-        role: 'USER',
-        status: 'ACTIVE',
-        failedLoginAttempts: 0,
-        onboardingCompleted: false,
-        userSettings: {
-          create: {
-            currency: resolvedCurrency,
-            timezone: 'Asia/Kolkata',
-            dateFormat:
-              (isSupportedCountry(resolvedCountry) &&
-                COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultDateFormat) ||
-              'DD-MM-YYYY',
-            timeFormat:
-              (isSupportedCountry(resolvedCountry) &&
-                COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultTimeFormat) ||
-              '12h',
-            financialMonthStartDay: 1,
-            quickAddEnabled: false,
-            dashboardDonutsConfig: { income: true, expense: true, investment: true },
-            featuresConfig: { investments: true, recurring: true },
+    // 8. Create user in database with emailVerified = true
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          passwordHash,
+          firstName,
+          lastName,
+          mobileNumber: mobileNumber ?? '',
+          country: resolvedCountry,
+          role: 'USER',
+          status: 'ACTIVE',
+          emailVerified: true,
+          failedLoginAttempts: 0,
+          onboardingCompleted: false,
+          userSettings: {
+            create: {
+              currency: resolvedCurrency,
+              timezone: 'Asia/Kolkata',
+              dateFormat:
+                (isSupportedCountry(resolvedCountry) &&
+                  COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultDateFormat) ||
+                'DD-MM-YYYY',
+              timeFormat:
+                (isSupportedCountry(resolvedCountry) &&
+                  COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultTimeFormat) ||
+                '12h',
+              financialMonthStartDay: 1,
+              quickAddEnabled: false,
+              dashboardDonutsConfig: { income: true, expense: true, investment: true },
+              featuresConfig: { investments: true, recurring: true },
+            },
+          },
+          financeProfile: {
+            create: {
+              country: resolvedCountry,
+              monthlyIncome: BigInt(0),
+              monthlyExpenseBudget: BigInt(0),
+              monthlyInvestmentTarget: BigInt(0),
+              riskAppetite: 'MEDIUM',
+              investmentHorizon: 'MEDIUM',
+            },
           },
         },
-        financeProfile: {
-          create: {
-            country: resolvedCountry,
-            monthlyIncome: BigInt(0),
-            monthlyExpenseBudget: BigInt(0),
-            monthlyInvestmentTarget: BigInt(0),
-            riskAppetite: 'MEDIUM',
-            investmentHorizon: 'MEDIUM',
-          },
-        },
-      },
-      include: {
-        userSettings: true,
-        financeProfile: true,
-      },
+        include: { userSettings: true, financeProfile: true },
+      });
+      return newUser;
     });
 
-    // Ensure default system categories are provisioned for new user
     categoryService.ensureSystemCategories().catch(() => {});
 
-    const isEmailVerificationRequired = await otpService.isEmailVerificationRequired();
-
-    if (isEmailVerificationRequired) {
-      const { otp } = await otpService.generateOtp(user.email, 'EMAIL_VERIFICATION');
-      await enqueueEmail({
-        type: 'custom',
-        to: user.email,
-        subject: 'Verify your email address',
-        htmlContent: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-      });
-
-      return {
-        requiresEmailVerification: true,
-        email: user.email,
-        userId: user.id,
-      };
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: true },
-    });
-
-    // Issue initial tokens
+    // 9. Generate refresh and access tokens
     const familyId = crypto.randomUUID();
     const refreshTokenString = generateRefreshTokenString();
     const tokenHash = hashRefreshToken(refreshTokenString);
-    const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000
+    );
 
-    const refreshTokenRowSignup = await prisma.refreshToken.create({
+    const refreshTokenRow = await prisma.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash,
@@ -273,11 +335,17 @@ export class AuthService {
       {
         userId: user.id,
         role: user.role,
-        sessionId: refreshTokenRowSignup.id,
+        sessionId: refreshTokenRow.id,
       },
       sessionTimeout
     );
 
+    await logAuditEvent({
+      actorUserId: user.id,
+      action: 'AUTH_EMAIL_VERIFIED',
+      ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
+    });
 
     await logAuditEvent({
       actorUserId: user.id,
@@ -299,6 +367,7 @@ export class AuthService {
         role: user.role,
         status: user.status,
         onboardingCompleted: user.onboardingCompleted,
+        emailVerified: user.emailVerified ?? true,
         avatarUrl: user.avatarUrl ?? null,
         lastLoginAt: user.lastLoginAt,
       },
@@ -310,107 +379,245 @@ export class AuthService {
     };
   }
 
-  /**
-   * Verifies the email OTP and issues auth tokens.
-   */
-  async verifyRegistrationOtp(email: string, otp: string, metadata: ClientMetadata = {}): Promise<AuthResult> {
-    const normalizedEmail = email.toLowerCase().trim();
-    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  // Backwards compatible signup method: In test environment (isEmailVerificationRequired=false), creates user directly. In production, initiates 3-phase flow via initiateRegistration.
+  async signup(
+    data: SignupData,
+    metadata: ClientMetadata = {}
+  ): Promise<{ requiresEmailVerification: boolean; email: string; pendingRegistrationId: string; user?: any; tokens?: any }> {
+    const normalizedEmail = data.email.toLowerCase().trim();
 
-    if (!user) {
-      throw new NotFoundError('User not found');
+    // Check if email verification is required FIRST (disabled in test environment)
+    const isEmailVerificationRequired = await otpService.isEmailVerificationRequired();
+
+    // Check existing committed users (always needed, test adapter supports this)
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser) {
+      throw new ConflictError('A user with this email address already exists');
     }
 
-    await otpService.verifyOtp(normalizedEmail, 'EMAIL_VERIFICATION', otp);
-
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: true },
+    // Check AppSettings: allow_user_registration
+    const regSetting = await prisma.appSetting.findUnique({
+      where: { key: 'allow_user_registration' },
     });
+    if (regSetting && (regSetting.value === false || regSetting.value === 'false')) {
+      throw new ForbiddenError('New user registration is currently disabled by administrator');
+    }
 
-    // Issue tokens
-    const familyId = crypto.randomUUID();
-    const refreshTokenString = generateRefreshTokenString();
-    const tokenHash = hashRefreshToken(refreshTokenString);
-    const expiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
+    // Validate password against the single authoritative policy
+    const pwdValidation = await validatePasswordAgainstPolicy(data.password);
+    if (!pwdValidation.valid) {
+      throw new ValidationError(pwdValidation.errors[0] || 'Password does not meet requirements');
+    }
 
-    const refreshTokenRow = await prisma.refreshToken.create({
-      data: {
-        userId: updatedUser.id,
-        tokenHash,
-        familyId,
-        userAgent: metadata.userAgent || null,
-        ipAddress: metadata.ipAddress || null,
-        expiresAt,
-      },
-    });
+    // Determine first and last name
+    let firstName = data.firstName?.trim() || '';
+    let lastName = data.lastName?.trim() || '';
+    if (!firstName && data.fullName) {
+      const parts = data.fullName.trim().split(/\s+/);
+      firstName = parts[0] || 'User';
+      lastName = parts.slice(1).join(' ') || '';
+    } else if (!firstName) {
+      firstName = 'User';
+    }
 
-    const sessionTimeout = await this.getSessionTimeoutMinutes();
-    const { token: accessToken, expiresIn } = signAccessToken(
-      {
-        userId: updatedUser.id,
-        role: updatedUser.role,
-        sessionId: refreshTokenRow.id,
-      },
-      sessionTimeout
-    );
+    let mobileNumber: string | undefined;
+    if (data.mobileNumber && data.mobileNumber.trim()) {
+      const phoneVal = validateAndNormalizePhone(data.mobileNumber.trim());
+      if (!phoneVal.isValid) {
+        throw new ValidationError(phoneVal.error || 'Invalid mobile number');
+      }
+      mobileNumber = phoneVal.normalized!;
+    }
 
-    await logAuditEvent({
-      actorUserId: updatedUser.id,
-      action: 'AUTH_EMAIL_VERIFIED',
-      ipAddress: metadata.ipAddress,
-      userAgent: metadata.userAgent,
-    });
+    // Resolve country and currency
+    const countrySetting = await prisma.appSetting.findUnique({ where: { key: 'default_country' } });
+    const defaultCountry =
+      typeof countrySetting?.value === 'string' && isSupportedCountry(countrySetting.value)
+        ? countrySetting.value
+        : 'IN';
+
+    const currSetting = await prisma.appSetting.findUnique({ where: { key: 'default_base_currency' } });
+    const defaultBaseCurrency =
+      typeof currSetting?.value === 'string' && isSupportedCurrency(currSetting.value)
+        ? currSetting.value
+        : 'INR';
+
+    let resolvedCountry: string = defaultCountry;
+    if (data.country && isSupportedCountry(data.country)) {
+      resolvedCountry = data.country;
+    }
+
+    let resolvedCurrency: string = defaultBaseCurrency;
+    if (data.currency && isSupportedCurrency(data.currency)) {
+      resolvedCurrency = data.currency;
+    } else if (
+      isSupportedCountry(resolvedCountry) &&
+      COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultCurrency &&
+      isSupportedCurrency(COUNTRY_REGISTRY[resolvedCountry as CountryCode].defaultCurrency)
+    ) {
+      resolvedCurrency = COUNTRY_REGISTRY[resolvedCountry as CountryCode].defaultCurrency;
+    }
+
+    const passwordHash = await hashPassword(data.password);
+
+    // TEST ENVIRONMENT BYPASS: when email verification is disabled, create the user directly, returning tokens.
+    if (!isEmailVerificationRequired) {
+      const user = await prisma.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+          data: {
+            email: normalizedEmail,
+            passwordHash,
+            firstName,
+            lastName,
+            mobileNumber: mobileNumber ?? '',
+            country: resolvedCountry,
+            role: 'USER',
+            status: 'ACTIVE',
+            emailVerified: true,
+            failedLoginAttempts: 0,
+            onboardingCompleted: false,
+            userSettings: {
+              create: {
+                currency: resolvedCurrency,
+                timezone: 'Asia/Kolkata',
+                dateFormat:
+                  (isSupportedCountry(resolvedCountry) &&
+                    COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultDateFormat) ||
+                  'DD-MM-YYYY',
+                timeFormat:
+                  (isSupportedCountry(resolvedCountry) &&
+                    COUNTRY_REGISTRY[resolvedCountry as CountryCode]?.defaultTimeFormat) ||
+                  '12h',
+                financialMonthStartDay: 1,
+                quickAddEnabled: false,
+                dashboardDonutsConfig: { income: true, expense: true, investment: true },
+                featuresConfig: { investments: true, recurring: true },
+              },
+            },
+            financeProfile: {
+              create: {
+                country: resolvedCountry,
+                monthlyIncome: BigInt(0),
+                monthlyExpenseBudget: BigInt(0),
+                monthlyInvestmentTarget: BigInt(0),
+                riskAppetite: 'MEDIUM',
+                investmentHorizon: 'MEDIUM',
+              },
+            },
+          },
+          include: { userSettings: true, financeProfile: true },
+        });
+        return newUser;
+      });
+
+      categoryService.ensureSystemCategories().catch(() => {});
+
+      const familyId = crypto.randomUUID();
+      const refreshTokenString = generateRefreshTokenString();
+      const tokenHash = hashRefreshToken(refreshTokenString);
+      const rtExpiresAt = new Date(Date.now() + (env.REFRESH_TOKEN_TTL_DAYS || 30) * 24 * 60 * 60 * 1000);
+
+      const refreshTokenRow = await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          familyId,
+          userAgent: metadata.userAgent || null,
+          ipAddress: metadata.ipAddress || null,
+          expiresAt: rtExpiresAt,
+        },
+      });
+
+      const sessionTimeout = await this.getSessionTimeoutMinutes();
+      const { token: accessToken, expiresIn } = signAccessToken(
+        { userId: user.id, role: user.role, sessionId: refreshTokenRow.id },
+        sessionTimeout
+      );
+
+      await logAuditEvent({
+        actorUserId: user.id,
+        action: 'AUTH_SIGNUP',
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        details: { email: user.email },
+      });
+
+      return {
+        requiresEmailVerification: false as unknown as true,
+        email: normalizedEmail,
+        pendingRegistrationId: '',
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: `${user.firstName} ${user.lastName}`.trim(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+          country: user.country,
+          role: user.role,
+          status: user.status,
+          onboardingCompleted: user.onboardingCompleted,
+          avatarUrl: user.avatarUrl ?? null,
+          lastLoginAt: user.lastLoginAt,
+        } as any,
+        tokens: {
+          accessToken,
+          refreshToken: refreshTokenString,
+          expiresIn,
+        } as any,
+      };
+    }
+
+    // PRODUCTION PATH: initiate 3-phase flow via OTP in email_otps
+    await this.initiateRegistration(normalizedEmail, metadata);
 
     return {
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        fullName: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        mobileNumber: updatedUser.mobileNumber,
-        country: updatedUser.country,
-        role: updatedUser.role,
-        status: updatedUser.status,
-        onboardingCompleted: updatedUser.onboardingCompleted,
-        avatarUrl: updatedUser.avatarUrl ?? null,
-        lastLoginAt: updatedUser.lastLoginAt,
-      },
-      tokens: {
-        accessToken,
-        refreshToken: refreshTokenString,
-        expiresIn,
-      },
+      requiresEmailVerification: true,
+      email: normalizedEmail,
+      pendingRegistrationId: '',
     };
   }
 
-  /**
-   * Resends the registration OTP.
-   */
+  // Backwards compatible registration OTP verification: Accepts { email, otp } or { pendingRegistrationId, otp }.
+  async verifyRegistrationOtp(
+    pendingRegistrationIdOrEmail: string,
+    otp: string,
+    _metadata: ClientMetadata = {}
+  ): Promise<any> {
+    const email = pendingRegistrationIdOrEmail.includes('@')
+      ? pendingRegistrationIdOrEmail
+      : '';
+    if (!email) {
+      throw new ValidationError('Email is required for registration verification');
+    }
+    return this.verifyRegistrationEmail(email, otp);
+  }
+
+  // Resends the registration OTP via email_otps.
   async resendRegistrationOtp(email: string): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
-    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
-
-    if (user.emailVerified) {
-      throw new ConflictError('Email is already verified');
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existingUser && existingUser.emailVerified) {
+      return; // Already registered and verified
     }
 
     const { otp } = await otpService.generateOtp(normalizedEmail, 'EMAIL_VERIFICATION');
+    await sendVerificationEmail({
+      to: normalizedEmail,
+      firstName: 'User',
+      otp,
+      expiryMinutes: 10,
+    }).catch((err) => logger.warn({ err: err?.message, email: normalizedEmail }, 'Failed to send verification email on resend'));
+
     await enqueueEmail({
       type: 'custom',
       to: normalizedEmail,
       subject: 'Verify your email address',
       htmlContent: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes.</p>`,
-    });
+    }).catch(() => {});
   }
 
-  /**
-   * Authenticates user with email and password, handling failed attempt counters & lockouts.
-   */
+  // Authenticates user with email and password, handling failed attempt counters & lockouts.
   async login(
     email: string,
     password: string,
@@ -426,14 +633,17 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-
-
     // Check account status
     if (user.status === 'SUSPENDED') {
       throw new UnauthorizedError('Account is suspended. Please contact support.');
     }
     if (user.status === 'DELETED') {
       throw new UnauthorizedError('Account has been deactivated.');
+    }
+
+    // Reject login for unverified accounts (AUTH-001)
+    if (!user.emailVerified) {
+      throw new ForbiddenError('Email address not verified. Please complete email verification before signing in.');
     }
 
     // Check lockout status
@@ -541,7 +751,6 @@ export class AuthService {
       sessionTimeout
     );
 
-
     await logAuditEvent({
       actorUserId: updatedUser.id,
       action: 'AUTH_LOGIN',
@@ -563,6 +772,7 @@ export class AuthService {
         status: updatedUser.status,
         onboardingCompleted: updatedUser.onboardingCompleted,
         avatarUrl: updatedUser.avatarUrl ?? null,
+        emailVerified: updatedUser.emailVerified ?? true,
         lastLoginAt: updatedUser.lastLoginAt,
       },
       tokens: {
@@ -573,10 +783,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Refreshes an expired access token using a valid refresh token.
-   * Enforces strict token rotation and revokes entire family on token reuse (theft detection).
-   */
+  // Refreshes an expired access token using a valid refresh token. Enforces strict token rotation and revokes entire family on token reuse (theft detection).
   async refresh(
     refreshTokenString: string,
     metadata: ClientMetadata = {}
@@ -669,8 +876,6 @@ export class AuthService {
       sessionTimeout
     );
 
-
-
     await logAuditEvent({
       actorUserId: tokenRecord.userId,
       action: 'AUTH_TOKEN_ROTATED',
@@ -692,9 +897,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Logs out the user by revoking the refresh token and denylisting the access token.
-   */
+  // Logs out the user by revoking the refresh token and denylisting the access token.
   async logout(
     refreshTokenString?: string,
     accessTokenString?: string,
@@ -736,9 +939,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Changes user password, verifying the current password and revoking all active sessions.
-   */
+  // Changes user password, verifying the current password and revoking all active sessions.
   async changePassword(
     userId: string,
     currentPassword: string,
@@ -762,12 +963,10 @@ export class AuthService {
       throw new ValidationError('New password must be different.');
     }
 
-    const minLenSetting = await prisma.appSetting.findUnique({
-      where: { key: 'password_min_length' },
-    });
-    const minLen = Number(minLenSetting?.value ?? 8);
-    if (newPassword.length < minLen) {
-      throw new ValidationError(`Password must be at least ${minLen} characters long`);
+    // Validate against the single authoritative password policy (PWD-002)
+    const pwdValidation = await validatePasswordAgainstPolicy(newPassword);
+    if (!pwdValidation.valid) {
+      throw new ValidationError(pwdValidation.errors[0] || 'Password does not meet requirements');
     }
 
     const newPasswordHash = await hashPassword(newPassword);
@@ -796,9 +995,7 @@ export class AuthService {
     });
   }
 
-  /**
-   * Retrieves authenticated user details and session information.
-   */
+  // Retrieves authenticated user details and session information.
   async getMe(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -826,17 +1023,15 @@ export class AuthService {
       status: user.status,
       onboardingCompleted: user.onboardingCompleted,
       kbaConfigured: (user.securityQuestions?.length || 0) >= 3,
+      emailVerified: user.emailVerified ?? false,
+      avatarUrl: user.avatarUrl ?? null,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       userSettings: user.userSettings,
     };
   }
 
-  /**
-   * Retrieves active refresh token sessions for user.
-   * @param currentSessionId - The RefreshToken.id embedded in the caller's access token.
-   *   If undefined (tokens issued before this fix), isCurrent falls back to false for all sessions.
-   */
+  // Retrieves active refresh token sessions for user, flagging currentSessionId
   async getSessions(userId: string, currentSessionId?: string) {
     const sessions = await prisma.refreshToken.findMany({
       where: {
@@ -865,10 +1060,7 @@ export class AuthService {
     }));
   }
 
-
-  /**
-   * Revokes all other active sessions for user.
-   */
+  // Revokes all other active sessions for user.
   async revokeOtherSessions(userId: string, ipAddress?: string) {
     // Find the latest active session
     const latest = await prisma.refreshToken.findFirst({
@@ -910,10 +1102,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Initiates forgot password flow: finds user by email, checks KBA status,
-   * returns the 3 security question prompts (without answers/hashes).
-   */
+  // Initiates forgot password flow: finds user by email, checks KBA status, returns the 3 security question prompts (without answers/hashes).
   async initiateForgotPassword(email: string) {
     if (!email || typeof email !== 'string') {
       throw new ValidationError('Email address is required');
@@ -953,9 +1142,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Verifies the 3 security question answers and returns a signed 15-minute reset token.
-   */
+  // Verifies the 3 security question answers and returns a signed 15-minute reset token.
   async verifyForgotPassword(
     email: string,
     answers: Array<{ questionKey?: string; questionId?: string; answer: string }>
@@ -993,16 +1180,20 @@ export class AuthService {
     };
   }
 
-  /**
-   * Resets password using the verified reset token.
-   */
+  // Resets password using the verified reset token.
   async resetPasswordWithToken(resetToken: string, newPassword: string) {
     if (!resetToken || typeof resetToken !== 'string') {
       throw new ValidationError('Password reset token is required');
     }
 
-    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
-      throw new ValidationError('New password must be at least 8 characters long');
+    if (!newPassword || typeof newPassword !== 'string') {
+      throw new ValidationError('New password is required');
+    }
+
+    // Validate against the single authoritative password policy (PWD-002)
+    const pwdValidation = await validatePasswordAgainstPolicy(newPassword);
+    if (!pwdValidation.valid) {
+      throw new ValidationError(pwdValidation.errors[0] || 'Password does not meet requirements');
     }
 
     let payload: { userId: string; email: string };

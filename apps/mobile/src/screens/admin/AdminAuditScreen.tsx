@@ -93,7 +93,6 @@ export const AdminAuditScreen: React.FC = () => {
         onBackPress={() => navigation.goBack()}
       />
 
-      {/* Search Input */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <SearchIcon size={18} color={colors.textMuted} />
@@ -118,7 +117,6 @@ export const AdminAuditScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Filter Pills */}
         <View style={styles.filterPillsRow}>
           {FILTER_PILLS.map((p) => {
             const isSelected = filter === p.id;
@@ -148,7 +146,6 @@ export const AdminAuditScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Audit Event Stream */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -261,7 +258,6 @@ export const AdminAuditScreen: React.FC = () => {
         </ScrollView>
       )}
 
-      {/* Audit Detail Modal */}
       <Modal
         visible={selectedLog !== null}
         transparent

@@ -33,7 +33,6 @@ export const CurrencyPickerModal: React.FC<CurrencyPickerModalProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
-          {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Currency</Text>
             <Pressable
@@ -48,7 +47,6 @@ export const CurrencyPickerModal: React.FC<CurrencyPickerModalProps> = ({
             </Pressable>
           </View>
 
-          {/* Currency List */}
           <FlatList
             data={SUPPORTED_CURRENCIES}
             keyExtractor={(item) => item.code}

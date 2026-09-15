@@ -25,9 +25,7 @@ export function setStoredAccessToken(token: string | null, remember = true): voi
       localStorage.removeItem(TOKEN_KEY);
       sessionStorage.removeItem(TOKEN_KEY);
     }
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 export function getStoredRefreshToken(): string | null {
@@ -50,9 +48,7 @@ export function setStoredRefreshToken(token: string | null, remember = true): vo
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       sessionStorage.removeItem(REFRESH_TOKEN_KEY);
     }
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 export function clearStoredTokens(): void {
@@ -65,9 +61,7 @@ export function clearStoredTokens(): void {
     sessionStorage.removeItem(USER_STORAGE_KEY);
     localStorage.removeItem(KBA_STORAGE_KEY);
     sessionStorage.removeItem(KBA_STORAGE_KEY);
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 export function getStoredUser(): AuthUser | null {
@@ -92,9 +86,7 @@ export function saveUserCache(user: AuthUser | null, remember = true): void {
       localStorage.removeItem(USER_STORAGE_KEY);
       sessionStorage.removeItem(USER_STORAGE_KEY);
     }
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }
 
 export function getStoredKba(): boolean {
@@ -113,7 +105,5 @@ export function saveKbaCache(kba: boolean, remember = true): void {
     } else {
       sessionStorage.setItem(KBA_STORAGE_KEY, String(kba));
     }
-  } catch {
-    // Ignore storage errors
-  }
+  } catch {}
 }

@@ -150,7 +150,6 @@ export const TransactionsScreen: React.FC = () => {
     });
   }, [transactions, selectedTab, searchQuery, accountNameMap]);
 
-  // Open modal in Add mode
   const handleOpenAdd = (explicitType?: TransactionFormType) => {
     let defaultType: TransactionFormType = explicitType || 'expense';
     if (!explicitType) {
@@ -171,7 +170,6 @@ export const TransactionsScreen: React.FC = () => {
     }
   }, [route.params]);
 
-  // Open modal in Edit mode
   const handleOpenEdit = (txn: Transaction) => {
     let tType: TransactionFormType = 'expense';
     if (txn.type === 'INCOME') tType = 'income';
@@ -200,13 +198,11 @@ export const TransactionsScreen: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Trigger delete confirmation
   const handlePromptDelete = (txn: Transaction) => {
     setDeletingTransaction(txn);
     setDeleteError(null);
   };
 
-  // Confirm soft delete
   const handleConfirmDelete = async () => {
     if (!deletingTransaction) return;
     try {
@@ -295,7 +291,6 @@ export const TransactionsScreen: React.FC = () => {
       />
 
       <View style={styles.content}>
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <SearchIcon size={18} color={colors.textMuted} />
           <TextInput
@@ -318,7 +313,6 @@ export const TransactionsScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Filter Tabs */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -359,7 +353,6 @@ export const TransactionsScreen: React.FC = () => {
           })}
         </ScrollView>
 
-        {/* Error Banner */}
         {error && (
           <View style={styles.errorBanner}>
             <AlertCircleIcon size={18} color={colors.danger} />
@@ -376,7 +369,6 @@ export const TransactionsScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Transactions List */}
         <ScrollView
           contentContainerStyle={[
             styles.listContainer,
@@ -458,7 +450,6 @@ export const TransactionsScreen: React.FC = () => {
                       </View>
                     </View>
 
-                    {/* Amount */}
                     <Text
                       style={[
                         styles.amountText,
@@ -473,7 +464,6 @@ export const TransactionsScreen: React.FC = () => {
                     </Text>
                   </View>
 
-                  {/* Card Bottom Row: Semantic Chip + Actions */}
                   <View style={styles.cardBottomRow}>
                     <View style={[styles.semanticChip, { backgroundColor: chip.bgColor }]}>
                       {chip.icon}
@@ -512,7 +502,6 @@ export const TransactionsScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* Centralized Add/Edit Modal */}
       <TransactionFormModal
         visible={isModalOpen}
         mode={modalMode}
@@ -526,7 +515,6 @@ export const TransactionsScreen: React.FC = () => {
         onTypeChange={(newType) => setModalType(newType)}
       />
 
-      {/* Soft-Delete Confirmation Modal */}
       <Modal
         visible={deletingTransaction !== null}
         transparent

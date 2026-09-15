@@ -190,9 +190,7 @@ export const AdminDashboardPage: React.FC = () => {
       />
 
       <div className="p-4 space-y-4">
-        {/* 4 Metric Cards - User Panel Inspired Design */}
         <div className="grid grid-cols-4 gap-2">
-          {/* Total Users */}
           <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-blue-200 transition-all">
             <div className="w-7 h-7 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center mb-1.5 shrink-0">
               <Users className="w-4 h-4" />
@@ -207,7 +205,6 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Active */}
           <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-emerald-200 transition-all">
             <div className="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1.5 shrink-0">
               <UserCheck className="w-4 h-4" />
@@ -222,7 +219,6 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Suspended */}
           <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-rose-200 transition-all">
             <div className="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1.5 shrink-0">
               <UserX className="w-4 h-4" />
@@ -237,7 +233,6 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Admins */}
           <div className="bg-white border border-borderDefault/80 rounded-2xl p-3 flex flex-col justify-between shadow-card hover:border-purple-200 transition-all">
             <div className="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-1.5 shrink-0">
               <Shield className="w-4 h-4" />
@@ -253,7 +248,6 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search Bar + Export */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -288,7 +282,6 @@ export const AdminDashboardPage: React.FC = () => {
           </Button>
         </div>
 
-        {/* Filter + Sort Bar */}
         <div className="grid grid-cols-2 gap-2">
           <CustomDropdown
             size="sm"
@@ -318,14 +311,12 @@ export const AdminDashboardPage: React.FC = () => {
           />
         </div>
 
-        {/* Header row: Users count */}
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-textDefault">
             Users ({totalUsersCount})
           </h3>
         </div>
 
-        {/* User List */}
         {isUsersLoading ? (
           <div className="space-y-2.5">
             <Skeleton className="h-20 w-full rounded-2xl" />
@@ -361,7 +352,6 @@ export const AdminDashboardPage: React.FC = () => {
                   className="bg-white border border-borderDefault rounded-2xl p-3.5 shadow-card hover:border-slate-300 active:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Avatar Initials with Status Dot */}
                     <div className="relative shrink-0">
                       <div className="w-11 h-11 rounded-2xl bg-blue-50 text-brand-primary font-bold text-xs flex items-center justify-center border border-blue-100">
                         {initials}
@@ -386,7 +376,6 @@ export const AdminDashboardPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right Badges & Chevron */}
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="flex flex-col items-end gap-1">
                       {isAdmin && (
@@ -430,7 +419,6 @@ export const AdminDashboardPage: React.FC = () => {
               );
             })}
 
-            {/* Centralized Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -443,7 +431,6 @@ export const AdminDashboardPage: React.FC = () => {
         )}
       </div>
 
-      {/* Admin User Action Modal */}
       <AdminUserActionModal
         isOpen={Boolean(actionModalUser)}
         user={actionModalUser}

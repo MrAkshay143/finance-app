@@ -48,7 +48,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   const initialData = props.initialData || storeModal.initialData;
   const handleClose = props.onClose || closeTransactionModal;
 
-  // Form states
   const [amount, setAmount] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [accountId, setAccountId] = useState<string>('');
@@ -120,8 +119,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         })
       : [];
 
-  // Track initialization state with refs to prevent background query refetches
-  // from ever wiping out user-typed inputs (amount, merchant, description, date).
+  // Track initialization state with refs to prevent background query refetches from wiping user inputs.
   const prevIsOpenRef = useRef(false);
   const prevInitialDataIdRef = useRef<string | undefined>(undefined);
   const isInitializedRef = useRef(false);
@@ -181,7 +179,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
   }, [isOpen, realCategories.length, activeAccounts.length]);
 
 
-  // Mutations
   const createTxnMutation = useMutation(
     {
       mutationFn: async (payload: {
@@ -267,15 +264,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
 
   if (!isOpen) return null;
 
-  // 8 DISTINCT MODAL STATES per Plan/frontend.md §4:
-  // Add Income -> Save Income
-  // Edit Income -> Update Income
-  // Add Expense -> Save Expense
-  // Edit Expense -> Update Expense
-  // Add Investment -> Save Investment
-  // Edit Investment -> Update Investment
-  // Add Transfer -> Save Transfer
-  // Edit Transfer -> Update Transfer
   const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
   const title = mode === 'add' ? `Add ${typeCapitalized}` : `Edit ${typeCapitalized}`;
   const submitButtonLabel = mode === 'add' ? `Save ${typeCapitalized}` : `Update ${typeCapitalized}`;
@@ -389,7 +377,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         });
       }
     } else {
-      // Edit mode
       if (initialData?.id) {
         updateTxnMutation.mutate({
           id: initialData.id,
@@ -442,7 +429,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       }
     >
       <form id="transaction-form" onSubmit={handleSubmit} className="space-y-4">
-        {/* Amount Input */}
         <div>
           <Input
             label={`Amount (${currencySymbol})`}
@@ -462,7 +448,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           />
         </div>
 
-        {/* Account Selector (From Account for Transfer) */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="text-xs font-semibold text-textDefault">
@@ -497,7 +482,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
         </div>
 
 
-        {/* Destination Account for Transfers */}
         {type === 'transfer' && (
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -525,7 +509,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           </div>
         )}
 
-        {/* Category Selector (hidden for transfers) */}
         {type !== 'transfer' && (
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -569,7 +552,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           </div>
         )}
 
-        {/* Merchant / Payee (for non-transfers) with dynamic auto-suggest */}
         {type !== 'transfer' && (
           <div>
             <MerchantAutoSuggest
@@ -579,7 +561,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           </div>
         )}
 
-        {/* Date Input */}
         <div>
           <Input
             label="Date"
@@ -596,7 +577,6 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
           />
         </div>
 
-        {/* Description Textarea */}
         <div>
           <Input
             label="Description & Notes"

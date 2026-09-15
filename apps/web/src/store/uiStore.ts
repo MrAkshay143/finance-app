@@ -23,18 +23,15 @@ export interface TransactionModalState {
 }
 
 interface UiState {
-  // Picker Modal
   isPickerOpen: boolean;
   openPicker: () => void;
   closePicker: () => void;
 
-  // Transaction Form Modal (Add vs Edit)
   transactionModal: TransactionModalState;
   openAddModal: (type: TransactionType) => void;
   openEditModal: (type: TransactionType, initialData: Partial<TransactionFormData>) => void;
   closeTransactionModal: () => void;
 
-  // Notifications
   unreadCount: number;
   setUnreadCount: (count: number) => void;
 }

@@ -1,17 +1,4 @@
-/**
- * INFRA-003 / EMAIL-003: BullMQ email queue worker.
- *
- * Provides a durable, async email queue backed by Redis.
- * When Redis is unavailable, falls back to inline (synchronous) send.
- *
- * Job types:
- *   - password_reset
- *   - welcome
- *   - security_alert
- *   - account_locked
- *   - session_warning
- *   - custom (for sendTemplatedEmail)
- */
+// INFRA-003 / EMAIL-003: BullMQ email queue worker. Provides a durable, async email queue backed by Redis. When Redis is unavailable, falls back to inline (synchronous) send. Job types: - password_reset - welcome - security_alert - account_locked - session_warning - custom (for sendTemplatedEmail)
 import { Queue, Worker, Job, type ConnectionOptions } from 'bullmq';
 import { logger } from '../lib/logger.js';
 import { env } from '../config/env.js';
@@ -23,7 +10,7 @@ export interface EmailJobData {
   templateKey?: string;
   variables?: Record<string, string>;
   userId?: string;
-  /** Inline HTML — used when templateKey not set */
+  // Inline HTML — used when templateKey not set
   htmlContent?: string;
   textContent?: string;
 }
@@ -47,10 +34,7 @@ function getRedisConnection(): ConnectionOptions {
   }
 }
 
-/**
- * Initialize the BullMQ email queue and worker.
- * Must be called after Redis is ready (i.e. from server.ts after initRedis).
- */
+// Initialize the BullMQ email queue and worker. Must be called after Redis is ready (i.e. from server.ts after initRedis).
 export async function initEmailQueue(): Promise<void> {
   try {
     const connection = getRedisConnection();
@@ -110,9 +94,7 @@ export async function initEmailQueue(): Promise<void> {
   }
 }
 
-/**
- * Enqueue an email job. Falls back to inline send if queue is unavailable.
- */
+// Enqueue an email job. Falls back to inline send if queue is unavailable.
 export async function enqueueEmail(data: EmailJobData): Promise<void> {
   if (emailQueue) {
     try {
@@ -146,9 +128,7 @@ export async function enqueueEmail(data: EmailJobData): Promise<void> {
   }
 }
 
-/**
- * Gracefully shut down the worker and queue.
- */
+// Gracefully shut down the worker and queue.
 export async function closeEmailQueue(): Promise<void> {
   try {
     if (emailWorker) await emailWorker.close();

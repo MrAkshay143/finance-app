@@ -362,6 +362,32 @@ export class AdminController {
       next(err);
     }
   }
+
+  async getEmailTemplates(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const templates = await adminService.getEmailTemplates();
+      res.status(200).json({
+        success: true,
+        data: templates,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateEmailTemplate(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { key } = req.params;
+      const adminId = (req as any).user?.id || (req as any).userId;
+      const updated = await adminService.updateEmailTemplate(key, req.body, adminId, req.ip);
+      res.status(200).json({
+        success: true,
+        data: updated,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const adminController = new AdminController();

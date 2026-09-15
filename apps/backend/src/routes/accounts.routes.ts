@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { accountController } from '../controllers/accountController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { validateBody } from '../middleware/validate.js';
 import {
   CreateAccountInputSchema,
@@ -10,41 +11,33 @@ import {
 
 export const accountsRouter: Router = Router();
 
-// All accounts routes require authentication
 accountsRouter.use(authenticate);
 
-// GET /api/v1/accounts - List all accounts with summary aggregate
 accountsRouter.get('/', (req, res, next) => {
   accountController.listAccounts(req, res, next);
 });
 
-// POST /api/v1/accounts - Create a new account
-accountsRouter.post('/', validateBody(CreateAccountInputSchema), (req, res, next) => {
+accountsRouter.post('/', validateBody(CreateAccountInputSchema), idempotencyMiddleware, (req, res, next) => {
   accountController.createAccount(req, res, next);
 });
 
-// GET /api/v1/accounts/:id - Get account detail with recent transactions
 accountsRouter.get('/:id', (req, res, next) => {
   accountController.getAccount(req, res, next);
 });
 
-// PUT /api/v1/accounts/:id - Update account metadata
-accountsRouter.put('/:id', validateBody(UpdateAccountInputSchema), (req, res, next) => {
+accountsRouter.put('/:id', validateBody(UpdateAccountInputSchema), idempotencyMiddleware, (req, res, next) => {
   accountController.updateAccount(req, res, next);
 });
 
-// PATCH /api/v1/accounts/:id - Update account metadata (alias)
-accountsRouter.patch('/:id', validateBody(UpdateAccountInputSchema), (req, res, next) => {
+accountsRouter.patch('/:id', validateBody(UpdateAccountInputSchema), idempotencyMiddleware, (req, res, next) => {
   accountController.updateAccount(req, res, next);
 });
 
-// DELETE /api/v1/accounts/:id - Delete account or mark inactive if transactions exist
-accountsRouter.delete('/:id', (req, res, next) => {
+accountsRouter.delete('/:id', idempotencyMiddleware, (req, res, next) => {
   accountController.deleteAccount(req, res, next);
 });
 
-// PATCH /api/v1/accounts/:id/status - Toggle or set account status (ACTIVE/INACTIVE)
-accountsRouter.patch('/:id/status', validateBody(ToggleAccountStatusSchema), (req, res, next) => {
+accountsRouter.patch('/:id/status', validateBody(ToggleAccountStatusSchema), idempotencyMiddleware, (req, res, next) => {
   accountController.toggleAccountStatus(req, res, next);
 });
 

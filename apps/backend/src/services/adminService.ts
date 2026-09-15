@@ -10,8 +10,8 @@ import { invalidateMaintenanceCache } from '../middleware/maintenanceMiddleware.
 import { emitSyncEvent } from '../sockets/socketGateway.js';
 import { escapeCsvField } from '../utils/csv.js';
 import { revokeUserTokens } from '../lib/tokenDenylist.js';
-
-
+import { validatePasswordAgainstPolicy, invalidatePasswordPolicyCache } from './passwordPolicyService.js';
+import { DEFAULT_EMAIL_TEMPLATES } from '../config/defaultEmailTemplates.js';
 
 export interface AdminDashboardMetrics {
   totalUsers: number;
@@ -189,7 +189,6 @@ export class AdminService {
     }
     const totalBalancePaise = Number(_totalBalancePaise);
 
-
     // Fetch recent audit logs targeting or enacted by this user
     const auditLogsRes = await auditService.listUserAuditLogs(targetUserId, {
       page: 1,
@@ -311,11 +310,18 @@ export class AdminService {
       throw new NotFoundError('User not found');
     }
 
-    if (newPassword && newPassword.length < 8) {
-      throw new ValidationError('Password must be at least 8 characters');
+    let effectivePassword = newPassword;
+    if (!effectivePassword) {
+      // Generate a strong temporary password (16 chars, upper, lower, number, special)
+      effectivePassword = `Temp#${crypto.randomBytes(6).toString('hex')}9A!`;
+    }
+    
+    // Always validate against authoritative policy, even if system-generated
+    const pwdValidation = await validatePasswordAgainstPolicy(effectivePassword);
+    if (!pwdValidation.valid) {
+      throw new ValidationError(`Generated/Provided password fails policy: ${pwdValidation.errors[0]}`);
     }
 
-    const effectivePassword = newPassword || `Temp#${crypto.randomBytes(4).toString('hex')}9A`;
     const passwordHash = await bcrypt.hash(effectivePassword, 10);
 
     await prisma.$transaction(async (tx) => {
@@ -388,10 +394,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Soft deletes a user (status = 'DELETED') and revokes sessions.
-   * Writes AuditLog ('ADMIN_DELETE_USER').
-   */
+  // Soft deletes a user (status = 'DELETED') and revokes sessions. Writes AuditLog ('ADMIN_DELETE_USER').
   async deleteUser(
     adminId: string,
     targetUserId: string,
@@ -438,9 +441,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Reads AppSetting rows from the database and returns structured application settings.
-   */
+  // Reads AppSetting rows from the database and returns structured application settings.
   async getAppSettings(): Promise<AppSettingsData> {
     const rows = await prisma.appSetting.findMany();
     const settingsMap = new Map<string, any>();
@@ -489,9 +490,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Updates AppSetting entries and writes AuditLog ('ADMIN_APP_SETTINGS_UPDATE').
-   */
+  // Updates AppSetting entries and writes AuditLog ('ADMIN_APP_SETTINGS_UPDATE').
   async updateAppSettings(
     adminId: string,
     data: Record<string, any>,
@@ -516,11 +515,15 @@ export class AdminService {
       famExpenseThresholdPercent: 'fam_expense_threshold_percent',
       famInvestmentThresholdPercent: 'fam_investment_threshold_percent',
       famIncomeThresholdPercent: 'fam_income_threshold_percent',
+      passwordRequireUppercase: 'password_require_uppercase',
+      passwordRequireLowercase: 'password_require_lowercase',
+      passwordRequireDigit: 'password_require_digit',
+      passwordRequireSpecial: 'password_require_special',
+      passwordRequireNumbers: 'password_require_digit',
+      passwordRequireSymbols: 'password_require_special',
     };
 
-    // Sanitize boolean fields: coerce to real boolean so string "false" / "true"
-    // from non-UI clients doesn't reach the DB as truthy strings.
-    // This mirrors the strict === true check in maintenanceMiddleware.
+    // Coerce boolean settings to strict booleans to prevent truthy string issues
     const sanitized: Record<string, any> = { ...data };
     if ('maintenanceMode' in sanitized) {
       sanitized.maintenanceMode = sanitized.maintenanceMode === true || sanitized.maintenanceMode === 'true';
@@ -532,6 +535,18 @@ export class AdminService {
     if ('pwaInstallEnabled' in sanitized) {
       sanitized.pwaInstallEnabled =
         sanitized.pwaInstallEnabled === true || sanitized.pwaInstallEnabled === 'true';
+    }
+    if ('passwordRequireUppercase' in sanitized) {
+      sanitized.passwordRequireUppercase = sanitized.passwordRequireUppercase === true || sanitized.passwordRequireUppercase === 'true';
+    }
+    if ('passwordRequireLowercase' in sanitized) {
+      sanitized.passwordRequireLowercase = sanitized.passwordRequireLowercase === true || sanitized.passwordRequireLowercase === 'true';
+    }
+    if ('passwordRequireDigit' in sanitized) {
+      sanitized.passwordRequireDigit = sanitized.passwordRequireDigit === true || sanitized.passwordRequireDigit === 'true';
+    }
+    if ('passwordRequireSpecial' in sanitized) {
+      sanitized.passwordRequireSpecial = sanitized.passwordRequireSpecial === true || sanitized.passwordRequireSpecial === 'true';
     }
 
     for (const [key, value] of Object.entries(sanitized)) {
@@ -549,6 +564,14 @@ export class AdminService {
           updatedBy: adminId,
         },
       });
+    }
+
+    // Invalidate password policy cache if any password-related setting changed (PWD-002)
+    const passwordPolicyKeys = ['passwordMinLength', 'password_min_length', 'passwordRequireUppercase',
+      'passwordRequireLowercase', 'passwordRequireDigit', 'passwordRequireSpecial',
+      'password_require_uppercase', 'password_require_lowercase', 'password_require_digit', 'password_require_special'];
+    if (passwordPolicyKeys.some(k => k in data)) {
+      await invalidatePasswordPolicyCache();
     }
 
     if (
@@ -570,9 +593,7 @@ export class AdminService {
     return this.getAppSettings();
   }
 
-  /**
-   * Flushes Redis application cache keys.
-   */
+  // Flushes Redis application cache keys.
   async clearRedisCache(
     adminId: string,
     ipAddress?: string
@@ -608,9 +629,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Triggers synchronous materialization of due recurring transactions.
-   */
+  // Triggers synchronous materialization of due recurring transactions.
   async runRecurringMaterialization(
     adminId: string,
     ipAddress?: string
@@ -631,9 +650,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Exports system-wide audit logs to structured CSV format.
-   */
+  // Exports system-wide audit logs to structured CSV format.
   async exportAuditLogsCsv(): Promise<string> {
     const logs = await prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
@@ -662,9 +679,7 @@ export class AdminService {
 
   }
 
-  /**
-   * Purges audit logs older than the specified retention days.
-   */
+  // Purges audit logs older than the specified retention days.
   async purgeOldAuditLogs(
     adminId: string,
     retentionDays: number,
@@ -692,16 +707,12 @@ export class AdminService {
     };
   }
 
-  /**
-   * System-wide audit logs query.
-   */
+  // System-wide audit logs query.
   async listSystemAuditLogs(options: any = {}) {
     return auditService.listSystemAuditLogs(options);
   }
 
-  /**
-   * Aggregates platform analytics, onboarding funnels, and user growth.
-   */
+  // Aggregates platform analytics, onboarding funnels, and user growth.
   async getPlatformAnalytics(timeframe = '30d') {
     const tf = (timeframe || '30d').toLowerCase();
     const days = tf === '7d' ? 7 : tf === '90d' ? 90 : tf === '1y' ? 365 : 30;
@@ -885,9 +896,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Generates institutional CSV data for all non-deleted platform users.
-   */
+  // Generates institutional CSV data for all non-deleted platform users.
   async exportUsersCsv(): Promise<string> {
     const users = await prisma.user.findMany({
       where: { status: { not: 'DELETED' } },
@@ -925,7 +934,6 @@ export class AdminService {
       for (const a of u.accounts) _balPaise += BigInt(a.currentBalance || 0);
       const totalBalanceINR = (Number(_balPaise) / 100).toFixed(2);
 
-
       return [
         escapeCsvField(u.id),
         escapeCsvField(fullName),
@@ -943,13 +951,10 @@ export class AdminService {
       ].join(',');
     });
 
-
     return [headers.join(','), ...rows].join('\n');
   }
 
-  /**
-   * Evaluates live system health, latency, uptime, and row counts.
-   */
+  // Evaluates live system health, latency, uptime, and row counts.
   async getSystemHealth() {
     const start = performance.now();
     await prisma.$queryRaw`SELECT 1`;
@@ -985,9 +990,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Retrieves active sessions for a given user.
-   */
+  // Retrieves active sessions for a given user.
   async getUserSessions(userId: string) {
     const sessions = await prisma.refreshToken.findMany({
       where: {
@@ -1008,9 +1011,7 @@ export class AdminService {
     }));
   }
 
-  /**
-   * Revokes all active refresh tokens for a user.
-   */
+  // Revokes all active refresh tokens for a user.
   async revokeAllUserSessions(userId: string, adminId: string, ipAddress?: string) {
     const result = await prisma.refreshToken.updateMany({
       where: {
@@ -1035,9 +1036,7 @@ export class AdminService {
     return { revokedCount: result.count };
   }
 
-  /**
-   * Retrieves all accounts for a specific user.
-   */
+  // Retrieves all accounts for a specific user.
   async getUserAccounts(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -1061,9 +1060,7 @@ export class AdminService {
     }));
   }
 
-  /**
-   * Retrieves recent transactions for a specific user.
-   */
+  // Retrieves recent transactions for a specific user.
   async getUserTransactions(userId: string, limit = 50) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -1093,9 +1090,7 @@ export class AdminService {
     }));
   }
 
-  /**
-   * Revokes a single session for a user.
-   */
+  // Revokes a single session for a user.
   async revokeUserSession(sessionId: string, adminId: string, ipAddress?: string) {
     const session = await prisma.refreshToken.findUnique({ where: { id: sessionId } });
     if (!session) {
@@ -1113,6 +1108,95 @@ export class AdminService {
       ipAddress,
     });
     return { success: true };
+  }
+
+  // Retrieves all email templates, merging any custom overrides stored in app_settings over DEFAULT_EMAIL_TEMPLATES.
+  async getEmailTemplates() {
+    const settings = await prisma.appSetting.findMany({
+      where: {
+        key: {
+          startsWith: 'email_template:',
+        },
+      },
+    });
+
+    const customMap = new Map<string, any>();
+    for (const s of settings) {
+      try {
+        const key = s.key.replace('email_template:', '');
+        const parsed = typeof s.value === 'string' ? JSON.parse(s.value) : s.value;
+        customMap.set(key, parsed);
+      } catch {
+        // Ignore JSON parsing errors for corrupted settings
+      }
+    }
+
+    return DEFAULT_EMAIL_TEMPLATES.map((def) => {
+      const custom = customMap.get(def.key);
+      if (custom) {
+        return {
+          ...def,
+          subject: custom.subject ?? def.subject,
+          htmlContent: custom.htmlContent ?? def.htmlContent,
+          textContent: custom.textContent ?? def.textContent,
+          isActive: custom.isActive !== undefined ? Boolean(custom.isActive) : def.isActive,
+        };
+      }
+      return { ...def };
+    });
+  }
+
+  // Updates an email template by storing customized fields in app_settings and logging an audit event.
+  async updateEmailTemplate(
+    key: string,
+    data: { subject?: string; htmlContent?: string; textContent?: string; isActive?: boolean },
+    adminId?: string,
+    ipAddress?: string
+  ) {
+    const def = DEFAULT_EMAIL_TEMPLATES.find((t) => t.key === key);
+    if (!def) {
+      throw new NotFoundError(`Email template with key "${key}" not found`);
+    }
+
+    const settingKey = `email_template:${key}`;
+    const existing = await prisma.appSetting.findUnique({ where: { key: settingKey } });
+
+    let current = def;
+    if (existing) {
+      try {
+        current = typeof existing.value === 'string' ? JSON.parse(existing.value) : existing.value;
+      } catch {}
+    }
+
+    const updated = {
+      key,
+      name: def.name,
+      variables: def.variables,
+      subject: data.subject ?? current.subject,
+      htmlContent: data.htmlContent ?? current.htmlContent,
+      textContent: data.textContent ?? current.textContent,
+      isActive: data.isActive !== undefined ? Boolean(data.isActive) : current.isActive,
+    };
+
+    await prisma.appSetting.upsert({
+      where: { key: settingKey },
+      update: { value: JSON.stringify(updated) },
+      create: {
+        key: settingKey,
+        value: JSON.stringify(updated),
+      },
+    });
+
+    if (adminId) {
+      await logAuditEvent({
+        actorUserId: adminId,
+        action: 'ADMIN_EMAIL_TEMPLATE_UPDATE',
+        details: { key, subject: updated.subject, isActive: updated.isActive, resourceType: 'EMAIL_TEMPLATE', resourceId: key },
+        ipAddress,
+      });
+    }
+
+    return updated;
   }
 }
 

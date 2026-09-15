@@ -288,9 +288,7 @@ function createTestQueryClient(options?: {
 }
 
 describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
-  /* ======================================================================
-   * 1. FAM Donut Ring & Score Card Tests
-   * ====================================================================== */
+  
   describe('1. FAM Donut Ring & Score Card', () => {
     it('renders 3-segment donut ring with green for income, red for expense, and purple for investment', () => {
       const html = renderToString(
@@ -378,9 +376,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
     });
   });
 
-  /* ======================================================================
-   * 2. Dashboard Screen Overview Cards & Breakdown
-   * ====================================================================== */
+  
   describe('2. Dashboard Screen Overview Cards & Breakdown', () => {
     it('renders branded dark navy header (#0B1B3A -> #132A5C) with title and subtitle', () => {
       const qc = createTestQueryClient();
@@ -564,9 +560,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
     });
   });
 
-  /* ======================================================================
-   * 3. Planning Screen (Budgets & Goals)
-   * ====================================================================== */
+  
   describe('3. Planning Screen (Budgets & Goals)', () => {
     it('renders branded navy header with title "Planning" and subtitle "Budgets & Goals"', () => {
       const qc = createTestQueryClient();
@@ -626,9 +620,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
     });
   });
 
-  /* ======================================================================
-   * 4. Categories & Merchants Screen
-   * ====================================================================== */
+  
   describe('4. Categories & Merchants Screen', () => {
     it('renders branded navy header with title "Categories"', () => {
       const qc = createTestQueryClient();
@@ -699,9 +691,7 @@ describe('Phase 3 Frontend Tests: Dashboard, Planning & Categories', () => {
     });
   });
 
-  /* ======================================================================
-   * 5. Production Constraints: Zero Banned Copy & Zero Emojis
-   * ====================================================================== */
+  
   describe('5. Production Constraints: Zero Banned Copy & Zero Emojis', () => {
     const bannedPhrases = [
       ['coming', 'soon'].join(' '),

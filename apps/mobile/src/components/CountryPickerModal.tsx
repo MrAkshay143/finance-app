@@ -47,7 +47,6 @@ export const CountryPickerModal: React.FC<CountryPickerModalProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
-          {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Country</Text>
             <Pressable
@@ -62,7 +61,6 @@ export const CountryPickerModal: React.FC<CountryPickerModalProps> = ({
             </Pressable>
           </View>
 
-          {/* Search Input */}
           <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
@@ -76,7 +74,6 @@ export const CountryPickerModal: React.FC<CountryPickerModalProps> = ({
             />
           </View>
 
-          {/* List */}
           <FlatList
             data={filteredCountries}
             keyExtractor={(item) => item.code}

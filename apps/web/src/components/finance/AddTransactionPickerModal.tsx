@@ -157,7 +157,6 @@ export const AddTransactionPickerModal: React.FC<AddTransactionPickerModalProps>
         className="w-full max-w-[390px] bg-white rounded-modal shadow-modal border border-borderDefault overflow-hidden animate-in fade-in zoom-in-95 focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
         <div className="px-5 pt-5 pb-4 border-b border-borderDefault flex items-center justify-between">
           <div>
             <h2 id="add-transaction-picker-title" className="text-base font-bold text-textDefault tracking-tight leading-tight">
@@ -177,7 +176,6 @@ export const AddTransactionPickerModal: React.FC<AddTransactionPickerModalProps>
           </button>
         </div>
 
-        {/* Options List */}
         <div className="p-4 space-y-2.5">
           {options.map((option) => (
             <button

@@ -20,6 +20,7 @@ import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
 import { apiClient, getFriendlyErrorMessage } from '../../services/apiClient.js';
 import { toast } from '../../store/toastStore.js';
+import { useConfigStore } from '../../store/configStore.js';
 import { validatePassword, validateConfirmPassword } from '../../utils/validation.js';
 import type { AdminUserItem } from '@finance/shared-types';
 
@@ -37,6 +38,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
   onSuccess,
 }) => {
   const queryClient = useQueryClient();
+  const passwordPolicy = useConfigStore((s) => s.passwordPolicy);
 
   // Active tab or mode: 'menu' | 'password' | 'lock' | 'logout'
   const [activeView, setActiveView] = useState<'menu' | 'password' | 'lock' | 'logout'>('menu');
@@ -50,7 +52,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   // Live password validation
-  const passwordCheck = validatePassword(customPassword);
+  const passwordCheck = validatePassword(customPassword, passwordPolicy);
   const confirmCheck = validateConfirmPassword(customPassword, confirmCustomPassword);
 
   const handleClose = () => {
@@ -158,7 +160,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       subtitle={user.email}
     >
       <div className="space-y-4">
-        {/* User Identity Pill */}
         <div className="p-3 bg-slate-50 border border-borderDefault rounded-2xl flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-brand-primary font-bold text-xs flex items-center justify-center border border-blue-100 shrink-0">
@@ -189,10 +190,8 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
           </div>
         </div>
 
-        {/* View: Menu */}
         {activeView === 'menu' && (
           <div className="space-y-2">
-            {/* 1. Change Password Option */}
             <button
               type="button"
               onClick={() => setActiveView('password')}
@@ -209,7 +208,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
               </div>
             </button>
 
-            {/* 2. Lock / Unlock Account Option */}
             <button
               type="button"
               onClick={() => setActiveView('lock')}
@@ -238,7 +236,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
               </div>
             </button>
 
-            {/* 3. Force Logout Option */}
             <button
               type="button"
               onClick={() => setActiveView('logout')}
@@ -257,10 +254,8 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
           </div>
         )}
 
-        {/* View: Password */}
         {activeView === 'password' && (
           <div className="space-y-4">
-            {/* Generated Temporary Password Display */}
             {generatedTempPassword ? (
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-3">
                 <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
@@ -298,7 +293,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
               </div>
             ) : (
               <>
-                {/* Mode Selector Tabs */}
                 <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl">
                   <button
                     type="button"
@@ -404,7 +398,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
           </div>
         )}
 
-        {/* View: Lock Account Confirmation */}
         {activeView === 'lock' && (
           <div className="space-y-4">
             <div
@@ -453,7 +446,6 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
           </div>
         )}
 
-        {/* View: Force Logout Confirmation */}
         {activeView === 'logout' && (
           <div className="space-y-4">
             <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2">

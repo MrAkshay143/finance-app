@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { authService, AuthResult } from '../services/authService.js';
+import { authService } from '../services/authService.js';
 import { env } from '../config/env.js';
 
 function parseCookie(cookieHeader?: string): Record<string, string> {
@@ -58,19 +58,67 @@ export class AuthController {
       };
 
       const result = await authService.signup(req.body, metadata);
-      
-      if ('requiresEmailVerification' in result && result.requiresEmailVerification) {
-        res.status(202).json({
-          success: true,
-          data: result,
-        });
+
+      // When email verification disabled, return tokens directly with 201
+      if ((result as any).tokens) {
+        const r = result as any;
+        setRefreshTokenCookie(res, r.tokens.refreshToken);
+        setAccessTokenCookie(res, r.tokens.accessToken);
+        res.status(201).json({ success: true, data: r });
         return;
       }
 
-      const authResult = result as unknown as AuthResult;
-      setRefreshTokenCookie(res, authResult.tokens.refreshToken);
-      setAccessTokenCookie(res, authResult.tokens.accessToken);
+      // PRODUCTION: Phase-1 always returns requiresEmailVerification: true → 202
+      res.status(202).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 
+  // Phase 1: POST /api/v1/auth/registration/initiate Validates email, sends verification code, returns enumeration-safe message.
+  async initiateRegistration(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip || req.socket.remoteAddress,
+      };
+      const result = await authService.initiateRegistration(req.body.email, metadata);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // Phase 2: POST /api/v1/auth/registration/verify-email Atomically verifies OTP, issues signed 15m registrationToken (JWT with jti).
+  async verifyRegistrationEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, otp } = req.body;
+      const result = await authService.verifyRegistrationEmail(email, otp);
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // Phase 3: POST /api/v1/auth/registration/complete Validates registrationToken, atomically consumes jti, creates user, issues auth tokens.
+  async completeRegistration(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const metadata = {
+        userAgent: req.headers['user-agent'],
+        ipAddress: req.ip || req.socket.remoteAddress,
+      };
+      const result = await authService.completeRegistration(req.body, metadata);
+      setRefreshTokenCookie(res, result.tokens.refreshToken);
+      setAccessTokenCookie(res, result.tokens.accessToken);
       res.status(201).json({
         success: true,
         data: result,
@@ -82,15 +130,18 @@ export class AuthController {
 
   async verifyRegistrationOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { email, otp } = req.body;
+      const emailOrId = req.body.email || req.body.pendingRegistrationId;
+      const { otp } = req.body;
       const metadata = {
         userAgent: req.headers['user-agent'],
         ipAddress: req.ip || req.socket.remoteAddress,
       };
 
-      const result = await authService.verifyRegistrationOtp(email, otp, metadata);
-      setRefreshTokenCookie(res, result.tokens.refreshToken);
-      setAccessTokenCookie(res, result.tokens.accessToken);
+      const result = await authService.verifyRegistrationOtp(emailOrId, otp, metadata);
+      if (result.tokens) {
+        setRefreshTokenCookie(res, result.tokens.refreshToken);
+        setAccessTokenCookie(res, result.tokens.accessToken);
+      }
 
       res.status(200).json({
         success: true,
@@ -236,7 +287,6 @@ export class AuthController {
     }
   }
 
-
   async revokeOtherSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!.id;
@@ -292,5 +342,4 @@ export class AuthController {
 
 export const authController = new AuthController();
 export default authController;
-
 

@@ -120,11 +120,9 @@ export const AdminSettingsScreen: React.FC = () => {
             </View>
           )}
 
-          {/* Session & Security Thresholds */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>SECURITY THRESHOLDS</Text>
             <View style={styles.card}>
-              {/* Session Timeout */}
               <View style={[styles.settingRow, styles.rowBorder]}>
                 <View style={styles.settingLabelColumn}>
                   <View style={styles.labelWithIcon}>
@@ -162,7 +160,6 @@ export const AdminSettingsScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Max Failed Login Attempts */}
               <View style={[styles.settingRow, styles.rowBorder]}>
                 <View style={styles.settingLabelColumn}>
                   <View style={styles.labelWithIcon}>
@@ -200,7 +197,6 @@ export const AdminSettingsScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Lockout Duration */}
               <View style={styles.settingRow}>
                 <View style={styles.settingLabelColumn}>
                   <View style={styles.labelWithIcon}>
@@ -240,7 +236,6 @@ export const AdminSettingsScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* System Policy Controls */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>SYSTEM POLICY CONTROLS</Text>
             <View style={styles.card}>
@@ -264,7 +259,6 @@ export const AdminSettingsScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Save Button */}
           <Pressable
             onPress={handleSave}
             disabled={isSaving}

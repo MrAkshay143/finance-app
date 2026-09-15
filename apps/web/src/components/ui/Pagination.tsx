@@ -43,7 +43,6 @@ export const Pagination: React.FC<PaginationProps> = ({
       aria-label="Pagination"
       className={`bg-white rounded-2xl border border-slate-200/80 shadow-xs p-3 sm:py-2.5 sm:px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4 my-1.5 ${className}`}
     >
-      {/* Summary Capsule / Counter */}
       <div className="flex items-center justify-center sm:justify-start">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-100/90 text-xs text-slate-500 font-medium">
           {totalItems !== undefined && startItem !== undefined && endItem !== undefined ? (
@@ -60,7 +59,6 @@ export const Pagination: React.FC<PaginationProps> = ({
         </div>
       </div>
 
-      {/* Touch-Friendly Action Buttons */}
       <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
         <button
           type="button"

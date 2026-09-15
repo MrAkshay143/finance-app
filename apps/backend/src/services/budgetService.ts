@@ -148,9 +148,7 @@ export class BudgetService {
     return formatBudget(budget, spentPaise);
   }
 
-  /**
-   * Creates a budget, validating category and storing targetAmount in BigInt paise.
-   */
+  // Creates a budget, validating category and storing targetAmount in BigInt paise.
   async createBudget(userId: string, data: CreateBudgetData) {
     const category = await prisma.category.findUnique({
       where: { id: data.categoryId },
@@ -202,9 +200,7 @@ export class BudgetService {
     return formatBudget(budget, BigInt(0));
   }
 
-  /**
-   * Updates an existing budget.
-   */
+  // Updates an existing budget.
   async updateBudget(userId: string, id: string, data: UpdateBudgetData) {
     const existing = await prisma.budget.findUnique({
       where: { id },
@@ -264,9 +260,7 @@ export class BudgetService {
     return this.getBudget(userId, id);
   }
 
-  /**
-   * Soft deletes a budget by setting status = DELETED.
-   */
+  // Soft deletes a budget by setting status = DELETED.
   async deleteBudget(userId: string, id: string) {
     const existing = await prisma.budget.findUnique({
       where: { id },

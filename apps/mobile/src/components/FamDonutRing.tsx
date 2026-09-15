@@ -51,7 +51,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Background Track */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -60,7 +59,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           stroke={colors.border}
           strokeWidth={strokeWidth}
         />
-        {/* Segment 1: Income (Green) */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -74,7 +72,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           origin={`${size / 2}, ${size / 2}`}
           rotation="-90"
         />
-        {/* Segment 2: Expense (Red) */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -88,7 +85,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
           origin={`${size / 2}, ${size / 2}`}
           rotation="-90"
         />
-        {/* Segment 3: Investment (Purple) */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -104,7 +100,6 @@ export const FamDonutRing: React.FC<FamDonutRingProps> = ({
         />
       </Svg>
 
-      {/* Centered Grade & Progress Info */}
       <View style={styles.centerOverlay} pointerEvents="none">
         <Text style={[styles.gradeText, { color: gradeColor }]}>{grade}</Text>
         <Text style={styles.progressText}>{displayProgress}%</Text>

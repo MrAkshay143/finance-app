@@ -76,10 +76,7 @@ export class CategoryService {
     }
   }
 
-  /**
-   * Returns system categories (userId = null or isSystem = true) plus user custom categories,
-   * sorted by sortOrder asc. Automatically provisions system categories if none exist.
-   */
+  // Returns system categories (userId = null or isSystem = true) plus user custom categories, sorted by sortOrder asc. Automatically provisions system categories if none exist.
   async listCategories(userId: string, type?: TxnType) {
     let categories = await prisma.category.findMany({
       where: {
@@ -222,9 +219,7 @@ export class CategoryService {
     };
   }
 
-  /**
-   * Creates a custom category with isSystem = false.
-   */
+  // Creates a custom category with isSystem = false.
   async createCategory(userId: string, data: CreateCategoryData) {
     const trimmedName = data.name?.trim();
     if (!trimmedName) {
@@ -292,10 +287,7 @@ export class CategoryService {
     };
   }
 
-  /**
-   * Updates custom category.
-   * If category isSystem === true, throws 403 ForbiddenError! System categories are immutable!
-   */
+  // Updates custom category. If category isSystem === true, throws 403 ForbiddenError! System categories are immutable!
   async updateCategory(userId: string, id: string, data: UpdateCategoryData) {
     const existing = await prisma.category.findUnique({
       where: { id },
@@ -338,10 +330,7 @@ export class CategoryService {
     return updated;
   }
 
-  /**
-   * Deletes custom category.
-   * If category isSystem === true, throws 403 ForbiddenError! System categories cannot be deleted!
-   */
+  // Deletes custom category. If category isSystem === true, throws 403 ForbiddenError! System categories cannot be deleted!
   async deleteCategory(userId: string, id: string) {
     const existing = await prisma.category.findUnique({
       where: { id },
@@ -391,9 +380,7 @@ export class CategoryService {
     return { message: 'Category deleted successfully' };
   }
 
-  /**
-   * Reorders categories by updating sortOrder in a single transaction.
-   */
+  // Reorders categories by updating sortOrder in a single transaction.
   async reorderCategories(userId: string, categoryIds: string[]) {
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
       throw new ValidationError('categoryIds must be a non-empty array of category IDs');
@@ -423,10 +410,7 @@ export class CategoryService {
     return { message: 'Categories reordered successfully' };
   }
 
-  /**
-   * Admin: Queries all system/default categories (isSystem: true, userId: null),
-   * ordered by type asc, sortOrder asc, name asc.
-   */
+  // Admin: Queries all system/default categories (isSystem: true, userId: null), ordered by type asc, sortOrder asc, name asc.
   async adminListSystemCategories() {
     return prisma.category.findMany({
       where: { isSystem: true, userId: null },
@@ -434,10 +418,7 @@ export class CategoryService {
     });
   }
 
-  /**
-   * Admin: Creates a system category with isSystem = true and userId = null.
-   * Logs ADMIN_CATEGORY_CREATE.
-   */
+  // Admin: Creates a system category with isSystem = true and userId = null. Logs ADMIN_CATEGORY_CREATE.
   async adminCreateSystemCategory(
     adminId: string,
     data: { name: string; type: TxnType; sortOrder?: number }
@@ -503,11 +484,7 @@ export class CategoryService {
     return category;
   }
 
-
-  /**
-   * Admin: Updates an existing system category if isSystem is true.
-   * Logs ADMIN_CATEGORY_UPDATE.
-   */
+  // Admin: Updates an existing system category if isSystem is true. Logs ADMIN_CATEGORY_UPDATE.
   async adminUpdateSystemCategory(
     adminId: string,
     id: string,
@@ -579,12 +556,7 @@ export class CategoryService {
     return updated;
   }
 
-
-  /**
-   * Admin: Deletes a system category, safely unlinking transactions (categoryId: null)
-   * and recurringTxns, and deleting associated budgets.
-   * Logs ADMIN_CATEGORY_DELETE.
-   */
+  // Admin: Deletes a system category, safely unlinking transactions (categoryId: null) and recurringTxns, and deleting associated budgets. Logs ADMIN_CATEGORY_DELETE.
   async adminDeleteSystemCategory(adminId: string, id: string) {
     const existing = await prisma.category.findUnique({
       where: { id },

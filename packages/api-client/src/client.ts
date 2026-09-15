@@ -73,6 +73,7 @@ import type {
   ExportUserDataQuery,
   ExportUserDataResponse,
   ResetProfileResponse,
+  CompleteRegistrationInput,
 } from '@finance/shared-types';
 
 export interface ServiceUrlConfig {
@@ -82,10 +83,7 @@ export interface ServiceUrlConfig {
   origin: string;
 }
 
-/**
- * Standardized URL resolver for backend services (REST API, WebSocket, Uploads).
- * Cleans trailing slashes and handles URLs with or without /api/v1 suffix.
- */
+// Standardized URL resolver for backend services.
 export function resolveServiceUrls(rawUrl?: string, fallbackOrigin = 'https://finance.imakshay.in'): ServiceUrlConfig {
   const target = (rawUrl && rawUrl.trim()) ? rawUrl.trim() : fallbackOrigin;
   const clean = target.replace(/\/+$/, '');
@@ -98,9 +96,7 @@ export function resolveServiceUrls(rawUrl?: string, fallbackOrigin = 'https://fi
   };
 }
 
-/**
- * Resolves an asset or avatar URL to a full valid URL if it is a relative path.
- */
+// Resolves asset or avatar URL to full URL if relative.
 export function resolveAssetUrl(
   relativePathOrUrl: string | null | undefined,
   baseUrl = 'https://finance.imakshay.in'
@@ -254,15 +250,32 @@ export class FinanceApiClient {
     return data.data;
   }
 
-  // Auth endpoints
   readonly auth = {
+    initiateRegistration: (input: { email: string }) =>
+      this.request<{ success: boolean; message: string; email?: string }>({
+        method: 'POST',
+        url: '/auth/registration/initiate',
+        data: input,
+      }),
+    verifyRegistrationEmail: (input: { email: string; otp: string }) =>
+      this.request<{ registrationToken: string; email: string; expiresIn: number }>({
+        method: 'POST',
+        url: '/auth/registration/verify-email',
+        data: input,
+      }),
+    completeRegistration: (input: CompleteRegistrationInput) =>
+      this.request<AuthResponse>({
+        method: 'POST',
+        url: '/auth/registration/complete',
+        data: input,
+      }),
     signup: (input: SignupInput) =>
       this.request<AuthResponse>({ method: 'POST', url: '/auth/signup', data: input }),
     login: (input: LoginInput) =>
       this.request<AuthResponse>({ method: 'POST', url: '/auth/login', data: input }),
     logout: () =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/logout' }),
-    verifyRegistrationOtp: (input: { email: string; otp: string }) =>
+    verifyRegistrationOtp: (input: { pendingRegistrationId?: string; email?: string; otp: string }) =>
       this.request<AuthResponse>({ method: 'POST', url: '/auth/signup/verify', data: input }),
     resendRegistrationOtp: (input: { email: string }) =>
       this.request<{ message: string }>({ method: 'POST', url: '/auth/signup/resend-otp', data: input }),
@@ -321,7 +334,6 @@ export class FinanceApiClient {
       }),
   };
 
-  // Profile endpoints
   readonly profile = {
     get: () =>
       this.request<any>({ method: 'GET', url: '/profile' }),
@@ -343,7 +355,6 @@ export class FinanceApiClient {
       this.request<{ avatarUrl: null }>({ method: 'DELETE', url: '/profile/avatar' }),
   };
 
-  // Transactions endpoints
   readonly transactions = {
     list: (params?: TransactionFilterQuery) =>
       this.request<PaginatedResponse<Transaction>['data']>({ method: 'GET', url: '/transactions', params }),
@@ -363,7 +374,6 @@ export class FinanceApiClient {
       }),
   };
 
-  // Accounts endpoints
   readonly accounts = {
     list: () =>
       this.request<{
@@ -387,7 +397,6 @@ export class FinanceApiClient {
       this.request<{ message: string }>({ method: 'DELETE', url: `/accounts/${id}` }),
   };
 
-  // Transfers endpoints
   readonly transfers = {
     list: () =>
       this.request<any[]>({ method: 'GET', url: '/transfers' }),
@@ -403,7 +412,6 @@ export class FinanceApiClient {
       this.request<{ message: string }>({ method: 'DELETE', url: `/transfers/${id}` }),
   };
 
-  // Dashboard
   readonly dashboard = {
     get: () =>
       this.request<any>({ method: 'GET', url: '/dashboard' }),
@@ -413,7 +421,6 @@ export class FinanceApiClient {
       this.request<FamScoreResponse>({ method: 'GET', url: '/dashboard/fam', params: { month, year } }),
   };
 
-  // Budgets & Goals
   readonly budgets = {
     list: (params?: { period?: string; month?: number; year?: number }) =>
       this.request<any[]>({ method: 'GET', url: '/budgets', params }),
@@ -440,7 +447,6 @@ export class FinanceApiClient {
       this.request<{ message: string }>({ method: 'DELETE', url: `/goals/${id}` }),
   };
 
-  // Categories & Merchants
   readonly categories = {
     list: (type?: string) =>
       this.request<Category[]>({ method: 'GET', url: '/categories', params: type ? { type } : undefined }),
@@ -544,13 +550,11 @@ export class FinanceApiClient {
       this.request<AiAnalysisResponse>({ method: 'GET', url: '/ai-analysis', params: month ? { month } : undefined }),
   };
 
-  // FAM Score
   readonly fam = {
     getScore: (month?: number, year?: number) =>
       this.request<FamScoreResponse>({ method: 'GET', url: '/dashboard/fam', params: { month, year } }),
   };
 
-  // Settings & Preferences
   readonly settings = {
     get: () =>
       this.request<UserSettings>({ method: 'GET', url: '/user-settings' }),
@@ -558,7 +562,6 @@ export class FinanceApiClient {
       this.request<UserSettings>({ method: 'PATCH', url: '/user-settings', data: input }),
   };
 
-  // Account Actions (Danger Zone)
   readonly accountActions = {
     resetProfile: () =>
       this.request<ResetProfileResponse>({ method: 'POST', url: '/account-actions/reset-profile' }),
@@ -570,7 +573,6 @@ export class FinanceApiClient {
       }),
   };
 
-  // User Audit Logs
   readonly audit = {
     listUserLogs: (params?: ListAuditLogsQuery) =>
       this.request<ListAuditLogsResponse>({ method: 'GET', url: '/audit', params }),
@@ -578,7 +580,6 @@ export class FinanceApiClient {
       this.request<ListAuditLogsResponse>({ method: 'GET', url: '/audit', params }),
   };
 
-  // Admin Suite
   readonly admin = {
     getDashboard: () =>
       this.request<AdminDashboardMetrics>({ method: 'GET', url: '/admin/dashboard' }),
@@ -652,7 +653,6 @@ export class FinanceApiClient {
       this.request<{ success: boolean; message: string }>({ method: 'DELETE', url: `/admin/categories/${id}` }),
   };
 
-  // Import & Export
   readonly import = {
     importCsv: (
       accountIdOrPayload: string | { accountId: string; csvContent?: string; csvData?: string },
@@ -702,7 +702,6 @@ export class FinanceApiClient {
       }>({ method: 'GET', url: '/public/config' }),
   };
 
-  // Raw client accessor
   get rawAxios(): AxiosInstance {
     return this.client;
   }

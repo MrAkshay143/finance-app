@@ -137,7 +137,6 @@ export const Modal: React.FC<ModalProps> = ({
         className={`w-full ${effectiveMaxWidth} bg-white ${compact ? 'rounded-2xl shadow-lg' : 'rounded-modal shadow-modal'} border border-borderDefault overflow-hidden flex flex-col max-h-[90vh] focus:outline-none`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className={`${compact ? 'px-4 pt-4 pb-3' : 'px-5 pt-5 pb-4'} border-b border-borderDefault flex items-start justify-between bg-white relative`}>
           <div className="flex items-center gap-2.5 pr-8">
             {icon && (
@@ -166,12 +165,10 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className={`${compact ? 'p-4 space-y-3' : 'p-5 space-y-4'} overflow-y-auto flex-1`}>
           {children}
         </div>
 
-        {/* Footer */}
         {footer && (
           <div className={`${compact ? 'px-4 py-3 gap-2' : 'px-5 py-4 gap-2.5'} border-t border-borderDefault bg-gray-50 flex items-center justify-end w-full overflow-hidden`}>
             {footer}
