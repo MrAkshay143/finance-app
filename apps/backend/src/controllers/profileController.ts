@@ -86,6 +86,35 @@ export class ProfileController {
       next(err);
     }
   }
+
+  async requestEmailVerificationOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const result = await profileService.requestEmailVerificationOtp(userId);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async confirmEmailVerificationOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.id;
+      const { otp } = req.body || {};
+      const result = await profileService.confirmEmailVerificationOtp(userId, otp);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const profileController = new ProfileController();

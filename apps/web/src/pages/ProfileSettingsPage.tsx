@@ -31,6 +31,7 @@ import { PhoneInputWithCountry } from '../components/ui/PhoneInputWithCountry.js
 import { CountrySelector } from '../components/ui/CountrySelector.js';
 import { CurrencySelector } from '../components/ui/CurrencySelector.js';
 import { DatePicker } from '../components/ui/DatePicker.js';
+import { OtpVerificationModal } from '../components/ui/OtpVerificationModal.js';
 import { useAuthStore } from '../store/authStore.js';
 import { apiClient, getFriendlyErrorMessage } from '../services/apiClient.js';
 import { formatCurrency, getCurrencySymbol, getIncomeBracketOptions, computeIncomeBracket } from '../utils/currency.js';
@@ -64,6 +65,8 @@ export const ProfileSettingsPage: React.FC = () => {
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [emailVerified, setEmailVerified] = useState(Boolean(user?.emailVerified));
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [address, setAddress] = useState('');
 
@@ -130,6 +133,7 @@ export const ProfileSettingsPage: React.FC = () => {
           if (u.mobileNumber) setMobileNumber(u.mobileNumber);
           if (u.email) setEmail(u.email);
           if (u.country) setCountry(u.country as CountryCode);
+          if (u.emailVerified !== undefined) setEmailVerified(Boolean(u.emailVerified));
         }
 
         if (data.userSettings?.currency) {
@@ -200,6 +204,40 @@ export const ProfileSettingsPage: React.FC = () => {
       mounted = false;
     };
   }, [userCurrency]);
+
+  useEffect(() => {
+    if (user?.emailVerified !== undefined) {
+      setEmailVerified(Boolean(user.emailVerified));
+    }
+  }, [user?.emailVerified]);
+
+  const handleStartEmailVerification = async () => {
+    try {
+      const res = await apiClient.profile.requestEmailVerificationOtp();
+      if (res.alreadyVerified) {
+        setEmailVerified(true);
+        updateUser({ emailVerified: true });
+        toast.success('Your email is already verified.');
+        return;
+      }
+      setIsVerifyModalOpen(true);
+      toast.info('Verification code sent to your email.');
+    } catch (err: any) {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to send verification code.'));
+    }
+  };
+
+  const handleConfirmEmailOtp = async (otp: string) => {
+    const res = await apiClient.profile.confirmEmailVerificationOtp({ otp });
+    setEmailVerified(true);
+    updateUser({ emailVerified: true });
+    toast.success(res.message || 'Email verified successfully!');
+  };
+
+  const handleResendEmailOtp = async () => {
+    await apiClient.profile.requestEmailVerificationOtp();
+    toast.info('A new verification code has been sent.');
+  };
 
   // Save Basic Profile (PUT /api/v1/profile/basic)
   const handleSaveBasic = async (e: React.FormEvent) => {
@@ -402,14 +440,35 @@ export const ProfileSettingsPage: React.FC = () => {
                 onChange={(val) => setMobileNumber(val)}
               />
 
-              <Input
-                label="Email Address"
-                type="email"
-                required
-                disabled
-                value={email}
-                icon={<Mail className="w-4 h-4 text-slate-400" />}
-              />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-textDefault">
+                    Email Address
+                  </label>
+                  {emailVerified ? (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      <span>Verified</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleStartEmailVerification}
+                      className="px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Verify</span>
+                    </button>
+                  )}
+                </div>
+                <Input
+                  type="email"
+                  required
+                  disabled
+                  value={email}
+                  icon={<Mail className="w-4 h-4 text-slate-400" />}
+                />
+              </div>
 
               {(() => {
                 const maxDobDate = new Date();
@@ -648,6 +707,16 @@ export const ProfileSettingsPage: React.FC = () => {
             </Button>
           </form>
         )}
+
+        <OtpVerificationModal
+          isOpen={isVerifyModalOpen}
+          email={email}
+          onVerify={handleConfirmEmailOtp}
+          onResend={handleResendEmailOtp}
+          onClose={() => setIsVerifyModalOpen(false)}
+          title="Verify Email Address"
+          description="We sent a 6-digit verification code to"
+        />
       </div>
     </div>
   );

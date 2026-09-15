@@ -69,4 +69,13 @@ profileRouter.put('/settings', validateBody(UpdateUserSettingsSchema), (req, res
   userSettingsController.updateSettings(req, res, next);
 });
 
+// Email verification endpoints
+profileRouter.post('/verify-email/request-otp', (req, res, next) => {
+  profileController.requestEmailVerificationOtp(req, res, next);
+});
+
+profileRouter.post('/verify-email/confirm-otp', (req, res, next) => {
+  profileController.confirmEmailVerificationOtp(req, res, next);
+});
+
 export default profileRouter;

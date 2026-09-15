@@ -6,6 +6,8 @@ import { validateAndNormalizePhone, isSupportedCountry, isSupportedCurrency } fr
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
 import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
+import { otpService } from './otpService.js';
+import { sendVerificationEmail } from './emailService.js';
 
 export interface UpdateBasicProfileData {
   firstName?: string;
@@ -494,6 +496,75 @@ export class ProfileService {
     });
 
     return { avatarUrl: null };
+  }
+
+  // Sends a 6-digit email verification OTP to the user's registered email
+  async requestEmailVerificationOtp(userId: string): Promise<{ success: boolean; message: string; alreadyVerified?: boolean }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, emailVerified: true, status: true },
+    });
+
+    if (!user || user.status === 'DELETED') {
+      throw new NotFoundError('User not found');
+    }
+
+    if (user.emailVerified) {
+      return { success: true, message: 'Email address is already verified.', alreadyVerified: true };
+    }
+
+    const { otp } = await otpService.generateOtp(user.email, 'EMAIL_VERIFICATION');
+
+    await sendVerificationEmail({
+      to: user.email,
+      firstName: user.firstName || 'User',
+      otp,
+      expiryMinutes: 10,
+      userId: user.id,
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'EMAIL_VERIFICATION_OTP_REQUESTED',
+      details: { email: user.email },
+    });
+
+    return { success: true, message: 'Verification OTP sent to your email address.' };
+  }
+
+  // Verifies the 6-digit OTP and marks the user account as emailVerified = true
+  async confirmEmailVerificationOtp(userId: string, candidateOtp: string): Promise<{ success: boolean; message: string; emailVerified: boolean }> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, emailVerified: true, status: true },
+    });
+
+    if (!user || user.status === 'DELETED') {
+      throw new NotFoundError('User not found');
+    }
+
+    if (user.emailVerified) {
+      return { success: true, message: 'Email address is already verified.', emailVerified: true };
+    }
+
+    if (!candidateOtp || !/^\d{6}$/.test(candidateOtp.trim())) {
+      throw new ValidationError('Verification code must be 6 digits.');
+    }
+
+    await otpService.verifyOtp(user.email, 'EMAIL_VERIFICATION', candidateOtp.trim());
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+    });
+
+    await logAuditEvent({
+      actorUserId: userId,
+      action: 'EMAIL_VERIFIED',
+      details: { email: user.email },
+    });
+
+    return { success: true, message: 'Email address successfully verified.', emailVerified: true };
   }
 }
 

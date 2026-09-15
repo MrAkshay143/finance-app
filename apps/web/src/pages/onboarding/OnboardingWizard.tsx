@@ -257,7 +257,7 @@ export const OnboardingWizard: React.FC = () => {
 
       toast.success('Onboarding completed! Please set up security questions.');
       setOnboardingCompleted(true);
-      navigate('/security/questions', { replace: true });
+      navigate('/security/questions', { replace: true, state: { fromOnboarding: true } });
     } catch (err: any) {
       const msg = err?.message || 'Failed to save financial profile. Please try again.';
       setErrorMessage(msg);

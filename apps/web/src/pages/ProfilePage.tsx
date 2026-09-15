@@ -260,17 +260,6 @@ export const ProfilePage: React.FC = () => {
                       <span>{userCountryMeta.code}</span>
                     </span>
                   )}
-                  {user?.emailVerified ? (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold flex items-center gap-1">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span>Verified</span>
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold flex items-center gap-1">
-                      <span>⚠</span>
-                      <span>Unverified</span>
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

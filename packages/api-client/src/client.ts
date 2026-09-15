@@ -353,6 +353,17 @@ export class FinanceApiClient {
       this.request<{ avatarUrl: string }>({ method: 'POST', url: '/profile/avatar', data: { avatar } }),
     deleteAvatar: () =>
       this.request<{ avatarUrl: null }>({ method: 'DELETE', url: '/profile/avatar' }),
+    requestEmailVerificationOtp: () =>
+      this.request<{ success: boolean; message: string; alreadyVerified?: boolean }>({
+        method: 'POST',
+        url: '/profile/verify-email/request-otp',
+      }),
+    confirmEmailVerificationOtp: (input: { otp: string }) =>
+      this.request<{ success: boolean; message: string; emailVerified: boolean }>({
+        method: 'POST',
+        url: '/profile/verify-email/confirm-otp',
+        data: input,
+      }),
   };
 
   readonly transactions = {

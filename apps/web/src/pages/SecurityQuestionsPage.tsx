@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Shield,
   ShieldCheck,
@@ -39,6 +39,7 @@ interface ExistingQuestion {
 
 export const SecurityQuestionsPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setKbaConfigured } = useAuthStore();
 
   // Mode: 'VIEW' (when questions are already configured) vs 'EDIT' (setup wizard)
@@ -46,6 +47,8 @@ export const SecurityQuestionsPage: React.FC = () => {
   const [isConfigured, setIsConfigured] = useState(false);
   const [existingQuestions, setExistingQuestions] = useState<ExistingQuestion[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
+
+  const isNewOrOnboarding = !isConfigured || Boolean((location.state as any)?.fromOnboarding);
 
   // Available questions for dropdown selection (fetched from real backend API)
   const [availableQuestions, setAvailableQuestions] = useState<QuestionItem[]>([]);
@@ -325,6 +328,17 @@ export const SecurityQuestionsPage: React.FC = () => {
             >
               Update
             </Button>
+          ) : isNewOrOnboarding ? (
+            <button
+              type="button"
+              onClick={() => {
+                toast.info('You can set up security questions anytime from Settings.');
+                navigate('/dashboard');
+              }}
+              className="px-2.5 py-1 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Skip
+            </button>
           ) : undefined
         }
       />
@@ -563,6 +577,21 @@ export const SecurityQuestionsPage: React.FC = () => {
                   >
                     {isSubmitting ? 'Saving...' : 'Save All Questions'}
                   </Button>
+                </div>
+              )}
+
+              {isNewOrOnboarding && (
+                <div className="mt-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toast.info('You can set up security questions anytime from Settings.');
+                      navigate('/dashboard');
+                    }}
+                    className="text-xs font-medium text-slate-500 hover:text-brand-primary hover:underline transition-colors py-1 cursor-pointer"
+                  >
+                    Skip for now - I'll set up security questions later
+                  </button>
                 </div>
               )}
             </div>
