@@ -116,7 +116,7 @@ export const RecurringTransactionsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
       setDeleteTarget(null);
-      toast.success('Recurring transaction deleted successfully');
+      toast.success('Recurring schedule deleted');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to delete recurring transaction'));
@@ -148,7 +148,7 @@ export const RecurringTransactionsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] });
       setIsAddModalOpen(false);
       resetForm();
-      toast.success('Recurring transaction scheduled successfully');
+      toast.success('Recurring schedule created');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to schedule recurring transaction'));
@@ -165,7 +165,7 @@ export const RecurringTransactionsPage: React.FC = () => {
       setIsEditModalOpen(false);
       setEditingItem(null);
       resetForm();
-      toast.success('Recurring transaction updated successfully');
+      toast.success('Recurring schedule updated');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update recurring transaction'));
@@ -298,7 +298,7 @@ export const RecurringTransactionsPage: React.FC = () => {
             onClick={handleOpenAddModal}
             icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
           >
-            Add Recurring
+            Add Recurring Schedule
           </Button>
         }
       />
@@ -322,9 +322,10 @@ export const RecurringTransactionsPage: React.FC = () => {
             type="button"
             onClick={() => materializeMutation.mutate()}
             disabled={materializeMutation.isPending}
+            aria-label="Process Due Now"
             className="px-3 py-1.5 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm active:scale-95 shrink-0"
           >
-            {materializeMutation.isPending ? 'Processing...' : 'Process Due Now'}
+            {materializeMutation.isPending ? 'Processing...' : 'Process Now'}
           </button>
         </div>
 
@@ -459,7 +460,7 @@ export const RecurringTransactionsPage: React.FC = () => {
             icon={<Repeat className="w-7 h-7 stroke-[1.8]" />}
             title="No recurring payments"
             description="Schedule recurring bills, salaries, and subscriptions."
-            actionLabel="Add Schedule"
+            actionLabel="Add Recurring Schedule"
             actionIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
             onAction={handleOpenAddModal}
           />
@@ -621,7 +622,7 @@ export const RecurringTransactionsPage: React.FC = () => {
               variant="primary"
               disabled={createMutation.isPending}
             >
-              {createMutation.isPending ? 'Saving...' : 'Save Recurring'}
+              {createMutation.isPending ? 'Saving...' : 'Save Schedule'}
             </Button>
           </div>
         </form>
@@ -782,7 +783,7 @@ export const RecurringTransactionsPage: React.FC = () => {
               variant="primary"
               disabled={updateMutation.isPending}
             >
-              {updateMutation.isPending ? 'Updating...' : 'Update Recurring'}
+              {updateMutation.isPending ? 'Updating...' : 'Update Schedule'}
             </Button>
           </div>
         </form>

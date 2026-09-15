@@ -104,7 +104,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: () => {
       refetchSessions();
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
-      toast.success('Session revoked successfully');
+      toast.success('Session revoked');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to revoke session'));
@@ -124,11 +124,17 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     mutationFn: async (payload: { role?: 'USER' | 'ADMIN'; status?: 'ACTIVE' | 'SUSPENDED'; unlockAccount?: boolean }) => {
       return await apiClient.admin.updateUser(id, payload);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
-      toast.success('User settings updated successfully');
+      if (variables.status) {
+        toast.success(variables.status === 'ACTIVE' ? 'User unlocked' : 'User locked');
+      } else if (variables.unlockAccount) {
+        toast.success('User unlocked');
+      } else {
+        toast.success('User settings updated');
+      }
     },
     onError: (err: any) => {
       toast.error(err?.message || 'Failed to update user');
@@ -155,11 +161,10 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     mutationFn: async () => {
       return await apiClient.admin.revokeAllUserSessions(id);
     },
-    onSuccess: (res: any) => {
-      const count = res?.revokedCount ?? res?.data?.revokedCount ?? 0;
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
       setIsRevokeModalOpen(false);
-      toast.success(`Revoked ${count} active session${count === 1 ? '' : 's'}`);
+      toast.success('Sessions revoked');
     },
     onError: (err: any) => {
       toast.error(err?.message || 'Failed to revoke sessions');
@@ -173,7 +178,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
-      toast.success('Security questions reset successfully');
+      toast.success('Security reset');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to reset security questions'));
@@ -188,7 +193,7 @@ export const ManageUserDetailTabsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
-      toast.success('User deleted successfully');
+      toast.success('User deleted');
       navigate('/admin/users');
     },
     onError: (err: any) => {

@@ -195,7 +195,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       onSuccess: () => {
         syncOnTransactionMutation(queryClient);
         handleClose();
-        toast.success('Transaction recorded successfully');
+        toast.success('Transaction added');
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to save transaction.';
@@ -219,7 +219,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       onSuccess: () => {
         syncOnTransactionMutation(queryClient);
         handleClose();
-        toast.success('Transfer recorded successfully');
+        toast.success('Transfer completed');
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to save transfer.';
@@ -251,7 +251,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
       onSuccess: () => {
         syncOnTransactionMutation(queryClient);
         handleClose();
-        toast.success('Transaction updated successfully');
+        toast.success('Transaction updated');
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || err?.message || 'Failed to update transaction.';
@@ -266,7 +266,10 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
 
   const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
   const title = mode === 'add' ? `Add ${typeCapitalized}` : `Edit ${typeCapitalized}`;
-  const submitButtonLabel = mode === 'add' ? `Save ${typeCapitalized}` : `Update ${typeCapitalized}`;
+  const submitButtonLabel =
+    mode === 'add'
+      ? `Save ${typeCapitalized}`
+      : `Update ${typeCapitalized}`;
 
   const getSubtitle = () => {
     switch (type) {
@@ -317,25 +320,25 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = (props)
     let hasError = false;
     const numAmount = parseFloat(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setAmountError('Please enter a valid amount greater than 0.');
+      setAmountError('Amount must be greater than zero.');
       hasError = true;
     }
 
     if (type === 'transfer') {
       if (!accountId) {
-        setAccountError('Please select a source account.');
+        setAccountError('Select a source account.');
         hasError = true;
       }
       if (!toAccountId) {
-        setToAccountError('Please select a destination account.');
+        setToAccountError('Select a destination account.');
         hasError = true;
       } else if (accountId === toAccountId) {
-        setToAccountError('Source and destination accounts must be different.');
+        setToAccountError('Select a different destination account.');
         hasError = true;
       }
     } else {
       if (!accountId) {
-        setAccountError('Please select an account.');
+        setAccountError('Select an account.');
         hasError = true;
       }
     }

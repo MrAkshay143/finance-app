@@ -18,8 +18,8 @@ export function OtpVerificationModal({
   onVerify,
   onResend,
   onClose,
-  title = 'Verify your email',
-  description = 'We sent a verification code to',
+  title = 'Verify Email',
+  description = 'Enter the 6-digit code sent to your email.',
 }: OtpVerificationModalProps) {
   const [otp, setOtp] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -51,7 +51,7 @@ export function OtpVerificationModal({
   const handleVerify = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (otp.length !== 6) {
-      setError('Please enter a 6-digit code');
+      setError('Enter the 6-digit code.');
       return;
     }
     
@@ -134,7 +134,7 @@ export function OtpVerificationModal({
             {success && (
               <div className="p-3 bg-emerald-50 text-emerald-700 text-sm rounded-lg flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
-                <p>Verification successful!</p>
+                <p>Email verified.</p>
               </div>
             )}
 
@@ -171,9 +171,9 @@ export function OtpVerificationModal({
                     Sending...
                   </span>
                 ) : resendCooldown > 0 ? (
-                  `Resend in ${resendCooldown}s`
+                  `Resend code in ${resendCooldown}s`
                 ) : (
-                  'Resend'
+                  'Resend Code'
                 )}
               </button>
             </p>

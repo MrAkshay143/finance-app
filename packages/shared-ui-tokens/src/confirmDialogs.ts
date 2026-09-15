@@ -15,8 +15,8 @@ export const CONFIRM_DIALOGS = {
     delete: (description?: string): ConfirmDialogDefinition => ({
       title: 'Delete Transaction',
       message: description
-        ? `Delete "${description}"? Your account balance will update.`
-        : 'Delete this transaction? Your account balance will update.',
+        ? `Delete "${description}"? Your balance will update automatically.`
+        : 'Delete this transaction? Your balance will update automatically.',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -32,6 +32,16 @@ export const CONFIRM_DIALOGS = {
     }),
   },
   accounts: {
+    delete: (name?: string): ConfirmDialogDefinition => ({
+      title: 'Delete Account',
+      message: name
+        ? `Delete "${name}" and its transaction history?`
+        : 'Delete this account and its transaction history?',
+      confirmLabel: 'Delete Account',
+      cancelLabel: 'Cancel',
+      severity: 'danger',
+      icon: 'trash',
+    }),
     toggleStatus: (name: string, isCurrentlyActive: boolean): ConfirmDialogDefinition => ({
       title: isCurrentlyActive ? 'Deactivate Account' : 'Activate Account',
       message: isCurrentlyActive
@@ -47,19 +57,19 @@ export const CONFIRM_DIALOGS = {
     deleteBudget: (categoryName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Budget',
       message: categoryName
-        ? `Delete the "${categoryName}" budget? Your transactions won't be affected.`
-        : 'Delete this budget? Your transactions won\'t be affected.',
-      confirmLabel: 'Delete',
+        ? `Delete the "${categoryName}" budget? Spending history will be preserved.`
+        : 'Delete this budget? Spending history will be preserved.',
+      confirmLabel: 'Delete Budget',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'trash',
     }),
     deleteGoal: (goalName?: string): ConfirmDialogDefinition => ({
-      title: 'Delete Goal',
+      title: 'Delete Savings Goal',
       message: goalName
-        ? `Delete savings goal "${goalName}"? Target progress will be removed.`
-        : 'Delete this savings goal? Target progress will be removed.',
-      confirmLabel: 'Delete',
+        ? `Delete savings goal "${goalName}"? Allocated funds will remain in your accounts.`
+        : 'Delete this goal? Allocated funds will remain in your accounts.',
+      confirmLabel: 'Delete Goal',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'trash',
@@ -69,8 +79,8 @@ export const CONFIRM_DIALOGS = {
     delete: (categoryName?: string): ConfirmDialogDefinition => ({
       title: 'Delete Category',
       message: categoryName
-        ? `Delete category "${categoryName}"? Existing transactions remain intact.`
-        : 'Delete this category? Existing transactions remain intact.',
+        ? `Delete category "${categoryName}"? Transactions will move to Uncategorized.`
+        : 'Delete this category? Transactions will move to Uncategorized.',
       confirmLabel: 'Delete Category',
       cancelLabel: 'Cancel',
       severity: 'danger',
@@ -91,11 +101,11 @@ export const CONFIRM_DIALOGS = {
   },
   recurring: {
     delete: (description?: string): ConfirmDialogDefinition => ({
-      title: 'Delete Schedule',
+      title: 'Delete Recurring Schedule',
       message: description
-        ? `Cancel recurring payment "${description}"? Past transactions won't be deleted.`
-        : 'Cancel this recurring payment? Past transactions won\'t be deleted.',
-      confirmLabel: 'Delete',
+        ? `Delete schedule "${description}"? Past transactions will be preserved.`
+        : 'Delete this schedule? Past transactions will be preserved.',
+      confirmLabel: 'Delete Schedule',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'trash',
@@ -110,19 +120,47 @@ export const CONFIRM_DIALOGS = {
       severity: 'warning',
       icon: 'refresh',
     }),
+    resetFinancialProfile: (): ConfirmDialogDefinition => ({
+      title: 'Reset Financial Profile',
+      subtitle: 'Your login and security questions will remain.',
+      message: 'Delete all transactions, accounts, budgets, and goals? Your login and security questions will remain.',
+      confirmLabel: 'Reset All Data',
+      cancelLabel: 'Cancel',
+      severity: 'danger',
+      icon: 'refresh',
+    }),
+    resetAllData: (): ConfirmDialogDefinition => ({
+      title: 'Reset All Data',
+      subtitle: 'Your login and security questions will remain.',
+      message: 'Delete all transactions, accounts, budgets, and goals?',
+      confirmLabel: 'Reset All Data',
+      cancelLabel: 'Cancel',
+      severity: 'danger',
+      icon: 'refresh',
+    }),
     deleteAccount: (): ConfirmDialogDefinition => ({
       title: 'Delete Account',
-      message: 'Delete your account and all associated financial data?',
+      message: 'Delete this account and its transaction history?',
       confirmLabel: 'Delete Account',
       cancelLabel: 'Cancel',
       severity: 'danger',
       icon: 'trash',
     }),
     signOut: (): ConfirmDialogDefinition => ({
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out?',
-      confirmLabel: 'Sign Out',
-      cancelLabel: 'Cancel',
+      title: 'Log Out',
+      message: 'Log out of your account on this device?',
+      confirmLabel: 'Log Out',
+      cancelLabel: 'Stay Logged In',
+      severity: 'danger',
+      icon: 'power',
+    }),
+  },
+  auth: {
+    logout: (): ConfirmDialogDefinition => ({
+      title: 'Log Out',
+      message: 'Log out of your account on this device?',
+      confirmLabel: 'Log Out',
+      cancelLabel: 'Stay Logged In',
       severity: 'danger',
       icon: 'power',
     }),

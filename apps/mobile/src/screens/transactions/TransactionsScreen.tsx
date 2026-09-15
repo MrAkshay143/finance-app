@@ -275,7 +275,7 @@ export const TransactionsScreen: React.FC = () => {
       <BrandedHeader
         variant="nested"
         title="Transactions"
-        subtitle={`${filteredTransactions.length} records`}
+        subtitle={`${filteredTransactions.length} transactions`}
         rightAction={
           <Pressable
             onPress={() => handleOpenAdd()}
@@ -297,7 +297,7 @@ export const TransactionsScreen: React.FC = () => {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search by description, merchant, notes..."
+            placeholder="Search transactions..."
             placeholderTextColor={colors.textMuted}
           />
           {searchQuery.length > 0 && (
@@ -527,7 +527,12 @@ export const TransactionsScreen: React.FC = () => {
               <TrashIcon size={28} color={colors.danger} />
             </View>
             {(() => {
-              const dialogDef = CONFIRM_DIALOGS.transactions.delete(deletingTransaction?.description);
+              const isTransfer = Boolean(
+                (deletingTransaction?.description || '').toLowerCase().includes('transfer') || (deletingTransaction as any)?.transferId
+              );
+              const dialogDef = isTransfer
+                ? CONFIRM_DIALOGS.transactions.deleteTransfer()
+                : CONFIRM_DIALOGS.transactions.delete(deletingTransaction?.description);
               return (
                 <>
                   <Text style={styles.deleteTitle}>{dialogDef.title}</Text>

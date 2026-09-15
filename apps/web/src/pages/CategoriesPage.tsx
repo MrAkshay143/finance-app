@@ -129,7 +129,7 @@ export const CategoriesPage: React.FC = () => {
       syncOnCategoryMutation(queryClient);
       setIsAddCategoryOpen(false);
       resetCategoryForm();
-      toast.success('Category created successfully');
+      toast.success('Category created');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to create category');
@@ -146,7 +146,7 @@ export const CategoriesPage: React.FC = () => {
       syncOnCategoryMutation(queryClient);
       setIsEditCategoryOpen(false);
       resetCategoryForm();
-      toast.success('Category updated successfully');
+      toast.success('Category updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update category');
@@ -162,7 +162,7 @@ export const CategoriesPage: React.FC = () => {
     onSuccess: () => {
       syncOnCategoryMutation(queryClient);
       setDeleteConfirm(null);
-      toast.success('Category deleted successfully');
+      toast.success('Category deleted');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to delete category'));
@@ -191,7 +191,7 @@ export const CategoriesPage: React.FC = () => {
       syncOnMerchantMutation(queryClient);
       setIsAddMerchantOpen(false);
       resetMerchantForm();
-      toast.success('Merchant created successfully');
+      toast.success('Merchant created');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to create merchant');
@@ -208,7 +208,7 @@ export const CategoriesPage: React.FC = () => {
       syncOnMerchantMutation(queryClient);
       setIsEditMerchantOpen(false);
       resetMerchantForm();
-      toast.success('Merchant updated successfully');
+      toast.success('Merchant updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update merchant');
@@ -224,7 +224,7 @@ export const CategoriesPage: React.FC = () => {
     onSuccess: () => {
       syncOnMerchantMutation(queryClient);
       setDeleteMerchantConfirm(null);
-      toast.success('Merchant deleted successfully');
+      toast.success('Merchant deleted');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to delete merchant'));

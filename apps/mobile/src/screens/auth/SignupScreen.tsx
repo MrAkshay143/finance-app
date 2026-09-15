@@ -57,13 +57,13 @@ export const SignupScreen: React.FC = () => {
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setValidationError('Email address is required.');
+      setValidationError('Enter an email address.');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      setValidationError('Please enter a valid email address.');
+      setValidationError('Enter a valid email address.');
       return false;
     }
 
@@ -71,28 +71,13 @@ export const SignupScreen: React.FC = () => {
     if (trimmedMobile) {
       const phoneValidation = validateAndNormalizePhone(trimmedMobile);
       if (!phoneValidation.isValid) {
-        setValidationError(phoneValidation.error || 'Please enter a valid mobile number.');
+        setValidationError(phoneValidation.error || 'Enter a valid mobile number.');
         return false;
       }
     }
 
-    if (password.length < 8) {
-      setValidationError('Password must be at least 8 characters.');
-      return false;
-    }
-
-    if (!/[A-Z]/.test(password)) {
-      setValidationError('Password must contain at least one uppercase letter.');
-      return false;
-    }
-
-    if (!/[a-z]/.test(password)) {
-      setValidationError('Password must contain at least one lowercase letter.');
-      return false;
-    }
-
-    if (!/[0-9]/.test(password)) {
-      setValidationError('Password must contain at least one number.');
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      setValidationError('Password does not meet requirements');
       return false;
     }
 

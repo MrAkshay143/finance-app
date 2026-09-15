@@ -161,7 +161,7 @@ export const AccountsPage: React.FC = () => {
         syncOnAccountMutation(queryClient);
         setEditingAccount(null);
         resetEditForm();
-        toast.success('Account updated successfully');
+        toast.success('Account updated');
       },
       onError: (err: any) => {
         toast.error(getFriendlyErrorMessage(err, 'Failed to update account. Please try again.'));
@@ -215,7 +215,7 @@ export const AccountsPage: React.FC = () => {
     e.preventDefault();
     if (!editingAccount) return;
     if (!editName.trim()) {
-      setEditNameError('Account name is required.');
+      setEditNameError('Enter an account name.');
       return;
     }
 
@@ -252,7 +252,7 @@ export const AccountsPage: React.FC = () => {
             onClick={handleOpenAdd}
             icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
           >
-            Add
+            Add Account
           </Button>
         }
       />

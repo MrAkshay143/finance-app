@@ -78,7 +78,7 @@ export const HomeScreen: React.FC = () => {
         />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading Dashboard Summary...</Text>
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
         </View>
       </View>
     );

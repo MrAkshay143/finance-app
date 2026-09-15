@@ -689,10 +689,10 @@ export const DashboardPage: React.FC = () => {
                   }
                   description={
                     breakdownView === 'EXPENSE'
-                      ? 'Record your expenses to see category distribution.'
+                      ? 'Add an expense to view spending distribution.'
                       : breakdownView === 'INCOME'
-                      ? 'Record your income to see source distribution.'
-                      : 'Record your investments to see asset allocation.'
+                      ? 'Add income to view earnings distribution.'
+                      : 'Add an investment to view asset allocation.'
                   }
                   actionLabel={
                     breakdownView === 'EXPENSE'
@@ -999,12 +999,12 @@ export const DashboardPage: React.FC = () => {
                     typeof txn.merchant === 'string' ? txn.merchant : txn.merchant?.name;
 
                   const defaultRecordLabel = isIncome
-                    ? 'Income Record'
+                    ? 'Income'
                     : isExpense
-                    ? 'Expense Record'
+                    ? 'Expense'
                     : isInvest
-                    ? 'Investment Record'
-                    : 'Transfer Record';
+                    ? 'Investment'
+                    : 'Transfer';
 
                   const title = merchantName || txn.description || defaultRecordLabel;
 

@@ -202,7 +202,7 @@ export const BasicProfileScreen: React.FC = () => {
         {saveSuccess ? (
           <View style={styles.successBanner}>
             <CheckIcon size={16} color={colors.success} />
-            <Text style={styles.successBannerText}>Profile updated successfully.</Text>
+            <Text style={styles.successBannerText}>Profile updated.</Text>
           </View>
         ) : null}
 

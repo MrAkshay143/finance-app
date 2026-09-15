@@ -117,7 +117,7 @@ export const AdminDashboardPage: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      toast.success('Users exported successfully');
+      toast.success('Users exported');
     } catch (err: any) {
       toast.error(getFriendlyErrorMessage(err, 'Failed to export users'));
     } finally {

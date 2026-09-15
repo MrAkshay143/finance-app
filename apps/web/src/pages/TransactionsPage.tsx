@@ -169,7 +169,7 @@ export const TransactionsPage: React.FC = () => {
       onSuccess: () => {
         syncOnTransactionMutation(queryClient);
         setDeletingItem(null);
-        toast.success('Transaction deleted successfully');
+        toast.success('Transaction deleted');
       },
       onError: (err: any) => {
         toast.error(getFriendlyErrorMessage(err, 'Failed to delete transaction'));
@@ -186,7 +186,7 @@ export const TransactionsPage: React.FC = () => {
       onSuccess: () => {
         syncOnTransactionMutation(queryClient);
         setDeletingItem(null);
-        toast.success('Transfer deleted successfully');
+        toast.success('Transfer deleted');
       },
       onError: (err: any) => {
         toast.error(getFriendlyErrorMessage(err, 'Failed to delete transfer'));

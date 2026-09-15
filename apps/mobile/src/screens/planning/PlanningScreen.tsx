@@ -135,12 +135,12 @@ export const PlanningScreen: React.FC = () => {
 
   const handleCreateBudget = async () => {
     if (!selectedCategoryId) {
-      setBudgetError('Please select a category for this budget.');
+      setBudgetError('Select a category.');
       return;
     }
     const limit = parseFloat(budgetLimit);
     if (isNaN(limit) || limit <= 0) {
-      setBudgetError('Budget limit must be a positive number.');
+      setBudgetError('Amount must be greater than zero.');
       return;
     }
 
@@ -165,7 +165,7 @@ export const PlanningScreen: React.FC = () => {
   };
 
   const handleDeleteBudget = (id: string, name?: string) => {
-    const dialogDef = CONFIRM_DIALOGS.planning.deleteBudget(name || 'this budget');
+    const dialogDef = CONFIRM_DIALOGS.planning.deleteBudget(name);
     const [title, message, buttons] = toMobileAlertArgs(dialogDef, async () => {
       try {
         await apiClient.budgets.delete(id);
@@ -179,12 +179,12 @@ export const PlanningScreen: React.FC = () => {
 
   const handleCreateGoal = async () => {
     if (!goalName.trim()) {
-      setGoalError('Goal name is required.');
+      setGoalError('Enter a goal name.');
       return;
     }
     const target = parseFloat(goalTargetAmount);
     if (isNaN(target) || target <= 0) {
-      setGoalError('Target amount must be a positive number.');
+      setGoalError('Amount must be greater than zero.');
       return;
     }
     const current = goalCurrentAmount ? parseFloat(goalCurrentAmount) : 0;
@@ -209,14 +209,14 @@ export const PlanningScreen: React.FC = () => {
       setGoalTargetDate(defaultGoalTargetDate);
       await loadData();
     } catch (err: any) {
-      setGoalError(err?.message || 'Failed to create financial goal');
+      setGoalError(err?.message || 'Failed to create goal');
     } finally {
       setGoalSubmitting(false);
     }
   };
 
   const handleDeleteGoal = (id: string, name?: string) => {
-    const dialogDef = CONFIRM_DIALOGS.planning.deleteGoal(name || 'this goal');
+    const dialogDef = CONFIRM_DIALOGS.planning.deleteGoal(name);
     const [title, message, buttons] = toMobileAlertArgs(dialogDef, async () => {
       try {
         await apiClient.goals.delete(id);
@@ -708,9 +708,9 @@ export const PlanningScreen: React.FC = () => {
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <View style={styles.modalTitleCol}>
-                  <Text style={styles.modalTitle}>Add Financial Goal</Text>
+                  <Text style={styles.modalTitle}>Add Goal</Text>
                   <Text style={styles.modalSubtitle}>
-                    Set target savings milestone with scheduled date
+                    Set a target savings milestone
                   </Text>
                 </View>
                 <Pressable

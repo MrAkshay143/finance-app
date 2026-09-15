@@ -11,13 +11,13 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     title: 'User Sign In',
     category: 'Auth',
     badgeColor: 'emerald',
-    description: 'User successfully signed into account',
+    description: 'User signed into account',
   },
   LOGIN_SUCCESS: {
     title: 'User Sign In',
     category: 'Auth',
     badgeColor: 'emerald',
-    description: 'User successfully signed into account',
+    description: 'User signed into account',
   },
   AUTH_LOGOUT: {
     title: 'User Sign Out',
@@ -77,13 +77,13 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     title: 'Password Reset Completed',
     category: 'Auth',
     badgeColor: 'emerald',
-    description: 'Password reset procedure finished successfully',
+    description: 'Password reset procedure completed',
   },
   PASSWORD_RESET: {
     title: 'Password Reset Completed',
     category: 'Auth',
     badgeColor: 'emerald',
-    description: 'Password reset procedure finished successfully',
+    description: 'Password reset procedure completed',
   },
 
   SECURITY_QUESTIONS_CONFIGURED: {
@@ -102,13 +102,13 @@ const ACTION_MAP: Record<string, { title: string; category: string; badgeColor: 
     title: 'Security Questions Verified',
     category: 'Security',
     badgeColor: 'emerald',
-    description: 'Security questions successfully answered',
+    description: 'Security questions verified',
   },
   KBA_VERIFY_SUCCESS: {
     title: 'Security Questions Verified',
     category: 'Security',
     badgeColor: 'emerald',
-    description: 'Security questions successfully answered',
+    description: 'Security questions verified',
   },
   SECURITY_QUESTIONS_VERIFY_FAILED: {
     title: 'Verification Attempt Failed',

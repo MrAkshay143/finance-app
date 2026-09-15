@@ -69,6 +69,7 @@ export const ProfileSettingsPage: React.FC = () => {
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [address, setAddress] = useState('');
+  const [addressError, setAddressError] = useState<string | null>(null);
 
   // Country & Currency State
   const [country, setCountry] = useState<CountryCode>((user?.country as CountryCode) || 'IN');
@@ -231,7 +232,7 @@ export const ProfileSettingsPage: React.FC = () => {
     const res = await apiClient.profile.confirmEmailVerificationOtp({ otp });
     setEmailVerified(true);
     updateUser({ emailVerified: true });
-    toast.success(res.message || 'Email verified successfully!');
+    toast.success(res.message || 'Email verified.');
   };
 
   const handleResendEmailOtp = async () => {
@@ -248,9 +249,16 @@ export const ProfileSettingsPage: React.FC = () => {
       const phoneVal = validateAndNormalizePhone(mobileNumber.trim());
       if (!phoneVal.isValid) {
         setIsLoading(false);
-        toast.error(phoneVal.error || 'Please enter a valid mobile number.');
+        toast.error('Enter a valid mobile number.');
         return;
       }
+    }
+
+    if (address.length > 200) {
+      setIsLoading(false);
+      setAddressError('Address cannot exceed 200 characters.');
+      toast.error('Address cannot exceed 200 characters.');
+      return;
     }
 
     try {
@@ -282,7 +290,7 @@ export const ProfileSettingsPage: React.FC = () => {
 
       queryClient.invalidateQueries({ queryKey: ['userSettings'], refetchType: 'active' });
       await syncOnProfileMutation(queryClient);
-      toast.success('Basic profile updated successfully');
+      toast.success('Profile updated');
     } catch (err: any) {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update profile. Please try again.'));
     } finally {
@@ -331,7 +339,7 @@ export const ProfileSettingsPage: React.FC = () => {
       });
 
       await syncOnProfileMutation(queryClient);
-      toast.success('Finance profile targets updated successfully');
+      toast.success('Financial targets updated');
     } catch (err: any) {
       toast.error(getFriendlyErrorMessage(err, 'Failed to save financial profile. Please try again.'));
     } finally {
@@ -451,14 +459,20 @@ export const ProfileSettingsPage: React.FC = () => {
                       <span>Verified</span>
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={handleStartEmailVerification}
-                      className="px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Verify</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold flex items-center gap-1">
+                        <AlertCircle className="w-2.5 h-2.5" />
+                        <span>Unverified</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleStartEmailVerification}
+                        className="px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Verify Email</span>
+                      </button>
+                    </div>
                   )}
                 </div>
                 <Input
@@ -502,13 +516,31 @@ export const ProfileSettingsPage: React.FC = () => {
                     maxLength={200}
                     placeholder="123, MG Road, Bangalore"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 text-xs rounded-xl border border-borderDefault bg-white text-textDefault placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      if (e.target.value.length > 200) {
+                        setAddressError('Address cannot exceed 200 characters.');
+                      } else {
+                        setAddressError(null);
+                      }
+                    }}
+                    className={`w-full pl-10 pr-3 py-2.5 text-xs rounded-xl border bg-white text-textDefault placeholder-slate-400 focus:outline-none focus:ring-2 ${
+                      addressError
+                        ? 'border-semantic-danger focus:ring-semantic-danger'
+                        : 'border-borderDefault focus:ring-brand-primary'
+                    }`}
                   />
                 </div>
-                <div className="text-[10px] text-textMuted text-right">
-                  {address.length}/200
-                </div>
+                {addressError ? (
+                  <p className="text-[11px] text-semantic-danger font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    <span>{addressError}</span>
+                  </p>
+                ) : (
+                  <div className="text-[10px] text-textMuted text-right">
+                    {address.length}/200
+                  </div>
+                )}
               </div>
 
               <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-start gap-2.5 text-xs text-slate-600">
@@ -560,7 +592,8 @@ export const ProfileSettingsPage: React.FC = () => {
               disabled={isLoading}
               icon={<Save className="w-4 h-4" />}
             >
-              {isLoading ? 'Saving Profile...' : 'Save Profile'}
+              <span className="sr-only">Save Profile</span>
+              {isLoading ? 'Saving Changes...' : 'Save Changes'}
             </Button>
           </form>
         )}
@@ -574,7 +607,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-textDefault">Monthly Targets</h3>
-                  <p className="text-xs text-textMuted">Establish baseline financial parameters</p>
+                  <p className="text-xs text-textMuted">Establish baseline financial targets</p>
                 </div>
               </div>
 
@@ -638,7 +671,7 @@ export const ProfileSettingsPage: React.FC = () => {
                   <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-textDefault">Investor Parameters</h3>
+                  <h3 className="text-sm font-bold text-textDefault">Investor Profile</h3>
                   <p className="text-xs text-textMuted">Preferences for recommendations and allocations</p>
                 </div>
               </div>

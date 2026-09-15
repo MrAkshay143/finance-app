@@ -80,7 +80,7 @@ export const InvestmentsPage: React.FC = () => {
             onClick={() => openAddModal('investment')}
             icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
           >
-            Add
+            Add Investment
           </Button>
         }
       />

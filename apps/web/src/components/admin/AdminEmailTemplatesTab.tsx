@@ -64,7 +64,7 @@ export const AdminEmailTemplatesTab: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-email-templates'] });
-      toast.success(`Template "${activeTemplate?.name || selectedKey}" saved successfully`);
+      toast.success(`Template "${activeTemplate?.name || selectedKey}" saved`);
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update email template'));

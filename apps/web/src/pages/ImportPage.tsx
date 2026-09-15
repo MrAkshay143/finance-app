@@ -119,7 +119,7 @@ export const ImportPage: React.FC = () => {
     onSuccess: (res: any) => {
       const result = res?.data || res;
       setImportResult(result);
-      toast.success(`Imported ${result.importedCount || 0} transactions successfully`);
+      toast.success(`Imported ${result.importedCount || 0} transactions`);
       syncOnTransactionMutation(queryClient);
     },
     onError: (err: any) => {

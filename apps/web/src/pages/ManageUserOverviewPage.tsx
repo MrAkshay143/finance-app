@@ -75,12 +75,16 @@ export const ManageUserOverviewPage: React.FC = () => {
     mutationFn: async (payload: { role?: 'USER' | 'ADMIN'; status?: 'ACTIVE' | 'SUSPENDED'; firstName?: string; lastName?: string }) => {
       return await apiClient.admin.updateUser(id, payload);
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
       setIsEditModalOpen(false);
-      toast.success('User record updated successfully');
+      if (variables.status) {
+        toast.success(variables.status === 'ACTIVE' ? 'User unlocked' : 'User locked');
+      } else {
+        toast.success('User record updated');
+      }
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update user'));
@@ -109,7 +113,7 @@ export const ManageUserOverviewPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id], refetchType: 'active' });
-      toast.success('Security questions reset successfully');
+      toast.success('Security reset');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to reset security questions'));
@@ -124,7 +128,7 @@ export const ManageUserOverviewPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
-      toast.success('User deleted successfully');
+      toast.success('User deleted');
       navigate('/admin/users');
     },
     onError: (err: any) => {

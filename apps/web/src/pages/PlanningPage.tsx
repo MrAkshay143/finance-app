@@ -153,7 +153,7 @@ export const PlanningPage: React.FC = () => {
       syncOnBudgetMutation(queryClient);
       setIsAddBudgetOpen(false);
       resetBudgetForm();
-      toast.success('Budget created successfully');
+      toast.success('Budget created');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to create budget');
@@ -170,7 +170,7 @@ export const PlanningPage: React.FC = () => {
       syncOnBudgetMutation(queryClient);
       setIsEditBudgetOpen(false);
       resetBudgetForm();
-      toast.success('Budget updated successfully');
+      toast.success('Budget updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update budget');
@@ -186,7 +186,7 @@ export const PlanningPage: React.FC = () => {
     onSuccess: () => {
       syncOnBudgetMutation(queryClient);
       setDeleteConfirm(null);
-      toast.success('Budget deleted successfully');
+      toast.success('Budget deleted');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to delete budget'));
@@ -202,7 +202,7 @@ export const PlanningPage: React.FC = () => {
       syncOnGoalMutation(queryClient);
       setIsAddGoalOpen(false);
       resetGoalForm();
-      toast.success('Goal created successfully');
+      toast.success('Goal created');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to create goal');
@@ -219,7 +219,7 @@ export const PlanningPage: React.FC = () => {
       syncOnGoalMutation(queryClient);
       setIsEditGoalOpen(false);
       resetGoalForm();
-      toast.success('Goal updated successfully');
+      toast.success('Goal updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update goal');
@@ -235,7 +235,7 @@ export const PlanningPage: React.FC = () => {
     onSuccess: () => {
       syncOnGoalMutation(queryClient);
       setDeleteConfirm(null);
-      toast.success('Goal deleted successfully');
+      toast.success('Goal deleted');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to delete goal'));
@@ -434,7 +434,7 @@ export const PlanningPage: React.FC = () => {
             onClick={activeTab === 'budgets' ? openAddBudgetModal : openAddGoalModal}
             icon={<Plus className="w-3.5 h-3.5 stroke-[2.5]" />}
           >
-            {activeTab === 'budgets' ? 'Add Budget' : 'Add Goal'}
+            {activeTab === 'budgets' ? 'Add Monthly Budget' : 'Add Savings Goal'}
           </Button>
         }
       />
@@ -489,7 +489,7 @@ export const PlanningPage: React.FC = () => {
                 icon={<PieChartIcon className="w-7 h-7 stroke-[1.8]" />}
                 title="No budgets set"
                 description="Set category limits to track monthly spending."
-                actionLabel="Add Budget"
+                actionLabel="Add Monthly Budget"
                 actionIcon={<Plus className="w-4 h-4" />}
                 onAction={openAddBudgetModal}
               />
@@ -669,7 +669,7 @@ export const PlanningPage: React.FC = () => {
                 icon={<Target className="w-7 h-7 stroke-[1.8]" />}
                 title="No goals yet"
                 description="Set savings targets and dates to track milestones."
-                actionLabel="Add Goal"
+                actionLabel="Add Savings Goal"
                 actionIcon={<Plus className="w-4 h-4" />}
                 onAction={openAddGoalModal}
               />

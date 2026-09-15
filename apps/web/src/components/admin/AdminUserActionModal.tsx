@@ -40,8 +40,8 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
   const queryClient = useQueryClient();
   const passwordPolicy = useConfigStore((s) => s.passwordPolicy);
 
-  // Active tab or mode: 'menu' | 'password' | 'lock' | 'logout'
-  const [activeView, setActiveView] = useState<'menu' | 'password' | 'lock' | 'logout'>('menu');
+  // Active tab or mode: 'menu' | 'password' | 'lock' | 'logout' | 'security'
+  const [activeView, setActiveView] = useState<'menu' | 'password' | 'lock' | 'logout' | 'security'>('menu');
 
   // Password sub-mode: 'temp' | 'custom'
   const [passwordMode, setPasswordMode] = useState<'temp' | 'custom'>('temp');
@@ -103,7 +103,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-metrics'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id], refetchType: 'active' });
       const wasActive = user?.status === 'ACTIVE';
-      toast.success(wasActive ? 'Account suspended' : 'Account activated');
+      toast.success(wasActive ? 'User locked' : 'User unlocked');
       handleClose();
       onSuccess?.();
     },
@@ -118,16 +118,33 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
       if (!user) throw new Error('No user selected');
       return await apiClient.admin.revokeAllUserSessions(user.id);
     },
-    onSuccess: (res: any) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id] });
-      const count = res?.data?.revokedCount ?? res?.revokedCount ?? 0;
-      toast.success(count > 0 ? `Revoked ${count} session${count === 1 ? '' : 's'}` : 'Sessions revoked');
+      toast.success('Sessions revoked');
       handleClose();
       onSuccess?.();
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to revoke user sessions'));
+    },
+  });
+
+  // Reset Security Questions Mutation
+  const resetSecurityMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('No user selected');
+      return await apiClient.admin.resetUserKba(user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', user?.id] });
+      toast.success('Security reset');
+      handleClose();
+      onSuccess?.();
+    },
+    onError: (err: any) => {
+      toast.error(getFriendlyErrorMessage(err, 'Failed to reset security questions'));
     },
   });
 
@@ -156,7 +173,17 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="User Management"
+      title={
+        activeView === 'lock'
+          ? (isActive ? 'Lock User' : 'Unlock User')
+          : activeView === 'logout'
+          ? 'Revoke Sessions'
+          : activeView === 'security'
+          ? 'Reset Security'
+          : activeView === 'password'
+          ? 'Change Password'
+          : 'User Management'
+      }
       subtitle={user.email}
     >
       <div className="space-y-4">
@@ -226,12 +253,28 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold text-textDefault">
-                  {isActive ? 'Lock Account' : 'Unlock Account'}
+                  {isActive ? 'Lock User' : 'Unlock User'}
                 </div>
                 <div className="text-[11px] text-textMuted">
                   {isActive
                     ? 'Suspend access and prevent further logins'
                     : 'Restore full account access and allow logins'}
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveView('security')}
+              className="w-full p-3.5 bg-white hover:bg-slate-50 border border-borderDefault hover:border-slate-300 rounded-xl text-left flex items-center gap-3 transition-colors group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-textDefault">Reset Security</div>
+                <div className="text-[11px] text-textMuted">
+                  Clear security questions to force re-enrollment
                 </div>
               </div>
             </button>
@@ -245,7 +288,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                 <LogOut className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-textDefault">Force Logout</div>
+                <div className="text-xs font-bold text-textDefault">Revoke Sessions</div>
                 <div className="text-[11px] text-textMuted">
                   Immediately revoke all active web and mobile sessions
                 </div>
@@ -414,7 +457,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                   }`}
                 />
                 <h4 className="text-xs font-bold text-textDefault">
-                  {isActive ? 'Confirm Account Lock' : 'Confirm Account Unlock'}
+                  {isActive ? 'Lock User' : 'Unlock User'}
                 </h4>
               </div>
               <p className="text-xs text-textMuted leading-relaxed">
@@ -440,7 +483,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                 isLoading={toggleLockMutation.isPending}
                 onClick={() => toggleLockMutation.mutate()}
               >
-                {isActive ? 'Confirm Lock' : 'Confirm Unlock'}
+                {isActive ? 'Lock User' : 'Unlock User'}
               </Button>
             </div>
           </div>
@@ -451,7 +494,7 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
             <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2">
               <div className="flex items-center gap-2">
                 <LogOut className="w-4 h-4 text-amber-600 shrink-0" />
-                <h4 className="text-xs font-bold text-textDefault">Confirm Force Logout</h4>
+                <h4 className="text-xs font-bold text-textDefault">Revoke Sessions</h4>
               </div>
               <p className="text-xs text-textMuted leading-relaxed">
                 Revoking sessions will instantly log out {user.fullName || user.email} on all browsers and mobile apps. The user will need to log in again.
@@ -474,7 +517,41 @@ export const AdminUserActionModal: React.FC<AdminUserActionModalProps> = ({
                 isLoading={forceLogoutMutation.isPending}
                 onClick={() => forceLogoutMutation.mutate()}
               >
-                Revoke All Sessions
+                Revoke Sessions
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'security' && (
+          <div className="space-y-4">
+            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                <h4 className="text-xs font-bold text-textDefault">Reset Security</h4>
+              </div>
+              <p className="text-xs text-textMuted leading-relaxed">
+                Clear security questions for {user.fullName || user.email}? The user will be required to re-enroll on next login.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveView('menu')}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                isLoading={resetSecurityMutation.isPending}
+                onClick={() => resetSecurityMutation.mutate()}
+              >
+                Reset Security Questions
               </Button>
             </div>
           </div>

@@ -91,13 +91,13 @@ export const LoginPage: React.FC = () => {
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail) {
-      errors.email = 'Email address is required';
+      errors.email = 'Enter an email address.';
     } else if (!emailResult.isValid) {
-      errors.email = emailResult.message || 'Please enter a valid email address';
+      errors.email = emailResult.message || 'Enter a valid email address.';
     }
 
     if (!password) {
-      errors.password = 'Password is required';
+      errors.password = 'Enter your password.';
     }
 
     setValidationErrors(errors);
@@ -122,7 +122,7 @@ export const LoginPage: React.FC = () => {
       return;
     }
     if (!validate()) {
-      toast.error('Please resolve the errors below.');
+      toast.error('Resolve the errors below to continue.');
       return;
     }
 
@@ -148,7 +148,7 @@ export const LoginPage: React.FC = () => {
         }
       }
 
-      toast.success('Signed in successfully');
+      toast.success('Signed in');
       navigate(destination, { replace: true });
     } catch (err: any) {
       const errorMsg = useAuthStore.getState().error || err?.message || 'Failed to sign in. Please check your credentials.';

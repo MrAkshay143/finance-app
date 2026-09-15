@@ -62,6 +62,7 @@ export const SettingsPage: React.FC = () => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Form states for modals
   const [deletePassword, setDeletePassword] = useState('');
@@ -152,7 +153,7 @@ export const SettingsPage: React.FC = () => {
     },
     onSuccess: () => {
       syncOnSettingsMutation(queryClient);
-      toast.success('Preferences updated successfully');
+      toast.success('Preferences updated');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to update preferences'));
@@ -216,7 +217,7 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => {
       setIsResetModalOpen(false);
       queryClient.invalidateQueries();
-      toast.success('Profile and transactions reset cleanly');
+      toast.success('Data reset completed');
     },
     onError: (err: any) => {
       toast.error(getFriendlyErrorMessage(err, 'Failed to reset profile'));
@@ -231,7 +232,7 @@ export const SettingsPage: React.FC = () => {
     onSuccess: async () => {
       setIsDeleteModalOpen(false);
       await logout();
-      toast.success('Account deleted successfully');
+      toast.success('Account deleted');
       navigate('/login');
     },
     onError: (err: any) => {
@@ -242,8 +243,9 @@ export const SettingsPage: React.FC = () => {
   });
 
   const handleLogout = async () => {
+    setIsLogoutModalOpen(false);
     await logout();
-    toast.info('Signed out successfully');
+    toast.info('Signed out');
     navigate('/login');
   };
 
@@ -257,7 +259,7 @@ export const SettingsPage: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
       setIsPasswordModalOpen(false);
-      toast.success('Password updated successfully');
+      toast.success('Password updated');
     },
     onError: (err: any) => {
       const msg = getFriendlyErrorMessage(err, 'Failed to update password');
@@ -686,7 +688,10 @@ export const SettingsPage: React.FC = () => {
                   <Lock className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-textDefault">Change password</div>
+                  <div className="text-xs font-bold text-textDefault">
+                    <span className="sr-only">Change password</span>
+                    Update Password
+                  </div>
                   <div className="text-[11px] text-textMuted">Update your account login credentials</div>
                 </div>
               </div>
@@ -797,7 +802,7 @@ export const SettingsPage: React.FC = () => {
                     onClick={async () => {
                       const installed = await installApp();
                       if (installed) {
-                        toast.success('Finance installed successfully!');
+                        toast.success('Finance installed');
                       }
                     }}
                   >
@@ -862,7 +867,7 @@ export const SettingsPage: React.FC = () => {
             <Card padding="none" className="bg-rose-50/40 border border-rose-200/60 shadow-xs overflow-hidden">
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="w-full p-3.5 flex items-center justify-between hover:bg-rose-100/40 transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
@@ -1055,7 +1060,7 @@ export const SettingsPage: React.FC = () => {
           setPasswordError(null);
         }}
         compact
-        title="Change Password"
+        title="Update Password"
         icon={<Lock className="w-4 h-4 text-brand-primary" />}
         footer={
           <>
@@ -1072,7 +1077,7 @@ export const SettingsPage: React.FC = () => {
               isLoading={changePasswordMutation.isPending}
               onClick={handleSavePassword}
             >
-              Save Password
+              Update Password
             </Button>
           </>
         }
@@ -1116,7 +1121,7 @@ export const SettingsPage: React.FC = () => {
       </Modal>
 
       {(() => {
-        const dialogDef = CONFIRM_DIALOGS.settings.resetTargets();
+        const dialogDef = CONFIRM_DIALOGS.settings.resetFinancialProfile();
         return (
           <Modal
             isOpen={isResetModalOpen}
@@ -1207,6 +1212,41 @@ export const SettingsPage: React.FC = () => {
                   error={deleteError || undefined}
                 />
               </div>
+            </div>
+          </Modal>
+        );
+      })()}
+
+      {(() => {
+        const dialogDef = CONFIRM_DIALOGS.auth.logout();
+        return (
+          <Modal
+            isOpen={isLogoutModalOpen}
+            onClose={() => setIsLogoutModalOpen(false)}
+            compact
+            title={dialogDef.title}
+            icon={<LogOut className="w-4 h-4 text-rose-600" />}
+            footer={
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsLogoutModalOpen(false)}
+                >
+                  {dialogDef.cancelLabel}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={handleLogout}
+                >
+                  {dialogDef.confirmLabel}
+                </Button>
+              </>
+            }
+          >
+            <div className="text-xs text-textMuted leading-relaxed">
+              <p>{dialogDef.message}</p>
             </div>
           </Modal>
         );

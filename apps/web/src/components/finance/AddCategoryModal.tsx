@@ -43,7 +43,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       },
       onSuccess: (res: any) => {
         syncOnCategoryMutation(queryClient);
-        toast.success('Category created successfully');
+        toast.success('Category created');
         const createdCat = res?.category || res?.data || res;
         onCategoryCreated?.(createdCat);
         onClose();
@@ -72,7 +72,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       compact
-      title="Add New Category"
+      title="Add Category"
       subtitle="Create a custom category for classifying transactions"
       icon={<Tag className="w-4 h-4 stroke-[2.2] text-brand-primary" />}
       footer={
@@ -94,7 +94,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             isLoading={createMutation.isPending}
             className="px-3.5 py-1.5 text-xs font-bold shadow-xs"
           >
-            Create Category
+            Save Category
           </Button>
         </div>
       }

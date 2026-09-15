@@ -9,7 +9,7 @@ export class ReportsController {
       const month = req.query.month as string;
 
       if (!month) {
-        throw new ValidationError('Month query parameter is required (YYYY-MM)');
+        throw new ValidationError('Month is required (YYYY-MM).');
       }
 
       const report = await reportService.getMonthlyReport(userId, month);
@@ -28,7 +28,7 @@ export class ReportsController {
       const { month, format } = req.body;
 
       if (!month) {
-        throw new ValidationError('Month is required (YYYY-MM)');
+        throw new ValidationError('Month is required (YYYY-MM).');
       }
 
       const exportResult = await reportService.exportReport(userId, month, format || 'json');
@@ -71,7 +71,7 @@ export class ReportsController {
       const endDate = req.query.endDate as string;
 
       if (!startDate || !endDate) {
-        throw new ValidationError('startDate and endDate query parameters are required (YYYY-MM-DD)');
+        throw new ValidationError('Start and end dates are required (YYYY-MM-DD).');
       }
 
       const report = await reportService.getCustomRangeReport(userId, startDate, endDate);

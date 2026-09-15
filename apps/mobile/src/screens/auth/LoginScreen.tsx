@@ -43,18 +43,18 @@ export const LoginScreen: React.FC = () => {
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setValidationError('Email address is required.');
+      setValidationError('Enter an email address.');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      setValidationError('Please enter a valid email address.');
+      setValidationError('Enter a valid email address.');
       return false;
     }
 
     if (!password) {
-      setValidationError('Password is required.');
+      setValidationError('Enter your password.');
       return false;
     }
 

@@ -473,7 +473,7 @@ export const AdminProfilePage: React.FC = () => {
           >
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-brand-primary" />
-              <span className="font-semibold">Platform Security Parameters</span>
+              <span className="font-semibold">Platform Security Settings</span>
             </div>
             <span className="text-[11px] text-textMuted font-mono">/admin/settings</span>
           </button>

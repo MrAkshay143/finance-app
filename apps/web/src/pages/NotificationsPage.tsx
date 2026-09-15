@@ -376,7 +376,7 @@ export const NotificationsPage: React.FC = () => {
                 setReminderDays(tempDays);
                 await saveReminderConfig(tempEnabled, tempDays);
                 setIsReminderModalOpen(false);
-                toast.success('Reminder settings saved successfully');
+                toast.success('Reminder settings saved');
               }}
             >
               Save Settings

@@ -12,7 +12,7 @@ export const PASSWORD_REQUIREMENTS_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 // admin-configurable policy.
 export const PasswordSchema = z
   .string()
-  .min(8, 'Password must be at least 8 characters');
+  .min(8, 'Password does not meet requirements');
 
 export const AVAILABLE_SECURITY_QUESTIONS = [
   { key: 'first_pet', question: 'What was the name of your first pet?', text: 'What was the name of your first pet?' },

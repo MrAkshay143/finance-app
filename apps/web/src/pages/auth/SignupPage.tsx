@@ -106,32 +106,32 @@ export const SignupPage: React.FC = () => {
     const errs: Record<string, string> = {};
 
     if (!firstName.trim()) {
-      errs.firstName = 'First name is required';
+      errs.firstName = 'Enter your first name.';
     }
 
     if (!email.trim()) {
-      errs.email = 'Email address is required';
+      errs.email = 'Enter an email address.';
     } else if (!emailResult.isValid) {
-      errs.email = emailResult.message || 'Please enter a valid email address';
+      errs.email = emailResult.message || 'Enter a valid email address.';
     }
 
     if (mobileNumber.trim()) {
       const phoneValidation = validateAndNormalizePhone(mobileNumber.trim());
       if (!phoneValidation.isValid) {
-        errs.mobileNumber = phoneValidation.error || 'Please enter a valid mobile number';
+        errs.mobileNumber = phoneValidation.error || 'Enter a valid mobile number.';
       }
     }
 
     if (!password) {
-      errs.password = 'Password is required';
+      errs.password = 'Enter a password.';
     } else if (!passwordResult.isValid) {
-      errs.password = passwordResult.message || 'Password does not meet requirements';
+      errs.password = 'Password does not meet requirements';
     }
 
     if (!confirmPassword) {
-      errs.confirmPassword = 'Confirmation password is required';
+      errs.confirmPassword = 'Confirm your password.';
     } else if (!confirmResult.isValid) {
-      errs.confirmPassword = 'Passwords do not match';
+      errs.confirmPassword = 'Passwords do not match.';
     }
 
     setValidationErrors(errs);
@@ -184,7 +184,7 @@ export const SignupPage: React.FC = () => {
       if (data?.user && data?.tokens) {
         completeSignup(data.user, data.tokens);
         setShowOtpModal(false);
-        toast.success('Account created successfully! Welcome!');
+        toast.success('Account created. Welcome!');
         navigate('/onboarding', { replace: true });
       }
     } catch (err: any) {
@@ -197,7 +197,7 @@ export const SignupPage: React.FC = () => {
   const handleOtpResend = async () => {
     if (!signupEmail) return;
     await apiClient.auth.initiateRegistration({ email: signupEmail });
-    toast.success('Verification code resent!');
+    toast.success('Verification code sent.');
   };
 
   return (
@@ -405,7 +405,7 @@ export const SignupPage: React.FC = () => {
                 error={
                   confirmPassword
                     ? !confirmResult.isValid
-                      ? 'Passwords do not match'
+                      ? 'Passwords do not match.'
                       : undefined
                     : validationErrors.confirmPassword
                 }
@@ -473,8 +473,8 @@ export const SignupPage: React.FC = () => {
         onVerify={handleOtpVerify}
         onResend={handleOtpResend}
         onClose={() => setShowOtpModal(false)}
-        title="Verify Your Email"
-        description={`We sent a 6-digit code to ${signupEmail}. Enter it below to complete your registration.`}
+        title="Verify Email"
+        description={`Enter the 6-digit code sent to ${signupEmail}.`}
       />
     )}
     </>

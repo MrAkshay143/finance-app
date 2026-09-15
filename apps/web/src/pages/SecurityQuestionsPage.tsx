@@ -230,7 +230,7 @@ export const SecurityQuestionsPage: React.FC = () => {
       const list = Array.isArray(updated) ? updated : (updated as any)?.data || [];
       setExistingQuestions(list);
 
-      toast.success('Security questions saved successfully');
+      toast.success('Security questions saved');
       setMode('VIEW');
     } catch (err: any) {
       const msg = getFriendlyErrorMessage(
@@ -275,7 +275,7 @@ export const SecurityQuestionsPage: React.FC = () => {
     setIsVerifying(true);
     try {
       await apiClient.auth.verifySecurityQuestions({ answers: payload });
-      toast.success('All 3 security answers verified successfully');
+      toast.success('Security answers verified');
       setIsVerifyModalOpen(false);
     } catch (err: any) {
       const msg = getFriendlyErrorMessage(err, 'Verification failed. One or more answers are incorrect.');
@@ -326,7 +326,7 @@ export const SecurityQuestionsPage: React.FC = () => {
               }}
               icon={<Pencil className="w-3.5 h-3.5" />}
             >
-              Update
+              Update Questions
             </Button>
           ) : isNewOrOnboarding ? (
             <button
@@ -401,7 +401,7 @@ export const SecurityQuestionsPage: React.FC = () => {
                 onClick={handleOpenVerify}
                 icon={<KeyRound className="w-4 h-4 text-brand-primary" />}
               >
-                Test Answers
+                Test Verification
               </Button>
 
               <Button
@@ -414,7 +414,7 @@ export const SecurityQuestionsPage: React.FC = () => {
                 }}
                 icon={<RotateCcw className="w-4 h-4" />}
               >
-                Change Questions
+                Update Questions
               </Button>
             </div>
           </div>
@@ -575,7 +575,7 @@ export const SecurityQuestionsPage: React.FC = () => {
                     onClick={handleSubmitQuestions}
                     iconRight={<Shield className="w-4 h-4" />}
                   >
-                    {isSubmitting ? 'Saving...' : 'Save All Questions'}
+                    {isSubmitting ? 'Saving...' : 'Save Security Questions'}
                   </Button>
                 </div>
               )}

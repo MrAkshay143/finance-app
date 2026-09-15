@@ -125,7 +125,7 @@ export const ProfilePage: React.FC = () => {
         useAuthStore.getState().updateUser({ avatarUrl: res.avatarUrl });
       }
       await fetchProfile();
-      toast.success('Profile photo updated successfully');
+      toast.success('Profile photo updated');
     } catch (err: any) {
       const msg = getFriendlyErrorMessage(err, 'Failed to upload profile picture.');
       setAvatarError(msg);

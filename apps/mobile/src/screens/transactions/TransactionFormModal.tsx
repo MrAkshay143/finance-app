@@ -151,8 +151,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           title: mode === 'add' ? 'Add Income' : 'Edit Income',
           subtitle:
             mode === 'add'
-              ? 'Record a new income into your accounts'
-              : 'Modify the existing income details',
+              ? 'Record income into your accounts'
+              : 'Edit income details',
           submitLabel: mode === 'add' ? 'Save Income' : 'Update Income',
           color: colors.success,
           bgColor: colors.successBg,
@@ -163,8 +163,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           title: mode === 'add' ? 'Add Expense' : 'Edit Expense',
           subtitle:
             mode === 'add'
-              ? 'Record a new expense into your accounts'
-              : 'Modify the existing expense details',
+              ? 'Record expense from your accounts'
+              : 'Edit expense details',
           submitLabel: mode === 'add' ? 'Save Expense' : 'Update Expense',
           color: colors.danger,
           bgColor: colors.dangerBg,
@@ -175,8 +175,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           title: mode === 'add' ? 'Add Investment' : 'Edit Investment',
           subtitle:
             mode === 'add'
-              ? 'Record a new investment into your accounts'
-              : 'Modify the existing investment details',
+              ? 'Record investment into your portfolio'
+              : 'Edit investment details',
           submitLabel: mode === 'add' ? 'Save Investment' : 'Update Investment',
           color: colors.investment,
           bgColor: colors.investmentBg,
@@ -187,8 +187,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           title: mode === 'add' ? 'Add Transfer' : 'Edit Transfer',
           subtitle:
             mode === 'add'
-              ? 'Transfer funds between your connected accounts'
-              : 'Modify the existing transfer transaction details',
+              ? 'Move funds between connected accounts'
+              : 'Edit transfer details',
           submitLabel: mode === 'add' ? 'Save Transfer' : 'Update Transfer',
           color: colors.primary,
           bgColor: colors.primarySoft,
@@ -202,30 +202,30 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid amount greater than 0.');
+      setError('Amount must be greater than zero.');
       return;
     }
 
     if (selectedType === 'transfer') {
       if (!sourceAccountId) {
-        setError('Please select a source account.');
+        setError('Select a source account.');
         return;
       }
       if (!destAccountId) {
-        setError('Please select a destination account.');
+        setError('Select a destination account.');
         return;
       }
       if (sourceAccountId === destAccountId) {
-        setError('Source and destination accounts must be different.');
+        setError('Select a different destination account.');
         return;
       }
     } else {
       if (!accountId) {
-        setError('Please select an account.');
+        setError('Select an account.');
         return;
       }
       if (!description.trim()) {
-        setError('Description is required.');
+        setError('Enter a description.');
         return;
       }
     }
@@ -568,7 +568,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
                 style={[styles.textInput, styles.notesInput]}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Add reference notes..."
+                placeholder="Add a note (optional)"
                 placeholderTextColor={colors.textMuted}
                 multiline
               />

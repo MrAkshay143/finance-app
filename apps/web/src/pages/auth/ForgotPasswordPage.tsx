@@ -172,7 +172,7 @@ export const ForgotPasswordPage: React.FC = () => {
       });
 
       setStep(4);
-      toast.success('Password reset successfully');
+      toast.success('Password reset');
       setTimeout(() => {
         navigate('/login', { replace: true });
       }, 2500);

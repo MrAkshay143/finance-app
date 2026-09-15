@@ -169,7 +169,7 @@ export const FinanceProfileScreen: React.FC = () => {
         {saveSuccess ? (
           <View style={styles.successBanner}>
             <CheckIcon size={18} color={colors.success} />
-            <Text style={styles.successBannerText}>Financial targets updated successfully.</Text>
+            <Text style={styles.successBannerText}>Financial targets updated.</Text>
           </View>
         ) : null}
 
@@ -187,7 +187,7 @@ export const FinanceProfileScreen: React.FC = () => {
             </View>
             <View>
               <Text style={styles.cardTitle}>Monthly Baseline Targets</Text>
-              <Text style={styles.cardSubtitle}>Core parameters for FAM score calculations</Text>
+              <Text style={styles.cardSubtitle}>Core targets for FAM score calculations</Text>
             </View>
           </View>
 
@@ -354,7 +354,7 @@ export const FinanceProfileScreen: React.FC = () => {
           <View style={styles.infoCallout}>
             <InfoIcon size={16} color={colors.primary} />
             <Text style={styles.infoCalloutText}>
-              These parameters feed into your FAM health score and monthly spending analysis.
+              These targets feed into your FAM health score and monthly spending analysis.
             </Text>
           </View>
         </View>

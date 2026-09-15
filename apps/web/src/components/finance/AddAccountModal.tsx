@@ -67,7 +67,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       },
       onSuccess: (res: any) => {
         syncOnAccountMutation(queryClient);
-        toast.success('Account created successfully');
+        toast.success('Account created');
         onAccountCreated?.(res?.account || res?.data || res);
         onClose();
       },
@@ -82,12 +82,12 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     e.preventDefault();
     let hasError = false;
     if (!name.trim()) {
-      setNameError('Account name is required.');
+      setNameError('Enter an account name.');
       hasError = true;
     }
     const balNum = openingBalance ? parseFloat(openingBalance) : 0;
     if (isNaN(balNum) || balNum < 0) {
-      setBalanceError('Enter a valid balance (0 or greater).');
+      setBalanceError('Enter a valid opening balance (0 or higher).');
       hasError = true;
     }
     if (hasError) return;
@@ -139,10 +139,11 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             label="Account Name"
             type="text"
             required
-            placeholder="e.g. HDFC Salary Account, Zerodha Demat"
+            placeholder="e.g. HDFC Salary Account"
             value={name}
             onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
             error={nameError}
+            helperText="A recognizable name for this account"
             icon={<Building2 className="w-4 h-4" />}
           />
         </div>
@@ -197,7 +198,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             onChange={(e) => { setOpeningBalance(e.target.value); if (balanceError) setBalanceError(''); }}
             error={balanceError}
             icon={<span className="text-xs font-bold text-textMuted">{getCurrencySymbol(currency)}</span>}
-            helperText={balanceError ? undefined : 'Initial balance when connecting this account'}
+            helperText={balanceError ? undefined : 'Opening balance when adding this account'}
           />
         </div>
       </form>
