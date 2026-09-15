@@ -93,7 +93,7 @@ const EMAIL_RATE_MAX = 20;
 async function checkEmailRateLimit(userId: string): Promise<boolean> {
   try {
     const redis = getRedisClient();
-    if (!redis) return true; // Redis unavailable — fail open
+    if (!redis) return true; // Redis unavailable - fail open
     const key = `email_rate:${userId}`;
     const count = await redis.incr(key);
     if (count === 1) await redis.expire(key, EMAIL_RATE_WINDOW_SECONDS);
@@ -196,7 +196,7 @@ export async function testSmtpConnection(recipientEmail: string): Promise<{ succ
   if (!transporter) return { success: false, message: 'SMTP is not configured or disabled.' };
   try {
     await transporter.verify();
-    await sendEmail({ to: recipientEmail, subject: 'Finance App — SMTP Test', html: '<p>SMTP is configured correctly.</p>', text: 'SMTP is configured correctly.', templateKey: 'smtp_test' });
+    await sendEmail({ to: recipientEmail, subject: 'Finance App - SMTP Test', html: '<p>SMTP is configured correctly.</p>', text: 'SMTP is configured correctly.', templateKey: 'smtp_test' });
     return { success: true, message: 'Test email sent successfully.' };
   } catch (err: any) {
     logger.error({ errorCode: err?.code }, 'SMTP test failed');
@@ -251,7 +251,7 @@ export async function sendVerificationEmail(opts: {
   });
 }
 
-// EMAIL-021: Password reset OTP email (OTP-based flow — distinct from link-based password_reset)
+// EMAIL-021: Password reset OTP email (OTP-based flow - distinct from link-based password_reset)
 export async function sendPasswordResetOtpEmail(opts: {
   to: string;
   firstName: string;

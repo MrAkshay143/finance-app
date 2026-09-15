@@ -5,7 +5,7 @@ import { CurrencyCodeSchema, type CurrencyCode } from './currencies.js';
 
 export const PASSWORD_REQUIREMENTS_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
-// PasswordSchema is a structural/sanity guard only — minimum 8 characters.
+// PasswordSchema is a structural/sanity guard only - minimum 8 characters.
 // Actual complexity rules (uppercase, lowercase, digit, special) are enforced
 // dynamically by the backend passwordPolicyService, which reads admin-configured
 // settings. Do NOT add hardcoded regex checks here as they would conflict with

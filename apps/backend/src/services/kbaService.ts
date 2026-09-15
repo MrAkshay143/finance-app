@@ -255,7 +255,7 @@ export class KbaService {
       }
     }
 
-    // All correct — reset attempt counter
+    // All correct - reset attempt counter
     await resetKbaAttempts(targetUserId!);
 
     await logAuditEvent({

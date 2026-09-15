@@ -44,7 +44,7 @@ initRedis().catch((err) => {
   logger.warn({ err: err?.message }, 'Failed to initialize Redis on startup');
 });
 
-// Ensure database schema — application startup is strictly schema-read-only
+// Ensure database schema - application startup is strictly schema-read-only
 async function ensureDatabaseSchema() {
   // Schema migrations are managed via deployment pipelines; startup is schema-read-only
   logger.info('Database schema verified: application startup is schema-read-only');

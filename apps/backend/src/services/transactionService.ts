@@ -6,7 +6,7 @@ import { balanceService } from './balanceService.js';
 import { logAuditEvent } from './auditService.js';
 import { invalidateDashboardCache } from './dashboardService.js';
 import { emitDashboardRefresh, emitSyncEvent } from '../sockets/socketGateway.js';
-// Lazy import to avoid circular dependency — resolved at call time
+// Lazy import to avoid circular dependency - resolved at call time
 let _transferService: typeof import('./transferService.js').transferService | null = null;
 async function getTransferService() {
   if (!_transferService) {

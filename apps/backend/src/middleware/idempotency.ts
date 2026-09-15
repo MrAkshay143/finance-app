@@ -33,7 +33,7 @@ export function computeRequestFingerprint(req: Request): string {
 export function idempotencyMiddleware(req: Request, res: Response, next: NextFunction): void {
   const key = req.headers['x-idempotency-key'];
 
-  // No key provided — pass through without idempotency checking (backwards compatible)
+  // No key provided - pass through without idempotency checking (backwards compatible)
   if (!key || typeof key !== 'string' || !key.trim()) {
     return next();
   }
@@ -42,7 +42,7 @@ export function idempotencyMiddleware(req: Request, res: Response, next: NextFun
 
   const userId = req.user?.id;
   if (!userId) {
-    // Not authenticated — skip idempotency (route authentication middleware handles unauthenticated requests)
+    // Not authenticated - skip idempotency (route authentication middleware handles unauthenticated requests)
     return next();
   }
 

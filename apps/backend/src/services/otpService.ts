@@ -108,7 +108,7 @@ export class OtpService {
           await redis.expire(countKey, 3600); // 1-hour rolling window
         }
         if (countRaw > maxResendsPerHour) {
-          // Exceeded — remove the cooldown we just set, and throw
+          // Exceeded - remove the cooldown we just set, and throw
           await redis.del(cooldownKey);
           throw new ValidationError(
             `Too many OTP requests. Please try again in an hour.`
@@ -116,7 +116,7 @@ export class OtpService {
         }
       } catch (err: any) {
         if (err instanceof ValidationError) throw err;
-        logger.warn({ err: err?.message }, 'Redis OTP rate limit check failed — falling through to in-memory');
+        logger.warn({ err: err?.message }, 'Redis OTP rate limit check failed - falling through to in-memory');
         // Fall through to in-memory fallback below
       }
     } else {
@@ -153,7 +153,7 @@ export class OtpService {
       data: { usedAt: new Date() }, // mark as "consumed" so they can no longer be verified
     });
 
-    // Generate the OTP — never log the plaintext
+    // Generate the OTP - never log the plaintext
     const otp = generateOtpValue();
     const otpHash = hashOtp(otp);
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
@@ -172,7 +172,7 @@ export class OtpService {
       details: { email: normalizedEmail, purpose, otpId: record.id, expiresAt },
     });
 
-    // Return plaintext OTP — caller MUST pass it to email service only (never log)
+    // Return plaintext OTP - caller MUST pass it to email service only (never log)
     return { otp, otpId: record.id };
   }
 

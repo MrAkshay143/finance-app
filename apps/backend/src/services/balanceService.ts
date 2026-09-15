@@ -79,7 +79,7 @@ export class BalanceService {
       isIncrement = direction === 'CREDIT'; // Normal credit = add
     }
 
-    // Atomic increment/decrement — no read-modify-write race condition (FIN-01)
+    // Atomic increment/decrement - no read-modify-write race condition (FIN-01)
     const updated = await tx.account.update({
       where: { id: accountId },
       data: {

@@ -10,7 +10,7 @@ export interface EmailJobData {
   templateKey?: string;
   variables?: Record<string, string>;
   userId?: string;
-  // Inline HTML — used when templateKey not set
+  // Inline HTML - used when templateKey not set
   htmlContent?: string;
   textContent?: string;
 }
@@ -73,7 +73,7 @@ export async function initEmailQueue(): Promise<void> {
             userId: data.userId,
           });
         } else {
-          logger.warn({ jobId: job.id }, 'Email job has neither templateKey nor htmlContent — skipping');
+          logger.warn({ jobId: job.id }, 'Email job has neither templateKey nor htmlContent - skipping');
         }
       },
       { connection, concurrency: 5 }
@@ -88,7 +88,7 @@ export async function initEmailQueue(): Promise<void> {
 
     logger.info('BullMQ email queue initialized');
   } catch (err: any) {
-    logger.warn({ err: err?.message }, 'Failed to initialize BullMQ email queue — emails will be sent inline');
+    logger.warn({ err: err?.message }, 'Failed to initialize BullMQ email queue - emails will be sent inline');
     emailQueue = null;
     emailWorker = null;
   }
@@ -101,7 +101,7 @@ export async function enqueueEmail(data: EmailJobData): Promise<void> {
       await emailQueue.add(data.type, data);
       return;
     } catch (err: any) {
-      logger.warn({ err: err?.message, to: data.to }, 'Failed to enqueue email — sending inline');
+      logger.warn({ err: err?.message, to: data.to }, 'Failed to enqueue email - sending inline');
     }
   }
   // Inline fallback

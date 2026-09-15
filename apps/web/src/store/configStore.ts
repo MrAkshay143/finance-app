@@ -57,7 +57,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
         const defaultBaseCurrency = cfg.defaultBaseCurrency || 'INR';
         const defaultCountry = cfg.defaultCountry || 'IN';
 
-        // Merge server policy with safe defaults — server wins on any truthy override
+        // Merge server policy with safe defaults - server wins on any truthy override
         const rawPolicy = cfg.passwordPolicy;
         const passwordPolicy: PasswordPolicy = rawPolicy && typeof rawPolicy === 'object'
           ? {

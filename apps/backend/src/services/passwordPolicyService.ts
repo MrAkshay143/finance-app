@@ -87,7 +87,7 @@ export async function getPasswordPolicy(): Promise<PasswordPolicy> {
   try {
     policy = await loadPolicyFromDb();
   } catch (err: any) {
-    logger.warn({ err: err?.message }, 'Failed to load password policy from DB — using defaults');
+    logger.warn({ err: err?.message }, 'Failed to load password policy from DB - using defaults');
     policy = { ...DEFAULT_POLICY };
   }
 

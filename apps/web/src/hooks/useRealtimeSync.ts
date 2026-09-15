@@ -35,7 +35,7 @@ export function useRealtimeSync(): void {
 
     const onReconnect = () => {
       if (isInitialConnect) {
-        // First connect is handled by the surrounding page load — skip catch-up
+        // First connect is handled by the surrounding page load - skip catch-up
         isInitialConnect = false;
         return;
       }
@@ -48,7 +48,7 @@ export function useRealtimeSync(): void {
       .then((socket) => {
         activeSocket = socket;
         socket.on('sync:event', onIncomingEvent);
-        // Register reconnect handler — fires on every subsequent connect event
+        // Register reconnect handler - fires on every subsequent connect event
         socket.on('connect', onReconnect);
         // Mark initial connect as done after we attach the listener
         isInitialConnect = false;

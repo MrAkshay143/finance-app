@@ -77,7 +77,7 @@ export const TransactionsPage: React.FC = () => {
   // Delete confirmation modal state
   const [deletingItem, setDeletingItem] = useState<DisplayItem | null>(null);
 
-  // Expanded card state — only one at a time
+  // Expanded card state - only one at a time
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const toggleExpanded = (id: string) => {

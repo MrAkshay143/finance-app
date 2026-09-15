@@ -13,7 +13,7 @@ const CSRF_EXEMPT_PATHS = new Set([
   '/api/v1/metrics',
 ]);
 
-// HMAC-based CSRF token — uses crypto module (no external runtime dep needed for basic version)
+// HMAC-based CSRF token - uses crypto module (no external runtime dep needed for basic version)
 import crypto from 'crypto';
 
 function generateCsrfToken(sessionId: string): string {
@@ -56,7 +56,7 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction):
     return;
   }
 
-  // Get session identifier — use userId from JWT if authenticated, else IP
+  // Get session identifier - use userId from JWT if authenticated, else IP
   const sessionId = (req as any).user?.id ?? req.ip ?? 'anonymous';
 
   // Read CSRF token from header (X-CSRF-Token) or body (_csrf)
@@ -77,10 +77,10 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction):
   next();
 }
 
-// Handler for GET /api/v1/auth/csrf-token — issues a CSRF token. The frontend should call this on app load and include the token in subsequent requests.
+// Handler for GET /api/v1/auth/csrf-token - issues a CSRF token. The frontend should call this on app load and include the token in subsequent requests.
 export function getCsrfToken(req: Request, res: Response): void {
   const sessionId = (req as any).user?.id ?? req.ip ?? 'anonymous';
   const token = generateCsrfToken(sessionId);
-  // Expose in response body — JS can read it and attach to X-CSRF-Token header
+  // Expose in response body - JS can read it and attach to X-CSRF-Token header
   res.status(200).json({ success: true, csrfToken: token });
 }

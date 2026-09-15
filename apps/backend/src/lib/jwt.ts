@@ -9,7 +9,7 @@ export interface AccessTokenPayload extends JwtPayload {
   role: string;
   jti: string;
   type?: string;
-  sessionId?: string; // RefreshToken.id — used to identify the current session in getSessions
+  sessionId?: string; // RefreshToken.id - used to identify the current session in getSessions
 }
 
 const BCRYPT_ROUNDS = 10;

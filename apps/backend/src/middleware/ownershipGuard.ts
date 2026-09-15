@@ -41,7 +41,7 @@ export function ownershipGuard(
       }
 
       if (record[ownerField] !== user.id) {
-        logger.warn({ userId: user.id, resourceId, ownerField }, 'Ownership check failed — IDOR attempt blocked');
+        logger.warn({ userId: user.id, resourceId, ownerField }, 'Ownership check failed - IDOR attempt blocked');
         next(new ForbiddenError('Access denied'));
         return;
       }
