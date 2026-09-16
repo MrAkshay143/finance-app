@@ -354,7 +354,7 @@ describe('Phase 4 Screens Verification Test Suite (TASK-4.5, 4.6, 4.7, 4.8)', ()
       expect(html).toContain('Recurring Transactions');
       expect(html).toContain('Scheduled Automation');
       expect(html).toContain('Process Due Now');
-      expect(html).toContain('Add Recurring');
+      expect(html).toContain('Add Schedule');
       expect(html).toContain('Active');
       expect(html).toContain('Paused');
     });

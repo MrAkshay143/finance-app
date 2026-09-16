@@ -298,7 +298,7 @@ export const RecurringTransactionsPage: React.FC = () => {
             onClick={handleOpenAddModal}
             icon={<Plus className="w-4 h-4 stroke-[2.5]" />}
           >
-            Add Recurring Schedule
+            Add Schedule
           </Button>
         }
       />
@@ -460,7 +460,7 @@ export const RecurringTransactionsPage: React.FC = () => {
             icon={<Repeat className="w-7 h-7 stroke-[1.8]" />}
             title="No recurring payments"
             description="Schedule recurring bills, salaries, and subscriptions."
-            actionLabel="Add Recurring Schedule"
+            actionLabel="Add Schedule"
             actionIcon={<Plus className="w-4 h-4 stroke-[2.5]" />}
             onAction={handleOpenAddModal}
           />
